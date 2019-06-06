@@ -19,17 +19,10 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   use GenServer
   alias __MODULE__, as: State
-  alias FarmbotCeleryScript.Scheduler.CommandRunner
-  alias FarmbotCeleryScript.{AST, Compiler}
+  alias FarmbotCeleryScript.{AST, RuntimeError, Compiler}
 
   defstruct steps: [],
-            table: nil,
-            execute: nil,
-            schedule: nil,
-            execute_spec: nil,
-            schedule_spec: nil
-
-  @table_name :celery_scheduler
+            execute: false
 
   @doc "Start an instance of a CeleryScript Scheduler"
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -49,17 +42,15 @@ defmodule FarmbotCeleryScript.Scheduler do
   `move_absolute` at the same time, the `execute`d call will have somewhat
   undefined behaviour depending on the `move_absolute` implementation.
   """
-  @spec execute(atom, AST.t() | [Compiler.compiled()]) :: {:ok, reference()}
-  def execute(table \\ @table_name, celery_script)
+  @spec execute(GenServer.server(), AST.t() | [Compiler.compiled()]) :: {:ok, reference()}
+  def execute(scheduler_pid \\ __MODULE__, celery_script)
 
-  def execute(table, %AST{} = ast) do
-    execute(table, Compiler.compile(ast))
+  def execute(sch, %AST{} = ast) do
+    execute(sch, Compiler.compile(ast))
   end
 
-  def execute(table, compiled) when is_list(compiled) do
-    ref = make_ref()
-    :ets.insert(table, {:os.system_time(), {self(), ref}, compiled})
-    {:ok, ref}
+  def execute(sch, compiled) when is_list(compiled) do
+    GenServer.call(sch, {:execute, compiled})
   end
 
   @doc """
@@ -67,71 +58,84 @@ defmodule FarmbotCeleryScript.Scheduler do
   Calls are executed in a first in first out buffer, with things being added
   by `execute/2` taking priority.
   """
-  @spec schedule(atom, AST.t() | [Compiler.compiled()]) :: {:ok, reference()}
-  def schedule(table \\ @table_name, celery_script)
+  @spec schedule(GenServer.server(), AST.t() | [Compiler.compiled()]) :: {:ok, reference()}
+  def schedule(scheduler_pid \\ __MODULE__, celery_script)
 
-  def schedule(table, %AST{} = ast) do
-    schedule(table, Compiler.compile(ast))
+  def schedule(sch, %AST{} = ast) do
+    schedule(sch, Compiler.compile(ast))
   end
 
-  def schedule(table, compiled) when is_list(compiled) do
+  def schedule(sch, compiled) when is_list(compiled) do
+    GenServer.call(sch, {:schedule, compiled})
+  end
+
+  @impl true
+  def init(_args) do
+    {:ok, %State{}}
+  end
+
+  @impl true
+  def handle_call({:execute, compiled}, {_pid, ref} = from, state) do
     # Warning, timestamps may be unstable in offline situations.
-    ref = make_ref()
-    :ets.insert(table, {nil, {self(), ref}, compiled})
-    {:ok, ref}
+    send(self(), :timeout)
+    {:reply, {:ok, ref}, %{state | steps: [{from, :os.system_time(), compiled} | state.steps]}}
+  end
+
+  def handle_call({:schedule, compiled}, {_pid, ref} = from, state) do
+    send(self(), :timeout)
+    {:reply, {:ok, ref}, %{state | steps: state.steps ++ [{from, nil, compiled}]}}
   end
 
   @impl true
-  def init(args) do
-    table = Keyword.get(args, :table, @table_name)
-    {:ok, execute} = CommandRunner.start_link(args)
-    {:ok, schedule} = CommandRunner.start_link(args)
-    send(self(), :checkup)
-    execute_spec = nil
-    schedule_spec = nil
+  def handle_info(:timeout, %{steps: steps} = state) when length(steps) >= 1 do
+    [{{_pid, _ref} = from, timestamp, compiled} | rest] =
+      Enum.sort(steps, fn
+        {_, first_ts, _}, {_, second_ts, _} when first_ts <= second_ts -> true
+        {_, _, _}, {_, _, _} -> false
+      end)
 
-    {:ok,
-     %State{
-       table: table,
-       execute: execute,
-       schedule: schedule,
-       execute_spec: execute_spec,
-       schedule_spec: schedule_spec
-     }}
-  end
+    case state.execute do
+      true ->
+        {:noreply, state}
 
-  @impl true
-  def handle_info(:checkup, state) do
-    # execute_steps = :ets.select(state.table, fn 
-    #   {head, from, compiled} when is_number(head) -> {head, from, compiled}
-    # end)
-    execute_steps =
-      :ets.select(state.table, [
-        {{:"$1", :"$2", :"$3"}, [is_number: :"$1"], [{{:"$1", :"$2", :"$3"}}]}
-      ])
-
-    # schedule_steps = :ets.select(state.table, fn
-    #   {head, from, compiled} when is_nil(head) -> {head, from, compiled}
-    # end)
-
-    schedule_steps =
-      :ets.select(state.table, [
-        {{:"$1", :"$2", :"$3"}, [{:==, :"$1", nil}], [{{:"$1", :"$2", :"$3"}}]}
-      ])
-
-    # all = :ets.match_object(state.table, {:_, :_, :_})
-    # length(all) > 0 && IO.inspect(all, label: "ALL")
-
-    length(execute_steps) > 0 && IO.inspect(execute_steps, label: "EXECUTE")
-    length(schedule_steps) > 0 && IO.inspect(schedule_steps, label: "SCHEDULE")
-    :ok = GenServer.cast(state.execute, execute_steps)
-    :ok = GenServer.cast(state.schedule, schedule_steps)
-
-    for step <- execute_steps ++ schedule_steps do
-      true = :ets.delete_object(state.table, step)
+      false ->
+        {:noreply, %{state | execute: is_number(timestamp), steps: rest},
+         {:continue, {from, compiled}}}
     end
+  end
 
-    send(self(), :checkup)
+  def handle_info(:timeout, %{steps: []} = state) do
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_continue({{pid, ref} = from, [step | rest]}, state) do
+    case step(state, step) do
+      [fun | _] = more when is_function(fun, 0) ->
+        {:noreply, state, {:continue, {from, more ++ rest}}}
+
+      {:error, reason} ->
+        send(pid, {__MODULE__, ref, {:error, reason}})
+        send(self(), :timeout)
+        {:noreply, state}
+
+      _ ->
+        {:noreply, state, {:continue, {from, rest}}}
+    end
+  end
+
+  def handle_continue({{pid, ref}, []}, state) do
+    send(pid, {__MODULE__, ref, :ok})
+    send(self(), :timeout)
+    {:noreply, %{state | execute: false}}
+  end
+
+  def step(_state, fun) when is_function(fun, 0) do
+    try do
+      fun.()
+    rescue
+      e in RuntimeError -> {:error, Exception.message(e)}
+      exception -> reraise(exception, __STACKTRACE__)
+    end
   end
 end
