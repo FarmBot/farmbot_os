@@ -3,6 +3,7 @@ defmodule FarmbotCore.Asset.Command do
   A collection of functions that _write_ to the DB
   """
   alias FarmbotCore.{Asset, Asset.Repo}
+  alias Asset.FarmEvent
 
   @typedoc "String kind that should be turned into an Elixir module."
   @type kind :: String.t()
@@ -42,6 +43,11 @@ defmodule FarmbotCore.Asset.Command do
   def update("FarmwareInstallation", id, params) do 
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
+  end
+
+  def update("FarmEvent", id, params) do
+    old = Asset.get_farm_event(id) || struct!(FarmEvent)
+    Asset.update_farm_event!(old, params)
   end
 
   # Deletion use case:
