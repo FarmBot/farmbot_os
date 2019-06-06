@@ -71,7 +71,7 @@ defmodule FarmbotCore.Asset.Command do
   @callback new_changeset(kind, id, params) :: Ecto.Changeset.t()
   def new_changeset(asset_kind, id, params) do
     mod = as_module(asset_kind)
-    asset = Repo.get_by(mod, id: id) || struct!(asset_kind)
+    asset = Repo.get_by(mod, id: id) || struct!(mod)
     mod.changeset(asset, params)
   end
 
