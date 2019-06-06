@@ -46,21 +46,22 @@ defmodule FarmbotCore.Asset.Command do
 
   # Deletion use case:
   def update(asset_kind, nil, id) do
-    old = Repo.get_by(as_module(asset_kind), id: id)
+    old = Repo.get_by(as_module!(asset_kind), id: id)
     old && Repo.delete!(old)
     :ok
   end
 
   # Catch-all use case:
   def update(asset_kind, params, id) do
-    case Repo.get_by(as_module(asset_kind), id: id) do
+    mod = as_module!(asset_kind)
+    case Repo.get_by(mod, id: id) do
       nil ->
-        struct!(asset_kind)
-        |> asset_kind.changeset(params)
+        struct!(mod)
+        |> mod.changeset(params)
         |> Repo.insert!()
 
       asset ->
-        asset_kind.changeset(asset, params)
+        mod.changeset(asset, params)
         |> Repo.update!()
     end
 
@@ -70,26 +71,26 @@ defmodule FarmbotCore.Asset.Command do
   @doc "Returns a Ecto Changeset that can be cached or applied."
   @callback new_changeset(kind, id, params) :: Ecto.Changeset.t()
   def new_changeset(asset_kind, id, params) do
-    mod = as_module(asset_kind)
-    asset = Repo.get_by(mod, id: id) || struct!(asset_kind)
+    mod = as_module!(asset_kind)
+    asset = Repo.get_by(mod, id: id) || struct!(mod)
     mod.changeset(asset, params)
   end
 
-  defp as_module("Device"), do: Asset.Device 
-  defp as_module("DiagnosticDump"), do: Asset.DiagnosticDump 
-  defp as_module("FarmEvent"), do: Asset.FarmEvent 
-  defp as_module("FarmwareEnv"), do: Asset.FarmwareEnv 
-  defp as_module("FarmwareInstallation"), do: Asset.FarmwareInstallation 
-  defp as_module("FbosConfig"), do: Asset.FbosConfig 
-  defp as_module("FirmwareConfig"), do: Asset.FirmwareConfig 
-  defp as_module("Peripheral"), do: Asset.Peripheral 
-  defp as_module("PinBinding"), do: Asset.PinBinding 
-  defp as_module("Point"), do: Asset.Point 
-  defp as_module("Regimen"), do: Asset.Regimen 
-  defp as_module("Sensor"), do: Asset.Sensor 
-  defp as_module("Sequence"), do: Asset.Sequence 
-  defp as_module("Tool"), do: Asset.Tool 
-  defp as_module(kind) when is_binary(kind) do
+  defp as_module!("Device"), do: Asset.Device 
+  defp as_module!("DiagnosticDump"), do: Asset.DiagnosticDump 
+  defp as_module!("FarmEvent"), do: Asset.FarmEvent 
+  defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv 
+  defp as_module!("FarmwareInstallation"), do: Asset.FarmwareInstallation 
+  defp as_module!("FbosConfig"), do: Asset.FbosConfig 
+  defp as_module!("FirmwareConfig"), do: Asset.FirmwareConfig 
+  defp as_module!("Peripheral"), do: Asset.Peripheral 
+  defp as_module!("PinBinding"), do: Asset.PinBinding 
+  defp as_module!("Point"), do: Asset.Point 
+  defp as_module!("Regimen"), do: Asset.Regimen 
+  defp as_module!("Sensor"), do: Asset.Sensor 
+  defp as_module!("Sequence"), do: Asset.Sequence 
+  defp as_module!("Tool"), do: Asset.Tool 
+  defp as_module!(kind) when is_binary(kind) do
     raise("""
     Unknown kind: #{kind}
     """)
