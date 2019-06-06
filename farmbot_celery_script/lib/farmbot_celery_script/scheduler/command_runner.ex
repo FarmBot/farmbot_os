@@ -56,7 +56,7 @@ defmodule FarmbotCeleryScript.Scheduler.CommandRunner do
 
   def step(fun) when is_function(fun, 0) do
     try do
-      # IO.inspect(fun, label: "step")
+      IO.inspect(fun, label: "step")
       fun.()
     rescue
       e in RuntimeError -> {:error, Exception.message(e)}
