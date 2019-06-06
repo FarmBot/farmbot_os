@@ -130,7 +130,7 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?, 10
+    assert_receive :called_auto_sync?
   end
 
   test "handles Device assets" do
@@ -146,7 +146,7 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, "Device", %{}, 999}, 10
+    assert_receive {:update_called, "Device", 999, %{}}
   end
 
   def simple_asset_test_singleton(module_name) do
@@ -169,7 +169,7 @@ defmodule AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
   end
 
   test "handles auto_sync of 'cache_assets' when auto_sync is false" do
@@ -184,14 +184,14 @@ defmodule AutoSyncChannelTest do
       false
     end)
 
-    stub(Command, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
+    stub(Command, :update, fn kind, id, params ->
+      send(test_pid, {:update_called, kind, id, params})
       :ok
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?, 10
-    assert_receive {:update_called, "FbosConfig", %{"foo" => "bar"}, 999}, 10
+    assert_receive :called_auto_sync?
+    assert_receive {:update_called, "FbosConfig", 999, %{"foo" => "bar"}}
   end
 
   test "auto_sync disabled, resource not in @cache_kinds" do
@@ -212,7 +212,7 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}, 10
+    assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}
   end
 
   test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
@@ -235,6 +235,6 @@ defmodule AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, module_name, %{"foo" => "bar"}, 999}, 10
+    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
   end
 end
