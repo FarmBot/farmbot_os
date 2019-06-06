@@ -63,6 +63,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     end
   end
 
+  defp init_event_completed(%{farm_event: %{executable_type: "Regimen"}} = state, _) do
+    {:ok, state, 0}
+  end
+
   defp init_event_completed(_, _) do
     Logger.warn("No future events")
     :ignore
@@ -73,7 +77,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
   end
 
   def handle_info(:timeout, %State{} = state) do
-    Logger.info("build_calendar")
     next = FarmEvent.build_calendar(state.farm_event, state.datetime)
 
     if next do
