@@ -122,8 +122,8 @@ defmodule FarmbotCeleryScript.Scheduler do
     # all = :ets.match_object(state.table, {:_, :_, :_})
     # length(all) > 0 && IO.inspect(all, label: "ALL")
 
-    # length(execute_steps) > 0 && IO.inspect(execute_steps, label: "EXECUTE")
-    # length(schedule_steps) > 0 && IO.inspect(schedule_steps, label: "SCHEDULE")
+    length(execute_steps) > 0 && IO.inspect(execute_steps, label: "EXECUTE")
+    length(schedule_steps) > 0 && IO.inspect(schedule_steps, label: "SCHEDULE")
     :ok = GenServer.cast(state.execute, execute_steps)
     :ok = GenServer.cast(state.schedule, schedule_steps)
 
