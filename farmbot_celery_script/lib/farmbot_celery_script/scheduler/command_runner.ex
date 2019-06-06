@@ -35,7 +35,7 @@ defmodule FarmbotCeleryScript.Scheduler.CommandRunner do
 
   def handle_continue([], state) do
     # IO.puts "[#{inspect(self())}] CommandRunner complete"
-    Process.send_after(self(), :checkup, 500)
+    send(self(), :checkup)
     {:noreply, state}
   end
 
