@@ -77,6 +77,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+    # Logger.warn "AUTOSYNC PAYLOAD: #{inspect(key)} #{inspect(payload)}"
     chan = state.chan
     data = JSON.decode!(payload)
     device = state.jwt.bot
@@ -105,20 +106,21 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def handle_asset(asset_kind, id, params) do
     if Asset.Query.auto_sync?() do
       :ok = BotState.set_sync_status("syncing")
-      Asset.Command.update(asset_kind, params, id)
+      # Logger.info "Syncing #{asset_kind} #{id} #{inspect(params)}"
+      Asset.Command.update(asset_kind, id, params)
       :ok = BotState.set_sync_status("synced")
     else
-      cache_sync(asset_kind, params, id)
+      cache_sync(asset_kind, id, params)
     end
   end
 
-  def cache_sync(kind, params, id) when kind in @cache_kinds do
+  def cache_sync(kind, id, params) when kind in @cache_kinds do
     :ok = BotState.set_sync_status("syncing")
-    :ok = Asset.Command.update(kind, params, id)
+    :ok = Asset.Command.update(kind, id, params)
     :ok = BotState.set_sync_status("synced")
   end
 
-  def cache_sync(asset_kind, params, id) do
+  def cache_sync(asset_kind, id, params) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
     changeset = Asset.Command.new_changeset(asset_kind, id, params)
     :ok = EagerLoader.cache(changeset)
