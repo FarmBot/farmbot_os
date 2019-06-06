@@ -62,7 +62,17 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
         )
 
         calculate_next(ri)
+      
+      # The next event is in the future, but is not within the execution window.
+      comp < 0 ->
+        Logger.warn(
+          "Regimen: #{ri.regimen.name || "regimen"} too early: #{comp} minutes difference."
+        )
 
+        Process.send_after(self(), :timeout, @checkup_time_ms)
+        {:noreply, ri}
+
+      # The next event is right about now ish
       true ->
         Logger.warn(
           "Regimen: #{ri.regimen.name || "regimen"} has not run before: #{comp} minutes difference."
@@ -83,10 +93,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
 
   defp calculate_next(%{regimen: %{regimen_items: [next | rest]} = reg} = pr, checkup_time_ms) do
     next_dt = Timex.shift(pr.epoch, milliseconds: next.time_offset)
-    params = %{next: next_dt, next_sequence_id: next.sequence_id}
+
     # TODO(Connor) - This causes the active GenServer to be
     #                Restarted due to the `AssetMonitor`
-    pr = Asset.update_regimen_instance!(pr, params)
+    # params = %{next: next_dt, next_sequence_id: next.sequence_id}
+    # pr = Asset.update_regimen_instance!(pr, params)
+    
+    pr = %{pr | next: next_dt, next_sequence_id: next.sequence_id}
 
     pr = %{
       pr
