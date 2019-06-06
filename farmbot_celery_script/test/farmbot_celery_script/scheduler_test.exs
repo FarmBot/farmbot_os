@@ -173,8 +173,10 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     assert_receive {:wait, time_1}
     assert_receive {:read_pin, time_2}
     assert_receive {:write_pin, time_3}
-
-    assert [^time_1, ^time_3, ^time_2] = Enum.sort([time_1, time_2, time_3], &(&1 <= &2))
+    sorted = Enum.sort([time_1, time_2, time_3], &(&1 <= &2))
+    assert time_1 in sorted
+    assert time_2 in sorted
+    assert time_3 in sorted
   end
 
   test "execute twice", %{sch: sch} do
