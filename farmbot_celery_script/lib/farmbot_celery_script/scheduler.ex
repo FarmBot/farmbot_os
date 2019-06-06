@@ -102,7 +102,7 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   @impl true
   def handle_info(:checkup, state) do
-    # execute_steps = :ets.select(state.table, fn
+    # execute_steps = :ets.select(state.table, fn 
     #   {head, from, compiled} when is_number(head) -> {head, from, compiled}
     # end)
     execute_steps =
@@ -131,7 +131,7 @@ defmodule FarmbotCeleryScript.Scheduler do
       true = :ets.delete_object(state.table, step)
     end
 
-    Process.send_after(self(), :checkup, 1000)
+    send(self(), :checkup)
     {:noreply, state}
   end
 end
