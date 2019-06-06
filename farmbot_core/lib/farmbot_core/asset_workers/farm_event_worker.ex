@@ -29,6 +29,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
   def init([farm_event, args]) do
     # Logger.disable(self())
+    Logger.warn("FarmEvent: #{inspect(farm_event)} is initializing")
     ensure_executable!(farm_event)
     now = DateTime.utc_now()
     handle_sequence = Keyword.get(args, :handle_sequence, &handle_sequence/2)
@@ -132,7 +133,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
       true ->
         Logger.warn("Sequence: #{inspect(exe)} has not run before: #{comp} minutes difference.")
         apply(handle_sequence, [exe, event.body])
-        Asset.update_farm_event!(event, %{last_executed: next_dt})
+        update_last_executed(event, next_dt)
     end
   end
 
@@ -143,15 +144,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
       # last_execution is more than 2 minutes past expected execution time
       comp < -2000 ->
         Logger.warn("Sequence: #{exe.id} too late: #{comp} seconds difference.")
-        Asset.update_farm_event!(event, %{last_executed: next_dt})
+        update_last_executed(event, next_dt)
       # comp > 0 and comp < 2 ->
       #   Logger.warn("Sequence: #{exe.id} needs executing")
       #   apply(handle_sequence, [exe, event.body])
-      #   Asset.update_farm_event!(event, %{last_executed: next_dt})
+      #   update_last_executed(event, next_dt)
       comp < 0 ->
         Logger.warn("Sequence: #{exe.id} needs executing #{comp} seconds difference.")
         apply(handle_sequence, [exe, event.body])
-        Asset.update_farm_event!(event, %{last_executed: next_dt})
+        update_last_executed(event, next_dt)
       true ->
         Logger.warn("""
         what do?:
@@ -207,6 +208,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
 
     compiled_celery = Compiler.compile(celery_ast)
     Scheduler.schedule(compiled_celery)
+  end
+
+  defp update_last_executed(event, next_dt) do
+    # TODO(Connor) This causes the event to be restarted.
+    # Similarly to RegimenInstance worker.
+    Asset.update_farm_event!(event, %{last_executed: next_dt})
+    # %{event | last_executed: next_dt}
   end
 
 end
