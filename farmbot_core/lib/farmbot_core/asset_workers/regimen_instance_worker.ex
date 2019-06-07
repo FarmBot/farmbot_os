@@ -30,6 +30,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   end
 
   def init([regimen_instance, args]) do
+    Logger.warn "RegimenInstance #{inspect(regimen_instance)} initializing"
     apply_sequence = Keyword.get(args, :apply_sequence, &apply_sequence/2)
     unless is_function(apply_sequence, 2) do
       raise "RegimenInstance Sequence handler should be a 2 arity function"

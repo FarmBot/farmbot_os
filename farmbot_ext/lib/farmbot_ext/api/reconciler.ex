@@ -23,13 +23,10 @@ defmodule FarmbotExt.API.Reconciler do
   * apply the Transaction.
   """
   def sync do
-    # Get the sync changeset
-    sync_changeset = API.get_changeset(Sync)
-    sync = Changeset.apply_changes(sync_changeset)
-
-    multi = Multi.new()
-
-    with {:ok, multi} <- sync_group(multi, sync, SyncGroup.group_0()),
+    with {:ok, sync_changeset} <- API.get_changeset(Sync),
+         sync <- Changeset.apply_changes(sync_changeset),
+         multi <- Multi.new(),
+         {:ok, multi} <- sync_group(multi, sync, SyncGroup.group_0()),
          {:ok, multi} <- sync_group(multi, sync, SyncGroup.group_1()),
          {:ok, multi} <- sync_group(multi, sync, SyncGroup.group_2()),
          {:ok, multi} <- sync_group(multi, sync, SyncGroup.group_3()),
@@ -111,7 +108,8 @@ defmodule FarmbotExt.API.Reconciler do
   # A module is passed in if there is no local copy of the data.
   defp get_changeset(module, sync_item, nil) when is_atom(module) do
     Logger.info("Local data: #{module} does not exist. Using HTTP to get data.")
-    {:insert, API.get_changeset(module, "#{sync_item.id}")}
+    {:ok, changeset} = API.get_changeset(module, "#{sync_item.id}")
+    {:insert, changeset}
   end
 
   defp get_changeset(module, sync_item, %Changeset{} = cached) when is_atom(module) do
@@ -135,7 +133,8 @@ defmodule FarmbotExt.API.Reconciler do
         "Local data: #{local_item.__struct__} is out of date. Using HTTP to get newer data."
       )
 
-      {:update, API.get_changeset(local_item, "#{sync_item.id}")}
+      {:ok, changeset} = API.get_changeset(local_item, "#{sync_item.id}")
+      {:update, changeset}
     end
   end
 
