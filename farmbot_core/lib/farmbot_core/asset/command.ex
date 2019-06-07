@@ -2,8 +2,8 @@ defmodule FarmbotCore.Asset.Command do
   @moduledoc """
   A collection of functions that _write_ to the DB
   """
+  require Logger
   alias FarmbotCore.{Asset, Asset.Repo}
-  alias Asset.FarmEvent
 
   @typedoc "String kind that should be turned into an Elixir module."
   @type kind :: String.t()
@@ -20,22 +20,30 @@ defmodule FarmbotCore.Asset.Command do
   """
   @callback update(kind, params, id) :: :ok | no_return()
 
-  def update("Device", params) do 
+  def update("Device", _id, params) do 
     Asset.update_device!(params)
     :ok
   end
   
-  def update("FbosConfig", params, _) do 
+  def update("FbosConfig", _id, params) do 
     Asset.update_fbos_config!(params)
     :ok
   end
   
-  def update("FirmwareConfig", params, _) do 
+  def update("FirmwareConfig", _id, params) do 
     Asset.update_firmware_config!(params)
     :ok
   end
   
-  def update("FarmwareEnv", params, id) do 
+  # Deletion use case:
+  # TODO(Connor) put checks for deleting Device, FbosConfig and FirmwareConfig
+  def update(asset_kind, id, nil) do
+    old = Repo.get_by(as_module!(asset_kind), id: id)
+    old && Repo.delete!(old)
+    :ok
+  end
+
+  def update("FarmwareEnv", id, params) do 
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
   end
@@ -46,19 +54,26 @@ defmodule FarmbotCore.Asset.Command do
   end
 
   def update("FarmEvent", id, params) do
-    old = Asset.get_farm_event(id) || struct!(FarmEvent)
-    Asset.update_farm_event!(old, params)
+    old = Asset.get_farm_event(id)
+    if old, 
+      do: Asset.update_farm_event!(old, params), 
+      else: Asset.new_farm_event!(params)
+    
+    :ok
   end
 
-  # Deletion use case:
-  def update(asset_kind, nil, id) do
-    old = Repo.get_by(as_module!(asset_kind), id: id)
-    old && Repo.delete!(old)
+  def update("Regimen", id, params) do
+    old = Asset.get_regimen(id)
+    if old, 
+      do: Asset.update_regimen!(old, params), 
+      else: Asset.new_regimen!(params)
+    
     :ok
   end
 
   # Catch-all use case:
-  def update(asset_kind, params, id) do
+  def update(asset_kind, id, params) do
+    Logger.warn "Implement me: #{asset_kind}"
     mod = as_module!(asset_kind)
     case Repo.get_by(mod, id: id) do
       nil ->
