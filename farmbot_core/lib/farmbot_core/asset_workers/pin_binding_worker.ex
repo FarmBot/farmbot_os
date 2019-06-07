@@ -73,7 +73,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   @impl true
   def handle_cast(:trigger, %{pin_binding: %{special_action: nil} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    case Asset.get_sequence(id: pin_binding.sequence_id) do
+    case Asset.get_sequence(pin_binding.sequence_id) do
       %Sequence{} = seq ->
         ref = Scheduler.schedule(seq)
         {:noreply, %{state | scheduled_ref: ref}}
