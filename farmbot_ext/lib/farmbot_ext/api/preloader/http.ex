@@ -19,12 +19,10 @@ defmodule FarmbotExt.API.Preloader.HTTP do
   actually sync all resources. If it is not, preload all resources.
   """
   def preload_all() do
-    sync_changeset = API.get_changeset(Sync)
-    sync = Changeset.apply_changes(sync_changeset)
-
-    multi = Multi.new()
-
-    with {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
+    with {:ok, sync_changeset} <- API.get_changeset(Sync),
+         sync <- Changeset.apply_changes(sync_changeset),
+         multi <- Multi.new(),
+         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
          {:ok, _} <- Repo.transaction(multi) do
       auto_sync_change =
         Enum.find_value(multi.operations, fn {{key, _id}, {:changeset, change, []}} ->
