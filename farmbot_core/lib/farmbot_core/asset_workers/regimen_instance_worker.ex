@@ -78,7 +78,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
           "Regimen: #{ri.regimen.name || "regimen"} has not run before: #{comp} minutes difference."
         )
 
-        exe = Asset.get_sequence!(id: ri.next_sequence_id)
+        exe = Asset.get_sequence(ri.next_sequence_id) || raise("Sequence #{ri.next_sequence_id} not synced")
         fun = Process.get(:apply_sequence)
         apply(fun, [exe, ri])
         calculate_next(ri)

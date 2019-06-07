@@ -231,7 +231,7 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def get_sequence(id) do
-    case Asset.get_sequence(id: id) do
+    case Asset.get_sequence(id) do
       nil -> {:error, "sequence not found"}
       %{} = sequence -> AST.decode(sequence)
     end

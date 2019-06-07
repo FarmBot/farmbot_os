@@ -45,6 +45,12 @@ defmodule FarmbotCore.Asset do
 
   ## Begin FarmEvent
 
+  def new_farm_event!(params) do
+    %FarmEvent{}
+    |> FarmEvent.changeset(params)
+    |> Repo.insert!()
+  end
+
   @doc "Returns a FarmEvent by its API id."
   def get_farm_event(id) do
     Repo.get_by(FarmEvent, id: id)
@@ -151,9 +157,23 @@ defmodule FarmbotCore.Asset do
 
   ## Begin Regimen
 
-  @doc "Get a regimen by it's API id and FarmEvent API id"
-  def get_regimen!(params) do
-    Repo.get_by!(Regimen, params)
+  @doc "Get a regimen by it's API id"
+  def get_regimen(id) do
+    Repo.get_by(Regimen, id: id)
+  end
+
+  @doc "Enter a new regimen into the DB"
+  def new_regimen!(params) do
+    %Regimen{}
+    |> Regimen.changeset(params)
+    |> Repo.insert!()
+  end
+
+  @doc "Update an existing regimen"
+  def update_regimen!(regimen, params) do
+    regimen
+    |> Regimen.changeset(params)
+    |> Repo.update!()
   end
 
   ## End Regimen
@@ -161,12 +181,8 @@ defmodule FarmbotCore.Asset do
   ## Begin Sequence
 
   @doc "Get a sequence by it's API id"
-  def get_sequence!(params) do
-    Repo.get_by!(Sequence, params)
-  end
-
-  def get_sequence(params) do
-    Repo.get_by(Sequence, params)
+  def get_sequence(id) do
+    Repo.get_by(Sequence, id: id)
   end
 
   ## End Sequence

@@ -182,11 +182,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
   end
 
   defp ensure_executable!(%FarmEvent{executable_type: "Sequence", executable_id: id}) do
-    Asset.get_sequence!(id: id)
+    Asset.get_sequence(id) || raise("Sequence #{id} is not synced")
   end
 
   defp ensure_executable!(%FarmEvent{executable_type: "Regimen", executable_id: id}) do
-    Asset.get_regimen!(id: id)
+    Asset.get_regimen(id) || raise("Regimen #{id} is not synced")
   end
 
   @doc false
