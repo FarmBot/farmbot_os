@@ -5,8 +5,8 @@ defmodule AutoSyncChannelTest do
   import Mox
 
   alias FarmbotCore.JSON
-  alias FarmbotCore.Asset.{Query, Command}
-  alias FarmbotExt.{JWT, API.Preloader, AMQP.ConnectionWorker}
+  alias FarmbotCore.Asset.{Query, Command, Sync}
+  alias FarmbotExt.{JWT, API, AMQP.ConnectionWorker}
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
               "G1pbkBhZG1pbi5jb20iLCJpYXQiOjE1MDIxMjcxMTcsImp0a" <>
@@ -35,9 +35,12 @@ defmodule AutoSyncChannelTest do
 
     test_pid = self()
 
-    expect(Preloader, :preload_all, fn ->
+    expect(Query, :auto_sync?, fn -> false end)
+
+    expect(API, :get_changeset, fn _module ->
       send(test_pid, :preload_all_called)
-      :ok
+      changeset = Sync.changeset(%Sync{}, %{})
+      {:ok, changeset}
     end)
 
     expect(ConnectionWorker, :maybe_connect_autosync, fn jwt ->

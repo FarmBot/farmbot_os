@@ -22,7 +22,6 @@ defmodule FarmbotExt.API do
   plug(Tesla.Middleware.FollowRedirects)
   # plug(Tesla.Middleware.Logger)
 
-  @doc false
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
     server = get_config_value(:string, "authorization", "server")
@@ -163,6 +162,10 @@ defmodule FarmbotExt.API do
         {:error, msg}
     end
   end
+
+  @callback get_changeset(module) :: {:ok, %Ecto.Changeset{}} | {:error, term()}
+  @callback get_changeset(data :: module | map(), Path.t()) ::
+              {:ok, %Ecto.Changeset{}} | {:error, term()}
 
   @doc "helper for `GET`ing api resources."
   def get_changeset(module) when is_atom(module) do
