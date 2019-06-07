@@ -39,7 +39,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def init(args) do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}, {:continue, :preload}}
+    send(self(), :preload)
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}}
   end
 
   def terminate(reason, state) do
@@ -48,14 +49,21 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     if state.chan, do: ConnectionWorker.close_channel(state.chan)
   end
 
-  def handle_continue(:preload, state) do
-    :ok = Preloader.preload_all()
-    next_state = %{state | preloaded: true}
-    :ok = BotState.set_sync_status("synced")
-    {:noreply, next_state, {:continue, :connect}}
+  def handle_info(:preload, state) do
+    with :ok <- Preloader.preload_all(),
+         :ok <- BotState.set_sync_status("synced") do
+      send(self(), :connect)
+      {:noreply, %{state | preloaded: true}}
+    else
+      {:error, reason} ->
+        BotState.set_sync_status("sync_error")
+        Logger.error("Error preloading. #{reason}")
+        Process.send_after(self(), :preload, 5000)
+        {:noreply, state}
+    end
   end
 
-  def handle_continue(:connect, state) do
+  def handle_info(:connect, state) do
     result = ConnectionWorker.maybe_connect_autosync(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
   end
@@ -76,7 +84,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     {:noreply, state}
   end
 
-  def handle_info({:basic_deliver, payload, %{routing_key: key}}, state) do
+  def handle_info({:basic_deliver, payload, %{routing_key: key}}, %{preloaded: true} = state) do
     # Logger.warn "AUTOSYNC PAYLOAD: #{inspect(key)} #{inspect(payload)}"
     chan = state.chan
     data = JSON.decode!(payload)
@@ -94,6 +102,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     end
 
     :ok = ConnectionWorker.rpc_reply(chan, device, label)
+    {:noreply, state}
+  end
+
+  def handle_info({:basic_deliver, _, _}, %{preloaded: false} = state) do
+    send(self(), :preload)
     {:noreply, state}
   end
 

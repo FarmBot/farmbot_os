@@ -30,7 +30,8 @@ defmodule FarmbotExt.API.EagerLoader do
 
   def preload(asset_module, %{id: id}) when is_atom(asset_module) do
     local = Repo.one(from(m in asset_module, where: m.id == ^id)) || asset_module
-    :ok = API.get_changeset(local, id) |> cache()
+    {:ok, changeset} = API.get_changeset(local, id)
+    :ok = cache(changeset)
   end
 
   @doc "Get a Changeset by module and id. May return nil"
