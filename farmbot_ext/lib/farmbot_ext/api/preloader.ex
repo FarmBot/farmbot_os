@@ -1,9 +1,7 @@
 defmodule FarmbotExt.API.Preloader do
   @moduledoc """
-  Task to ensure Farmbot has synced:
-    * FarmbotCore.Asset.Device
-    * FarmbotCore.Asset.FbosConfig
-    * FarmbotCore.Asset.FirmwareConfig
+  Task to ensure download and insert or cache 
+  all resources stored in the API.
   """
 
   alias Ecto.{Changeset, Multi}
@@ -13,7 +11,7 @@ defmodule FarmbotExt.API.Preloader do
   alias API.{Reconciler, SyncGroup, EagerLoader}
 
   alias FarmbotCore.{
-    Asset,
+    Asset.Query,
     Asset.Repo,
     Asset.Sync
   }
@@ -23,7 +21,6 @@ defmodule FarmbotExt.API.Preloader do
   Starts with `group_0` to check if `auto_sync` is enabled. If it is, 
   actually sync all resources. If it is not, preload all resources.
   """
-  @callback preload_all :: :ok | :error
   def preload_all() do
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
          sync <- Changeset.apply_changes(sync_changeset),
@@ -37,7 +34,7 @@ defmodule FarmbotExt.API.Preloader do
 
       FarmbotCore.Logger.success(3, "Successfully synced bootup resources.")
 
-      :ok = maybe_auto_sync(sync_changeset, auto_sync_change || Asset.fbos_config().auto_sync)
+      :ok = maybe_auto_sync(sync_changeset, auto_sync_change || Query.auto_sync?())
     end
   end
 
