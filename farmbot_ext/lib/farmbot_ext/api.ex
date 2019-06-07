@@ -61,10 +61,8 @@ defmodule FarmbotExt.API do
   @progress_steps 50
 
   def upload_image(image_filename, meta \\ %{}) do
-    storage_auth =
-      %StorageAuth{form_data: form_data} =
-      API.get_changeset(StorageAuth)
-      |> Ecto.Changeset.apply_changes()
+    {:ok, changeset} = API.get_changeset(StorageAuth)
+    storage_auth = %StorageAuth{form_data: form_data} = Ecto.Changeset.apply_changes(changeset)
 
     content_length = :filelib.file_size(image_filename)
     {:ok, pid} = Agent.start_link(fn -> 0 end)
@@ -150,8 +148,20 @@ defmodule FarmbotExt.API do
 
   @doc "helper for `GET`ing a path."
   def get_body!(path) do
-    API.get!(API.client(), path)
-    |> Map.fetch!(:body)
+    case API.get!(API.client(), path) do
+      %{body: body, status: 200} ->
+        {:ok, body}
+
+      %{body: error, status: status} ->
+        msg = """
+        HTTP Error getting: #{path}
+        Status Code = #{status}
+
+        #{error}
+        """
+
+        {:error, msg}
+    end
   end
 
   @doc "helper for `GET`ing api resources."
@@ -162,11 +172,14 @@ defmodule FarmbotExt.API do
   def get_changeset(%module{} = data) do
     get_body!(module.path())
     |> case do
-      %{} = single ->
-        module.changeset(data, single)
+      {:ok, %{} = single} ->
+        {:ok, module.changeset(data, single)}
 
-      many when is_list(many) ->
-        Enum.map(many, &module.changeset(data, &1))
+      {:ok, many} when is_list(many) ->
+        {:ok, Enum.map(many, &module.changeset(data, &1))}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -193,11 +206,14 @@ defmodule FarmbotExt.API do
   def get_changeset(%module{} = data, path) do
     get_body!(Path.join(module.path(), to_string(path)))
     |> case do
-      %{} = single ->
-        module.changeset(data, single)
+      {:ok, %{} = single} ->
+        {:ok, module.changeset(data, single)}
 
-      many when is_list(many) ->
-        Enum.map(many, &module.changeset(data, &1))
+      {:ok, many} when is_list(many) ->
+        {:ok, Enum.map(many, &module.changeset(data, &1))}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end
