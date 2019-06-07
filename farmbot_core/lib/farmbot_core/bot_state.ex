@@ -90,7 +90,7 @@ defmodule FarmbotCore.BotState do
 
   @doc "Sets informational_settings.status"
   def set_sync_status(bot_state_server \\ __MODULE__, s)
-      when s in ["sync_now", "syncing", "synced", "error"] do
+      when s in ["sync_now", "syncing", "synced", "sync_error"] do
     GenServer.call(bot_state_server, {:set_sync_status, s})
   end
 
