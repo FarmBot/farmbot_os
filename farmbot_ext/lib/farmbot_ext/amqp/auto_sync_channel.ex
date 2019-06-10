@@ -57,7 +57,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     else
       {:error, reason} ->
         BotState.set_sync_status("sync_error")
-        Logger.error("Error preloading. #{reason}")
+        FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
         Process.send_after(self(), :preload, 5000)
         {:noreply, state}
     end
