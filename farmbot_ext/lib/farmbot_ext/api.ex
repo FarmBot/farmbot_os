@@ -147,20 +147,33 @@ defmodule FarmbotExt.API do
 
   @doc "helper for `GET`ing a path."
   def get_body!(path) do
-    case API.get!(API.client(), path) do
-      %{body: body, status: 200} ->
+    case API.get(API.client(), path) do
+      {:ok, %{body: body, status: 200}} ->
         {:ok, body}
 
-      %{body: error, status: status} ->
-        msg = """
-        HTTP Error getting: #{path}
-        Status Code = #{status}
+      {:ok, %{body: error, status: status}} when is_binary(error) ->
+        get_body_error(path, status, error)
 
-        #{error}
-        """
+      {:ok, %{body: %{"error" => error}, status: status}} when is_binary(error) ->
+        get_body_error(path, status, error)
 
-        {:error, msg}
+      {:ok, %{body: error, status: status}} when is_binary(error) ->
+        get_body_error(path, status, inspect(error))
+
+      {:error, reason} ->
+        {:error, reason}
     end
+  end
+
+  defp get_body_error(path, status, error) when is_binary(error) do
+    msg = """
+    HTTP Error getting: #{path}
+    Status Code = #{status}
+
+    #{error}
+    """
+
+    {:error, msg}
   end
 
   @callback get_changeset(module) :: {:ok, %Ecto.Changeset{}} | {:error, term()}

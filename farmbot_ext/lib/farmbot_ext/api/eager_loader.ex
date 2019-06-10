@@ -10,7 +10,11 @@ defmodule FarmbotExt.API.EagerLoader do
   require Logger
   use GenServer
 
-  @doc "Does a ton of HTTP requests to preload the cache"
+  @doc """
+  Does a ton of HTTP requests to preload the cache
+  Failure in this function is less than ideal and should probably return an
+  error
+  """
   def preload(%Sync{} = sync) do
     SyncGroup.all_groups()
     |> Enum.map(fn asset_module ->
@@ -24,14 +28,23 @@ defmodule FarmbotExt.API.EagerLoader do
     end)
     |> List.flatten()
     |> Enum.map(&Task.await(&1, :infinity))
+    |> Enum.reduce([], fn
+      {:ok, changeset}, errors ->
+        :ok = cache(changeset)
+        errors
 
-    :ok
+      error, errors ->
+        [error | errors]
+    end)
+    |> case do
+      [] -> :ok
+      errors -> {:error, errors}
+    end
   end
 
   def preload(asset_module, %{id: id}) when is_atom(asset_module) do
     local = Repo.one(from(m in asset_module, where: m.id == ^id)) || asset_module
-    {:ok, changeset} = API.get_changeset(local, id)
-    :ok = cache(changeset)
+    API.get_changeset(local, id)
   end
 
   @doc "Get a Changeset by module and id. May return nil"
