@@ -34,7 +34,7 @@ defmodule FarmbotExt.API.Preloader do
 
       FarmbotCore.Logger.success(3, "Successfully synced bootup resources.")
 
-      :ok = maybe_auto_sync(sync_changeset, auto_sync_change || Query.auto_sync?())
+      maybe_auto_sync(sync_changeset, auto_sync_change || Query.auto_sync?())
     end
   end
 
@@ -52,19 +52,27 @@ defmodule FarmbotExt.API.Preloader do
       |> Repo.transaction()
 
       FarmbotCore.Logger.success(3, "bootup auto sync complete")
+      :ok
     else
-      error -> FarmbotCore.Logger.error(3, "bootup auto sync failed #{inspect(error)}")
+      error ->
+        FarmbotCore.Logger.error(3, "bootup auto sync failed #{inspect(error)}")
+        error
     end
-
-    :ok
   end
 
   # When auto_sync is disabled preload the sync.
   defp maybe_auto_sync(sync_changeset, false) do
     FarmbotCore.Logger.busy(3, "preloading sync")
     sync = Changeset.apply_changes(sync_changeset)
-    EagerLoader.preload(sync)
-    FarmbotCore.Logger.success(3, "preloaded sync ok")
-    :ok
+
+    case EagerLoader.preload(sync) do
+      :ok ->
+        FarmbotCore.Logger.success(3, "preloaded sync ok")
+        :ok
+
+      error ->
+        FarmbotCore.Logger.error(3, "Failed ot preload sync")
+        error
+    end
   end
 end
