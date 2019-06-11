@@ -59,9 +59,9 @@ defmodule AutoSyncChannelTest do
     end)
 
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
-    assert_receive :preload_all_called
-    assert_receive {:maybe_connect_called, "device_15"}
+    assert_receive :preload_all_called, 250
 
+    assert_receive {:maybe_connect_called, "device_15"}, 250
     Map.merge(%{pid: pid}, AutoSyncChannel.network_status(pid))
   end
 
@@ -133,7 +133,7 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?
+    assert_receive :called_auto_sync?, 250
   end
 
   test "handles Device assets" do
