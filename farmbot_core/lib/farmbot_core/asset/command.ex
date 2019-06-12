@@ -80,6 +80,15 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
+  def update("SensorReading", id, params) do
+    old = Asset.get_sensor_reading(id)
+    if old, 
+      do: Asset.update_sensor_reading!(old, params), 
+      else: Asset.new_sensor_reading!(params)
+    
+    :ok
+  end
+
   # Catch-all use case:
   def update(asset_kind, id, params) do
     Logger.warn "Implement me: #{asset_kind}"
@@ -118,6 +127,7 @@ defmodule FarmbotCore.Asset.Command do
   defp as_module!("Point"), do: Asset.Point 
   defp as_module!("Regimen"), do: Asset.Regimen 
   defp as_module!("Sensor"), do: Asset.Sensor 
+  defp as_module!("SensorReading"), do: Asset.SensorReading 
   defp as_module!("Sequence"), do: Asset.Sequence 
   defp as_module!("Tool"), do: Asset.Tool 
   defp as_module!(kind) when is_binary(kind) do
