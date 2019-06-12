@@ -24,7 +24,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @type axis_speed :: integer()
   @type coordinate :: %{x: axis_position, y: axis_position, z: axis_position}
 
-  @type pin_number :: {:boxled, 3 | 4} | integer
+  @type pin_number :: {:box_led, 3 | 4} | {:peripheral, map()} | {:sensor, map()} | integer
   @type pin_mode :: 0 | 1 | nil
   @type pin_value :: integer
 
@@ -203,7 +203,9 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def named_pin(module \\ @sys_call_implementation, type, id) do
     case module.named_pin(type, id) do
-      {:boxled, boxledid} when boxledid in [3, 4] -> {:boxled, boxledid}
+      {:box_led, box_led_id} when box_led_id in [3, 4] -> {:box_led, box_led_id}
+      {:peripheral, data} -> {:peripheral, data}
+      {:sensor, data} -> {:sensor, data}
       number when is_integer(number) -> number
       {:error, reason} when is_binary(reason) -> error(reason)
     end
