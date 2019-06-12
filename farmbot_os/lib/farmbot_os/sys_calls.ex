@@ -220,7 +220,7 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def named_pin("Sensor", id) do
-    case Asset.get_sensor(id: id) do
+    case Asset.get_sensor(id) do
       %{pin: pin} -> pin
       nil -> {:error, "Could not find peripheral by id: #{id}"}
     end
