@@ -59,7 +59,8 @@ defmodule FarmbotCore.BotStateNG do
       process_info: bot_state.process_info,
       user_env: bot_state.user_env,
       pins: bot_state.pins,
-      jobs: bot_state.jobs
+      jobs: bot_state.jobs,
+      alerts: bot_state.alerts
     }
   end
 
