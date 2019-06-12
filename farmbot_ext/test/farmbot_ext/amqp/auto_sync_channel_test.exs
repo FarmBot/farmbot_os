@@ -223,6 +223,24 @@ defmodule AutoSyncChannelTest do
   test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
   test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
 
+  test "handles failed preloads" do
+    fake_value = %{}
+    jwt = JWT.decode!(@fake_jwt)
+
+    test_pid = self()
+
+    stub(API, :get_changeset, fn mod ->
+      send(test_pid, {:preload_all_called, mod})
+      {:error, "auto sync preload failed"}
+    end)
+
+    {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
+    assert_receive {:preload_all_called, FarmbotCore.Asset.Sync}
+    # TODO(Rick) Investigate alternatives for capturing coverage of send_after()
+    # type code. This is unfortunate.
+    Process.sleep(5)
+  end
+
   defp simple_asset_test_plural(module_name) do
     %{pid: pid} = under_normal_conditions()
     test_pid = self()
