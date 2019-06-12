@@ -121,6 +121,22 @@ defmodule AutoSyncChannelTest do
     assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
   end
 
+  test "wont autosync unknown assets" do
+    fake_con = %{fake: :conn}
+    fake_chan = %{fake: :chan}
+    fake_response = %{conn: fake_con, chan: fake_chan}
+
+    %{pid: pid} = pretend_network_returned(fake_response)
+
+    payload =
+      JSON.encode!(%{
+        args: %{label: "xyz"}
+      })
+
+    send(pid, {:basic_deliver, payload, %{routing_key: "bot.device_15.sync.SavedGarden.999"}})
+    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
+  end
+
   test "ignores asset deletion when auto_sync is off" do
     %{pid: pid} = under_normal_conditions()
     test_pid = self()
@@ -175,7 +191,7 @@ defmodule AutoSyncChannelTest do
     assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
   end
 
-  test "handles auto_sync of 'cache_assets' when auto_sync is false" do
+  test "handles auto_sync of 'no_cache' when auto_sync is false" do
     test_pid = self()
     %{pid: pid} = under_normal_conditions()
 
