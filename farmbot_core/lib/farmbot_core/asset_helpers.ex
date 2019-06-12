@@ -13,6 +13,7 @@ defmodule FarmbotCore.AssetHelpers do
     require Logger
     Logger.warn "Don't use this in production please!"
     quote do
+      import Ecto.Query
       alias FarmbotCore.Asset
       alias Asset.{
         Repo,
@@ -31,6 +32,7 @@ defmodule FarmbotCore.AssetHelpers do
         RegimenInstance,
         Sequence,
         Sensor,
+        SensorReading,
         Tool
       }
     end
