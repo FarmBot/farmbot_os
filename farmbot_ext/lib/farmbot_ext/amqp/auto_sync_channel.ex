@@ -15,7 +15,28 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   require Logger
   require FarmbotCore.Logger
 
-  @cache_kinds ~w(
+  # The API dispatches messages for other resources, but these
+  # are the only ones that Farmbot needs to sync.
+  @known_kinds ~w(
+    Device
+    FarmEvent
+    FarmwareEnv
+    FarmwareInstallation
+    FbosConfig
+    FirmwareConfig
+    Peripheral
+    PinBinding
+    Point
+    Regimen
+    Sensor
+    Sequence
+    Tool
+  )
+
+  # Sync messgaes about these assets
+  # should not be cached. They need to be applied
+  # in real time.
+  @no_cache_kinds ~w(
     Device
     FbosConfig
     FirmwareConfig
@@ -93,9 +114,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     body = data["body"]
 
     case String.split(key, ".") do
-      ["bot", ^device, "sync", asset_kind, id_str] ->
+      ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         id = data["id"] || String.to_integer(id_str)
         handle_asset(asset_kind, id, body)
+
+      ["bot", ^device, "sync", asset_kind, _id_str] ->
+        Logger.warn("Unknown syncable asset: #{asset_kind}")
 
       _ ->
         Logger.info("ignoring route: #{key}")
@@ -127,7 +151,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     end
   end
 
-  def cache_sync(kind, id, params) when kind in @cache_kinds do
+  def cache_sync(kind, id, params) when kind in @no_cache_kinds do
     :ok = BotState.set_sync_status("syncing")
     :ok = Asset.Command.update(kind, id, params)
     :ok = BotState.set_sync_status("synced")
