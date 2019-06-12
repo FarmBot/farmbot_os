@@ -14,7 +14,7 @@ defmodule FarmbotOS.SysCalls do
     SendMessage
   }
 
-  alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState}
+  alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState, Leds}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
   alias Ecto.{Changeset, Multi}
 
@@ -97,6 +97,37 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  def read_pin({:peripheral, %{pin: pin}}, mode) do
+    read_pin(pin, mode)
+  end
+
+  def read_pin({:sensor, %{pin: pin}}, mode) do
+    case read_pin(pin, mode) do
+      {:error, _} = error ->
+        error
+
+      value ->
+        position = get_position()
+
+        params = %{
+          pin: pin,
+          mode: mode,
+          value: value,
+          x: position[:x],
+          y: position[:y],
+          z: position[:z]
+        }
+
+        _ = Asset.new_sensor_reading!(params)
+        value
+    end
+  end
+
+  def read_pin({:box_led, _id}, _mode) do
+    # {:error, "cannot read values of BoxLed"}
+    1
+  end
+
   def read_pin(pin_number, mode) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: mode]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
@@ -105,6 +136,24 @@ defmodule FarmbotOS.SysCalls do
       {:error, reason} ->
         {:error, "Firmware error: #{inspect(reason)}"}
     end
+  end
+
+  def write_pin({:peripheral, %{pin: pin}}, mode, value) do
+    write_pin(pin, mode, value)
+  end
+
+  def write_pin({:sensor, %{pin: _pin}}, _mode, _value) do
+    {:error, "cannot write Sensor value. Use a Peripheral"}
+  end
+
+  def write_pin({:box_led, 3}, _mode, value) do
+    Leds.white4(value_to_led(value))
+    :ok
+  end
+
+  def write_pin({:box_led, 4}, _mode, value) do
+    Leds.white5(value_to_led(value))
+    :ok
   end
 
   def write_pin(pin_number, mode, value) do
@@ -117,6 +166,9 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  defp value_to_led(1), do: :solid
+  defp value_to_led(_), do: :off
+
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
@@ -124,15 +176,22 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
-  def get_position(axis) do
-    axis = assert_axis!(axis)
-
+  def get_position() do
     case FarmbotFirmware.request({nil, {:position_read, []}}) do
       {:ok, {_, {:report_position, params}}} ->
-        Keyword.fetch!(params, axis)
+        params
 
       {:error, reason} ->
         {:error, "Firmware error: #{inspect(reason)}"}
+    end
+  end
+
+  def get_position(axis) do
+    axis = assert_axis!(axis)
+
+    case get_position() do
+      {:error, _} = error -> error
+      position -> Keyword.fetch!(position, axis)
     end
   end
 
@@ -214,16 +273,20 @@ defmodule FarmbotOS.SysCalls do
 
   def named_pin("Peripheral", id) do
     case Asset.get_peripheral(id: id) do
-      %{pin: pin} -> pin
+      %{} = peripheral -> {:peripheral, peripheral}
       nil -> {:error, "Could not find peripheral by id: #{id}"}
     end
   end
 
   def named_pin("Sensor", id) do
     case Asset.get_sensor(id) do
-      %{pin: pin} -> pin
+      %{} = sensor -> {:sensor, sensor}
       nil -> {:error, "Could not find peripheral by id: #{id}"}
     end
+  end
+
+  def named_pin("BoxLed" <> id, _) do
+    {:box_led, String.to_integer(id)}
   end
 
   def named_pin(kind, id) do
