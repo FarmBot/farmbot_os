@@ -1,0 +1,38 @@
+defmodule FarmbotCore.AssetHelpers do
+  @moduledoc """
+  Helpers for the console at runtime.
+  
+  Example:
+     iex()> use FarmbotCore.AssetHelpers
+     iex()> Repo.all(Device)
+     [%Device{}]
+  """
+  
+  @doc false
+  defmacro __using__(_opts) do
+    require Logger
+    Logger.warn "Don't use this in production please!"
+    quote do
+      alias FarmbotCore.Asset
+      alias Asset.{
+        Repo,
+        Device,
+        DeviceCert,
+        DiagnosticDump,
+        FarmwareEnv,
+        FarmwareInstallation,
+        FarmEvent,
+        FbosConfig,
+        FirmwareConfig,
+        Peripheral,
+        PinBinding,
+        Point,
+        Regimen,
+        RegimenInstance,
+        Sequence,
+        Sensor,
+        Tool
+      }
+    end
+  end
+end
