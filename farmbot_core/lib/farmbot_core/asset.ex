@@ -238,12 +238,20 @@ defmodule FarmbotCore.Asset do
     Repo.get_by(Peripheral, args)
   end
 
+  def get_peripheral_by_pin(pin) do
+    Repo.get_by(Peripheral, pin: pin)
+  end
+
   ## End Peripheral
 
   ## Begin Sensor
 
   def get_sensor(id) do
     Repo.get_by(Sensor, id: id)
+  end
+
+  def get_sensor_by_pin(pin) do
+    Repo.get_by(Sensor, pin: pin)
   end
 
   def new_sensor!(params) do
