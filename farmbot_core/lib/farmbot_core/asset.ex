@@ -22,6 +22,7 @@ defmodule FarmbotCore.Asset do
     RegimenInstance,
     Sequence,
     Sensor,
+    SensorReading,
     Tool
   }
 
@@ -257,6 +258,25 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End Sensor
+
+  ## Begin SensorReading
+
+  def get_sensor_reading(id) do
+    Repo.get_by(SensorReading, id: id)
+  end
+
+  def new_sensor_reading!(params) do
+    SensorReading.changeset(%SensorReading{}, params)
+    |> Repo.insert!()
+  end
+
+  def update_sensor_reading!(sensor_reading, params) do
+    sensor_reading
+    |> SensorReading.changeset(params)
+    |> Repo.update!()
+  end
+
+  ## End SensorReading
 
   ## Begin DiagnosticDump
 
