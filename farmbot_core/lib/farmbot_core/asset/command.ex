@@ -71,6 +71,15 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
+  def update("Sensor", id, params) do
+    old = Asset.get_sensor(id)
+    if old, 
+      do: Asset.update_sensor!(old, params), 
+      else: Asset.new_sensor!(params)
+    
+    :ok
+  end
+
   # Catch-all use case:
   def update(asset_kind, id, params) do
     Logger.warn "Implement me: #{asset_kind}"
