@@ -241,8 +241,19 @@ defmodule FarmbotCore.Asset do
 
   ## Begin Sensor
 
-  def get_sensor(args) do
-    Repo.get_by(Sensor, args)
+  def get_sensor(id) do
+    Repo.get_by(Sensor, id: id)
+  end
+
+  def new_sensor!(params) do
+    Sensor.changeset(%Sensor{}, params)
+    |> Repo.insert!()
+  end
+  
+  def update_sensor!(sensor, params) do
+    sensor
+    |> Sensor.changeset(params)
+    |> Repo.update!()
   end
 
   ## End Sensor
