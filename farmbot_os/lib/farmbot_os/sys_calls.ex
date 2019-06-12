@@ -98,11 +98,11 @@ defmodule FarmbotOS.SysCalls do
   end
 
   def read_pin({:peripheral, %{pin: pin}}, mode) do
-    read_pin(pin, mode)
+    do_read_pin(pin, mode)
   end
 
   def read_pin({:sensor, %{pin: pin}}, mode) do
-    case read_pin(pin, mode) do
+    case do_read_pin(pin, mode) do
       {:error, _} = error ->
         error
 
@@ -128,7 +128,23 @@ defmodule FarmbotOS.SysCalls do
     1
   end
 
-  def read_pin(pin_number, mode) do
+  def read_pin(pin_number, mode) when is_number(pin_number) do
+    sensor = Asset.get_sensor_by_pin(pin_number)
+    peripheral = Asset.get_peripheral_by_pin(pin_number)
+
+    cond do
+      is_map(sensor) ->
+        read_pin({:sensor, sensor}, mode)
+
+      is_map(peripheral) ->
+        read_pin({:peripheral, peripheral}, mode)
+
+      true ->
+        do_read_pin(pin_number, mode)
+    end
+  end
+
+  defp do_read_pin(pin_number, mode) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: mode]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
         val
