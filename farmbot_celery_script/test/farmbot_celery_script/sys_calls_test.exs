@@ -1,7 +1,7 @@
 defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
-  alias FarmbotCeleryScript.{SysCalls, RuntimeError}
+  alias FarmbotCeleryScript.{AST, SysCalls}
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()
@@ -15,9 +15,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "point error")
 
-    assert_raise RuntimeError, "point error", fn ->
-      SysCalls.point(TestSysCalls, "Peripheral", 1)
-    end
+    assert {:error, "point error"} == SysCalls.point(TestSysCalls, "Peripheral", 1)
   end
 
   test "move_absolute", %{shim: shim} do
@@ -27,9 +25,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "move failed!")
 
-    assert_raise RuntimeError, "move failed!", fn ->
-      SysCalls.move_absolute(TestSysCalls, 1, 2, 3, 4)
-    end
+    assert {:error, "move failed!"} == SysCalls.move_absolute(TestSysCalls, 1, 2, 3, 4)
   end
 
   test "get current positions", %{shim: shim} do
@@ -44,17 +40,9 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "firmware error")
 
-    assert_raise RuntimeError, "firmware error", fn ->
-      SysCalls.get_current_x(TestSysCalls)
-    end
-
-    assert_raise RuntimeError, "firmware error", fn ->
-      SysCalls.get_current_y(TestSysCalls)
-    end
-
-    assert_raise RuntimeError, "firmware error", fn ->
-      SysCalls.get_current_z(TestSysCalls)
-    end
+    assert {:error, "firmware error"} == SysCalls.get_current_x(TestSysCalls)
+    assert {:error, "firmware error"} == SysCalls.get_current_y(TestSysCalls)
+    assert {:error, "firmware error"} == SysCalls.get_current_z(TestSysCalls)
   end
 
   test "write_pin", %{shim: shim} do
@@ -69,9 +57,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "firmware error")
 
-    assert_raise RuntimeError, "firmware error", fn ->
-      SysCalls.write_pin(TestSysCalls, 1, 0, 1)
-    end
+    assert {:error, "firmware error"} == SysCalls.write_pin(TestSysCalls, 1, 0, 1)
   end
 
   test "read_pin", %{shim: shim} do
@@ -83,13 +69,11 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "firmware error")
 
-    assert_raise RuntimeError, "firmware error", fn ->
-      SysCalls.read_pin(TestSysCalls, 1, 0)
-    end
+    assert {:error, "firmware error"} == SysCalls.read_pin(TestSysCalls, 1, 0)
   end
 
   test "wait", %{shim: shim} do
-    :ok = shim_fun_ok(shim, "this doesn't matter!")
+    :ok = shim_fun_ok(shim)
     assert :ok = SysCalls.wait(TestSysCalls, 1000)
     assert_receive {:wait, [1000]}
   end
@@ -114,9 +98,8 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "error finding resource")
 
-    assert_raise RuntimeError, "error finding resource", fn ->
-      SysCalls.named_pin(TestSysCalls, "Peripheral", 888)
-    end
+    assert {:error, "error finding resource"} ==
+             SysCalls.named_pin(TestSysCalls, "Peripheral", 888)
   end
 
   test "send_message", %{shim: shim} do
@@ -126,9 +109,8 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "email machine broke")
 
-    assert_raise RuntimeError, "email machine broke", fn ->
-      SysCalls.send_message(TestSysCalls, "error", "goodbye world", ["email"])
-    end
+    assert {:error, "email machine broke"} ==
+             SysCalls.send_message(TestSysCalls, "error", "goodbye world", ["email"])
   end
 
   test "find_home", %{shim: shim} do
@@ -138,9 +120,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "home lost")
 
-    assert_raise RuntimeError, "home lost", fn ->
-      SysCalls.find_home(TestSysCalls, "x")
-    end
+    assert {:error, "home lost"} == SysCalls.find_home(TestSysCalls, "x")
   end
 
   test "execute_script", %{shim: shim} do
@@ -150,16 +130,14 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "not installed")
 
-    assert_raise RuntimeError, "not installed", fn ->
-      SysCalls.execute_script(TestSysCalls, "take-photo", %{})
-    end
+    assert {:error, "not installed"} == SysCalls.execute_script(TestSysCalls, "take-photo", %{})
   end
 
   test "get_sequence", %{shim: shim} do
     :ok =
-      shim_fun_ok(shim, %{
+      shim_fun_ok(shim, %AST{
         kind: :sequence,
-        args: %{locals: %{kind: :scope_declaration, args: %{}}}
+        args: %{locals: %AST{kind: :scope_declaration, args: %{}}}
       })
 
     assert %{} = SysCalls.get_sequence(TestSysCalls, 123)
@@ -167,9 +145,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
     :ok = shim_fun_error(shim, "sequence not found")
 
-    assert_raise RuntimeError, "sequence not found", fn ->
-      SysCalls.get_sequence(TestSysCalls, 123)
-    end
+    assert {:error, "sequence not found"} == SysCalls.get_sequence(TestSysCalls, 123)
   end
 
   def shim_fun_ok(shim, val \\ :ok) do

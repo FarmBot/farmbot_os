@@ -20,33 +20,51 @@ defmodule FarmbotOS.SysCalls do
 
   @behaviour FarmbotCeleryScript.SysCalls
 
+  @impl true
   defdelegate send_message(level, message, channels), to: SendMessage
+
+  @impl true
   defdelegate execute_script(name, env), to: ExecuteScript
+
+  @impl true
   defdelegate flash_firmware(package), to: FlashFirmware
+
+  @impl true
   defdelegate change_ownership(email, secret, server), to: ChangeOwnership
+
+  @impl true
   defdelegate dump_info(), to: DumpInfo
+
+  @impl true
   defdelegate check_update(), to: CheckUpdate
+
+  @impl true
   defdelegate read_status(), to: FarmbotExt.AMQP.BotStateChannel
 
+  @impl true
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
     :ok
   end
 
+  @impl true
   def power_off do
     FarmbotOS.System.reboot("Shut down requested by Sequence or frontend")
     :ok
   end
 
+  @impl true
   def factory_reset do
     FarmbotOS.System.factory_reset("Factory reset requested by Sequence or frontend", true)
     :ok
   end
 
+  @impl true
   def firmware_reboot do
     GenServer.stop(FarmbotFirmware, :reboot)
   end
 
+  @impl true
   def resource_update(kind, id, params) do
     module = Module.concat(Asset, kind)
 
@@ -69,22 +87,27 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def set_user_env(key, value) do
     FarmbotCore.BotState.set_user_env(key, value)
   end
 
+  @impl true
   def get_current_x do
     get_position(:x)
   end
 
+  @impl true
   def get_current_y do
     get_position(:y)
   end
 
+  @impl true
   def get_current_z do
     get_position(:z)
   end
 
+  @impl true
   def zero(axis) do
     axis = assert_axis!(axis)
 
@@ -97,6 +120,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def read_pin({:peripheral, %{pin: pin}}, mode) do
     do_read_pin(pin, mode)
   end
@@ -154,6 +178,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def write_pin({:peripheral, %{pin: pin}}, mode, value) do
     write_pin(pin, mode, value)
   end
@@ -185,6 +210,7 @@ defmodule FarmbotOS.SysCalls do
   defp value_to_led(1), do: :solid
   defp value_to_led(_), do: :off
 
+  @impl true
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
@@ -211,6 +237,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def move_absolute(x, y, z, speed) do
     params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
     # Logger.debug "moving to location: #{inspect(params)}"
@@ -224,6 +251,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def calibrate(axis) do
     axis = assert_axis!(axis)
 
@@ -236,6 +264,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def find_home(axis) do
     axis = assert_axis!(axis)
 
@@ -248,6 +277,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def home(axis, _speed) do
     # TODO(Connor) fix speed
     axis = assert_axis!(axis)
@@ -261,11 +291,13 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
     :ok
   end
 
+  @impl true
   def emergency_unlock do
     _ = FarmbotFirmware.command({:command_emergency_unlock, []})
     :ok
@@ -282,11 +314,13 @@ defmodule FarmbotOS.SysCalls do
     raise("unknown axis #{axis}")
   end
 
+  @impl true
   def wait(ms) do
     Process.sleep(ms)
     :ok
   end
 
+  @impl true
   def named_pin("Peripheral", id) do
     case Asset.get_peripheral(id: id) do
       %{} = peripheral -> {:peripheral, peripheral}
@@ -309,6 +343,7 @@ defmodule FarmbotOS.SysCalls do
     {:error, "unknown pin kind: #{kind} of id: #{id}"}
   end
 
+  @impl true
   def get_sequence(id) do
     case Asset.get_sequence(id) do
       nil -> {:error, "sequence not found"}
@@ -316,6 +351,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def get_toolslot_for_tool(id) do
     with %{id: ^id} <- Asset.get_tool(id: id),
          %{x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
@@ -325,6 +361,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
+  @impl true
   def sync() do
     FarmbotCore.Logger.busy(3, "Syncing")
 
@@ -349,4 +386,22 @@ defmodule FarmbotOS.SysCalls do
         {:error, inspect(error)}
     end
   end
+
+  @impl true
+  def coordinate(x, y, z) do
+    %{x: x, y: y, z: z}
+  end
+
+  @impl true
+  def set_servo_angle(_pin, _angle) do
+    {:error, "set_servo_angle not yet supported"}
+  end
+
+  @impl true
+  def install_first_party_farmware() do
+    {:error, "install_first_party_farmware not yet supported"}
+  end
+
+  @impl true
+  def nothing(), do: nil
 end
