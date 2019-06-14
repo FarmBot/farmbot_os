@@ -3,7 +3,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/farm_events"
-  alias FarmbotCore.Asset.FarmEvent.BodyNode
+  alias FarmbotCore.Asset.FarmEvent.{BodyNode, Execution}
 
   schema "farm_events" do
     field(:id, :id)
@@ -13,6 +13,10 @@ defmodule FarmbotCore.Asset.FarmEvent do
       references: :local_id,
       foreign_key: :asset_local_id
     )
+
+    has_many(:executions, Execution, 
+      on_delete: :delete_all, 
+      on_replace: :delete)
 
     field(:end_time, :utc_datetime)
     field(:executable_type, :string)
@@ -62,9 +66,9 @@ defmodule FarmbotCore.Asset.FarmEvent do
   end
 
   @compile {:inline, [build_calendar: 2]}
-  def build_calendar(%__MODULE__{executable_type: "Regimen"} = fe, _), do: fe.start_time
+  def build_calendar(%__MODULE__{executable_type: "Regimen"} = fe, _), do: [fe.start_time]
 
-  def build_calendar(%__MODULE__{time_unit: "never"} = fe, _), do: fe.start_time
+  def build_calendar(%__MODULE__{time_unit: "never"} = fe, _), do: [fe.start_time]
 
   def build_calendar(%__MODULE__{} = fe, current_date_time) do
     current_time_seconds = DateTime.to_unix(current_date_time)
@@ -80,8 +84,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
       end_time_seconds,
       repeat,
       repeat_frequency_seconds
-    )
-    |> DateTime.from_unix!()
+    ) |> Enum.map(&DateTime.from_unix!/1)
   end
 
   def do_build_calendar(_, _, _, _, _), do: :erlang.nif_error("NIF Not loaded")

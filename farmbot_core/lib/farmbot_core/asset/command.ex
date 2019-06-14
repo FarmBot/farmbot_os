@@ -37,6 +37,19 @@ defmodule FarmbotCore.Asset.Command do
   
   # Deletion use case:
   # TODO(Connor) put checks for deleting Device, FbosConfig and FirmwareConfig
+
+  def update("FarmEvent", id, nil) do
+    farm_event = Asset.get_farm_event(id)
+    farm_event && Asset.delete_farm_event!(farm_event)
+    :ok
+  end
+
+  def update("Regimen", id, nil) do
+    regimen = Asset.get_regimen(id)
+    regimen && Asset.delete_regimen!(regimen)
+    :ok
+  end
+
   def update(asset_kind, id, nil) do
     old = Repo.get_by(as_module!(asset_kind), id: id)
     old && Repo.delete!(old)
