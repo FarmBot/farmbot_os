@@ -4,9 +4,22 @@ defmodule FarmbotCore.Asset.RegimenInstance do
   @primary_key {:local_id, :binary_id, autogenerate: true}
   @timestamps_opts inserted_at: :created_at, type: :utc_datetime
 
+  alias FarmbotCore.Asset.{FarmEvent, Regimen, RegimenInstance.Execution}
+
   schema "regimen_instances" do
-    belongs_to(:regimen, FarmbotCore.Asset.Regimen, references: :local_id, type: :binary_id)
-    belongs_to(:farm_event, FarmbotCore.Asset.FarmEvent, references: :local_id, type: :binary_id)
+    belongs_to(:regimen, Regimen, 
+      type: :binary_id,
+      references: :local_id,
+      on_replace: :delete 
+    )
+    belongs_to(:farm_event, FarmEvent, 
+      type: :binary_id,
+      references: :local_id,
+      on_replace: :delete 
+    )
+    has_many(:executions, Execution, 
+      on_delete: :delete_all, 
+      on_replace: :delete)
     field(:epoch, :utc_datetime)
     field(:started_at, :utc_datetime)
     field(:next, :utc_datetime)

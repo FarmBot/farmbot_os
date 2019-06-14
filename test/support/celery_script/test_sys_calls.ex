@@ -36,9 +36,9 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
     {:reply, :ok, %{state | handler: fun}}
   end
 
-  def handle_call({kind, args}, _from, %{handler: fun} = state) when is_function(fun, 2) do
-    result = state.handler.(kind, args)
-    {:reply, result, state}
+  def handle_call({kind, args}, _from, %{handler: handler} = state)
+      when is_function(handler, 2) do
+    {:reply, {handler, kind, args}, state}
   end
 
   @impl true
@@ -217,6 +217,7 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   defp call(data) do
-    GenServer.call(__MODULE__, data, :infinity)
+    {handler, kind, args} = GenServer.call(__MODULE__, data, :infinity)
+    handler.(kind, args)
   end
 end
