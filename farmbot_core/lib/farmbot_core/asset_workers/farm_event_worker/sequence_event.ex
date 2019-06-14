@@ -1,22 +1,48 @@
 defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
+  require Logger
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.{Asset, Asset.FarmEvent}
+  alias FarmbotCore.{
+    Asset, 
+    Asset.FarmEvent
+  }
   use GenServer
 
   @impl GenServer
-  def init([event, args]) do
-    send self(), :checkup
-    {:ok, %{event: event, args: args}}
+  def init([farm_event, args]) do
+    send self(), :schedule
+    {:ok, %{farm_event: farm_event, args: args}}
   end
 
   @impl GenServer
-  def handle_info(:checkup, state) do
-    next_dt = FarmEvent.build_calendar(state.event, DateTime.utc_now())
-    :ok = schedule(state.event, next_dt)
-    {:noreply, state, state.args[:checkup_time_ms] || 15_000}
+  def handle_info(:schedule, state) do
+    farm_event = state.farm_event
+
+    farm_event
+    |> FarmEvent.build_calendar(farm_event.start_time)
+    # get rid of any item that has already been scheduled/executed
+    |> Enum.reject(fn(scheduled_at) -> 
+      Asset.get_farm_event_execution(farm_event, scheduled_at)
+    end)
+    |> Enum.each(fn(at) -> 
+      schedule_sequence(farm_event, at)
+    end)
+    {:noreply, state}
   end
 
-  defp schedule(farm_event, at) do
+  def handle_info({FarmbtoCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
+    status = case result do
+      :ok -> "ok"
+      {:error, reason} -> reason
+    end
+    _ = Asset.add_execution_to_farm_event!(state.farm_event, %{
+      scheduled_at: scheduled_at,
+      executed_at: executed_at,
+      status: status
+    })
+    {:noreply, state}
+  end
+
+  def schedule_sequence(farm_event, at) do
     sequence = Asset.get_sequence(farm_event.executable_id)
     sequence || raise("Sequence #{farm_event.executable_id} is not synced")
     param_appls = AST.decode(farm_event.body)
@@ -28,8 +54,6 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
           | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
         }
     }
-    IO.inspect(celery_ast)
-    IO.inspect(at)
-    # FarmbotCeleryScript.schedule(celery_ast, at)
+    FarmbotCeleryScript.schedule(celery_ast, at)
   end
 end

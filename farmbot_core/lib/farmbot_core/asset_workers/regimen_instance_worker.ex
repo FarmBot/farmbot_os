@@ -8,126 +8,71 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   require Logger
   require FarmbotCore.Logger
 
+  alias FarmbotCeleryScript.AST
   alias FarmbotCore.Asset
   alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Sequence, Regimen}
-  alias FarmbotCeleryScript.{Scheduler, AST, Compiler}
-  alias FarmbotCeleryScript.Scheduler
 
-  @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
-  @checkup_time_ms ||
-    Mix.raise("""
-    config :farmbot_core, #{__MODULE__}, checkup_time_ms: 10_000
-    """)
+  @impl FarmbotCore.AssetWorker
+  def preload(%RegimenInstance{}), do: [:farm_event, :regimen, :executions]
 
-  @type apply_sequence :: (Sequence.t(), Regimen.t() -> any())
-
-  def preload(%RegimenInstance{}), do: [:farm_event, :regimen]
-
+  @impl FarmbotCore.AssetWorker
   def tracks_changes?(%RegimenInstance{}), do: false
 
+  @impl FarmbotCore.AssetWorker
   def start_link(regimen_instance, args) do
     GenServer.start_link(__MODULE__, [regimen_instance, args])
   end
 
-  def init([regimen_instance, args]) do
+  @impl GenServer
+  def init([regimen_instance, _args]) do
     Logger.warn "RegimenInstance #{inspect(regimen_instance)} initializing"
-    apply_sequence = Keyword.get(args, :apply_sequence, &apply_sequence/2)
-    unless is_function(apply_sequence, 2) do
-      raise "RegimenInstance Sequence handler should be a 2 arity function"
-    end
-    Process.put(:apply_sequence, apply_sequence)
 
     with %Regimen{} <- regimen_instance.regimen,
          %FarmEvent{} <- regimen_instance.farm_event do
-      {:ok, filter_items(regimen_instance), 0}
+          send self(), :schedule
+      {:ok, %{regimen_instance: regimen_instance}}
     else
       _ -> {:stop, "Regimen instance not preloaded."}
     end
   end
 
-  def handle_info(:timeout, %RegimenInstance{next: nil} = pr) do
-    regimen_instance = filter_items(pr)
-    calculate_next(regimen_instance, 0)
+  @impl GenServer
+  def handle_info(:schedule, state) do
+    regimen_instance = state.regimen_instance
+    # load the sequence and calculate the scheduled_at time
+    Enum.map(regimen_instance.regimen.regimen_items, fn(%{time_offset: offset, sequence_id: sequence_id}) -> 
+      scheduled_at = DateTime.add(regimen_instance.epoch, offset, :millisecond)
+      sequence = Asset.get_sequence(sequence_id) || raise("sequence #{sequence_id} is not synced")
+      %{scheduled_at: scheduled_at, sequence: sequence}
+    end)
+    # get rid of any item that has already been scheduled/executed
+    |> Enum.reject(fn(%{scheduled_at: scheduled_at}) -> 
+      Asset.get_regimen_instance_execution(regimen_instance, scheduled_at)
+    end)
+    |> Enum.each(fn(%{scheduled_at: at, sequence: sequence}) -> 
+      schedule_sequence(regimen_instance, sequence, at)
+    end)
+    {:noreply, state}    
   end
 
-  def handle_info(:timeout, %RegimenInstance{} = ri) do
-    # Check if ri.next is around 2 minutes in the past
-    # positive if the first date/time comes after the second.
-    comp = Timex.diff(DateTime.utc_now(), ri.next, :minutes)
-
-    cond do
-      # now is more than 2 minutes past expected execution time
-      comp > 2 ->
-        Logger.warn(
-          "Regimen: #{ri.regimen.name || "regimen"} too late: #{comp} minutes difference."
-        )
-
-        calculate_next(ri)
-      
-      # The next event is in the future, but is not within the execution window.
-      comp < 0 ->
-        Logger.warn(
-          "Regimen: #{ri.regimen.name || "regimen"} too early: #{comp} minutes difference."
-        )
-
-        Process.send_after(self(), :timeout, @checkup_time_ms)
-        {:noreply, ri}
-
-      # The next event is right about now ish
-      true ->
-        Logger.warn(
-          "Regimen: #{ri.regimen.name || "regimen"} has not run before: #{comp} minutes difference."
-        )
-
-        exe = Asset.get_sequence(ri.next_sequence_id) || raise("Sequence #{ri.next_sequence_id} not synced")
-        fun = Process.get(:apply_sequence)
-        apply(fun, [exe, ri])
-        calculate_next(ri)
+  def handle_info({FarmbtoCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
+    status = case result do
+      :ok -> "ok"
+      {:error, reason} -> reason
     end
-  end
-
-  def handle_info({Scheduler, _ref, _result}, state) do
-    {:noreply, state, 0}
-  end
-
-  defp calculate_next(pr, checkup_time_ms \\ @checkup_time_ms)
-
-  defp calculate_next(%{regimen: %{regimen_items: [next | rest]} = reg} = pr, checkup_time_ms) do
-    next_dt = Timex.shift(pr.epoch, milliseconds: next.time_offset)
-
-    # TODO(Connor) - This causes the active GenServer to be
-    #                Restarted due to the `AssetMonitor`
-    # params = %{next: next_dt, next_sequence_id: next.sequence_id}
-    # pr = Asset.update_regimen_instance!(pr, params)
-    
-    pr = %{pr | next: next_dt, next_sequence_id: next.sequence_id}
-
-    pr = %{
-      pr
-      | regimen: %{reg | regimen_items: rest}
-    }
-
-    Process.send_after(self(), :timeout, checkup_time_ms)
-    {:noreply, pr}
-  end
-
-  defp calculate_next(%{regimen: %{regimen_items: []}} = pr, _) do
-    FarmbotCore.Logger.success(1, "#{pr.regimen.name || "regimen"} has no more items.")
-    {:noreply, pr, :hibernate}
-  end
-
-  defp filter_items(%RegimenInstance{regimen: %Regimen{} = reg} = pr) do
-    items =
-      reg.regimen_items
-      |> Enum.sort(&(&1.time_offset <= &2.time_offset))
-
-    %{pr | regimen: %{reg | regimen_items: items}}
+    _ = Asset.add_execution_to_regimen_instance!(state.regimen_instance, %{
+      scheduled_at: scheduled_at,
+      executed_at: executed_at,
+      status: status
+    })
+    {:noreply, state}
   end
 
   # TODO(RickCarlino) This function essentially copy/pastes a regimen body into
   # the `locals` of a sequence, which works but is not-so-clean. Refactor later
   # when we have a better idea of the problem.
-  defp apply_sequence(%Sequence{} = sequence, %RegimenInstance{} = regimen_instance) do
+  @doc false
+  def schedule_sequence(%RegimenInstance{} = regimen_instance, %Sequence{} = sequence, at) do
     # FarmEvent is the furthest outside of the scope
     farm_event_params = AST.decode(regimen_instance.farm_event.body)
     # Regimen is the second scope
@@ -143,8 +88,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
             celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params}
         }
     }
-
-    compiled_celery = Compiler.compile(celery_ast)
-    Scheduler.schedule(compiled_celery)
+    FarmbotCeleryScript.schedule(celery_ast, at)
   end
 end

@@ -1,6 +1,6 @@
 defmodule FarmbotOS.SysCalls.ExecuteScript do
   require Logger
-  alias FarmbotCeleryScript.{AST, Scheduler}
+  alias FarmbotCeleryScript.AST
   alias FarmbotCore.{Asset, FarmwareRuntime}
 
   def execute_script(farmware_name, env) do
@@ -29,12 +29,12 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
       {:DOWN, ^monitor, :process, ^runtime, :normal} ->
         :ok
 
-      {Scheduler, ^ref, :ok} ->
+      {:step_complete, ^ref, :ok} ->
         response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
         true = FarmwareRuntime.rpc_processed(runtime, response)
         loop(farmware_name, runtime, monitor, {nil, nil})
 
-      {Scheduler, ^ref, {:error, reason}} ->
+      {:step_complete, ^ref, {:error, reason}} ->
         explaination = %AST{kind: :explaination, args: %{message: reason}}
         response = %AST{kind: :rpc_error, args: %{label: label}, body: [explaination]}
         true = FarmwareRuntime.rpc_processed(runtime, response)
@@ -50,7 +50,8 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
         else
           case FarmwareRuntime.process_rpc(runtime) do
             {:ok, %{args: %{label: label}} = rpc} ->
-              {:ok, ref} = Scheduler.schedule(rpc)
+              ref = make_ref()
+              _pid = spawn(FarmbotCeleryScript, :execute, [rpc, ref])
               loop(farmware_name, runtime, monitor, {ref, label})
 
             {:error, :no_rpc} ->

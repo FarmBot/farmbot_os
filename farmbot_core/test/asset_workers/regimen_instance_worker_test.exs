@@ -6,6 +6,8 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
   import Farmbot.TestSupport.AssetFixtures
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
+  @regimen_instance_timeout 10_000
+
   test "regimen executes a sequence" do
     now = DateTime.utc_now()
     start_time = Timex.shift(now, minutes: -20)
@@ -13,7 +15,7 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     {:ok, epoch} = RegimenInstance.build_epoch(now)
     offset = Timex.diff(now, epoch, :milliseconds) + 500
 
-    seq = sequence()
+    seq = sequence(%{body: [%{kind: "read_pin", args: %{pin_number: 1, pin_mode: 0}}]})
     regimen_params = %{regimen_items: [%{sequence_id: seq.id, time_offset: offset}]}
 
     farm_event_params = %{
@@ -25,16 +27,18 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
 
     pr = regimen_instance(regimen_params, farm_event_params)
 
+    {:ok, _} = TestSysCalls.checkout()
     test_pid = self()
 
-    args = [
-      apply_sequence: fn _seq, _body_args ->
-        send(test_pid, :executed)
-      end
-    ]
+    :ok =
+      TestSysCalls.handle(TestSysCalls, fn
+        kind, args ->
+          send(test_pid, {kind, args})
+          :ok
+      end)
 
-    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, args)
-    assert_receive :executed
+    {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance.start_link(pr, [])
+    assert_receive {:read_pin, [1, 0]}, @regimen_instance_timeout
   end
 
   test "parameter_application" do
@@ -187,7 +191,7 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     expected_speed = 100
 
     assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]},
-                   5000
+                   @regimen_instance_timeout
   end
 
   test "application of default_parameters (Regimen => Sequence)" do
@@ -281,6 +285,6 @@ defmodule FarmbotCore.RegimenInstanceWorkerTest do
     expected_speed = 100
 
     assert_receive {:move_absolute, [^expected_x, ^expected_y, ^expected_z, ^expected_speed]},
-                   5000
+                   @regimen_instance_timeout
   end
 end

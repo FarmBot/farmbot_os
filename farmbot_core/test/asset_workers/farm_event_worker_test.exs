@@ -1,8 +1,10 @@
 defmodule FarmbotCore.FarmEventWorkerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   alias FarmbotCore.{Asset.FarmEvent, Asset.RegimenInstance, AssetWorker}
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
   import Farmbot.TestSupport.AssetFixtures
+
+  @farm_event_timeout_ms 10_000
 
   # Regimen tests are in the RegimenInstanceWorker test
 
@@ -57,7 +59,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
       now = DateTime.utc_now()
 
       params = %{
-        start_time: Timex.shift(now, seconds: 2),
+        start_time: now,
         end_time: Timex.shift(now, minutes: 10),
         repeat: 1,
         time_unit: "never",
@@ -89,8 +91,8 @@ defmodule FarmbotCore.FarmEventWorkerTest do
             :ok
         end)
 
-      {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
-      assert_receive {:move_absolute, [9000, 9000, 9000, 100]}, 5_000
+      {:ok, pid} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
+      assert_receive {:move_absolute, [9000, 9000, 9000, 100]}, @farm_event_timeout_ms
     end
 
     test "doesn't execute a sequence more than 2 mintues late" do
@@ -115,8 +117,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
         end
       ]
 
-      {:ok, pid} = AssetWorker.start_link(fe, args)
-      send(pid, :timeout)
+      {:ok, _pid} = AssetWorker.start_link(fe, args)
 
       # This is not really that useful.
       refute_receive {:executed, ^test_pid}
@@ -228,7 +229,7 @@ defmodule FarmbotCore.FarmEventWorkerTest do
         end)
 
       {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
-      assert_receive {:move_absolute, [8000, 8000, 8000, 100]}, 5_000
+      assert_receive {:move_absolute, [8000, 8000, 8000, 100]}, @farm_event_timeout_ms
     end
 
     test "Missing parameters, FarmEvent => Regimen => Sequence" do
@@ -309,15 +310,15 @@ defmodule FarmbotCore.FarmEventWorkerTest do
         end)
 
       {:ok, _} = FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent.start_link(farm_event, [])
-      assert_receive {:move_absolute, [-1, -2, -3, 100]}, 5_000
+      assert_receive {:move_absolute, [-1, -2, -3, 100]}, @farm_event_timeout_ms
     end
   end
 
   describe "common" do
     test "schedules an event in the future" do
-      seq = sequence()
+      seq = sequence(%{body: [%{kind: "read_pin", args: %{pin_number: 1, pin_mode: 0}}]})
       now = DateTime.utc_now()
-      start_time = Timex.shift(now, seconds: 2)
+      start_time = Timex.shift(now, milliseconds: 200)
       end_time = Timex.shift(now, minutes: 10)
 
       params = %{
@@ -327,18 +328,20 @@ defmodule FarmbotCore.FarmEventWorkerTest do
         time_unit: "minutely"
       }
 
-      assert %FarmEvent{} = fe = sequence_event(seq, params)
+      {:ok, _} = TestSysCalls.checkout()
       test_pid = self()
 
-      args = [
-        handle_sequence: fn _sequence, _farm_event_body ->
-          send(test_pid, {:executed, test_pid})
-        end
-      ]
+      assert %FarmEvent{} = fe = sequence_event(seq, params)
 
-      {:ok, pid} = AssetWorker.start_link(fe, args)
-      send(pid, :timeout)
-      assert_receive {:executed, ^test_pid}, 5_000
+      :ok =
+        TestSysCalls.handle(TestSysCalls, fn
+          kind, args ->
+            send(test_pid, {kind, args})
+            :ok
+        end)
+
+      {:ok, _pid} = AssetWorker.start_link(fe, [])
+      assert_receive {:read_pin, [1, 0]}, 10000
     end
 
     test "wont start an event after end_time" do
@@ -366,9 +369,9 @@ defmodule FarmbotCore.FarmEventWorkerTest do
         end
       ]
 
-      assert :ignore = AssetWorker.start_link(fe, args)
+      assert {:ok, _pid} = AssetWorker.start_link(fe, args)
       # This is not really that useful.
-      refute_receive {:executed, ^test_pid}, 5_000
+      refute_receive {:executed, ^test_pid}, @farm_event_timeout_ms
     end
   end
 end
