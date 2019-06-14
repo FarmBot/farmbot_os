@@ -37,7 +37,10 @@ defmodule FarmbotCore.Asset.CommandTest do
 
   test "delete farm_event" do
     id = id()
-    :ok = Command.update("FarmEvent", id, %{id: id, name: "abc", monitor: false})
+
+    :ok =
+      Command.update("FarmEvent", id, %{id: id, executable_id: id(), name: "abc", monitor: false})
+
     :ok = Command.update("FarmEvent", id, nil)
     refute Asset.get_farm_event(id)
   end
