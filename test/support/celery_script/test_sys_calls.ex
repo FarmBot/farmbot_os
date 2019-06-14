@@ -42,6 +42,26 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def coordinate(x, y, z) do
+    %{x: x, y: y, z: z}
+  end
+
+  @impl true
+  def nothing() do
+    call({:nothing, []})
+  end
+
+  @impl true
+  def set_servo_angle(pin_number, angle) do
+    call({:set_servo_angle, [pin_number, angle]})
+  end
+
+  @impl true
+  def install_first_party_farmware() do
+    call({:install_first_party_farmware, []})
+  end
+
+  @impl true
   def point(type, id) do
     call({:point, [type, id]})
   end
