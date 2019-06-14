@@ -4,8 +4,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   """
   alias FarmbotCeleryScript.{AST, RuntimeError}
 
-  @sys_call_implementation Application.get_env(:farmbot_celery_script, __MODULE__)[:sys_calls]
-  @sys_call_implementation ||
+  @sys_calls Application.get_env(:farmbot_celery_script, __MODULE__)[:sys_calls]
+  @sys_calls ||
     Mix.raise("""
     config :farmbot_celery_script, FarmbotCeleryScript.SysCalls, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
@@ -13,289 +13,233 @@ defmodule FarmbotCeleryScript.SysCalls do
     """)
 
   @type error :: {:error, String.t()}
+  @type ok_or_error :: :ok | error
 
+  # "x", "y", or "z"
+  @type axis :: String.t()
+  @type package :: String.t()
   @type resource_id :: integer()
 
-  @type point_type :: String.t()
-  @type named_pin_type :: String.t()
+  @callback calibrate(axis) :: ok_or_error
+  @callback change_ownership(email :: String.t(), secret :: binary(), server :: String.t()) ::
+              ok_or_error
+  @callback check_update() :: ok_or_error
+  @callback coordinate(x :: number, y :: number, z :: number) ::
+              %{x: number(), y: number(), z: number()} | error
+  @callback dump_info() :: ok_or_error
+  @callback emergency_lock() :: ok_or_error
+  @callback emergency_unlock() :: ok_or_error
+  @callback execute_script(package, args :: map()) :: ok_or_error
+  @callback factory_reset() :: ok_or_error
+  @callback find_home(axis) :: ok_or_error
+  @callback firmware_reboot() :: ok_or_error
+  @callback flash_firmware(package) :: ok_or_error
+  @callback get_current_x() :: number() | error()
+  @callback get_current_y() :: number() | error()
+  @callback get_current_z() :: number() | error()
+  @callback get_sequence(resource_id) :: FarmbotCeleryScript.AST.t() | error()
+  @callback get_toolslot_for_tool(resource_id) ::
+              %{x: number(), y: number(), z: number()} | error()
+  @callback home(axis, speed :: number()) :: ok_or_error
+  @callback install_first_party_farmware() :: ok_or_error
+  @callback move_absolute(x :: number(), y :: number(), z :: number(), speed :: number()) ::
+              ok_or_error
+  # ?
+  @callback named_pin(named_pin_type :: String.t(), resource_id) ::
+              {:box_led, 3 | 4} | {:peripheral, map()} | {:sensor, map()} | integer | error()
+  @callback nothing() :: any()
+  @callback point(point_type :: String.t(), resource_id) :: number() | error()
+  @callback power_off() :: ok_or_error
+  @callback read_pin(pin_num :: number(), pin_mode :: number()) :: number | error()
+  @callback read_status() :: ok_or_error
+  @callback reboot() :: ok_or_error
+  @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
+  @callback send_message(type :: String.t(), message :: String.t(), [atom]) :: ok_or_error
+  @callback set_servo_angle(pin :: number(), value :: number()) :: ok_or_error
+  @callback set_user_env(env_name :: String.t(), env_value :: String.t()) :: ok_or_error
+  @callback sync() :: ok_or_error
+  @callback wait(millis :: number()) :: ok_or_error
+  @callback write_pin(pin_num :: number(), pin_mode :: number(), pin_value :: number) ::
+              ok_or_error
+  @callback zero(axis) :: ok_or_error
 
-  @type axis_position :: float()
-  @type axis :: String.t()
-  @type axis_speed :: integer()
-  @type coordinate :: %{x: axis_position, y: axis_position, z: axis_position}
-
-  @type pin_number :: {:box_led, 3 | 4} | {:peripheral, map()} | {:sensor, map()} | integer
-  @type pin_mode :: 0 | 1 | nil
-  @type pin_value :: integer
-
-  @type milliseconds :: integer
-
-  @type message_level :: String.t()
-  @type message_channel :: String.t()
-  @type package :: String.t()
-
-  @callback point(point_type, resource_id) :: coordinate | error
-  @callback move_absolute(x :: axis_position, y :: axis_position, z :: axis_position, axis_speed) ::
-              :ok | error
-  @callback find_home(axis) :: :ok | error
-  @callback home(axis, axis_speed) :: :ok | error
-
-  @callback calibrate(axis) :: :ok | error
-
-  @callback get_current_x() :: axis_position | error
-  @callback get_current_y() :: axis_position | error
-  @callback get_current_z() :: axis_position | error
-
-  @callback zero(axis) :: :ok | error
-
-  @callback write_pin(pin_number, pin_mode, pin_value) :: :ok | error
-  @callback read_pin(pin_number, pin_mode) :: :ok | error
-  @callback named_pin(named_pin_type, resource_id) :: pin_number | error
-
-  @callback wait(milliseconds) :: any()
-
-  @callback send_message(message_level, String.t(), [message_channel]) :: :ok | error
-
-  @callback get_sequence(resource_id) :: map() | error
-  @callback get_toolslot_for_tool(resource_id) :: coordinate | error
-
-  @callback execute_script(String.t(), map()) :: :ok | error
-
-  @callback read_status() :: map()
-
-  @callback set_user_env(String.t(), String.t()) :: :ok | error
-
-  @callback sync() :: :ok | error
-  @callback resource_update(String.t(), number(), map) :: :ok | error
-
-  @callback power_off() :: :ok | error
-  @callback reboot() :: :ok | error
-  @callback factory_reset() :: :ok | error
-  @callback change_ownership(String.t(), binary(), String.t() | nil) :: :ok | error
-  @callback dump_info() :: :ok | error
-
-  @callback flash_firmware(package) :: :ok | error
-  @callback firmware_reboot() :: :ok | error
-
-  @callback emergency_lock() :: :ok | error
-  @callback emergency_unlock() :: :ok | error
-
-  @callback check_update() :: :ok | error
-
-  def check_update(module \\ @sys_call_implementation) do
-    _ = module.check_update()
-    :ok
+  def calibrate(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
+    ok_or_error(sys_calls.calibrate(axis))
   end
 
-  def emergency_lock(module \\ @sys_call_implementation) do
-    _ = module.emergency_lock()
-    :ok
+  def change_ownership(sys_calls \\ @sys_calls, email, secret, server) do
+    ok_or_error(sys_calls.change_ownership(email, secret, server))
   end
 
-  def emergency_unlock(module \\ @sys_call_implementation) do
-    _ = module.emergency_unlock()
-    :ok
+  def check_update(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.check_update())
   end
 
-  def power_off(module \\ @sys_call_implementation) do
-    _ = module.factory_reset()
-    :ok
+  def coordinate(sys_calls \\ @sys_calls, x, y, z)
+      when is_number(x)
+      when is_number(y)
+      when is_number(z) do
+    coord_or_error(sys_calls.coordinate(x, y, z))
   end
 
-  def reboot(module \\ @sys_call_implementation) do
-    _ = module.reboot()
-    :ok
+  def dump_info(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.dump_info())
   end
 
-  def factory_reset(module \\ @sys_call_implementation) do
-    _ = module.factory_reset()
-    :ok
+  def emergency_lock(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.emergency_lock())
   end
 
-  def change_ownership(module \\ @sys_call_implementation, email, secret, server) do
-    _ = module.change_ownership(email, secret, server)
-    :ok
+  def emergency_unlock(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.emergency_unlock())
   end
 
-  def dump_info(module \\ @sys_call_implementation) do
-    case module.dump_info() do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
+  def execute_script(sys_calls \\ @sys_calls, package, %{} = env) when is_binary(package) do
+    ok_or_error(sys_calls.execute_script(package, env))
+  end
+
+  def factory_reset(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.factory_reset())
+  end
+
+  def find_home(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
+    ok_or_error(sys_calls.find_home(axis))
+  end
+
+  def firmware_reboot(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.firmware_reboot())
+  end
+
+  def flash_firmware(sys_calls \\ @sys_calls, package) do
+    ok_or_error(sys_calls.flash_firmware(package))
+  end
+
+  def get_current_x(sys_calls \\ @sys_calls) do
+    number_or_error(sys_calls.get_current_x())
+  end
+
+  def get_current_y(sys_calls \\ @sys_calls) do
+    number_or_error(sys_calls.get_current_y())
+  end
+
+  def get_current_z(sys_calls \\ @sys_calls) do
+    number_or_error(sys_calls.get_current_z())
+  end
+
+  def get_sequence(sys_calls \\ @sys_calls, sequence_id) do
+    case sys_calls.get_sequence(sequence_id) do
+      %AST{} = ast -> ast
+      error -> or_error(error)
     end
   end
 
-  def flash_firmware(module \\ @sys_call_implementation, package) do
-    case module.flash_firmware(package) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def get_toolslot_for_tool(sys_calls \\ @sys_calls, id) do
+    coord_or_error(sys_calls.get_toolslot_for_tool(id))
   end
 
-  def firmware_reboot(module \\ @sys_call_implementation) do
-    case module.firmware_reboot() do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def home(sys_calls \\ @sys_calls, axis, speed)
+      when axis in ["x", "y", "z"]
+      when is_number(speed) do
+    ok_or_error(sys_calls.home(axis, speed))
   end
 
-  def point(module \\ @sys_call_implementation, type, id) do
-    case module.point(type, id) do
-      %{x: x, y: y, z: z} -> coordinate(x, y, z)
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def install_first_party_farmware(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.install_first_party_farmware())
   end
 
-  def move_absolute(module \\ @sys_call_implementation, x, y, z, speed) do
-    case module.move_absolute(x, y, z, speed) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def move_absolute(sys_calls \\ @sys_calls, x, y, z, speed)
+      when is_number(x)
+      when is_number(y)
+      when is_number(z) do
+    ok_or_error(sys_calls.move_absolute(x, y, z, speed))
   end
 
-  def calibrate(module \\ @sys_call_implementation, axis) do
-    case module.calibrate(axis) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def get_current_x(module \\ @sys_call_implementation) do
-    case module.get_current_x() do
-      position when is_number(position) -> position
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def get_current_y(module \\ @sys_call_implementation) do
-    case module.get_current_y() do
-      position when is_number(position) -> position
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def get_current_z(module \\ @sys_call_implementation) do
-    case module.get_current_z() do
-      position when is_number(position) -> position
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def zero(module \\ @sys_call_implementation, axis) do
-    case module.zero(axis) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def write_pin(module \\ @sys_call_implementation, pin_number, pin_mode, pin_value) do
-    case module.write_pin(pin_number, pin_mode, pin_value) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def read_pin(module \\ @sys_call_implementation, pin_number, pin_mode) do
-    case module.read_pin(pin_number, pin_mode) do
-      value when is_number(value) -> value
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
-  end
-
-  def named_pin(module \\ @sys_call_implementation, type, id) do
-    case module.named_pin(type, id) do
+  def named_pin(sys_calls \\ @sys_calls, type, id) do
+    case sys_calls.named_pin(type, id) do
       {:box_led, box_led_id} when box_led_id in [3, 4] -> {:box_led, box_led_id}
       {:peripheral, data} -> {:peripheral, data}
       {:sensor, data} -> {:sensor, data}
       number when is_integer(number) -> number
-      {:error, reason} when is_binary(reason) -> error(reason)
+      {:error, reason} when is_binary(reason) -> {:error, reason}
     end
   end
 
-  def wait(module \\ @sys_call_implementation, milliseconds) do
-    _ = module.wait(milliseconds)
-    :ok
+  def nothing(sys_calls \\ @sys_calls) do
+    sys_calls.nothing()
   end
 
-  def send_message(module \\ @sys_call_implementation, level, message, channels) do
-    case module.send_message(level, message, channels) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def point(sys_calls \\ @sys_calls, type, id) do
+    coord_or_error(sys_calls.point(type, id))
   end
 
-  def find_home(module \\ @sys_call_implementation, axis) do
-    case module.find_home(axis) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def power_off(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.power_off())
   end
 
-  def home(module \\ @sys_call_implementation, axis, speed) do
-    case module.home(axis, speed) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do
+    number_or_error(sys_calls.read_pin(pin_num, pin_mode))
   end
 
-  def get_sequence(module \\ @sys_call_implementation, id) do
-    case module.get_sequence(id) do
-      %{kind: _, args: _} = probably_sequence ->
-        AST.decode(probably_sequence)
-
-      {:error, reason} when is_binary(reason) ->
-        error(reason)
-    end
+  def read_status(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.read_status())
   end
 
-  def get_toolslot_for_tool(module \\ @sys_call_implementation, id) do
-    case module.get_toolslot_for_tool(id) do
-      %{x: x, y: y, z: z} ->
-        %{x: x, y: y, z: z}
-
-      {:error, reason} when is_binary(reason) ->
-        error(reason)
-    end
+  def reboot(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.reboot())
   end
 
-  def execute_script(module \\ @sys_call_implementation, name, args) do
-    case module.execute_script(name, args) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def resource_update(sys_calls \\ @sys_calls, kind, id, params) do
+    ok_or_error(sys_calls.resource_update(kind, id, params))
   end
 
-  def read_status(module \\ @sys_call_implementation) do
-    _ = module.read_status
+  def send_message(sys_calls \\ @sys_calls, kind, msg, channels) do
+    ok_or_error(sys_calls.send_message(kind, msg, channels))
   end
 
-  def set_user_env(module \\ @sys_call_implementation, key, val) do
-    case module.set_user_env(key, val) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def set_servo_angle(sys_calls \\ @sys_calls, pin_num, pin_value) do
+    number_or_error(sys_calls.set_servo_angle(pin_num, pin_value))
   end
 
-  def sync(module \\ @sys_call_implementation) do
-    case module.sync() do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def set_user_env(sys_calls \\ @sys_calls, key, value) do
+    number_or_error(sys_calls.set_user_env(key, value))
   end
 
-  def resource_update(module \\ @sys_call_implementation, kind, id, params) do
-    case module.resource_update(kind, id, params) do
-      :ok -> :ok
-      {:error, reason} when is_binary(reason) -> error(reason)
-    end
+  def sync(sys_calls \\ @sys_calls) do
+    ok_or_error(sys_calls.sync())
   end
 
-  def nothing, do: nil
-
-  def coordinate(x, y, z) do
-    %{x: x, y: y, z: z}
+  def wait(sys_calls \\ @sys_calls, millis) do
+    ok_or_error(sys_calls.wait(millis))
   end
 
-  def error(message) when is_binary(message) do
-    raise RuntimeError, message: message
+  def write_pin(sys_calls \\ @sys_calls, pin_number, pin_mode, pin_value) do
+    ok_or_error(sys_calls.write_pin(pin_number, pin_mode, pin_value))
+  end
+
+  def zero(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
+    ok_or_error(sys_calls.zero(axis))
+  end
+
+  defp ok_or_error(:ok), do: :ok
+  defp ok_or_error(error), do: or_error(error)
+
+  defp number_or_error(result) when is_number(result), do: result
+  defp number_or_error(error), do: or_error(error)
+
+  defp coord_or_error(%{x: x, y: y, z: z} = coord)
+       when is_number(x)
+       when is_number(y)
+       when is_number(z),
+       do: coord
+
+  defp coord_or_error(error), do: or_error(error)
+
+  defp or_error({:error, reason}) when is_binary(reason), do: {:error, reason}
+
+  defp or_error(bad_val) do
+    raise RuntimeError,
+      message: """
+      Bad return value: #{inspect(bad_val)}
+      """
   end
 end
