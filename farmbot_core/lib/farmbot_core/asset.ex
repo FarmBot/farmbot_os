@@ -115,20 +115,17 @@ defmodule FarmbotCore.Asset do
 
   ## Begin RegimenInstance
 
-  def upsert_regimen_instance!(%Regimen{} = regimen, %FarmEvent{} = farm_event, params \\ %{}) do
-    q =
-      from(pr in RegimenInstance,
-        where: pr.regimen_id == ^regimen.local_id and pr.farm_event_id == ^farm_event.local_id
-      )
+  def get_regimen_instance(%FarmEvent{} = farm_event) do
+    regimen = Repo.one!(from r in Regimen, where: r.id == ^farm_event.executable_id)
+    Repo.one(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id)    
+  end
 
-    pr = Repo.one(q) || %RegimenInstance{}
-
-    pr
-    |> Repo.preload([:regimen, :farm_event])
-    |> RegimenInstance.changeset(params)
+  def new_regimen_instance!(%FarmEvent{} = farm_event, params \\ %{}) do
+    regimen = Repo.one!(from r in Regimen, where: r.id == ^farm_event.executable_id)
+    RegimenInstance.changeset(%RegimenInstance{}, params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
-    |> Repo.insert_or_update!()
+    |> Repo.insert!()
   end
 
   def update_regimen_instance!(%RegimenInstance{} = pr, params \\ %{}) do
