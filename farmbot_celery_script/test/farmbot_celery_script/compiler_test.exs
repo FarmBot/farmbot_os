@@ -107,13 +107,213 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     var_name = Compiler.IdentifierSanitizer.to_variable(label)
 
-    assert elixir_code =~ """
-             #{var_name} = coordinate(1, 1, 1)
-             [fn -> #{var_name} end]
-           """
+    assert elixir_code =~
+             strip_nl("""
+             fn params ->
+               _ = inspect(params)
+               #{var_name} = FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
+               [fn -> #{var_name} end]
+             end
+             """)
 
     refute String.contains?(elixir_code, label)
     {fun, _} = Code.eval_string(elixir_code, [], __ENV__)
     assert is_function(fun, 1)
+  end
+
+  test "compiles execute" do
+    compiled =
+      compile(%AST{
+        kind: :execute,
+        args: %{sequence_id: 100},
+        body: []
+      })
+
+    assert compiled ==
+             strip_nl("""
+             case(FarmbotCeleryScript.SysCalls.get_sequence(100)) do
+               %FarmbotCeleryScript.AST{} = ast ->
+                 env = []
+                 FarmbotCeleryScript.Compiler.compile(ast, env)
+
+               error ->
+                 error
+             end
+             """)
+  end
+
+  test "compiles execute_script" do
+    compiled =
+      compile(%AST{
+        kind: :execute_script,
+        args: %{label: "take-photo"},
+        body: [
+          %AST{kind: :pair, args: %{label: "a", value: "123"}}
+        ]
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.execute_script("take-photo", %{"a" => "123"})
+             """)
+  end
+
+  test "compiles set_user_env" do
+    compiled =
+      compile(%AST{
+        kind: :set_user_env,
+        args: %{},
+        body: [
+          %AST{kind: :pair, args: %{label: "a", value: "123"}},
+          %AST{kind: :pair, args: %{label: "b", value: "345"}}
+        ]
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.set_user_env("a", "123")
+             FarmbotCeleryScript.SysCalls.set_user_env("b", "345")
+             """)
+  end
+
+  test "install_first_party_farmware" do
+    compiled =
+      compile(%AST{
+        kind: :install_first_party_farmware,
+        args: %{},
+        body: []
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.install_first_party_farmware()
+             """)
+  end
+
+  test "compiles nothing" do
+    compiled =
+      compile(%AST{
+        kind: :nothing,
+        args: %{},
+        body: []
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.nothing()
+             """)
+  end
+
+  test "compiles move_absolute no variables" do
+    compiled =
+      compile(%AST{
+        kind: :move_absolute,
+        args: %{
+          speed: 100,
+          location: %AST{
+            kind: :coordinate,
+            args: %{x: 100, y: 100, z: 100}
+          },
+          offset: %AST{
+            kind: :coordinate,
+            args: %{x: -20, y: -20, z: -20}
+          }
+        },
+        body: []
+      })
+
+    assert compiled ==
+             strip_nl("""
+             with(
+               %{x: locx, y: locy, z: locz} = FarmbotCeleryScript.SysCalls.coordinate(100, 100, 100),
+               %{x: offx, y: offy, z: offz} = FarmbotCeleryScript.SysCalls.coordinate(-20, -20, -20)
+             ) do
+               [x, y, z] = [locx + offx, locy + offy, locz + offz]
+               FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
+             end
+             """)
+  end
+
+  test "compiles move_relative" do
+    compiled =
+      compile(%AST{
+        kind: :move_relative,
+        args: %{
+          x: 100.4,
+          y: 90,
+          z: 50,
+          speed: 100
+        }
+      })
+
+    assert compiled ==
+             strip_nl("""
+             with(
+               locx when is_number(locx) <- 100.4,
+               locy when is_number(locy) <- 90,
+               locz when is_number(locz) <- 50,
+               curx when is_number(curx) <- FarmbotCeleryScript.SysCalls.get_current_x(),
+               cury when is_number(cury) <- FarmbotCeleryScript.SysCalls.get_current_y(),
+               curz when is_number(curz) <- FarmbotCeleryScript.SysCalls.get_current_z()
+             ) do
+               x = locx + curx
+               y = locy + cury
+               z = locz + curz
+               move_absolute(x, y, z, 100)
+             end
+             """)
+  end
+
+  test "compiles write_pin" do
+    compiled =
+      compile(%AST{
+        kind: :write_pin,
+        args: %{pin_number: 17, pin_mode: 0, pin_value: 1}
+      })
+
+    assert compiled ==
+             strip_nl("""
+             with(:ok <- FarmbotCeleryScript.SysCalls.write_pin(17, 0, 1)) do
+               FarmbotCeleryScript.SysCalls.read_pin(17, 0)
+             end
+             """)
+  end
+
+  test "compiles read pin" do
+    compiled =
+      compile(%AST{
+        kind: :read_pin,
+        args: %{pin_number: 23, pin_mode: 0}
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.read_pin(23, 0)
+             """)
+  end
+
+  test "compiles set_servo_angle" do
+    compiled =
+      compile(%AST{
+        kind: :set_servo_angle,
+        args: %{pin_number: 23, pin_value: 90}
+      })
+
+    assert compiled ==
+             strip_nl("""
+             FarmbotCeleryScript.SysCalls.set_servo_angle(23, 90)
+             """)
+  end
+
+  defp compile(ast) do
+    ast
+    |> Compiler.compile_ast()
+    |> Macro.to_string()
+    |> Code.format_string!()
+    |> IO.iodata_to_binary()
+  end
+
+  defp strip_nl(text) do
+    String.trim_trailing(text, "\n")
   end
 end
