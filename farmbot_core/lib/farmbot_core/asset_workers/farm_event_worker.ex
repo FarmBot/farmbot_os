@@ -7,7 +7,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
     SequenceEvent
   }
 
-  def preload(%FarmEvent{}), do: []
+  def preload(%FarmEvent{}), do: [:executions]
 
   def tracks_changes?(%FarmEvent{}), do: false
 

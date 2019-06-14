@@ -4,7 +4,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Peripheral, BotState}
-  alias FarmbotCeleryScript.{AST, Scheduler}
+  alias FarmbotCeleryScript.AST
 
   @retry_ms 1_000
 
@@ -22,7 +22,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   @impl true
   def init(peripheral) do
     %{informational_settings: %{idle: idle, firmware_version: fw_version}} = BotState.subscribe()
-    state =  %{peripheral: peripheral, scheduled_ref: nil, errors: 0, fw_idle: idle || false, fw_version: fw_version}
+    state =  %{peripheral: peripheral, errors: 0, fw_idle: idle || false, fw_version: fw_version}
     send self(), :timeout
     {:ok, state}
   end
@@ -44,27 +44,23 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     {:noreply, state}
   end
 
-  def handle_info(:timeout, %{peripheral: peripheral} = state) do
+  def handle_info(:timeout, %{peripheral: peripheral, errors: errors} = state) do
     FarmbotCore.Logger.busy(2, "Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
-    {:ok, ref} = Scheduler.schedule(rpc)
-    {:noreply, %{state | peripheral: peripheral, scheduled_ref: ref}}
-  end
-
-  def handle_info({Scheduler, ref, :ok}, %{peripheral: peripheral, scheduled_ref: ref} = state) do
-    FarmbotCore.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
-    {:noreply, state}
-  end
-
-  def handle_info({Scheduler, ref, {:error, reason}}, %{peripheral: peripheral, scheduled_ref: ref, errors: 5} = state) do
-    FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
-    {:noreply, state}
-  end
-
-  def handle_info({Scheduler, ref, {:error, reason}}, %{peripheral: peripheral, scheduled_ref: ref} = state) do
-    FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
-    Process.send_after(self(), :timeout, @retry_ms)
-    {:noreply, %{state | scheduled_ref: nil, errors: state.errors + 1}}
+    case FarmbotCeleryScript.execute(rpc, make_ref()) do
+      :ok -> 
+        FarmbotCore.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
+        {:noreply, state}
+      
+      {:error, reason} when errors < 5 -> 
+        FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
+        Process.send_after(self(), :timeout, @retry_ms)
+        {:noreply, %{state | errors: state.errors + 1}}
+      
+      {:error, reason} when errors == 5 ->
+        FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
+        {:noreply, state}
+    end
   end
 
   def handle_info({BotState, %{changes: %{informational_settings: %{changes: %{idle: idle}}}}}, state) do
@@ -76,6 +72,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   end
 
   def handle_info({BotState, _}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info({:step_complete, _, _}, state) do
     {:noreply, state}
   end
 

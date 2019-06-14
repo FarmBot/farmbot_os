@@ -27,7 +27,7 @@ defmodule Farmbot.TestSupport.AssetFixtures do
       id: :rand.uniform(10000),
       monitor: false,
       kind: "sequence",
-      args: %{},
+      args: %{locals: %{kind: "scope_declaration", args: %{}}},
       body: []
     }
 

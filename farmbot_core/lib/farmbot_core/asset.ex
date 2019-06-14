@@ -62,6 +62,27 @@ defmodule FarmbotCore.Asset do
     |> Repo.update!()
   end
 
+  def delete_farm_event!(farm_event) do
+    ri = get_regimen_instance(farm_event)
+    ri && Repo.delete!(ri)
+    Repo.delete!(farm_event)
+  end
+
+  def add_execution_to_farm_event!(%FarmEvent{} = farm_event, params \\ %{}) do
+    %FarmEvent.Execution{}
+    |> FarmEvent.Execution.changeset(params)
+    |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
+    |> Repo.insert!()
+  end
+
+  def get_farm_event_execution(%FarmEvent{} = farm_event, scheduled_at) do
+    Repo.one(
+      from e in FarmEvent.Execution, 
+        where: e.farm_event_local_id == ^farm_event.local_id
+        and e.scheduled_at == ^scheduled_at
+    )
+  end
+
   ## End FarmEvent
 
   ## Begin FbosConfig
@@ -116,8 +137,8 @@ defmodule FarmbotCore.Asset do
   ## Begin RegimenInstance
 
   def get_regimen_instance(%FarmEvent{} = farm_event) do
-    regimen = Repo.one!(from r in Regimen, where: r.id == ^farm_event.executable_id)
-    Repo.one(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id)    
+    regimen = Repo.one(from r in Regimen, where: r.id == ^farm_event.executable_id)
+    regimen && Repo.one(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id)    
   end
 
   def new_regimen_instance!(%FarmEvent{} = farm_event, params \\ %{}) do
@@ -128,10 +149,23 @@ defmodule FarmbotCore.Asset do
     |> Repo.insert!()
   end
 
-  def update_regimen_instance!(%RegimenInstance{} = pr, params \\ %{}) do
-    pr
-    |> RegimenInstance.changeset(params)
-    |> Repo.update!()
+  def delete_regimen_instance!(%RegimenInstance{} = ri) do
+    Repo.delete!(ri)
+  end
+  
+  def add_execution_to_regimen_instance!(%RegimenInstance{} = ri, params \\ %{}) do
+    %RegimenInstance.Execution{}
+    |> RegimenInstance.Execution.changeset(params)
+    |> Ecto.Changeset.put_assoc(:regimen_instance, ri)
+    |> Repo.insert!()
+  end
+
+  def get_regimen_instance_execution(%RegimenInstance{} = ri, scheduled_at) do
+    Repo.one(
+      from e in RegimenInstance.Execution, 
+        where: e.regimen_instance_local_id == ^ri.local_id
+        and e.scheduled_at == ^scheduled_at
+    )
   end
 
   ## End RegimenInstance
@@ -165,6 +199,10 @@ defmodule FarmbotCore.Asset do
     %Regimen{}
     |> Regimen.changeset(params)
     |> Repo.insert!()
+  end
+
+  def delete_regimen!(regimen) do
+    Repo.delete!(regimen)
   end
 
   @doc "Update an existing regimen"
