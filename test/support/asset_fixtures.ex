@@ -7,7 +7,7 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     regimen = regimen(regimen_params)
     farm_event = regimen_event(regimen, farm_event_params)
     params = Map.merge(%{id: :rand.uniform(10000), monitor: false}, params)
-    Asset.upsert_regimen_instance!(regimen, farm_event, params)
+    Asset.new_regimen_instance!(farm_event, params)
   end
 
   def fbos_config(params \\ %{}) do
