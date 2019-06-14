@@ -19,7 +19,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
     Asset
   }
 
-  alias FarmbotCeleryScript.{AST, Scheduler}
+  alias FarmbotCeleryScript.AST
 
   # @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
   @error_retry_time_ms 5000
@@ -67,7 +67,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   @impl true
   def init(%PinBinding{} = pin_binding) do
-    {:ok, %{pin_binding: pin_binding, scheduled_ref: nil}, 0}
+    {:ok, %{pin_binding: pin_binding}, 0}
   end
 
   @impl true
@@ -75,8 +75,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
     case Asset.get_sequence(pin_binding.sequence_id) do
       %Sequence{} = seq ->
-        ref = Scheduler.schedule(seq)
-        {:noreply, %{state | scheduled_ref: ref}}
+        AST.decode(seq)
+        |> execute(state)
 
       nil ->
         FarmbotCore.Logger.error(1, "Failed to find assosiated Sequence for: #{pin_binding}")
@@ -86,82 +86,66 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "dump_info"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.dump_info()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.dump_info()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_lock"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.emergency_lock()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
-  end
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.emergency_lock()
+    |> execute(state)
+    end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "emergency_unlock"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.emergency_unlock()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.emergency_unlock()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "power_off"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.power_off()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.power_off()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "read_status"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.read_status()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.read_status()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "reboot"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.reboot()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.reboot()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "sync"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.sync()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.sync()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "take_photo"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "Pinbinding triggered: #{pin_binding}")
-    {:ok, ref} =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
-      |> AST.Factory.take_photo()
-      |> Scheduler.schedule()
-    {:noreply, %{state | scheduled_ref: ref}}
+    AST.Factory.new()
+    |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
+    |> AST.Factory.take_photo()
+    |> execute(state)
   end
 
   def handle_cast(:trigger, %{pin_binding: pin_binding} = state) do
@@ -192,14 +176,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
     end
   end
 
-  @impl true
-  def handle_info({Scheduler, ref, :ok}, %{scheduled_ref: ref} = state) do
+  def handle_info({:step_complete, _ref, _result}, state) do
     {:noreply, state}
   end
 
-  def handle_info({Scheduler, ref, {:error, reason}}, %{scheduled_ref: ref} = state) do
-    pin_binding = state.pin_binding
-    FarmbotCore.Logger.error(1, "PinBinding: #{pin_binding} failed to execute: #{reason}")
+  defp execute(%AST{} = ast, state) do
+    case FarmbotCeleryScript.execute(ast, make_ref()) do
+      :ok -> :ok
+      {:error, reason} ->
+        FarmbotCore.Logger.error 1, "error executing #{state.pin_binding}: #{reason}"
+    end
     {:noreply, state}
   end
 

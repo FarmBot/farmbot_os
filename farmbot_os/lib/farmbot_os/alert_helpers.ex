@@ -6,6 +6,6 @@ defmodule FarmbotOS.AlertHelpers do
       body: [%{kind: :flash_firmware, args: %{package: package}}]
     }
     |> FarmbotCeleryScript.AST.decode()
-    |> FarmbotCeleryScript.Scheduler.schedule()
+    |> FarmbotCeleryScript.execute("findme")
   end
 end

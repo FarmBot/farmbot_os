@@ -10,7 +10,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   require FarmbotCore.Logger
   require Logger
 
-  alias FarmbotCeleryScript.{AST, Scheduler}
+  alias FarmbotCeleryScript.{AST, StepRunner}
   alias FarmbotExt.AMQP.ConnectionWorker
 
   @exchange "amq.topic"
@@ -62,16 +62,13 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     ["bot", ^device, "from_clients"] = String.split(key, ".")
     ast = JSON.decode!(payload) |> AST.decode()
 
-    {:ok, ref} =
-      if ast.args[:priority] == 1 do
-        Scheduler.execute(ast)
-      else
-        Scheduler.schedule(ast)
-      end
+    channel_pid = self()
+    ref = make_ref()
+    _pid = spawn(StepRunner, :step, [channel_pid, ref, ast])
 
     timer =
       if ast.args[:timeout] && ast.args[:timeout] > 0 do
-        msg = {Scheduler, ref, {:error, "timeout"}}
+        msg = {:step_complete, {:error, "timeout"}}
         Process.send_after(self(), msg, ast.args[:timeout])
       end
 
@@ -84,7 +81,9 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     {:noreply, %{state | rpc_requests: Map.put(state.rpc_requests, ref, req)}}
   end
 
-  def handle_info({Scheduler, ref, :ok}, state) do
+  def handle_info({:step_complete, ref, :ok}, state) do
+    Logger.info("CeleryScript ok [#{inspect(ref)}]: ")
+
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
         # label != "ping" && Logger.debug("CeleryScript success: #{label}")
@@ -106,7 +105,9 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     end
   end
 
-  def handle_info({Scheduler, ref, {:error, reason}}, state) do
+  def handle_info({:step_complete, ref, {:error, reason}}, state) do
+    Logger.error("CeleryScript error [#{inspect(ref)}]: #{inspect(reason)}")
+
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
         timer && Process.cancel_timer(timer)
