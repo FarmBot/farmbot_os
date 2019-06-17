@@ -207,6 +207,12 @@ defmodule FarmbotCore.Asset do
 
   @doc "Update an existing regimen"
   def update_regimen!(regimen, params) do
+    regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
+    |> Repo.preload([:farm_event, :regimen])
+    for ri <- regimen_instances do
+      FarmbotCore.AssetSupervisor.update_child(ri)
+    end
+
     regimen
     |> Regimen.changeset(params)
     |> Repo.update!()
@@ -219,6 +225,38 @@ defmodule FarmbotCore.Asset do
   @doc "Get a sequence by it's API id"
   def get_sequence(id) do
     Repo.get_by(Sequence, id: id)
+  end
+
+  def update_sequence!(%Sequence{} = sequence, params \\ %{}) do
+    sequence_id = sequence.id
+    farm_events = Repo.all(from f in FarmEvent, 
+      where: f.executable_type == "Sequence" 
+      and f.executable_id == ^sequence_id)
+
+    regimen_instances = RegimenInstance
+    |> Repo.all()
+    |> Repo.preload([:regimen, :farm_event])
+    |> Enum.filter(fn
+      %{regimen: %{regimen_items: items}} -> 
+        Enum.find(items, fn
+          %{sequence_id: ^sequence_id} -> true
+          %{sequence_id: _} -> true
+      end)
+
+      %{regimen: nil} -> false
+    end)
+
+    for asset <- farm_events ++ regimen_instances do
+      FarmbotCore.AssetSupervisor.update_child(asset)
+    end
+
+    Sequence.changeset(sequence, params)
+    |> Repo.update!()
+  end
+
+  def new_sequence!(params \\ %{}) do
+    Sequence.changeset(%Sequence{}, params)
+    |> Repo.insert!()
   end
 
   ## End Sequence

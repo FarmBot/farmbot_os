@@ -102,6 +102,15 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
+  def update("Sequence", id, params) do
+    old = Asset.get_sequence(id)
+    if old,
+      do: Asset.update_sequence!(old, params),
+      else: Asset.new_sequence!(params)
+
+    :ok
+  end
+
   # Catch-all use case:
   def update(asset_kind, id, params) do
     Logger.warn "Implement me: #{asset_kind}"
