@@ -12,7 +12,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
   require FarmbotCore.Logger
   import Phoenix.HTML
   alias FarmbotCore.Config
-  alias FarmbotOS.Platform.Target.{Network, Configurator.Validator}
 
   import Config,
     only: [
@@ -83,7 +82,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
 
   # NETWORKCONFIG
   get "/network" do
-    interfaces = Network.list_interfaces()
+    interfaces = []
     render_page(conn, "network", interfaces: interfaces, post_action: "select_interface")
   end
 
@@ -120,7 +119,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
 
       opts = [
         ifname: ifname,
-        ssids: Network.Utils.scan(ifname),
+        ssids: [],
         post_action: "config_wireless_step_1"
       ]
 
@@ -195,77 +194,34 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
         conn.params["ifname"] ||
           raise(MissingField, field: "ifname", message: "ifname not provided", redir: "/network")
 
-      ssid = conn.params["ssid"] |> remove_empty_string()
-      security = conn.params["security"] |> remove_empty_string()
-      psk = conn.params["psk"] |> remove_empty_string()
-      identity = conn.params["identity"] |> remove_empty_string()
-      password = conn.params["password"] |> remove_empty_string()
-      domain = conn.params["domain"] |> remove_empty_string()
-      name_servers = conn.params["name_servers"] |> remove_empty_string()
-      ipv4_method = conn.params["ipv4_method"] |> remove_empty_string()
-      ipv4_address = conn.params["ipv4_address"] |> remove_empty_string()
-      ipv4_gateway = conn.params["ipv4_gateway"] |> remove_empty_string()
-      ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
-
+      # Global configuration data
       dns_name = conn.params["dns_name"] |> remove_empty_string()
-      ntp_server_1 = conn.params["ntp_server_1"] |> remove_empty_string()
-      ntp_server_2 = conn.params["ntp_server_2"] |> remove_empty_string()
+      dns_name && update_config_value(:string, "settings", "default_dns_name", dns_name)
 
-      reg_domain = conn.params["regulatory_domain"] |> remove_empty_string()
+      ntp1 = conn.params["ntp_server_1"] |> remove_empty_string()
+      ntp1 && update_config_value(:string, "settings", "default_ntp_server_1", ntp1)
+
+      ntp2 = conn.params["ntp_server_2"] |> remove_empty_string()
+      ntp2 && update_config_value(:string, "settings", "default_ntp_server_2", ntp2)
 
       ssh_key = conn.params["ssh_key"] |> remove_empty_string()
+      ssh_key && update_config_value(:string, "settings", "authorized_ssh_key", ssh_key)
 
-      if dns_name do
-        update_config_value(:string, "settings", "default_dns_name", dns_name)
-      end
-
-      if ntp_server_1 do
-        update_config_value(:string, "settings", "default_ntp_server_1", ntp_server_1)
-      end
-
-      if ntp_server_2 do
-        update_config_value(:string, "settings", "default_ntp_server_2", ntp_server_2)
-      end
-
-      if ssh_key do
-        update_config_value(:string, "settings", "authorized_ssh_key", ssh_key)
-      end
-
-      type = if(ssid, do: "wireless", else: "wired")
-
-      old =
-        Config.Repo.get_by(Config.NetworkInterface, name: ifname) || %Config.NetworkInterface{}
-
-      changeset =
-        Config.NetworkInterface.changeset(old, %{
-          name: ifname,
-          ssid: ssid,
-          security: security,
-          psk: psk,
-          type: type,
-          domain: domain,
-          identity: identity,
-          password: password,
-          name_servers: name_servers,
-          ipv4_method: ipv4_method,
-          ipv4_address: ipv4_address,
-          ipv4_gateway: ipv4_gateway,
-          ipv4_subnet_mask: ipv4_subnet_mask,
-          regulatory_domain: reg_domain
-        })
-
-      case Config.Repo.insert_or_update(changeset) do
-        {:ok, _} ->
-          redir(conn, "/firmware")
-
-        {:error, %{errors: r}} when type == "wireless" ->
-          FarmbotCore.Logger.error(1, "Network error: #{inspect(r)}")
-          redir(conn, "/config_wireless?ifname=#{ifname}")
-
-        {:error, %{errors: r}} when type == "wired" ->
-          FarmbotCore.Logger.error(1, "Network error: #{inspect(r)}")
-          redir(conn, "/config_wired?ifname=#{ifname}")
-      end
+      # Network Interface configuration data
+      _ssid = conn.params["ssid"] |> remove_empty_string()
+      _type = if(ssid, do: "wireless", else: "wired")
+      _security = conn.params["security"] |> remove_empty_string()
+      _psk = conn.params["psk"] |> remove_empty_string()
+      _identity = conn.params["identity"] |> remove_empty_string()
+      _password = conn.params["password"] |> remove_empty_string()
+      _domain = conn.params["domain"] |> remove_empty_string()
+      _name_servers = conn.params["name_servers"] |> remove_empty_string()
+      _ipv4_method = conn.params["ipv4_method"] |> remove_empty_string()
+      _ipv4_address = conn.params["ipv4_address"] |> remove_empty_string()
+      _ipv4_gateway = conn.params["ipv4_gateway"] |> remove_empty_string()
+      _ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
+      _reg_domain = conn.params["regulatory_domain"] |> remove_empty_string()
+      redir(conn, "/firmware")
     rescue
       e in MissingField ->
         FarmbotCore.Logger.error(1, Exception.message(e))
@@ -316,11 +272,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
     email = get_config_value(:string, "authorization", "email")
     pass = get_config_value(:string, "authorization", "password")
     server = get_config_value(:string, "authorization", "server")
-    network = !Enum.empty?(Config.get_all_network_configs())
+    # network = !Enum.empty?(Config.get_all_network_configs())
+    # TODO make this check for validity
+    network = false
 
     if email && pass && server && network do
-      Network.reload()
-      Validator.force()
+      FarmbotCore.Logger.error(1, "What to do when finished")
       render_page(conn, "finish")
     else
       FarmbotCore.Logger.warn(3, "Not configured yet. Restarting configuration.")
