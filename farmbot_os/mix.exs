@@ -84,9 +84,11 @@ defmodule FarmbotOS.MixProject do
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
       {:circuits_gpio, "~> 0.4", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.7.2-farmbot.1", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi0, "1.7.2-farmbot.1", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.7.2-farmbot.2", runtime: false, targets: :rpi}
+      {:vintage_net, "~> 0.3.0", targets: @all_targets},
+      {:busybox, "~> 0.1.2", targets: @all_targets},
+      {:farmbot_system_rpi3, "1.7.2-farmbot.2", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi0, "1.7.2-farmbot.2", runtime: false, targets: :rpi0},
+      {:farmbot_system_rpi, "1.7.2-farmbot.3", runtime: false, targets: :rpi}
     ]
   end
 
