@@ -74,9 +74,9 @@ defmodule FarmbotOS.MixProject do
       {:elixir_make, "~> 0.5", runtime: false},
 
       # Target only deps
-      {:cors_plug, "~> 2.0", targets: @all_targets},
-      {:plug_cowboy, "~> 2.0", targets: @all_targets},
-      {:phoenix_html, "~> 2.13", targets: @all_targets},
+      {:cors_plug, "~> 2.0"},
+      {:plug_cowboy, "~> 2.0"},
+      {:phoenix_html, "~> 2.13"},
       {:nerves_runtime, "~> 0.9", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
       {:nerves_hub, "~> 0.7", targets: @all_targets},

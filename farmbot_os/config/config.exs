@@ -56,6 +56,10 @@ config :farmbot_ext, FarmbotExt.API.Preloader, preloader_impl: FarmbotExt.API.Pr
 config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
 config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Host.SystemTasks
 
+config :farmbot, FarmbotOS.Configurator,
+  data_layer: FarmbotOS.Configurator.ConfigDataLayer,
+  network_layer: FarmbotOS.Configurator.FakeNetworkLayer
+
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Host.Configurator

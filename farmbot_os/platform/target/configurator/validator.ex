@@ -7,21 +7,23 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   @behaviour VintageNet.Technology
 
   @impl VintageNet.Technology
-  def normalize(%{
-    network_type: _,
-    ssid: _,
-    security: _,
-    psk: _,
-    identity: _,
-    password: _,
-    domain: _,
-    name_servers: _,
-    ipv4_method: _,
-    ipv4_address: _,
-    ipv4_gateway: _,
-    ipv4_subnet_mask: _,
-    regulatory_domain: _
-  } = config) do
+  def normalize(
+        %{
+          network_type: _,
+          ssid: _,
+          security: _,
+          psk: _,
+          identity: _,
+          password: _,
+          domain: _,
+          name_servers: _,
+          ipv4_method: _,
+          ipv4_address: _,
+          ipv4_gateway: _,
+          ipv4_subnet_mask: _,
+          regulatory_domain: _
+        } = config
+      ) do
     {:ok, config}
   end
 
@@ -42,6 +44,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       type: VintageNet.Technology.Ethernet,
       ipv4: to_ipv4(config)
     }
+
     vintage_ethernet(ifname, config, opts)
   end
 
@@ -51,6 +54,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       ipv4: to_ipv4(config),
       wifi: to_wifi(config)
     }
+
     vintage_wifi(ifname, config, opts)
   end
 
@@ -65,13 +69,14 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   end
 
   defp to_ipv4(%{
-    ipv4_method: "static",
-    # TODO(Connor) fix nameservers
-    # name_servers: name_servers,
-    # domain: domain,
-    ipv4_address: ipv4_address,
-    ipv4_gateway: ipv4_gateway,
-    ipv4_subnet_mask: ipv4_subnet_mask}) do
+         ipv4_method: "static",
+         # TODO(Connor) fix nameservers
+         # name_servers: name_servers,
+         # domain: domain,
+         ipv4_address: ipv4_address,
+         ipv4_gateway: ipv4_gateway,
+         ipv4_subnet_mask: ipv4_subnet_mask
+       }) do
     %{
       method: :static,
       address: ipv4_address,
@@ -121,12 +126,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   end
 
   defp vintage_ethernet(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.Ethernet.normalize(config), 
-      do: VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
+    with {:ok, config} <- VintageNet.Technology.Ethernet.normalize(config),
+         do: VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
   end
 
   defp vintage_wifi(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.WiFi.normalize(config), 
-      do: VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
+    with {:ok, config} <- VintageNet.Technology.WiFi.normalize(config),
+         do: VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
   end
 end
