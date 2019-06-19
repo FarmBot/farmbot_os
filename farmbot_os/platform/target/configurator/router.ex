@@ -82,7 +82,13 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
 
   # NETWORKCONFIG
   get "/network" do
-    interfaces = []
+    interfaces = Enum.map(VintageNet.all_interfaces(), fn(ifname) -> 
+      FarmbotCore.Logger.error 1, "Fix mac_address for #{ifname}"
+      settings = %{
+        mac_address: "fixme-#{:rand.uniform()}"
+      }
+      {ifname, settings}
+    end)
     render_page(conn, "network", interfaces: interfaces, post_action: "select_interface")
   end
 
@@ -172,8 +178,11 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
         security == "WPA-PSK" ->
           render_page(conn, "/config_wireless_step_2_PSK", opts)
 
-        security == "WPA-PSK" ->
+        security == "WPA2-PSK" ->
           render_page(conn, "/config_wireless_step_2_PSK", opts)
+
+        security == "WPA-EAP" ->
+          render_page(conn, "/config_wireless_step_2_EAP", opts)
 
         security == "NONE" ->
           render_page(conn, "/config_wireless_step_2_NONE", opts)
@@ -208,20 +217,43 @@ defmodule FarmbotOS.Platform.Target.Configurator.Router do
       ssh_key && update_config_value(:string, "settings", "authorized_ssh_key", ssh_key)
 
       # Network Interface configuration data
-      _ssid = conn.params["ssid"] |> remove_empty_string()
-      _type = if(ssid, do: "wireless", else: "wired")
-      _security = conn.params["security"] |> remove_empty_string()
-      _psk = conn.params["psk"] |> remove_empty_string()
-      _identity = conn.params["identity"] |> remove_empty_string()
-      _password = conn.params["password"] |> remove_empty_string()
-      _domain = conn.params["domain"] |> remove_empty_string()
-      _name_servers = conn.params["name_servers"] |> remove_empty_string()
-      _ipv4_method = conn.params["ipv4_method"] |> remove_empty_string()
-      _ipv4_address = conn.params["ipv4_address"] |> remove_empty_string()
-      _ipv4_gateway = conn.params["ipv4_gateway"] |> remove_empty_string()
-      _ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
-      _reg_domain = conn.params["regulatory_domain"] |> remove_empty_string()
-      redir(conn, "/firmware")
+      ssid = conn.params["ssid"] |> remove_empty_string()
+      type = if(ssid, do: "wireless", else: "wired")
+      security = conn.params["security"] |> remove_empty_string()
+      psk = conn.params["psk"] |> remove_empty_string()
+      identity = conn.params["identity"] |> remove_empty_string()
+      password = conn.params["password"] |> remove_empty_string()
+      domain = conn.params["domain"] |> remove_empty_string()
+      name_servers = conn.params["name_servers"] |> remove_empty_string()
+      ipv4_method = conn.params["ipv4_method"] |> remove_empty_string()
+      ipv4_address = conn.params["ipv4_address"] |> remove_empty_string()
+      ipv4_gateway = conn.params["ipv4_gateway"] |> remove_empty_string()
+      ipv4_subnet_mask = conn.params["ipv4_subnet_mask"] |> remove_empty_string()
+      reg_domain = conn.params["regulatory_domain"] |> remove_empty_string()
+      config = %{
+        type: FarmbotOS.Platform.Target.Configurator.Validator,
+        network_type: type,
+        ssid: ssid,
+        security: security,
+        psk: psk,
+        identity: identity,
+        password: password,
+        domain: domain,
+        name_servers: name_servers,
+        ipv4_method: ipv4_method,
+        ipv4_address: ipv4_address,
+        ipv4_gateway: ipv4_gateway,
+        ipv4_subnet_mask: ipv4_subnet_mask,
+        regulatory_domain: reg_domain,
+      }
+      case VintageNet.configuration_valid?(ifname, config) do
+        true -> 
+          FarmbotCore.Logger.error 1, "Do something with the raw config here"
+          redir(conn, "/firmware")
+        false ->
+          FarmbotCore.Logger.error 1, "Error validating network configuration"
+          redir(conn, "/network")
+      end
     rescue
       e in MissingField ->
         FarmbotCore.Logger.error(1, Exception.message(e))
