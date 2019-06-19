@@ -7,6 +7,7 @@ defmodule FarmbotOS do
 
   def start(_type, _args) do
     children = [
+      {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
       {FarmbotOS.Platform.Supervisor, []},
       {FarmbotOS.EasterEggs, []}
