@@ -26,7 +26,7 @@ defmodule FarmbotCore.Asset.Regimen do
     %{
       id: regimen.id,
       name: regimen.name,
-      regimen_items: Enum.map(regimen.items, &Item.render(&1)),
+      regimen_items: Enum.map(regimen.regimen_items, &Item.render(&1)),
       body: Enum.map(regimen.body, &BodyNode.render(&1))
     }
   end
