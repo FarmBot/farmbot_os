@@ -72,8 +72,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:preload, state) do
-    with :ok <- Preloader.preload_all(),
-         :ok <- BotState.set_sync_status("synced") do
+    with :ok <- Preloader.preload_all() do
+      if Asset.Query.auto_sync?() do
+        BotState.set_sync_status("synced")
+      else
+        BotState.set_sync_status("sync_now")
+      end
+
       send(self(), :connect)
       {:noreply, %{state | preloaded: true}}
     else
