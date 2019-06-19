@@ -35,7 +35,7 @@ defmodule AutoSyncChannelTest do
 
     test_pid = self()
 
-    expect(Query, :auto_sync?, fn -> false end)
+    expect(Query, :auto_sync?, 2, fn -> false end)
 
     expect(API, :get_changeset, fn _module ->
       send(test_pid, :preload_all_called)

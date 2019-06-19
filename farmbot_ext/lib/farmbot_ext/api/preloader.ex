@@ -4,7 +4,7 @@ defmodule FarmbotExt.API.Preloader do
   all resources stored in the API.
   """
 
-  alias Ecto.{Changeset, Multi}
+  alias Ecto.Changeset
 
   require FarmbotCore.Logger
   alias FarmbotExt.API
@@ -12,7 +12,6 @@ defmodule FarmbotExt.API.Preloader do
 
   alias FarmbotCore.{
     Asset.Query,
-    Asset.Repo,
     Asset.Sync
   }
 
@@ -23,55 +22,44 @@ defmodule FarmbotExt.API.Preloader do
   """
   def preload_all() do
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
-         sync <- Changeset.apply_changes(sync_changeset),
-         multi <- Multi.new(),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
-         {:ok, _} <- Repo.transaction(multi) do
-      auto_sync_change =
-        Enum.find_value(multi.operations, fn {{key, _id}, {:changeset, change, []}} ->
-          key == :fbos_configs && Changeset.get_change(change, :auto_sync)
-        end)
-
-      FarmbotCore.Logger.success(3, "Successfully synced bootup resources.")
-
-      maybe_auto_sync(sync_changeset, auto_sync_change || Query.auto_sync?())
+         sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_0()) do
+      FarmbotCore.Logger.success(3, "Successfully preloaded resources.")
+      maybe_auto_sync(sync_changeset, Query.auto_sync?())
     end
   end
 
   # When auto_sync is enabled, do the full sync.
-  defp maybe_auto_sync(sync_changeset, true) do
-    FarmbotCore.Logger.busy(3, "bootup auto sync")
-    sync = Changeset.apply_changes(sync_changeset)
-    multi = Multi.new()
+  defp maybe_auto_sync(%Changeset{} = sync_changeset, true) do
+    FarmbotCore.Logger.busy(3, "Starting auto sync")
 
-    with {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_1()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_2()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_3()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_4()) do
-      Multi.insert(multi, :syncs, sync_changeset)
-      |> Repo.transaction()
-
-      FarmbotCore.Logger.success(3, "bootup auto sync complete")
+    with %Changeset{valid?: true} = sync_changeset <-
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
+         %Changeset{valid?: true} = sync_changeset <-
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_2()),
+         %Changeset{valid?: true} = sync_changeset <-
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
+         %Changeset{valid?: true} <- Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
+      FarmbotCore.Logger.success(3, "Auto sync complete")
       :ok
     else
       error ->
-        FarmbotCore.Logger.error(3, "bootup auto sync failed #{inspect(error)}")
+        FarmbotCore.Logger.error(3, "Auto sync failed #{inspect(error)}")
         error
     end
   end
 
   # When auto_sync is disabled preload the sync.
-  defp maybe_auto_sync(sync_changeset, false) do
-    FarmbotCore.Logger.busy(3, "preloading sync")
+  defp maybe_auto_sync(%Changeset{} = sync_changeset, false) do
+    FarmbotCore.Logger.busy(3, "Preloading auto sync")
     sync = Changeset.apply_changes(sync_changeset)
 
     case EagerLoader.preload(sync) do
       :ok ->
-        FarmbotCore.Logger.success(3, "preloaded sync ok")
+        FarmbotCore.Logger.success(3, "Preloaded auto sync complete")
         :ok
 
       error ->
-        FarmbotCore.Logger.error(3, "Failed ot preload sync")
+        FarmbotCore.Logger.error(3, "Preloading auto sync failed #{inspect(error)}")
         error
     end
   end
