@@ -152,6 +152,11 @@ defmodule FarmbotCore.Asset.Command do
   defp as_module!("SensorReading"), do: Asset.SensorReading 
   defp as_module!("Sequence"), do: Asset.Sequence 
   defp as_module!("Tool"), do: Asset.Tool 
+
+  defp as_module!(module) when is_atom(module) do
+    as_module!(List.last(Module.split(module)))
+  end
+  
   defp as_module!(kind) when is_binary(kind) do
     raise("""
     Unknown kind: #{kind}

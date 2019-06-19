@@ -16,7 +16,6 @@ defmodule FarmbotOS.SysCalls do
 
   alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState, Leds}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
-  alias Ecto.{Changeset, Multi}
 
   @behaviour FarmbotCeleryScript.SysCalls
 
@@ -366,17 +365,12 @@ defmodule FarmbotOS.SysCalls do
     FarmbotCore.Logger.busy(3, "Syncing")
 
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
-         sync <- Changeset.apply_changes(sync_changeset),
-         multi <- Multi.new(),
          :ok <- BotState.set_sync_status("syncing"),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_0()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_1()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_2()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_3()),
-         {:ok, multi} <- Reconciler.sync_group(multi, sync, SyncGroup.group_4()) do
-      Multi.insert(multi, :syncs, sync_changeset)
-      |> Repo.transaction()
-
+         sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_0()),
+         sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
+         sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_2()),
+         sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
+         _sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
       FarmbotCore.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
       :ok
