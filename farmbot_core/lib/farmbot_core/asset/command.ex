@@ -4,6 +4,20 @@ defmodule FarmbotCore.Asset.Command do
   """
   require Logger
   alias FarmbotCore.{Asset, Asset.Repo}
+  alias FarmbotCore.Asset.{
+    Device,
+    FarmEvent,
+    FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
+    FbosConfig,
+    FirmwareConfig,
+    Regimen,
+    Regimen,
+    Sensor,
+    SensorReading,
+    Sequence
+  }
 
   @typedoc "String kind that should be turned into an Elixir module."
   @type kind :: String.t()
@@ -20,17 +34,21 @@ defmodule FarmbotCore.Asset.Command do
   """
   @callback update(kind, params, id) :: :ok | no_return()
 
-  def update("Device", _id, params) do 
+  def update(kind, id, params) when is_binary(kind) do
+    update(as_module!(kind), id, params)
+  end
+
+  def update(Device, _id, params) do 
     Asset.update_device!(params)
     :ok
   end
   
-  def update("FbosConfig", _id, params) do 
+  def update(FbosConfig, _id, params) do 
     Asset.update_fbos_config!(params)
     :ok
   end
   
-  def update("FirmwareConfig", _id, params) do 
+  def update(FirmwareConfig, _id, params) do 
     Asset.update_firmware_config!(params)
     :ok
   end
@@ -38,13 +56,13 @@ defmodule FarmbotCore.Asset.Command do
   # Deletion use case:
   # TODO(Connor) put checks for deleting Device, FbosConfig and FirmwareConfig
 
-  def update("FarmEvent", id, nil) do
+  def update(FarmEvent, id, nil) do
     farm_event = Asset.get_farm_event(id)
     farm_event && Asset.delete_farm_event!(farm_event)
     :ok
   end
 
-  def update("Regimen", id, nil) do
+  def update(Regimen, id, nil) do
     regimen = Asset.get_regimen(id)
     regimen && Asset.delete_regimen!(regimen)
     :ok
@@ -56,17 +74,17 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update("FarmwareEnv", id, params) do 
+  def update(FarmwareEnv, id, params) do 
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
   end
   
-  def update("FarmwareInstallation", id, params) do 
+  def update(FarmwareInstallation, id, params) do 
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
   end
 
-  def update("FarmEvent", id, params) do
+  def update(FarmEvent, id, params) do
     old = Asset.get_farm_event(id)
     if old, 
       do: Asset.update_farm_event!(old, params), 
@@ -75,7 +93,7 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update("Regimen", id, params) do
+  def update(Regimen, id, params) do
     old = Asset.get_regimen(id)
     if old, 
       do: Asset.update_regimen!(old, params), 
@@ -84,7 +102,7 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update("Sensor", id, params) do
+  def update(Sensor, id, params) do
     old = Asset.get_sensor(id)
     if old, 
       do: Asset.update_sensor!(old, params), 
@@ -93,7 +111,7 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update("SensorReading", id, params) do
+  def update(SensorReading, id, params) do
     old = Asset.get_sensor_reading(id)
     if old, 
       do: Asset.update_sensor_reading!(old, params), 
@@ -102,7 +120,7 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update("Sequence", id, params) do
+  def update(Sequence, id, params) do
     old = Asset.get_sequence(id)
     if old,
       do: Asset.update_sequence!(old, params),

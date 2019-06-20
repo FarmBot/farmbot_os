@@ -39,7 +39,7 @@ defmodule FarmbotCore.Asset do
   def update_device!(params) do
     device()
     |> Device.changeset(params)
-    |> Repo.update!()
+    |> Repo.insert_or_update!()
   end
 
   ## End Device
@@ -202,6 +202,13 @@ defmodule FarmbotCore.Asset do
   end
 
   def delete_regimen!(regimen) do
+    IO.puts "regimen instance lookup"
+    regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
+    for ri <- regimen_instances do
+      IO.puts "deleting regimen instance: #{inspect(ri)}"
+      delete_regimen_instance!(ri)
+    end
+    IO.puts "deleting regimen: #{inspect(regimen)}"
     Repo.delete!(regimen)
   end
 

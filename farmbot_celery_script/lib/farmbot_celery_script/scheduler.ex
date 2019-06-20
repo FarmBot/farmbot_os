@@ -50,6 +50,10 @@ defmodule FarmbotCeleryScript.Scheduler do
     GenServer.call(sch, {:schedule, compiled, at})
   end
 
+  def get_next(sch \\ __MODULE__) do
+    GenServer.call(sch, :get_next)
+  end
+
   @impl true
   def init(_args) do
     send(self(), :checkup)
@@ -65,6 +69,10 @@ defmodule FarmbotCeleryScript.Scheduler do
 
     :ok = GenServer.reply(from, {:ok, ref})
     schedule_next_checkup(state, 0)
+  end
+
+  def handle_call(:get_next, _from, state) do
+    {:reply, state.next, state}
   end
 
   @impl true
@@ -87,12 +95,22 @@ defmodule FarmbotCeleryScript.Scheduler do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
       diff when diff < 0 ->
-        Logger.info("Next execution is still #{abs(diff)}ms too early")
+        from_now =
+          DateTime.utc_now()
+          |> DateTime.add(abs(diff), :millisecond)
+          |> Timex.from_now()
+
+        Logger.info("Next execution is still #{abs(diff)}ms too early (#{from_now})")
         schedule_next_checkup(state, abs(diff))
 
       # now is more than 2 minutes (120 seconds) past schedule time
       diff when diff > 120_000 ->
-        Logger.info("Next execution is #{abs(diff)}ms too late")
+        from_now =
+          DateTime.utc_now()
+          |> DateTime.add(diff, :millisecond)
+          |> Timex.from_now()
+
+        Logger.info("Next execution is #{abs(diff)}ms too late (#{from_now})")
         schedule_next_checkup(state)
 
       # now is late, but less than 2 minutes late
