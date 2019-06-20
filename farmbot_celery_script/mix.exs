@@ -46,6 +46,7 @@ defmodule FarmbotCeleryScript.MixProject do
   defp deps do
     [
       {:jason, "~> 1.1"},
+      {:timex, "~> 3.4"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}

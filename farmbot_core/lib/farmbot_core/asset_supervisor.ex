@@ -27,7 +27,7 @@ defmodule FarmbotCore.AssetSupervisor do
   @doc "Does a GenServer call on a server"
   def cast_child(%{} = data, cast) do
     case whereis_child(data) do
-      nil -> exit("no process: #{inspect(data)}")
+      nil -> :error
       {_, pid, _, _} -> GenServer.cast(pid, cast)
     end
   end
