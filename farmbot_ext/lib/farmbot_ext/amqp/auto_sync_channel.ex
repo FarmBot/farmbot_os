@@ -163,6 +163,10 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     :ok = BotState.set_sync_status("synced")
   end
 
+  def cache_sync(_, _, nil) do
+    :ok = BotState.set_sync_status("sync_now")
+  end
+
   def cache_sync(asset_kind, id, params) do
     Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
     changeset = Asset.Command.new_changeset(asset_kind, id, params)

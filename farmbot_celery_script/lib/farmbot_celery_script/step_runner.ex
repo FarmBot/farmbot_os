@@ -35,11 +35,13 @@ defmodule FarmbotCeleryScript.StepRunner do
       fun.()
     rescue
       e ->
+        IO.warn("CeleryScript Exception: ", __STACKTRACE__)
         result = {:error, Exception.message(e)}
         send(listener, {:step_complete, tag, result})
         result
     catch
       _kind, error ->
+        IO.warn("CeleryScript Error: ", __STACKTRACE__)
         send(listener, {:step_complete, tag, {:error, error}})
         {:error, error}
     end
