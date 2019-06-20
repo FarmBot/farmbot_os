@@ -57,7 +57,7 @@
             </select>
 
             <div id="pskdiv">
-              <label for=psk> Password </label>
+              <label for=psk> PSK </label>
               <div class="psk-input-group">
                 <input type="password" name="psk" id="psk">
                 <img class="eye-icon" src="icon_eye.svg"
