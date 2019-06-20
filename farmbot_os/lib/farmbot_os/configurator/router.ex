@@ -26,7 +26,7 @@ defmodule FarmbotOS.Configurator.Router do
 
   get "/" do
     case load_last_reset_reason() do
-      {:ok, reason} when is_binary(reason) ->
+      reason when is_binary(reason) ->
         if String.contains?(reason, "CeleryScript request.") do
           render_page(conn, "index", version: version(), last_reset_reason: nil)
         else
@@ -53,13 +53,13 @@ defmodule FarmbotOS.Configurator.Router do
         conn
         |> put_resp_content_type("application/octet-stream")
         |> put_resp_header(
-          "Content-Disposition",
+          "content-disposition",
           "inline; filename=\"#{version()}-#{md5}-logs.sqlite3\""
         )
         |> send_resp(200, data)
 
       {:error, posix} ->
-        send_resp(conn, 404, "Error downloading file: #{posix}")
+        send_resp(conn, 500, "Error downloading file: #{posix}")
     end
   end
 
@@ -105,7 +105,7 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   get "/config_wireless" do
-    ifname = get_session("ifname")
+    ifname = get_session(conn, "ifname")
 
     render_page(conn, "/config_wireless_step_1",
       ifname: ifname,
@@ -115,7 +115,7 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   post "config_wireless_step_1" do
-    ifname = get_session("ifname")
+    ifname = get_session(conn, "ifname")
     ssid = conn.params["ssid"] |> remove_empty_string()
     security = conn.params["security"] |> remove_empty_string()
     manualssid = conn.params["manualssid"] |> remove_empty_string()
@@ -221,17 +221,17 @@ defmodule FarmbotOS.Configurator.Router do
       %{"email" => email, "password" => pass, "server" => server} ->
         if server = test_uri(server) do
           FarmbotCore.Logger.info(1, "server valid: #{server}")
+
+          conn
+          |> put_session("auth_email", email)
+          |> put_session("auth_password", pass)
+          |> put_session("auth_server", server)
+          |> redir("/finish")
         else
           conn
           |> put_session("__error", "Server is not a valid URI")
           |> redir("/credentials")
         end
-
-        conn
-        |> put_session("email", email)
-        |> put_session("password", pass)
-        |> put_session("server", server)
-        |> redir("/finish")
 
       _ ->
         conn

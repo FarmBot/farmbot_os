@@ -53,7 +53,7 @@
               <%= for ssid_result <- ssids do %>
                 <%= if ssid_result.ssid && String.printable?(ssid_result.ssid) do %>
                   <tr id="<%= ssid_result.bssid %>" name="ssidSelector" class="ssid_result"
-                    onclick='selectSsid("<%= escape_javascript(ssid_result.ssid) %>", "<%= escape_javascript(ssid_result.bssid) %>", "<%= escape_javascript(to_string(ssid_result.security)) %>")' >
+                    onclick='selectSsid("<%= javascript_escape(ssid_result.ssid) %>", "<%= javascript_escape(ssid_result.bssid) %>", "<%= javascript_escape(to_string(ssid_result.security)) %>")' >
                     <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
                     <td class="ssid_quality">
                       <script>

@@ -56,7 +56,7 @@
           <div class="colapsablecontent">
             <%= log.message %>
           </div>
-        <%= end %>
+        <% end %>
       </div>
 
       <script>
