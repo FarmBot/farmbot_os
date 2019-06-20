@@ -19,7 +19,7 @@
     function copyLSR() {
       var tmp = document.createElement("div");
       <%= if last_reset_reason do %>
-        tmp.innerHTML = "<%= escape_javascript(last_reset_reason) %>";
+        tmp.innerHTML = "<%= javascript_escape(last_reset_reason) %>";
       <% end %>
       var textArea = document.createElement("textarea");
       textArea.value += "```\n";
@@ -65,7 +65,7 @@
             <div id="last-shutdown-reason-content">
               <i> Last shutdown reason: </i>
               <script>
-                var all = "<%= escape_javascript(last_reset_reason) %>";
+                var all = "<%= javascript_escape(last_reset_reason) %>";
                 var reason = all.split("<hr>")[0];
                 document.write(reason)
               </script>
@@ -76,7 +76,7 @@
               </label>
               <div id="envDetails" class="env-details" hidden>
                 <script>
-                  var all = "<%= escape_javascript(last_reset_reason) %>";
+                  var all = "<%= javascript_escape(last_reset_reason) %>";
                   var envDetails = all.split("<hr>")[1];
                   document.write(envDetails)
                 </script>
