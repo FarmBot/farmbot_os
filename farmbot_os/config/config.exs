@@ -67,13 +67,6 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
 
 import_config("lagger.exs")
 
-config :logger,
-  backends: [:console, RingLogger],
-  handle_otp_reports: true,
-  handle_sasl_reports: true
-
-config :logger, :console, metadata: [:changeset, :module]
-
 if Mix.target() == :host do
   if File.exists?("config/host/#{Mix.env()}.exs") do
     import_config("host/#{Mix.env()}.exs")

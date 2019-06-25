@@ -64,6 +64,7 @@ defmodule FarmbotOS.Init.FSCheckup do
     Logger.flush()
 
     try do
+      Logger.remove_backend(:console)
       Logger.add_backend(LoggerBackendSqlite)
     catch
       :exit, r ->

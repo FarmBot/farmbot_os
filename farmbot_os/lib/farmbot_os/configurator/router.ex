@@ -5,8 +5,8 @@ defmodule FarmbotOS.Configurator.Router do
   import Phoenix.HTML
   use Plug.Router
   use Plug.Debugger, otp_app: :farmbot
+  plug(Plug.Logger)
   plug(Plug.Static, from: {:farmbot, "priv/static"}, at: "/")
-  plug(Plug.Logger, log: :debug)
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart])
   plug(Plug.Session, store: :ets, key: "_farmbot_session", table: :configurator_session)
   plug(:fetch_session)
@@ -16,13 +16,15 @@ defmodule FarmbotOS.Configurator.Router do
   @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
   @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:network_layer]
 
-  get "/generate_204" do
-    send_resp(conn, 204, "")
-  end
-
-  get "/gen_204" do
-    send_resp(conn, 204, "")
-  end
+  # Trigger for captive portal for various operating systems
+  get("/gen_204", do: redir(conn, "/"))
+  get("/generate_204", do: redir(conn, "/"))
+  get("/hotspot-detect.html", do: redir(conn, "/"))
+  get("/library/test/success.html", do: redir(conn, "/"))
+  get("/connecttest.txt", do: redir(conn, "/"))
+  get("/redirect", do: redir(conn, "/"))
+  get("/check_network_status.txt", do: redir(conn, "/"))
+  get("/success.txt", do: redir(conn, "/"))
 
   get "/" do
     case load_last_reset_reason() do
@@ -223,9 +225,9 @@ defmodule FarmbotOS.Configurator.Router do
           FarmbotCore.Logger.info(1, "server valid: #{server}")
 
           conn
-          |> put_session("auth_email", email)
-          |> put_session("auth_password", pass)
-          |> put_session("auth_server", server)
+          |> put_session("auth_config_email", email)
+          |> put_session("auth_config_password", pass)
+          |> put_session("auth_config_server", server)
           |> redir("/finish")
         else
           conn
@@ -241,9 +243,21 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   get "/finish" do
-    FarmbotCore.Logger.error(1, "???")
-    IO.inspect(get_session(conn))
-    render_page(conn, "finish")
+    FarmbotCore.Logger.debug(1, "Configuration complete")
+
+    case get_session(conn) do
+      %{
+        "ifname" => _,
+        "auth_config_email" => _,
+        "auth_config_password" => _,
+        "auth_config_server" => _
+      } ->
+        save_config(get_session(conn))
+        render_page(conn, "finish")
+
+      _ ->
+        redir(conn, "/")
+    end
   end
 
   match(_, do: send_resp(conn, 404, "Page not found"))
@@ -260,7 +274,9 @@ defmodule FarmbotOS.Configurator.Router do
     |> EEx.eval_file(info, engine: Phoenix.HTML.Engine)
     |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   rescue
-    e -> send_resp(conn, 500, "Failed to render page: #{page} inspect: #{Exception.message(e)}")
+    e ->
+      IO.warn("render error", __STACKTRACE__)
+      send_resp(conn, 500, "Failed to render page: #{page} error: #{Exception.message(e)}")
   end
 
   defp template_file(file) do
@@ -312,6 +328,10 @@ defmodule FarmbotOS.Configurator.Router do
 
   defp dump_log_db do
     @data_layer.dump_log_db()
+  end
+
+  defp save_config(conf) do
+    @data_layer.save_config(conf)
   end
 
   defp list_interfaces() do

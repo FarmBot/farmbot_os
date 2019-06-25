@@ -7,6 +7,7 @@ config :nerves_firmware_ssh,
 
 config :vintage_net,
   regulatory_domain: "US",
+  persistence: VintageNet.Persistence.Null,
   config: [
     {"wlan0", %{type: VintageNet.Technology.WiFi}}
   ]
@@ -58,11 +59,13 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.NervesHubClient,
     FarmbotOS.Platform.Target.Network.Supervisor,
-    FarmbotOS.Platform.Target.Configurator.Supervisor,
     FarmbotOS.Platform.Target.SSHConsole,
     FarmbotOS.Platform.Target.Uevent.Supervisor,
     FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
+
+config :farmbot, FarmbotOS.Configurator,
+  network_layer: FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer
 
 config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
@@ -72,3 +75,8 @@ config :nerves_hub,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
+
+config :logger, backends: [RingLogger]
+
+# Set the number of messages to hold in the circular buffer
+config :logger, RingLogger, max_size: 1024
