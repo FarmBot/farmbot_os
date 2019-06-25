@@ -92,36 +92,36 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   defp to_wifi(%{security: "NONE", ssid: ssid}) do
     %{
       key_mgmt: :none,
-      scan_ssid: 1,
-      ssid: ssid
-    }
-  end
-
-  defp to_wifi(%{security: "WPA_PSK", ssid: ssid, psk: psk}) do
-    %{
-      key_mgmt: :wpa_psk,
-      scan_ssid: 1,
       ssid: ssid,
-      psk: psk
+      scan_ssid: 1
     }
   end
 
-  defp to_wifi(%{security: "WPA2_PSK", ssid: ssid, psk: psk}) do
+  defp to_wifi(%{security: "WPA-PSK", ssid: ssid, psk: psk}) do
     %{
-      key_mgmt: :wpa_psk,
-      scan_ssid: 1,
       ssid: ssid,
-      psk: psk
+      key_mgmt: :wpa_psk,
+      psk: psk,
+      scan_ssid: 1
     }
   end
 
-  defp to_wifi(%{security: "WPA_EAP", ssid: ssid, identity: id, password: pw}) do
+  defp to_wifi(%{security: "WPA2-PSK", ssid: ssid, psk: psk}) do
     %{
+      ssid: ssid,
+      key_mgmt: :wpa_psk,
+      psk: psk,
+      scan_ssid: 1
+    }
+  end
+
+  defp to_wifi(%{security: "WPA-EAP", ssid: ssid, identity: id, password: pw}) do
+    %{
+      ssid: ssid,
       key_mgmt: :wpa_eap,
-      scan_ssid: 1,
-      ssid: ssid,
       identity: id,
-      password: pw
+      password: pw,
+      scan_ssid: 1
     }
   end
 

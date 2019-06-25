@@ -2,10 +2,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-
+    <meta charset="utf-8"/>
     <title> Configure Farmbot's Network </title>
     <link rel="stylesheet" href="/styles.css">
-    <script src="signal_table.js"></script>
     <script src="security_icon_lookup.js"></script>
     <script type="text/javascript">
 
@@ -57,7 +56,7 @@
                     <td class="ssid_name"> <%= ssid_result.ssid || "hidden network" %> </td>
                     <td class="ssid_quality">
                       <script>
-                        var percent = signal_table[<%= ssid_result.level %>];
+                        var percent = <%= ssid_result.level %>;
                         document.write(`<div class="percent-bar" style="width: ${percent}%" title="${percent}" />`)
                       </script>
                     </td>

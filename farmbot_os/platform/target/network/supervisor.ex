@@ -7,6 +7,10 @@ defmodule FarmbotOS.Platform.Target.Network.Supervisor do
   end
 
   def init([]) do
-    Supervisor.init([], strategy: :one_for_one)
+    children = [
+      FarmbotOS.Platform.Target.Network
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end

@@ -10,9 +10,10 @@ defmodule FarmbotCore.Config do
 
   @doc "Input a network config. Takes many settings as a map."
   def input_network_config!(%{} = config) do
-    FarmbotCore.Config.destroy_all_network_configs()
-    data = struct(NetworkInterface, config)
-    Repo.insert!(data)
+    _ = destroy_all_network_configs()
+    %NetworkInterface{}
+    |> NetworkInterface.changeset(config)
+    |> Repo.insert!()
   end
 
   def get_all_network_configs do
