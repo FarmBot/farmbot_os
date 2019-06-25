@@ -127,8 +127,34 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     GenServer.call(__MODULE__, :check_update)
   end
 
+  def do_restart_nerves_hub do
+    try do
+      # NervesHub replaces it's own env on startup. Reset it.
+      # Stop Nerves Hub if it is running.
+      _ = Supervisor.terminate_child(FarmbotOS, NervesHub.Supervisor)
+      _ = Supervisor.delete_child(FarmbotOS, NervesHub.Supervisor)
+
+      # Cause NervesRuntime.KV to restart.
+      _ = GenServer.stop(Nerves.Runtime.KV, :restart)
+      _ = Application.ensure_all_started(:nerves_runtime)
+      _ = Application.ensure_all_started(:nerves_hub)
+
+      # Wait for a few seconds for good luck.
+      Process.sleep(1000)
+    catch
+      kind, err ->
+        IO.warn("NervesHub error: #{inspect(kind)} #{inspect(err)}", __STACKTRACE__)
+        FarmbotCore.Logger.error(1, "OTA service error: #{kind} #{inspect(err)}")
+    end
+
+    # Start the connection again.
+    Supervisor.start_child(FarmbotOS, NervesHub.Supervisor)
+  end
+
   @impl GenServer
   def init(_args) do
+    Application.ensure_all_started(:nerves_runtime)
+    Application.ensure_all_started(:nerves_hub)
     write_serial(serial_number())
     Process.flag(:sensitive, true)
     cert = load_cert()
@@ -230,24 +256,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   def handle_info(:connect_nerves_hub, %{key: _key, cert: _cert} = state) do
     FarmbotCore.Logger.debug(3, "Starting OTA Service")
-    # NervesHub replaces it's own env on startup. Reset it.
-
-    supervisor = FarmbotOS
-    # Stop Nerves Hub if it is running.
-    _ = Supervisor.terminate_child(supervisor, NervesHub.Supervisor)
-    _ = Supervisor.delete_child(supervisor, NervesHub.Supervisor)
-
-    # Cause NervesRuntime.KV to restart.
-    _ = GenServer.stop(Nerves.Runtime.KV)
-    _ = Application.ensure_all_started(:nerves_hub)
-
-    # Wait for a few seconds for good luck.
-    Process.sleep(1000)
-
-    # Start the connection again.
-    {:ok, _pid} = Supervisor.start_child(supervisor, NervesHub.Supervisor)
+    do_restart_nerves_hub()
     FarmbotCore.Logger.debug(3, "OTA Service started")
-    :ok
     {:noreply, state}
   end
 
