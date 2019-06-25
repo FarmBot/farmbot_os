@@ -55,11 +55,11 @@ defmodule FarmbotOS.Configurator.RouterTest do
   test "captive portal" do
     conn = conn(:get, "/generate_204")
     conn = Router.call(conn, @opts)
-    assert conn.status == 204
+    assert conn.status == 302
 
     conn = conn(:get, "/gen_204")
     conn = Router.call(conn, @opts)
-    assert conn.status == 204
+    assert conn.status == 302
   end
 
   test "secret log view page" do
@@ -286,9 +286,9 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     assert redirected_to(conn) == "/finish"
-    assert get_session(conn, "auth_email") == "test@test.org"
-    assert get_session(conn, "auth_password") == "password123"
-    assert get_session(conn, "auth_server") == "https://my.farm.bot"
+    assert get_session(conn, "auth_config_email") == "test@test.org"
+    assert get_session(conn, "auth_config_password") == "password123"
+    assert get_session(conn, "auth_config_server") == "https://my.farm.bot"
 
     conn =
       conn(:post, "/configure_credentials", %{params | "server" => "whoops/i/made/a/type"})
@@ -308,7 +308,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
       conn(:get, "/finish")
       |> Router.call(@opts)
 
-    assert conn.resp_body =~ "Configuration Complete"
+    assert redirected_to(conn) == "/"
   end
 
   test "404" do
