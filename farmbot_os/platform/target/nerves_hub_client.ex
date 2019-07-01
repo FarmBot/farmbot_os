@@ -131,8 +131,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     try do
       # NervesHub replaces it's own env on startup. Reset it.
       # Stop Nerves Hub if it is running.
-      _ = Supervisor.terminate_child(FarmbotOS, NervesHub.Supervisor)
-      _ = Supervisor.delete_child(FarmbotOS, NervesHub.Supervisor)
+      _ = Supervisor.terminate_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
+      _ = Supervisor.delete_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
 
       # Cause NervesRuntime.KV to restart.
       _ = GenServer.stop(Nerves.Runtime.KV, :restart)
