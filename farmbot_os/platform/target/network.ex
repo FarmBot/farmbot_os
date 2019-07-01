@@ -90,34 +90,40 @@ defmodule FarmbotOS.Platform.Target.Network do
     end
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, false}, state) do
+  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, false, _meta}, state) do
     FarmbotCore.Logger.error(1, "Interface #{ifname} disconnected from access point")
     state = start_network_not_found_timer(state)
     {:noreply, state}
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, true}, state) do
-    FarmbotCore.Logger.error(1, "Interface #{ifname} connected access point")
+  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, true, _meta}, state) do
+    FarmbotCore.Logger.success(1, "Interface #{ifname} connected access point")
     state = cancel_network_not_found_timer(state)
     {:noreply, state}
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan, _},
+        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan, _meta},
         state
       ) do
-    FarmbotCore.Logger.debug(1, "Interface #{ifname} connected to local area network")
+    FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to local area network")
     {:noreply, state}
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "connection"], :lan, :internet, _}, state) do
-    FarmbotCore.Logger.debug(1, "Interface #{ifname} connected to internet")
+  def handle_info(
+        {VintageNet, ["interface", ifname, "connection"], :lan, :internet, _meta},
+        state
+      ) do
+    FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
     {:noreply, %{state | first_connect?: false}}
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "connection"], :internet, ifstate, _}, state) do
-    FarmbotCore.Logger.debug(1, "Interface #{ifname} disconnected from the internet: #{ifstate}")
+  def handle_info(
+        {VintageNet, ["interface", ifname, "connection"], :internet, ifstate, _meta},
+        state
+      ) do
+    FarmbotCore.Logger.warn(1, "Interface #{ifname} disconnected from the internet: #{ifstate}")
 
     if state.network_not_found_timer do
       {:noreply, state}
@@ -128,7 +134,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interfaces", "wlan0", "access_points"], _old, _new, _meta},
+        {VintageNet, ["interface", _, "wifi", "access_points"], _old, _new, _meta},
         state
       ) do
     {:noreply, state}
@@ -218,6 +224,11 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   defp cancel_network_not_found_timer(state) do
+    FarmbotCore.Logger.success(
+      1,
+      "Farmbot has been reconnected. Canceling scheduled factory reset"
+    )
+
     old_timer = state.network_not_found_timer
     old_timer && Process.cancel_timer(old_timer)
     %{state | network_not_found_timer: nil}
@@ -233,6 +244,9 @@ defmodule FarmbotOS.Platform.Target.Network do
     FarmbotCore.Logger.warn(1, """
     Farmbot will factory reset in #{minutes} minutes 
     if network does not reassosiate
+
+    If you see this message directly after a fresh configuration,
+    this message can safely be ignored
     """)
 
     %{state | network_not_found_timer: new_timer}
