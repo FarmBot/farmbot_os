@@ -24,6 +24,10 @@ defmodule FarmbotCore.Config do
     Repo.delete_all(NetworkInterface)
   end
 
+  def get_network_config(ifname) do
+    Repo.get_by(NetworkInterface, name: ifname)
+  end
+
   @doc "Please be careful with this. It uses a lot of queries."
   def get_config_as_map do
     groups = from(g in Group, select: g) |> Repo.all()
