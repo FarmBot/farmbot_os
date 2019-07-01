@@ -3,7 +3,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   use GenServer, shutdown: 10_000
   require FarmbotCore.Logger
   import FarmbotOS.Platform.Target.Network.Utils
-  alias FarmbotOS.Platform.Target.Network.Distribution
+  alias FarmbotOS.Platform.Target.Network.{Distribution, PreSetup}
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
   alias FarmbotCore.{Asset, Config}
 
@@ -37,6 +37,10 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def null do
     %{type: VintageNet.Technology.Null}
+  end
+
+  def presetup do
+    %{type: PreSetup}
   end
 
   def is_first_connect?() do
@@ -84,9 +88,43 @@ defmodule FarmbotOS.Platform.Target.Network do
         {:noreply, state}
 
       _ ->
-        :ok = VintageNet.configure("wlan0", null())
+        _ = VintageNet.subscribe(["interface", "wlan0"])
+        _ = VintageNet.subscribe(["interface", "eth0"])
+        :ok = VintageNet.configure("wlan0", presetup())
+        :ok = VintageNet.configure("eth0", presetup())
         Process.sleep(1500)
-        {:noreply, state, {:continue, configs}}
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({VintageNet, ["interface", ifname, "type"], _old, type, _meta}, state)
+      when type in [PreSetup, VintageNet.Technology.Null] do
+    FarmbotCore.Logger.debug(1, "Network interface needs configuration: #{ifname}")
+
+    case Config.get_network_config(ifname) do
+      %Config.NetworkInterface{} = config ->
+        FarmbotCore.Logger.busy(3, "Setting up network interface: #{ifname}")
+        {:ok, hostname} = :inet.gethostname()
+
+        distribution_opts = %{
+          ifname: config.name,
+          mdns_domain: "#{hostname}.local",
+          node_name: "farmbot",
+          node_host: :mdns_domain
+        }
+
+        {:ok, distribution_pid} = Distribution.start_link(distribution_opts)
+
+        vintage_net_config = to_vintage_net(config)
+        configure_result = VintageNet.configure(config.name, vintage_net_config)
+
+        FarmbotCore.Logger.success(3, "#{config.name} setup: #{inspect(configure_result)}")
+
+        state = start_network_not_found_timer(state)
+        {:noreply, %{state | distribution: distribution_pid}}
+
+      nil ->
+        {:noreply, state}
     end
   end
 
@@ -169,38 +207,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
     # TODO(Connor) factory reset here.
 
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_continue([%Config.NetworkInterface{} = config | rest], state) do
-    {:ok, hostname} = :inet.gethostname()
-
-    distribution_opts = %{
-      ifname: config.name,
-      mdns_domain: "#{hostname}.local",
-      node_name: "farmbot",
-      node_host: :mdns_domain
-    }
-
-    vintage_net_config = to_vintage_net(config)
-    FarmbotCore.Logger.busy(3, "#{config.name} starting setup")
-
-    case VintageNet.configure(config.name, vintage_net_config) do
-      :ok ->
-        state = start_network_not_found_timer(state)
-        VintageNet.subscribe(["interface", "#{config.name}"])
-        FarmbotCore.Logger.success(3, "#{config.name} setup ok")
-        {:ok, distribution_pid} = Distribution.start_link(distribution_opts)
-        {:noreply, %{state | distribution: distribution_pid}, {:continue, rest}}
-
-      {:error, reason} ->
-        FarmbotCore.Logger.error(3, "#{config.name} setup error: #{inspect(reason)}")
-        {:noreply, state, {:continue, rest}}
-    end
-  end
-
-  def handle_continue([], state) do
     {:noreply, state}
   end
 
