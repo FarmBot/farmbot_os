@@ -718,21 +718,23 @@ workflows:
             - build_rpi_prod
             - build_rpi3_prod
 
-  # beta branch to staging.farmbot.io
+  # any tag containint an `-rcXXX` tag to staging.farmbot.io
   nerves_hub_prod_beta_staging:
     jobs:
       - build_rpi_prod:
           context: farmbot-staging
           filters:
             branches:
-              only:
-                - beta
+              ignore: /.*/
+            tags:
+              only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
       - build_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
-              only:
-                - beta
+              ignore: /.*/
+            tags:
+              only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
       - deploy_rpi_prod_beta:
           context: farmbot-staging
           requires:
@@ -742,21 +744,23 @@ workflows:
           requires:
             - build_rpi3_prod
 
-  # beta branch to my.farmbot.io
+  # any tag containint an `-rcXXX` tag to my.farmbot.io
   nerves_hub_prod_beta_production:
     jobs:
       - build_rpi_prod:
           context: farmbot-production
           filters:
             branches:
-              only:
-                - beta
+              ignore: /.*/
+            tags:
+              only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
       - build_rpi3_prod:
           context: farmbot-production
           filters:
             branches:
-              only:
-                - beta
+              ignore: /.*/
+            tags:
+              only: /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
       - deploy_rpi_prod_beta:
           context: farmbot-production
           requires:
@@ -769,30 +773,6 @@ workflows:
           context: org-global
           requires:
             # - build_rpi_prod
-            - build_rpi3_prod
-
-  # staging branch to staging.farmbot.io
-  nerves_hub_rpi_prod_staging_staging:
-    jobs:
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - staging
-      - build_rpi3_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - staging
-      - deploy_rpi_prod_staging:
-          context: farmbot-staging
-          requires:
-            - build_rpi_prod
-      - deploy_rpi3_prod_staging:
-          context: farmbot-staging
-          requires:
             - build_rpi3_prod
 
   # next branch to staging.farmbot.io
