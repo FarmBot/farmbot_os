@@ -9,7 +9,7 @@ config :vintage_net,
   regulatory_domain: "US",
   persistence: VintageNet.Persistence.Null,
   config: [
-    {"wlan0", %{type: VintageNet.Technology.WiFi}}
+    {"wlan0", %{type: VintageNet.Technology.Null}}
   ]
 
 config :shoehorn,
@@ -30,10 +30,6 @@ data_path = Path.join("/", "root")
 
 config :farmbot, FarmbotOS.FileSystem, data_path: data_path
 
-config :logger_backend_ecto, LoggerBackendEcto.Repo,
-  adapter: Sqlite.Ecto2,
-  database: Path.join(data_path, "debug_logs.sqlite3")
-
 config :farmbot_core, FarmbotCore.Config.Repo,
   adapter: Sqlite.Ecto2,
   loggers: [],
@@ -51,9 +47,6 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
   loggers: [],
   pool_size: 1,
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
-
-config :farmbot,
-  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
@@ -77,6 +70,4 @@ config :nerves_hub,
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
 
 config :logger, backends: [RingLogger]
-
-# Set the number of messages to hold in the circular buffer
 config :logger, RingLogger, max_size: 1024
