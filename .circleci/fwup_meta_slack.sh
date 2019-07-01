@@ -52,9 +52,14 @@ POST_DATA=$(jq -n \
     --arg meta_platform "$(grep 'meta-platform' <<< $FW_META | awk -F"=" '{ print $2}')" \
     --arg meta_creation_date "$(grep 'meta-creation-date' <<< $FW_META | awk -F"=" '{ print $2}')" \
     --arg meta_misc "$(grep 'meta-misc' <<< $FW_META | awk -F"=" '{ print $2}')" \
+    --arg meta_nerves_hub_deploy $NERVES_HUB_DEPLOY \
     --arg slack_channel "C41SHHGQ5" \
     '{channel: $slack_channel, as_user: true, blocks: [
-        {type: "section", block_id: "text1", text: {type: "mrkdwn", text: "*A new FarmBot Firmware is available*"}}, 
+        {type: "section", block_id: "text1", text: {type: "mrkdwn", text: "*A new FarmBot Firmware is available*"}},
+        {type: "context", elements: [
+            {type: "mrkdwn", text: "*NervesHub Deployment:*"},
+            {type: "mrkdwn", text: $meta_nerves_hub_deploy}
+        ]},
         {type: "context", elements: [
             {type: "mrkdwn", text: "*UUID:*"},
             {type: "mrkdwn", text: $meta_uuid}
