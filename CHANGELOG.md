@@ -2,6 +2,16 @@
 
 # 8.0.0
 * Reorganize project structure
+* Split original single application into multiple OTP applications:
+    * `farmbot_celery_script` - CeleryScript compiler and friends
+    * `farmbot_firmware` - Interaction with the motor controler
+    * `farmbot_core` - Main database access and other workers
+    * `farmbot_ext` - Extra, mostly networked functionality
+    * `farmbot_os` - `Nerves` Framework
+* Refactor global process initialization
+* Refactor networking for increased reliability
+* Refactor CeleryScript to support run-time variables 
+* Preliminary support for raspberry pi 0
 
 # 7.0.3
 * Update to AMQP to disable `heartbeat` timeouts
