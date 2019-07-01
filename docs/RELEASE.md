@@ -27,11 +27,19 @@ will check the `OS_AUTO_UPDATE_URL` in the JWT.
 Users may opt into beta updates by settings `os_beta_updates: true` on their
 device's `FbosConfig` endpoint.
 
-The system works the same as production, except that the release is drafted based
-on the `beta` branch. The other change is that CircleCI publishes a _real_ release
-overwriting a previous release of this version if it exists. the release is tagged
-as `pre_release: true` in GitHub releases. this prevents the production system
-from downloading `beta` updates.
+Beta releases are constructed by creating a tag off of the `staging` branch.
+
+1) update `VERSION`.
+    * Should follow `X.Y.Z-rcN`
+2) update `CHANGELOG.md`.
+    * Topmost version should contain: `vX.Y.Z`
+3) Commit release.
+    * Message should follow format: `Release vX.Y.Z-rcN`
+4) push `staging`
+    * `git push origin staging`
+5) tag
+    * `git tag v$(cat VERSION)`
+    * `git push origin v$(cat VERSION)`
 
 ## NervesHub System
 The NervesHub system is simpiler to use, but more complex to setup.
