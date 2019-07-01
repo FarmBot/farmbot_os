@@ -1,7 +1,7 @@
 # Build status
-| Master Build Status  | Staging Build Status | Beta Build Status |
+| Master Build Status  | Staging Build Status | Next Build Status |
 | :---: | :---: | :---: |
-| [![Master Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/beta.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/beta)|
+| [![Master Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/next.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/next)|
 ---
 
 # FarmBot OS
