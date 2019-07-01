@@ -15,8 +15,7 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   end
 
   def init(opts) do
-    # Register for updates from system registry
-    SystemRegistry.register()
+    VintageNet.subscribe(["interface", opts.ifname])
 
     state =
       %State{opts: opts}
@@ -26,26 +25,34 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
     {:ok, state}
   end
 
-  def handle_info({:system_registry, :global, registry}, state) do
-    {changed, new_state} = update_state(state, registry)
+  def handle_info(
+        {VintageNet, ["interface", ifname, "ipv4"], %{ip: ip}, %{ip: ip}, _},
+        %{opts: %{ifname: ifname}} = state
+      ) do
+    Logger.info("Distribution: no change in ip")
+    {:noreply, state}
+  end
 
-    case changed do
-      :up -> handle_if_up(new_state)
-      :down -> handle_if_down(new_state)
-      _ -> :ok
-    end
-
+  def handle_info(
+        {VintageNet, ["interface", ifname, "ipv4"], _old, %{ip: nil}, _},
+        %{opts: %{ifname: ifname}} = state
+      ) do
+    new_state = %{state | ip: nil, is_up: false}
+    handle_if_down(new_state)
     {:noreply, new_state}
   end
 
-  defp update_state(state, registry) do
-    new_ip = get_in(registry, [:state, :network_interface, state.opts.ifname, :ipv4_address])
+  def handle_info(
+        {VintageNet, ["interface", ifname, "ipv4"], _old, %{ip: ip}, _},
+        %{opts: %{ifname: ifname}} = state
+      ) do
+    new_state = %{state | ip: ip, is_up: true}
+    handle_if_up(new_state)
+    {:noreply, new_state}
+  end
 
-    case {new_ip == state.ip, new_ip} do
-      {true, _} -> {:unchanged, state}
-      {false, nil} -> {:down, %{state | ip: nil, is_up: false}}
-      {false, _ip} -> {:up, %{state | ip: new_ip, is_up: true}}
-    end
+  def handle_info({VintageNet, _property, _old, _new, _}, state) do
+    {:noreply, state}
   end
 
   defp handle_if_up(state) do
