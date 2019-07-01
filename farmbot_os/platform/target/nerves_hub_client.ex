@@ -135,7 +135,9 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       _ = Supervisor.delete_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
 
       # Cause NervesRuntime.KV to restart.
-      _ = GenServer.stop(Nerves.Runtime.KV, :restart)
+      # _ = GenServer.stop(Nerves.Runtime.KV, :restart)
+      _ = Application.stop(:nerves_runtime)
+      Process.sleep(1000)
       _ = Application.ensure_all_started(:nerves_runtime)
       _ = Application.ensure_all_started(:nerves_hub)
 
