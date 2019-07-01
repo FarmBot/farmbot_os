@@ -50,7 +50,7 @@ defmodule FarmbotOS.Init.FSCheckup do
           File.rm_rf(fw)
         end
 
-        init_logger_backend_sqlite()
+        init_logger()
         :ok
 
       err ->
@@ -60,17 +60,21 @@ defmodule FarmbotOS.Init.FSCheckup do
     end
   end
 
-  defp init_logger_backend_sqlite do
+  # TODO(Connor) move this somewhere else.
+  # This function used to be for setting up logger_backend_sqlite.
+  # It needed to be here because that lib needed filesystem to be up
+  # and running. Now we just need this function to remove the `console` 
+  # backend because `ecto` decided it wanted to add `console` and not remove
+  # it when it's done. This function needs to be called _after_ migrations are
+  # Called.
+  defp init_logger do
     Logger.flush()
 
     try do
       Logger.remove_backend(:console)
-      Logger.add_backend(LoggerBackendSqlite)
     catch
       :exit, r ->
-        Logger.error("Could not start disk logging: #{inspect(r)}")
-        Logger.remove_backend(LoggerBackendSqlite)
-        File.rm(Path.join([@data_path, "root", "debug_logs.sqlite3"]))
+        IO.warn("Could not init logging: #{inspect(r)}", __STACKTRACE__)
     end
   end
 end
