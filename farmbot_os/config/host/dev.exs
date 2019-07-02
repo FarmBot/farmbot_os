@@ -37,3 +37,6 @@ config :farmbot, FarmbotOS.FirmwareTTYDetector,
   expected_names: [
     System.get_env("FARMBOT_TTY")
   ]
+
+config :logger,
+  backends: [RingLogger]

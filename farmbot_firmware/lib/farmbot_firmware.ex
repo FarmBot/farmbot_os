@@ -387,12 +387,6 @@ defmodule FarmbotFirmware do
   @doc false
   @spec handle_command(GCODE.t(), GenServer.from(), state()) :: {:reply, term(), state()}
 
-  # If not in an acceptable state, return an error immediately.
-  def handle_command(_, _, %{status: s} = state)
-      when s in [:transport_boot, :boot, :no_config, :configuration] do
-    {:reply, {:error, s}, state}
-  end
-
   # EmergencyLock should be ran immediately
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
@@ -401,6 +395,12 @@ defmodule FarmbotFirmware do
   # EmergencyUnLock should be ran immediately
   def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
+  end
+
+  # If not in an acceptable state, return an error immediately.
+  def handle_command(_, _, %{status: s} = state)
+      when s in [:transport_boot, :boot, :no_config, :configuration] do
+    {:reply, {:error, s}, state}
   end
 
   def handle_command({tag, {_, _}} = code, {pid, _ref}, state) do
