@@ -406,7 +406,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :find_home, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
-        FarmbotCeleryScript.SysCalls.find_home()
+        FarmbotCeleryScript.SysCalls.find_home(axis)
       else
         {:error, reason} ->
           {:error, reason}
