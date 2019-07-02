@@ -218,7 +218,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     FarmbotCore.Logger.debug(3, "Connected to NervesHub AMQP channel. Fetching certs.")
     old_device_cert = Asset.get_device_cert(serial_number: serial_number())
 
-    tags = detect_tags(old_device_cert)
+    tags = detect_deployment_tags()
 
     params = %{
       serial_number: serial_number(),
@@ -233,6 +233,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
     case new_device_cert do
       {:ok, data} ->
+        # DO NOT DO THIS. The api will do it behind the scenes
+        # Asset.update_device!(%{update_channel: detect_update_channel()})
         FarmbotCore.Logger.debug(3, "DeviceCert created: #{inspect(data)}")
         FarmbotCore.Logger.debug(3, "Waiting for cert and key data from AMQP from farmbot api...")
         {:noreply, state}
@@ -336,7 +338,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def handle_call({:handle_nerves_hub_update_available, %{"firmware_url" => url}}, _from, state) do
     case Asset.fbos_config(:os_auto_update) do
       true ->
-        FarmbotCore.Logger.success(1, "Applying OTA update")
+        FarmbotCore.Logger.busy(1, "Applying OTA update")
         {:reply, :apply, %{state | is_applying_update: true, firmware_url: url}}
 
       _ ->
@@ -346,7 +348,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def handle_call({:handle_nerves_hub_update_available, _data}, _from, state) do
-    FarmbotCore.Logger.success(1, "Applying OTA update")
+    FarmbotCore.Logger.busy(1, "Applying OTA update")
     {:reply, :apply, %{state | is_applying_update: true}}
   end
 
@@ -356,7 +358,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         {:reply, nil, state}
 
       data ->
-        FarmbotCore.Logger.info(1, "Applying OTA update")
+        FarmbotCore.Logger.busy(1, "Applying OTA update")
         spawn_link(fn -> NervesHub.update() end)
         {:reply, data, %{state | is_applying_update: true}}
     end
@@ -414,17 +416,22 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     :ok
   end
 
-  defp detect_tags(_old_device_cert_data) do
-    update_channel = Asset.fbos_config(:update_channel) || update_channel()
+  def detect_deployment_tags() do
+    update_channel = detect_update_channel()
     ["application:#{Project.env()}", "channel:#{update_channel}"]
   end
 
-  defp update_channel do
-    case Project.branch() do
-      "next" -> "next"
-      "staging" -> "staging"
-      "master" -> "stable"
-      branch -> branch
+  def detect_update_channel() do
+    if String.match?(
+         ~r/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/,
+         Project.version()
+       ) do
+      "beta"
+    else
+      case Project.branch() do
+        "master" -> "stable"
+        branch -> branch
+      end
     end
   end
 end
