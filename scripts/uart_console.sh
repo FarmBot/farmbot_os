@@ -6,7 +6,6 @@ CONFIG="logfile log/$PORT.log
 logfile flush 1
 log on
 logtstamp after 1
-logtstamp string \"[ %t: %Y-%m-%d %c:%s ]\012\"
 logtstamp on"
 
 echo "$CONFIG" > log/$PORT.log.conf

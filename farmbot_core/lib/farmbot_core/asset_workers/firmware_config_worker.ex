@@ -32,6 +32,19 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
     {:noreply, new_fw_config}
   end
 
+  defp do_write_read(calib_param, value)
+      when calib_param in [:movement_axis_nr_steps_z, :movement_axis_nr_steps_y, :movement_axis_nr_steps_z]
+  do
+    case FarmbotFirmware.command({:parameter_write, [{calib_param, value}]}) do
+      {:error, :configuration} -> 
+        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{calib_param}: #{value}"
+        :ok
+      :ok ->
+        FarmbotCore.Logger.success 1, "Firmware parameter updated: #{calib_param} #{value}"
+        :ok
+    end
+  end
+
   defp do_write_read(param, value) do
     with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
           {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
