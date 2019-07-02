@@ -481,6 +481,7 @@ defmodule FarmbotFirmware do
     to_process =
       [{:software_version_read, []} | param_commands] ++
         [
+          {:parameter_write, [{:param_use_eeprom, 0.0}]},
           {:parameter_write, [{:param_config_ok, 1.0}]},
           {:parameter_read_all, []}
         ]
