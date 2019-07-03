@@ -95,7 +95,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
         # QUESTION(Connor) - Why does this need `.to_unix()`?
         # ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
-        channels: log.meta[:channels] || [],
+        channels: log.meta[:channels] || log.meta["channels"] || [],
         message: log.message
       }
 
@@ -107,7 +107,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
   end
 
   defp push_bot_log(chan, bot, log) do
-    json = JSON.encode!(log)
+    json = JSON.encode!(log, pretty: true)
     :ok = Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
   end
 
