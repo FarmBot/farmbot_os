@@ -29,7 +29,7 @@ Installation should be fairly straight forward, you will need a computer for thi
 
 ### Linux/OSX
 
- 1. download the [latest release](#floppy_disk-latest-os-image-downloads).
+ 1. download the [latest release file, available for download here](#floppy_disk-latest-os-image-downloads).
  0. ```dd if=</path/to/file> of=/dev/<sddevice> bs=4``` or use [Etcher](https://etcher.io/).
 
 ## Running
