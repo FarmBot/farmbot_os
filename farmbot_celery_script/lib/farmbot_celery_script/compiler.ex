@@ -361,7 +361,7 @@ defmodule FarmbotCeleryScript.Compiler do
         x = locx + curx
         y = locy + cury
         z = locz + curz
-        FarmbotCeleryScript.SysCalls.log("Moving to (#{x}, #{y}, #{z})")
+        FarmbotCeleryScript.SysCalls.log("Moving relative to (#{x}, #{y}, #{z})")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
