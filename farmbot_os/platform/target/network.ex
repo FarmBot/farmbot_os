@@ -198,10 +198,12 @@ defmodule FarmbotOS.Platform.Target.Network do
     Farmbot has been disconnected from the network for 
     #{minutes} minutes. Going down for factory reset.
     """)
+
     FarmbotOS.System.factory_reset("""
     Farmbot has been disconnected from the network for 
     #{minutes} minutes.
     """)
+
     {:noreply, state}
   end
 
