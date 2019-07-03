@@ -135,6 +135,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:report_wifi_level, level})
   end
 
+  def report_wifi_level_percent(bot_state_server \\ __MODULE__, percent) do
+    GenServer.call(bot_state_server, {:report_wifi_level_percent, percent})
+  end
+
   def report_farmware_installed(bot_state_server \\ __MODULE__, name, %{} = manifest) do
     GenServer.call(bot_state_server, {:report_farmware_installed, name, manifest})
   end
@@ -390,6 +394,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:report_wifi_level, level}, _form, state) do
     change = %{informational_settings: %{wifi_level: level}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:report_wifi_level_percent, percent}, _form, state) do
+    change = %{informational_settings: %{wifi_level_percent: percent}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
