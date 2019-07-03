@@ -14,6 +14,7 @@ config :vintage_net,
 
 config :shoehorn,
   init: [:nerves_runtime, :vintage_net, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
+  handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
 
 config :tzdata, :autoupdate, :disabled
