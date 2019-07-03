@@ -45,8 +45,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback move_absolute(x :: number(), y :: number(), z :: number(), speed :: number()) ::
               ok_or_error
   # ?
-  @callback named_pin(named_pin_type :: String.t(), resource_id) ::
-              {:box_led, 3 | 4} | {:peripheral, map()} | {:sensor, map()} | integer | error()
+  @callback named_pin(named_pin_type :: String.t(), resource_id) :: map() | integer | error()
   @callback nothing() :: any()
   @callback point(point_type :: String.t(), resource_id) :: number() | error()
   @callback power_off() :: ok_or_error
@@ -162,9 +161,7 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def named_pin(sys_calls \\ @sys_calls, type, id) do
     case sys_calls.named_pin(type, id) do
-      {:box_led, box_led_id} when box_led_id in [3, 4] -> {:box_led, box_led_id}
-      {:peripheral, data} -> {:peripheral, data}
-      {:sensor, data} -> {:sensor, data}
+      %{} = data -> %{} = data
       number when is_integer(number) -> number
       error -> or_error(sys_calls, :named_pin, [type, id], error)
     end
