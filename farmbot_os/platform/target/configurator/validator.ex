@@ -93,7 +93,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     %{
       key_mgmt: :none,
       ssid: ssid,
-      scan_ssid: 1
+      scan_ssid: 1,
+      bgscan: :simple
     }
   end
 
@@ -102,7 +103,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       ssid: ssid,
       key_mgmt: :wpa_psk,
       psk: psk,
-      scan_ssid: 1
+      scan_ssid: 1,
+      bgscan: :simple
     }
   end
 
@@ -111,7 +113,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       ssid: ssid,
       key_mgmt: :wpa_psk,
       psk: psk,
-      scan_ssid: 1
+      scan_ssid: 1,
+      bgscan: :simple
     }
   end
 
@@ -121,7 +124,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       key_mgmt: :wpa_eap,
       identity: id,
       password: pw,
-      scan_ssid: 1
+      scan_ssid: 1,
+      bgscan: :simple
     }
   end
 
