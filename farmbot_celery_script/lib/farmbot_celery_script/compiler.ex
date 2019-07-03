@@ -245,9 +245,13 @@ defmodule FarmbotCeleryScript.Compiler do
     #    nothing()
     # end
     quote location: :keep do
+      FarmbotCeleryScript.SysCalls.log("IF Statement evaultaion")
+
       if unquote(if_eval) do
+        FarmbotCeleryScript.SysCalls.log("IF Statement will branch")
         unquote(compile_block(then_ast))
       else
+        FarmbotCeleryScript.SysCalls.log("IF Statement will not branch")
         unquote(compile_block(else_ast))
       end
     end
@@ -259,6 +263,8 @@ defmodule FarmbotCeleryScript.Compiler do
       # We have to lookup the sequence by it's id.
       case FarmbotCeleryScript.SysCalls.get_sequence(unquote(id)) do
         %FarmbotCeleryScript.AST{} = ast ->
+          # TODO(Connor) - figure out a way of inserting the sequence name here
+          FarmbotCeleryScript.SysCalls.log("Executing Sequence")
           # compile the ast
           env = unquote(compile_params_to_function_args(parameter_applications))
           FarmbotCeleryScript.Compiler.compile(ast, env)
@@ -278,10 +284,10 @@ defmodule FarmbotCeleryScript.Compiler do
       end)
 
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.execute_script(
-        unquote(compile_ast(package)),
-        unquote(Macro.escape(Map.new(env)))
-      )
+      package = unquote(compile_ast(package))
+      env = unquote(Macro.escape(Map.new(env)))
+      FarmbotCeleryScript.SysCalls.log("Executing Farmware: #{package}")
+      FarmbotCeleryScript.SysCalls.execute_script(package, env)
     end
   end
 
@@ -308,6 +314,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   compile :install_first_party_farmware, _ do
     quote location: :keep do
+      FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
       FarmbotCeleryScript.SysCalls.install_first_party_farmware()
     end
   end
@@ -335,6 +342,7 @@ defmodule FarmbotCeleryScript.Compiler do
           locz + offz
         ]
 
+        FarmbotCeleryScript.SysCalls.log("Moving to position: #{x}, #{y}, #{z}")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -359,18 +367,15 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # compiles write_pin
-  compile :write_pin, %{pin_number: num, pin_mode: mode, pin_value: val} do
+  compile :write_pin, %{pin_number: num, pin_mode: mode, pin_value: value} do
     quote location: :keep do
-      with :ok <-
-             FarmbotCeleryScript.SysCalls.write_pin(
-               unquote(compile_ast(num)),
-               unquote(compile_ast(mode)),
-               unquote(compile_ast(val))
-             ) do
-        FarmbotCeleryScript.SysCalls.read_pin(
-          unquote(compile_ast(num)),
-          unquote(compile_ast(mode))
-        )
+      pin = unquote(compile_ast(num))
+      mode = unquote(compile_ast(mode))
+      value = unquote(compile_ast(value))
+      FarmbotCeleryScript.SysCalls.log("Writing pin: #{pin} in mode: #{mode}: #{value}")
+
+      with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
+        FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
       end
     end
   end
@@ -378,17 +383,20 @@ defmodule FarmbotCeleryScript.Compiler do
   # compiles read_pin
   compile :read_pin, %{pin_number: num, pin_mode: mode} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.read_pin(unquote(compile_ast(num)), unquote(compile_ast(mode)))
+      pin = unquote(compile_ast(num))
+      mode = unquote(compile_ast(mode))
+      FarmbotCeleryScript.SysCalls.log("Reading pin: #{pin} in mode: #{mode}")
+      FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
     end
   end
 
   # compiles set_servo_angle
   compile :set_servo_angle, %{pin_number: pin_number, pin_value: pin_value} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.set_servo_angle(
-        unquote(compile_ast(pin_number)),
-        unquote(compile_ast(pin_value))
-      )
+      pin = unquote(compile_ast(pin_number))
+      angle = unquote(compile_ast(pin_value))
+      FarmbotCeleryScript.SysCalls.log("Writing servo: #{pin}: #{angle}")
+      FarmbotCeleryScript.SysCalls.set_servo_angle(pin, angle)
     end
   end
 
@@ -406,6 +414,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :find_home, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
+        FarmbotCeleryScript.SysCalls.log("Finding home on axis: #{axis}")
         FarmbotCeleryScript.SysCalls.find_home(axis)
       else
         {:error, reason} ->
@@ -430,6 +439,7 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)),
            speed when is_number(speed) <- unquote(compile_ast(speed)) do
+        FarmbotCeleryScript.SysCalls.log("Homing axis: #{axis}")
         FarmbotCeleryScript.SysCalls.home(axis, speed)
       else
         {:error, reason} ->
@@ -452,6 +462,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :zero, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
+        FarmbotCeleryScript.SysCalls.log("Zeroing axis: #{axis}")
         FarmbotCeleryScript.SysCalls.zero(axis)
       else
         {:error, reason} ->
@@ -477,6 +488,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :calibrate, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
+        FarmbotCeleryScript.SysCalls.log("Calibrating axis: #{axis}")
         FarmbotCeleryScript.SysCalls.calibrate(axis)
       else
         {:error, reason} ->
@@ -488,6 +500,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :wait, %{milliseconds: millis} do
     quote location: :keep do
       with millis when is_integer(millis) <- unquote(compile_ast(millis)) do
+        FarmbotCeleryScript.SysCalls.log("Waiting for #{millis} milliseconds")
         FarmbotCeleryScript.SysCalls.wait(millis)
       else
         {:error, reason} ->
@@ -508,7 +521,6 @@ defmodule FarmbotCeleryScript.Compiler do
       end)
 
     quote location: :keep do
-      # send_message("success", "Hello world!", [:email, :toast])
       FarmbotCeleryScript.SysCalls.send_message(
         unquote(compile_ast(type)),
         unquote(compile_ast(msg)),

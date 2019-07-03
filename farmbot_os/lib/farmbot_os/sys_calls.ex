@@ -41,6 +41,16 @@ defmodule FarmbotOS.SysCalls do
   defdelegate read_status(), to: FarmbotExt.AMQP.BotStateChannel
 
   @impl true
+  def log(message) do
+    if FarmbotCore.Asset.fbos_config(:sequence_body_log) do
+      FarmbotCore.Logger.info(2, message)
+      :ok
+    else
+      :ok
+    end
+  end
+
+  @impl true
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
     :ok
