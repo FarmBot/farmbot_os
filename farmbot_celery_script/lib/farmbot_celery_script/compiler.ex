@@ -372,7 +372,7 @@ defmodule FarmbotCeleryScript.Compiler do
       pin = unquote(compile_ast(num))
       mode = unquote(compile_ast(mode))
       value = unquote(compile_ast(value))
-      FarmbotCeleryScript.SysCalls.log("Writing pin: #{pin} in mode: #{mode}: #{value}")
+      FarmbotCeleryScript.SysCalls.log("Writing #{to_string(pin)} in mode: #{mode}: #{value}")
 
       with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
         FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
@@ -385,7 +385,7 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       pin = unquote(compile_ast(num))
       mode = unquote(compile_ast(mode))
-      FarmbotCeleryScript.SysCalls.log("Reading pin: #{pin} in mode: #{mode}")
+      FarmbotCeleryScript.SysCalls.log("Reading #{to_string(pin)} in mode: #{mode}")
       FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
     end
   end

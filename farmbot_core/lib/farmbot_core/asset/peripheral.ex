@@ -35,4 +35,10 @@ defmodule FarmbotCore.Asset.Peripheral do
     |> cast(params, [:id, :pin, :mode, :label, :monitor, :created_at, :updated_at])
     |> validate_required([])
   end
+
+  defimpl String.Chars, for: FarmbotCore.Asset.Peripheral do
+    def to_string(%FarmbotCore.Asset.Peripheral{pin: pin, label: label}) do
+      "Peripheral #{label} Pin: #{pin}"
+    end
+  end
 end

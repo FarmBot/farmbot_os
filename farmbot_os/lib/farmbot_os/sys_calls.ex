@@ -5,6 +5,12 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotCeleryScript.AST
   alias FarmbotFirmware
 
+  alias FarmbotCore.Asset.{
+    BoxLed,
+    Peripheral,
+    Sensor
+  }
+
   alias FarmbotOS.SysCalls.{
     ChangeOwnership,
     CheckUpdate,
@@ -130,11 +136,11 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
-  def read_pin({:peripheral, %{pin: pin}}, mode) do
+  def read_pin(%Peripheral{pin: pin}, mode) do
     do_read_pin(pin, mode)
   end
 
-  def read_pin({:sensor, %{pin: pin}}, mode) do
+  def read_pin(%Sensor{pin: pin}, mode) do
     case do_read_pin(pin, mode) do
       {:error, _} = error ->
         error
@@ -156,7 +162,7 @@ defmodule FarmbotOS.SysCalls do
     end
   end
 
-  def read_pin({:box_led, _id}, _mode) do
+  def read_pin(%BoxLed{}, _mode) do
     # {:error, "cannot read values of BoxLed"}
     1
   end
@@ -167,17 +173,17 @@ defmodule FarmbotOS.SysCalls do
 
     cond do
       is_map(sensor) ->
-        read_pin({:sensor, sensor}, mode)
+        read_pin(sensor, mode)
 
       is_map(peripheral) ->
-        read_pin({:peripheral, peripheral}, mode)
+        read_pin(peripheral, mode)
 
       true ->
         do_read_pin(pin_number, mode)
     end
   end
 
-  defp do_read_pin(pin_number, mode) do
+  defp do_read_pin(pin_number, mode) when is_number(pin_number) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: mode]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: val]}}} ->
         val
@@ -188,20 +194,20 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
-  def write_pin({:peripheral, %{pin: pin}}, mode, value) do
+  def write_pin(%Peripheral{pin: pin}, mode, value) do
     write_pin(pin, mode, value)
   end
 
-  def write_pin({:sensor, %{pin: _pin}}, _mode, _value) do
+  def write_pin(%Sensor{pin: _pin}, _mode, _value) do
     {:error, "cannot write Sensor value. Use a Peripheral"}
   end
 
-  def write_pin({:box_led, 3}, _mode, value) do
+  def write_pin(%BoxLed{id: 3}, _mode, value) do
     Leds.white4(value_to_led(value))
     :ok
   end
 
-  def write_pin({:box_led, 4}, _mode, value) do
+  def write_pin(%BoxLed{id: 4}, _mode, value) do
     Leds.white5(value_to_led(value))
     :ok
   end
@@ -332,20 +338,20 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def named_pin("Peripheral", id) do
     case Asset.get_peripheral(id: id) do
-      %{} = peripheral -> {:peripheral, peripheral}
+      %{} = peripheral -> peripheral
       nil -> {:error, "Could not find peripheral by id: #{id}"}
     end
   end
 
   def named_pin("Sensor", id) do
     case Asset.get_sensor(id) do
-      %{} = sensor -> {:sensor, sensor}
+      %{} = sensor -> sensor
       nil -> {:error, "Could not find peripheral by id: #{id}"}
     end
   end
 
   def named_pin("BoxLed" <> id, _) do
-    {:box_led, String.to_integer(id)}
+    %BoxLed{id: String.to_integer(id)}
   end
 
   def named_pin(kind, id) do

@@ -282,7 +282,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              pin = 17
              mode = 0
              value = 1
-             FarmbotCeleryScript.SysCalls.log("Writing pin: \#{pin} in mode: \#{mode}: \#{value}")
+             FarmbotCeleryScript.SysCalls.log("Writing \#{to_string(pin)} in mode: \#{mode}: \#{value}")
 
              with(:ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value)) do
                FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
@@ -301,7 +301,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              pin = 23
              mode = 0
-             FarmbotCeleryScript.SysCalls.log("Reading pin: \#{pin} in mode: \#{mode}")
+             FarmbotCeleryScript.SysCalls.log("Reading \#{to_string(pin)} in mode: \#{mode}")
              FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
              """)
   end
