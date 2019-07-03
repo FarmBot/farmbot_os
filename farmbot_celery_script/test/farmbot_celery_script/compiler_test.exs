@@ -133,6 +133,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              case(FarmbotCeleryScript.SysCalls.get_sequence(100)) do
                %FarmbotCeleryScript.AST{} = ast ->
+                 FarmbotCeleryScript.SysCalls.log("Executing Sequence")
                  env = []
                  FarmbotCeleryScript.Compiler.compile(ast, env)
 
@@ -154,7 +155,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCeleryScript.SysCalls.execute_script("take-photo", %{"a" => "123"})
+             package = "take-photo"
+             env = %{"a" => "123"}
+             FarmbotCeleryScript.SysCalls.log("Executing Farmware: \#{package}")
+             FarmbotCeleryScript.SysCalls.execute_script(package, env)
              """)
   end
 
@@ -186,6 +190,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
+             FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
              FarmbotCeleryScript.SysCalls.install_first_party_farmware()
              """)
   end
@@ -229,6 +234,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                %{x: offx, y: offy, z: offz} = FarmbotCeleryScript.SysCalls.coordinate(-20, -20, -20)
              ) do
                [x, y, z] = [locx + offx, locy + offy, locz + offz]
+               FarmbotCeleryScript.SysCalls.log(\"Moving to position: \#{x}, \#{y}, \#{z}\")
                FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
              end
              """)
@@ -273,8 +279,13 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             with(:ok <- FarmbotCeleryScript.SysCalls.write_pin(17, 0, 1)) do
-               FarmbotCeleryScript.SysCalls.read_pin(17, 0)
+             pin = 17
+             mode = 0
+             value = 1
+             FarmbotCeleryScript.SysCalls.log("Writing pin: \#{pin} in mode: \#{mode}: \#{value}")
+
+             with(:ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value)) do
+               FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
              end
              """)
   end
@@ -288,7 +299,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCeleryScript.SysCalls.read_pin(23, 0)
+             pin = 23
+             mode = 0
+             FarmbotCeleryScript.SysCalls.log("Reading pin: \#{pin} in mode: \#{mode}")
+             FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
              """)
   end
 
@@ -301,7 +315,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCeleryScript.SysCalls.set_servo_angle(23, 90)
+             pin = 23
+             angle = 90
+             FarmbotCeleryScript.SysCalls.log("Writing servo: \#{pin}: \#{angle}")
+             FarmbotCeleryScript.SysCalls.set_servo_angle(pin, angle)
              """)
   end
 
