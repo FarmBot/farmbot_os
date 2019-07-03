@@ -50,8 +50,6 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
     if ap do
       :ok = BotState.report_wifi_level(ap.signal_dbm)
       :ok = BotState.report_wifi_level_percent(ap.signal_percent)
-    else
-      FarmbotCore.Logger.warn(3, "WiFi scan did not report configured ssid. Skipping")
     end
 
     {:noreply, state}
