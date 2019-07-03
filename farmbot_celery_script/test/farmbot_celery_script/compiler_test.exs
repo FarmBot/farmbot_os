@@ -234,7 +234,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                %{x: offx, y: offy, z: offz} = FarmbotCeleryScript.SysCalls.coordinate(-20, -20, -20)
              ) do
                [x, y, z] = [locx + offx, locy + offy, locz + offz]
-               FarmbotCeleryScript.SysCalls.log(\"Moving to position: \#{x}, \#{y}, \#{z}\")
+               FarmbotCeleryScript.SysCalls.log("Moving to position: (\#{x}, \#{y}, \#{z})")
                FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
              end
              """)
@@ -265,7 +265,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                x = locx + curx
                y = locy + cury
                z = locz + curz
-               FarmbotCeleryScript.SysCalls.log("Moving to position: \#{x}, \#{y}, \#{z}")
+               FarmbotCeleryScript.SysCalls.log("Moving to position: (\#{x}, \#{y}, \#{z})")
                FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
              end
              """)
