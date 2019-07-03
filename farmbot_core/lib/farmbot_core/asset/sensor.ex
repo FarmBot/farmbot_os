@@ -35,4 +35,10 @@ defmodule FarmbotCore.Asset.Sensor do
     |> cast(params, [:id, :pin, :mode, :label, :monitor, :created_at, :updated_at])
     |> validate_required([:id, :pin, :mode, :label])
   end
+
+  defimpl String.Chars, for: FarmbotCore.Asset.Sensor do
+    def to_string(%FarmbotCore.Asset.Sensor{pin: pin, label: label}) do
+      "Sensor #{label} Pin: #{pin}"
+    end
+  end
 end
