@@ -196,17 +196,12 @@ defmodule FarmbotOS.Platform.Target.Network do
   def handle_info({:network_not_found_timer, minutes}, state) do
     FarmbotCore.Logger.warn(1, """
     Farmbot has been disconnected from the network for 
-    #{minutes} minutes. Going
-    down for factory reset.
-
-    NOTE: This is temporarily disabled to avoid false positives. 
-    If you see this message, and you believe it is incorrect, please
-    contact the Farmbot Team with a detailed explanation of what happened
-    if possible.
+    #{minutes} minutes. Going down for factory reset.
     """)
-
-    # TODO(Connor) factory reset here.
-
+    FarmbotOS.System.factory_reset("""
+    Farmbot has been disconnected from the network for 
+    #{minutes} minutes.
+    """)
     {:noreply, state}
   end
 
