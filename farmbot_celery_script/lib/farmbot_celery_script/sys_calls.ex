@@ -63,6 +63,12 @@ defmodule FarmbotCeleryScript.SysCalls do
               ok_or_error
   @callback zero(axis) :: ok_or_error
 
+  @callback log(message :: String.t()) :: any()
+
+  def log(sys_calls \\ @sys_calls, message) when is_binary(message) do
+    apply(sys_calls, :log, [message])
+  end
+
   def calibrate(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
     ok_or_error(sys_calls, :calibrate, [axis])
   end
