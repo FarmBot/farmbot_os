@@ -19,6 +19,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:soc_temp, :integer)
     field(:throttled, :string)
     field(:wifi_level, :integer)
+    field(:wifi_level_percent, :integer)
     field(:uptime, :integer)
     field(:memory_usage, :integer)
     field(:disk_usage, :integer)
@@ -49,6 +50,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       soc_temp: informational_settings.soc_temp,
       throttled: informational_settings.throttled,
       wifi_level: informational_settings.wifi_level,
+      wifi_level_percent: informational_settings.wifi_level_percent,
       uptime: informational_settings.uptime,
       memory_usage: informational_settings.memory_usage,
       disk_usage: informational_settings.disk_usage,
@@ -75,6 +77,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :soc_temp,
       :throttled,
       :wifi_level,
+      :wifi_level_percent,
       :uptime,
       :memory_usage,
       :disk_usage,
