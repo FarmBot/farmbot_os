@@ -342,7 +342,7 @@ defmodule FarmbotCeleryScript.Compiler do
           locz + offz
         ]
 
-        FarmbotCeleryScript.SysCalls.log("Moving to position: #{x}, #{y}, #{z}")
+        FarmbotCeleryScript.SysCalls.log("Moving to position: (#{x}, #{y}, #{z})")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -361,7 +361,7 @@ defmodule FarmbotCeleryScript.Compiler do
         x = locx + curx
         y = locy + cury
         z = locz + curz
-        FarmbotCeleryScript.SysCalls.log("Moving to position: #{x}, #{y}, #{z}")
+        FarmbotCeleryScript.SysCalls.log("Moving to position: (#{x}, #{y}, #{z})")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
