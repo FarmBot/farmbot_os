@@ -422,8 +422,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def detect_update_channel() do
-    if String.match?(
-         ~r/v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/,
+    if Regex.match?(
+         ~r/(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/,
          Project.version()
        ) do
       "beta"
