@@ -70,4 +70,7 @@ config :nerves_hub,
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
 
 config :logger, backends: [RingLogger]
-config :logger, RingLogger, max_size: 1024
+
+config :logger, RingLogger,
+  max_size: 1024,
+  color: [enabled: true]
