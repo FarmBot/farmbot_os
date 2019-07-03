@@ -48,12 +48,12 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   test "write_pin", %{shim: shim} do
     :ok = shim_fun_ok(shim)
     assert :ok = SysCalls.write_pin(TestSysCalls, 1, 0, 1)
-    assert :ok = SysCalls.write_pin(TestSysCalls, {:box_led, 4}, 0, 1)
-    assert :ok = SysCalls.write_pin(TestSysCalls, {:box_led, 3}, 1, 123)
+    assert :ok = SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 4}, 0, 1)
+    assert :ok = SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 3}, 1, 123)
 
     assert_receive {:write_pin, [1, 0, 1]}
-    assert_receive {:write_pin, [{:box_led, 4}, 0, 1]}
-    assert_receive {:write_pin, [{:box_led, 3}, 1, 123]}
+    assert_receive {:write_pin, [%{type: "boxled", id: 4}, 0, 1]}
+    assert_receive {:write_pin, [%{type: "boxled", id: 3}, 1, 123]}
 
     :ok = shim_fun_error(shim, "firmware error")
 
@@ -85,11 +85,11 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     assert 44 == SysCalls.named_pin(TestSysCalls, "Sensor", 1999)
 
     # BoxLed is on the GPIO
-    :ok = shim_fun_ok(shim, {:box_led, 3})
-    assert {:box_led, 3} == SysCalls.named_pin(TestSysCalls, "BoxLed", 3)
+    :ok = shim_fun_ok(shim, %{type: "BoxLed", id: 3})
+    assert %{type: "BoxLed", id: 3} == SysCalls.named_pin(TestSysCalls, "BoxLed", 3)
 
-    :ok = shim_fun_ok(shim, {:box_led, 4})
-    assert {:box_led, 4} == SysCalls.named_pin(TestSysCalls, "BoxLed", 4)
+    :ok = shim_fun_ok(shim, %{type: "BoxLed", id: 4})
+    assert %{type: "BoxLed", id: 4} == SysCalls.named_pin(TestSysCalls, "BoxLed", 4)
 
     assert_receive {:named_pin, ["Peripheral", 5]}
     assert_receive {:named_pin, ["Sensor", 1999]}
