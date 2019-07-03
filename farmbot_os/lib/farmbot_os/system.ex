@@ -58,7 +58,7 @@ defmodule FarmbotOS.System do
       try_lock_fw()
       write_file(reason)
       _ = FarmbotCore.EctoMigrator.drop()
-      _ = Supervisor.start_child(:elixir_sup, {Task, &FarmbotOS.System.soft_restart/0})
+      reboot(reason)
       :ok
     else
       FarmbotCore.Logger.error(1, "Factory Reset disabled.")
