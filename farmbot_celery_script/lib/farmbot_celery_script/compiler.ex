@@ -433,7 +433,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands home(all) into three home/1 calls
   compile :home, %{axis: "all", speed: speed} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Going to home all axes")
+      FarmbotCeleryScript.SysCalls.log("Going to home on all axes")
 
       with speed when is_number(speed) <- unquote(compile_ast(speed)),
            :ok <- FarmbotCeleryScript.SysCalls.home("z", speed),
