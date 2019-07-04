@@ -1,7 +1,6 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   use GenServer
   require Logger
-  require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Peripheral, BotState}
   alias FarmbotCeleryScript.AST
@@ -45,20 +44,20 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   end
 
   def handle_info(:timeout, %{peripheral: peripheral, errors: errors} = state) do
-    FarmbotCore.Logger.busy(2, "Read peripheral: #{peripheral.label}")
+    Logger.debug("Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
     case FarmbotCeleryScript.execute(rpc, make_ref()) do
       :ok -> 
-        FarmbotCore.Logger.success(2, "Read peripheral: #{peripheral.label} ok")
+        Logger.debug("Read peripheral: #{peripheral.label} ok")
         {:noreply, state}
       
       {:error, reason} when errors < 5 -> 
-        FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
+        Logger.error("Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
         Process.send_after(self(), :timeout, @retry_ms)
         {:noreply, %{state | errors: state.errors + 1}}
       
       {:error, reason} when errors == 5 ->
-        FarmbotCore.Logger.error(1, "Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
+        Logger.error("Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
         {:noreply, state}
     end
   end
