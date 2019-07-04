@@ -245,13 +245,13 @@ defmodule FarmbotCeleryScript.Compiler do
     #    nothing()
     # end
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("IF Statement evaultaion")
+      FarmbotCeleryScript.SysCalls.log("If Statement evaultaion")
 
       if unquote(if_eval) do
-        FarmbotCeleryScript.SysCalls.log("IF Statement will branch")
+        FarmbotCeleryScript.SysCalls.log("If Statement will branch")
         unquote(compile_block(then_ast))
       else
-        FarmbotCeleryScript.SysCalls.log("IF Statement will not branch")
+        FarmbotCeleryScript.SysCalls.log("If Statement will not branch")
         unquote(compile_block(else_ast))
       end
     end
