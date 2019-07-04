@@ -223,11 +223,11 @@ defmodule FarmbotOS.SysCalls do
   defp do_read_pin(%Sensor{pin: pin_number, label: label}, 0) when is_number(pin_number) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
-        FarmbotCore.Logger.info(2, "The #{label} sensor value is ON (digital)")
+        FarmbotCore.Logger.info(2, "The #{label} sensor value is 1 (digital)")
         1
 
       {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
-        FarmbotCore.Logger.info(2, "The #{label} sensor value is OFF (digital)")
+        FarmbotCore.Logger.info(2, "The #{label} sensor value is 0 (digital)")
         0
 
       {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
