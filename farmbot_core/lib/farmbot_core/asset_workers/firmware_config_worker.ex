@@ -35,27 +35,30 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   defp do_write_read(calib_param, value)
       when calib_param in [:movement_axis_nr_steps_z, :movement_axis_nr_steps_y, :movement_axis_nr_steps_z]
   do
+    value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
     case FarmbotFirmware.command({:parameter_write, [{calib_param, value}]}) do
       {:error, :configuration} -> 
-        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{calib_param}: #{value}"
+        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{calib_param}: #{value_str}"
         :ok
       :ok ->
-        FarmbotCore.Logger.success 1, "Firmware parameter updated: #{calib_param} #{value}"
+        FarmbotCore.Logger.success 1, "Firmware parameter updated: #{calib_param} #{value_str}"
         :ok
     end
   end
 
   defp do_write_read(param, value) do
+    value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
     with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
           {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
-      FarmbotCore.Logger.success 1, "Firmware parameter updated: #{param} #{value}"
+      FarmbotCore.Logger.success 1, "Firmware parameter updated: #{param} #{value_str}"
       :ok
       else
     {:error, reason} ->
       FarmbotCore.Logger.error 1, "Error writing firmware parameter: #{param}: #{inspect(reason)}"
 
     {:ok, {_, {:report_parameter_value, [{param, value}]}}} ->
-      FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value}"
+      value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
+      FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value_str}"
 
     end
   end
