@@ -342,7 +342,10 @@ defmodule FarmbotCeleryScript.Compiler do
           locz + offz
         ]
 
-        FarmbotCeleryScript.SysCalls.log("Moving to (#{x}, #{y}, #{z})")
+        x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
+        y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
+        z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
+        FarmbotCeleryScript.SysCalls.log("Moving to (#{x_str}, #{y_str}, #{z_str})")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -361,7 +364,10 @@ defmodule FarmbotCeleryScript.Compiler do
         x = locx + curx
         y = locy + cury
         z = locz + curz
-        FarmbotCeleryScript.SysCalls.log("Moving relative to (#{x}, #{y}, #{z})")
+        x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
+        y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
+        z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
+        FarmbotCeleryScript.SysCalls.log("Moving relative to (#{x_str}, #{y_str}, #{z_str})")
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -373,7 +379,6 @@ defmodule FarmbotCeleryScript.Compiler do
       pin = unquote(compile_ast(num))
       mode = unquote(compile_ast(mode))
       value = unquote(compile_ast(value))
-      FarmbotCeleryScript.SysCalls.log("Writing #{to_string(pin)} in mode: #{mode}: #{value}")
 
       with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
         FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
@@ -386,7 +391,6 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       pin = unquote(compile_ast(num))
       mode = unquote(compile_ast(mode))
-      FarmbotCeleryScript.SysCalls.log("Reading #{to_string(pin)} in mode: #{mode}")
       FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
     end
   end
