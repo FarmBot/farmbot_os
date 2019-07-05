@@ -50,7 +50,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   def maybe_new_tty("tty" <> _), do: :ok
 
   def maybe_new_tty(unknown) do
-    FarmbotCore.Logger.warn(1, "Unknown tty: #{inspect(unknown)}")
+    FarmbotCore.Logger.debug(3, "Unknown tty: #{inspect(unknown)}")
   end
 
   def new_tty(tty) do
