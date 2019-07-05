@@ -48,7 +48,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
          {:ok, _} <- Queue.purge(chan, ping),
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
          {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
-      FarmbotCore.Logger.info(1, "connected to PingPong channel")
+      FarmbotCore.Logger.debug(3, "connected to PingPong channel")
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
