@@ -70,7 +70,10 @@ config :nerves_hub,
 
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
 
-config :logger, backends: [RingLogger]
+config :logger,
+  backends: [RingLogger],
+  handle_otp_reports: true,
+  handle_sasl_reports: true
 
 config :logger, RingLogger,
   max_size: 1024,
