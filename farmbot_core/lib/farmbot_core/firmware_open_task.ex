@@ -53,6 +53,15 @@ defmodule FarmbotCore.FirmwareOpenTask do
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer}}
         end
+      true ->
+        FarmbotCore.Logger.debug 3, """
+        Unknown firmware open state:
+        firmware needs flash?: #{needs_flash?}
+        firwmare needs open?: #{needs_open?}
+        firmware path: #{firmware_path}
+        """
+        timer = Process.send_after(self(), :open, 5000)
+        {:noreply, %{state | timer: timer}}
     end
   end
 end
