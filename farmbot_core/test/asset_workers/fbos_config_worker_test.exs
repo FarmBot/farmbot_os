@@ -13,7 +13,7 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
         auto_sync: false,
         beta_opt_in: true,
         disable_factory_reset: false,
-        firmware_hardware: "farmduino_k14",
+        firmware_hardware: nil,
         firmware_input_log: false,
         firmware_output_log: false,
         network_not_found_timer: nil,
