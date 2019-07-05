@@ -109,44 +109,4 @@ defmodule FarmbotCore.BotStateNGTest do
       assert mut.informational_settings.wifi_level == 52
     end
   end
-
-  describe "alerts" do
-    alias FarmbotCore.Asset.Private.Alert
-
-    test "registers an engima" do
-      state = BotStateNG.new()
-      assert Enum.empty?(state.alerts)
-      uuid = Ecto.UUID.generate()
-
-      alert = %Alert{
-        local_id: uuid,
-        priority: 15,
-        created_at: DateTime.utc_now()
-      }
-
-      state =
-        BotStateNG.add_alert(state, alert)
-        |> Ecto.Changeset.apply_changes()
-
-      refute Enum.empty?(state.alerts)
-      assert state.alerts[uuid].priority == 15
-
-      # Make sure that the alert is in the frontend expected schema
-      assert state.alerts[uuid].slug == uuid
-
-      updated_alert = %Alert{alert | priority: 10}
-
-      state =
-        BotStateNG.add_alert(state, updated_alert)
-        |> Ecto.Changeset.apply_changes()
-
-      assert state.alerts[uuid].priority == 10
-
-      state =
-        BotStateNG.clear_alert(state, alert)
-        |> Ecto.Changeset.apply_changes()
-
-      refute state.alerts[uuid]
-    end
-  end
 end
