@@ -89,7 +89,7 @@ defmodule FarmbotCore.Logger do
         nil -> "no_function"
       end
 
-    struct(FarmbotCore.Log,
+    struct!(FarmbotCore.Log,
       level: level,
       verbosity: verbosity,
       message: message,
@@ -116,7 +116,8 @@ defmodule FarmbotCore.Logger do
       function: log.function,
       file: log.file,
       line: log.line,
-      module: log.module
+      module: log.module,
+      channels: log.meta[:channels] || log.meta["channels"]
       # time: time
     ]
 
