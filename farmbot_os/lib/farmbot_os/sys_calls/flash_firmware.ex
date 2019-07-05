@@ -1,7 +1,7 @@
 defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
-  alias FarmbotOS.FirmwareTTYDetector
+  alias FarmbotCore.FirmwareTTYDetector
   require Logger
 
   def flash_firmware(package) do
@@ -10,10 +10,14 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
          {:ok, fun} <- find_reset_fun(package),
+         :ok <- FarmbotFirmware.close_transport(),
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
       Logger.debug("Firmware flashed successfully!")
 
-      %{firmware_hardware: package, firmware_path: tty}
+      %{
+        # firmware_hardware: package, 
+        firmware_path: tty
+      }
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
 
