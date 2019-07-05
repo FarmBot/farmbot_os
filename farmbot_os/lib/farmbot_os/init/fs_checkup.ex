@@ -50,7 +50,10 @@ defmodule FarmbotOS.Init.FSCheckup do
           File.rm_rf(fw)
         end
 
-        init_logger()
+        if FarmbotCore.Project.target() != :host do
+          init_logger()
+        end
+
         :ok
 
       err ->
