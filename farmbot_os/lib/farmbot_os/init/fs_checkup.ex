@@ -74,7 +74,8 @@ defmodule FarmbotOS.Init.FSCheckup do
     Logger.flush()
 
     try do
-      Logger.remove_backend(:console)
+      _ = Logger.add_backend(LoggerBackendEspeak)
+      _ = Logger.remove_backend(:console)
     catch
       :exit, r ->
         IO.warn("Could not init logging: #{inspect(r)}", __STACKTRACE__)
