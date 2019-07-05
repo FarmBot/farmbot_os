@@ -25,6 +25,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   def init(%FbosConfig{} = fbos_config) do
     if Config.get_config_value(:bool, "settings", "firmware_needs_flash") do
       Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+    else
+      Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
     end
     {:ok, %{fbos_config: fbos_config, firmware_flash_tries: 0}, 0}
   end
@@ -92,6 +94,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         FarmbotCeleryScript.execute(rpc, make_ref())
 
       true ->
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
         :ok
     end
   end
