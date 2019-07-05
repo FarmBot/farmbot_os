@@ -167,8 +167,8 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
-  def factory_reset() do
-    call({:factory_reset, []})
+  def factory_reset(package) do
+    call({:factory_reset, [package]})
   end
 
   @impl true
