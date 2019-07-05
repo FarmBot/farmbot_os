@@ -56,6 +56,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     """
     Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
     Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+    Process.sleep(5000)
     maybe_flash_firmware(fbos_config, fbos_config)
     {:noreply, %{state | firmware_flash_tries: state.firmware_flash_tries + 1}}
   end
