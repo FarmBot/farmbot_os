@@ -39,4 +39,4 @@ config :farmbot, FarmbotOS.FirmwareTTYDetector,
   ]
 
 config :logger,
-  backends: [RingLogger]
+  backends: [:console]
