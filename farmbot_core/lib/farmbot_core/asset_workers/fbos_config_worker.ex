@@ -8,7 +8,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   require Logger
   require FarmbotCore.Logger
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.{Asset.FbosConfig, BotState}
+  alias FarmbotCore.{Asset.FbosConfig, BotState, Config}
 
   @impl FarmbotCore.AssetWorker
   def preload(%FbosConfig{}), do: []
@@ -23,12 +23,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   @impl GenServer
   def init(%FbosConfig{} = fbos_config) do
+    if Config.get_config_value(:bool, "settings", "firmware_needs_flash") do
+      Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+    end
     {:ok, %{fbos_config: fbos_config, firmware_flash_tries: 0}, 0}
   end
 
   @impl GenServer
   def handle_info({:step_complete, _, :ok}, state) do
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
     {:noreply, state}
   end
 
@@ -38,7 +42,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     Failed flashing firmware: #{reason} 
     Tried #{tries} times. Not retrying
     """
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
     {:noreply, %{state | firmware_flash_tries: 0}}
   end
 
@@ -47,6 +52,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     Error flashing firmware: #{reason} 
     Trying again
     """
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
     maybe_flash_firmware(fbos_config, fbos_config)
     {:noreply, %{state | firmware_flash_tries: state.firmware_flash_tries + 1}}
   end
@@ -67,7 +74,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def maybe_flash_firmware(%{firmware_hardware: new_hardware} = new_fbos_config, %{firmware_hardware: old_hardware}) do
-    force? = FarmbotCore.Config.get_config_value(:bool, "settings", "firmware_needs_flash")
+    force? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
     rpc = fbos_config_to_flash_firmware_rpc(new_fbos_config)
     cond do
       new_hardware == nil ->
@@ -76,7 +83,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         
       force? ->
         FarmbotCore.Logger.warn 1, "Firmware hardware forced flash"
-        FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
+        Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
         FarmbotCeleryScript.execute(rpc, make_ref())
       
       new_hardware != old_hardware ->

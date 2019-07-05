@@ -2,17 +2,18 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector
+  require FarmbotCore.Logger
   require Logger
 
   def flash_firmware(package) do
-    Logger.debug("Starting firmware flash for package: #{package}")
+    FarmbotCore.Logger.busy(2, "Starting firmware flash for package: #{package}")
 
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
          {:ok, fun} <- find_reset_fun(package),
          :ok <- FarmbotFirmware.close_transport(),
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
-      Logger.debug("Firmware flashed successfully!")
+      FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
       %{
         # firmware_hardware: package, 
@@ -24,11 +25,27 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       :ok
     else
       {:error, reason} when is_binary(reason) ->
-        Logger.error("Error flashing firmware")
+        FarmbotCore.Logger.error(2, "Error flashing firmware")
+
+        %{
+          # firmware_hardware: package, 
+          firmware_path: nil
+        }
+        |> Asset.update_fbos_config!()
+        |> Private.mark_dirty!(%{})
+
         {:error, reason}
 
       {_, exit_code} when is_number(exit_code) ->
-        Logger.error("AVRDUDE ERROR: #{exit_code}")
+        FarmbotCore.Logger.error(2, "AVRDUDE ERROR: #{exit_code}")
+
+        %{
+          # firmware_hardware: package, 
+          firmware_path: nil
+        }
+        |> Asset.update_fbos_config!()
+        |> Private.mark_dirty!(%{})
+
         {:error, "avrdude error: #{exit_code} see logs."}
     end
   end

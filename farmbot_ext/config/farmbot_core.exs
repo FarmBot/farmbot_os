@@ -35,3 +35,5 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
   default_ntp_server_2: "1.pool.ntp.org",
   default_currently_on_beta:
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
+
+config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []

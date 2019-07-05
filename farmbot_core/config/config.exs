@@ -35,6 +35,8 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
   default_currently_on_beta:
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
 
+config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
+
 import_config "ecto.exs"
 import_config "logger.exs"
 import_config "#{Mix.env()}.exs"
