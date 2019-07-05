@@ -51,26 +51,4 @@ defmodule FarmbotCore.BotStateTest do
                BotState.fetch(bot_state_pid)
     end
   end
-
-  describe "alerts" do
-    alias FarmbotCore.Asset.Private.Alert
-
-    test "registers and deregisters an alert" do
-      {:ok, bot_state_pid} = BotState.start_link([], [])
-      uuid = Ecto.UUID.generate()
-
-      alert = %Alert{
-        local_id: uuid,
-        created_at: DateTime.utc_now()
-      }
-
-      :ok = BotState.add_alert(bot_state_pid, alert)
-      state_tree = BotState.fetch(bot_state_pid)
-      assert Map.has_key?(state_tree.alerts, uuid)
-
-      :ok = BotState.clear_alert(bot_state_pid, alert)
-      state_tree = BotState.fetch(bot_state_pid)
-      refute state_tree.alerts[uuid]
-    end
-  end
 end
