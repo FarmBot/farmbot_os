@@ -1,6 +1,6 @@
 defmodule FarmbotCore.AssetTest do
   use ExUnit.Case, async: true
-  alias FarmbotCore.Asset.{Repo, Regimen, RegimenInstance}
+  alias FarmbotCore.Asset.RegimenInstance
   alias FarmbotCore.Asset
   import Farmbot.TestSupport.AssetFixtures
 
