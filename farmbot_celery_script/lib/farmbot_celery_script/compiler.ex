@@ -639,9 +639,9 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  compile :factory_reset, %{package: "farmbot_os"} do
+  compile :factory_reset, %{package: package} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.factory_reset()
+      FarmbotCeleryScript.SysCalls.factory_reset(unquote(compile_ast(package)))
     end
   end
 

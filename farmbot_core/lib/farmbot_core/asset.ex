@@ -42,6 +42,14 @@ defmodule FarmbotCore.Asset do
     |> Repo.insert_or_update!()
   end
 
+  def delete_device!(id) do
+    if device = Repo.get_by(Device, id: id) do
+      Repo.delete!(device)
+    end
+    :ok
+  end
+
+
   ## End Device
 
   ## Begin FarmEvent
@@ -111,6 +119,13 @@ defmodule FarmbotCore.Asset do
     new_data
   end
 
+  def delete_fbos_config!(id) do
+    if fbos_config = Repo.get_by(FbosConfig, id: id) do
+      Repo.delete!(fbos_config)
+    end
+    :ok
+  end
+
   ## End FbosConfig
 
   ## Begin FirmwareConfig
@@ -130,6 +145,13 @@ defmodule FarmbotCore.Asset do
 
     AssetSupervisor.cast_child(new_data, {:new_data, new_data})
     new_data
+  end
+
+  def delete_firmware_config!(id) do
+    if firmware_config = Repo.get_by(FirmwareConfig, id: id) do
+      Repo.delete!(firmware_config)
+    end
+    :ok
   end
 
   ## End FirmwareConfig

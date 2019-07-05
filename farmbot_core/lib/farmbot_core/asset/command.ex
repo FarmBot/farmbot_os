@@ -38,13 +38,28 @@ defmodule FarmbotCore.Asset.Command do
     update(as_module!(kind), id, params)
   end
 
+  def update(Device, id, nil) do
+    Asset.delete_device!(id)
+    :ok
+  end
+
   def update(Device, _id, params) do 
     Asset.update_device!(params)
     :ok
   end
-  
+
+  def update(FbosConfig, id, nil) do 
+    Asset.delete_fbos_config!(id)
+    :ok
+  end
+
   def update(FbosConfig, _id, params) do 
     Asset.update_fbos_config!(params)
+    :ok
+  end
+
+  def update(FirmwareConfig, id, nil) do 
+    Asset.delete_firmware_config!(id)
     :ok
   end
   
