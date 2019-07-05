@@ -1,14 +1,14 @@
-defmodule FarmbotOS.FirmwareTTYDetector do
+defmodule FarmbotCore.FirmwareTTYDetector do
   use GenServer
   require Logger
   alias Circuits.UART
 
-  @expected_names Application.get_env(:farmbot, __MODULE__)[:expected_names]
+  @expected_names Application.get_env(:farmbot_core, __MODULE__)[:expected_names]
   @expected_names ||
     Mix.raise("""
     Please configure `expected_names` for TTYDetector.
 
-        config :farmbot, Farmbot.TTYDetector,
+        config :farmbot_core, Farmbot.TTYDetector,
           expected_names: ["ttyS0", "ttyNotReal"]
     """)
 

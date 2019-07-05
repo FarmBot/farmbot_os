@@ -31,5 +31,5 @@ config :farmbot, FarmbotOS.Configurator,
   data_layer: FarmbotTest.Configurator.MockDataLayer,
   network_layer: FarmbotTest.Configurator.MockNetworkLayer
 
-config :farmbot, FarmbotOS.FirmwareTTYDetector, expected_names: []
+config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 config :plug, :validate_header_keys_during_test, true

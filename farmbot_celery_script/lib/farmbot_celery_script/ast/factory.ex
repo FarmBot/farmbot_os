@@ -62,6 +62,11 @@ defmodule FarmbotCeleryScript.AST.Factory do
     |> add_body_node(new(:take_photo))
   end
 
+  def flash_firmware(%AST{} = ast, package) when is_binary(package) do
+    ast
+    |> add_body_node(new(:flash_firmware, %{package: package}))
+  end
+
   def add_body_node(%AST{body: body} = ast, %AST{} = body_node) do
     %{ast | body: body ++ [body_node]}
   end
