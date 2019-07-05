@@ -4,7 +4,13 @@ defmodule FarmbotOS.Platform.Host.SystemTasks do
   @behaviour FarmbotOS.System
 
   def reboot() do
-    shutdown()
+    Application.stop(:farmbot)
+    Application.stop(:farmbot_ext)
+    Application.stop(:farmbot_core)
+
+    Application.ensure_all_started(:farmbot_core)
+    Application.ensure_all_started(:farmbot_ext)
+    Application.ensure_all_started(:farmbot)
   end
 
   def shutdown() do

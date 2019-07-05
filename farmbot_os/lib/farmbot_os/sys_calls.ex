@@ -16,6 +16,7 @@ defmodule FarmbotOS.SysCalls do
     CheckUpdate,
     DumpInfo,
     ExecuteScript,
+    FactoryReset,
     FlashFirmware,
     SendMessage
   }
@@ -47,6 +48,9 @@ defmodule FarmbotOS.SysCalls do
   defdelegate read_status(), to: FarmbotExt.AMQP.BotStateChannel
 
   @impl true
+  defdelegate factory_reset(package), to: FactoryReset
+
+  @impl true
   def log(message) do
     if FarmbotCore.Asset.fbos_config(:sequence_body_log) do
       FarmbotCore.Logger.info(2, message)
@@ -65,12 +69,6 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def power_off do
     FarmbotOS.System.reboot("Shut down requested by Sequence or frontend")
-    :ok
-  end
-
-  @impl true
-  def factory_reset do
-    FarmbotOS.System.factory_reset("Factory reset requested by Sequence or frontend", true)
     :ok
   end
 

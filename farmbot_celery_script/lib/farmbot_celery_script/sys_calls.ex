@@ -30,7 +30,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback emergency_lock() :: ok_or_error
   @callback emergency_unlock() :: ok_or_error
   @callback execute_script(package, args :: map()) :: ok_or_error
-  @callback factory_reset() :: ok_or_error
+  @callback factory_reset(package :: String.t()) :: ok_or_error
   @callback find_home(axis) :: ok_or_error
   @callback firmware_reboot() :: ok_or_error
   @callback flash_firmware(package) :: ok_or_error
@@ -103,8 +103,8 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :execute_script, [package, env])
   end
 
-  def factory_reset(sys_calls \\ @sys_calls) do
-    ok_or_error(sys_calls, :factory_reset, [])
+  def factory_reset(sys_calls \\ @sys_calls, package) do
+    ok_or_error(sys_calls, :factory_reset, [package])
   end
 
   def find_home(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do

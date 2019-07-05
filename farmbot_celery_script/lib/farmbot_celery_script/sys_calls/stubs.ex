@@ -35,7 +35,7 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def execute_script(package, args), do: error(:execute_script, [package, args])
 
   @impl true
-  def factory_reset(), do: error(:factory_reset, [])
+  def factory_reset(package), do: error(:factory_reset, [package])
 
   @impl true
   def find_home(axis), do: error(:find_home, [axis])
