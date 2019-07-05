@@ -5,9 +5,6 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent, check
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
   checkup_time_ms: 10_000
 
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.Private.Alert,
-  error_retry_time_ms: 10_000
-
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,
   install_dir: "/tmp/farmware"

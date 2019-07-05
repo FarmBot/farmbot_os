@@ -14,15 +14,6 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_job_progress, name, progress})
   end
 
-  @doc "Add an alert record to bot state."
-  def add_alert(bot_state_server \\ __MODULE__, alert) do
-    GenServer.call(bot_state_server, {:add_alert, alert})
-  end
-
-  def clear_alert(bot_state_server \\ __MODULE__, alert) do
-    GenServer.call(bot_state_server, {:clear_alert, alert})
-  end
-
   @doc "Set a configuration value"
   def set_config_value(bot_state_server \\ __MODULE__, key, value) do
     GenServer.call(bot_state_server, {:set_config_value, key, value})
@@ -175,22 +166,6 @@ defmodule FarmbotCore.BotState do
   def handle_call({:set_job_progress, name, progress}, _from, state) do
     {reply, state} =
       BotStateNG.set_job_progress(state.tree, name, Map.from_struct(progress))
-      |> dispatch_and_apply(state)
-
-    {:reply, reply, state}
-  end
-
-  def handle_call({:add_alert, alert}, _from, state) do
-    {reply, state} =
-      BotStateNG.add_alert(state.tree, alert)
-      |> dispatch_and_apply(state)
-
-    {:reply, reply, state}
-  end
-
-  def handle_call({:clear_alert, alert}, _from, state) do
-    {reply, state} =
-      BotStateNG.clear_alert(state.tree, alert)
       |> dispatch_and_apply(state)
 
     {:reply, reply, state}

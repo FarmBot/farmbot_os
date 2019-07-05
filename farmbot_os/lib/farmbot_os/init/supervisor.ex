@@ -18,8 +18,7 @@ defmodule FarmbotOS.Init.Supervisor do
     children =
       (config[:init_children] || []) ++
         [
-          FarmbotOS.Init.FSCheckup,
-          FarmbotOS.Init.AlertFirmwareMissing
+          FarmbotOS.Init.FSCheckup
         ]
 
     Supervisor.init(children, strategy: :one_for_all)
