@@ -8,7 +8,7 @@ defmodule FarmbotCore.FirmwareTTYDetector do
     Mix.raise("""
     Please configure `expected_names` for TTYDetector.
 
-        config :farmbot_core, Farmbot.TTYDetector,
+        config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
           expected_names: ["ttyS0", "ttyNotReal"]
     """)
 

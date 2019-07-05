@@ -42,7 +42,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   }
 
   alias FarmbotCore.Project
-  alias FarmbotCore.{BotState, BotState.JobProgress.Percent}
+  alias FarmbotCore.{BotState, BotState.JobProgress.Percent, Config}
   alias FarmbotCore.{Asset, Config, JSON}
   alias FarmbotExt.JWT
   require FarmbotCore.Logger
@@ -315,13 +315,17 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def handle_cast({:handle_nerves_hub_fwup_message, {:progress, percent}}, state) do
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
     _ = set_ota_progress(percent)
     {:noreply, state}
   end
 
   def handle_cast({:handle_nerves_hub_fwup_message, {:ok, _, _info}}, state) do
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
     _ = set_ota_progress(100)
     {:noreply, state}
   end
@@ -341,19 +345,25 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     case Asset.fbos_config(:os_auto_update) do
       true ->
         FarmbotCore.Logger.busy(1, "Applying OTA update")
-        FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
         {:reply, :apply, %{state | is_applying_update: true, firmware_url: url}}
 
       _ ->
         FarmbotCore.Logger.info(1, "New Farmbot OS is available!")
-        FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
         {:reply, :ignore, %{state | firmware_url: url}}
     end
   end
 
   def handle_call({:handle_nerves_hub_update_available, _data}, _from, state) do
     FarmbotCore.Logger.busy(1, "Applying OTA update")
-    FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
     {:reply, :apply, %{state | is_applying_update: true}}
   end
 
@@ -364,7 +374,9 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
       data ->
         FarmbotCore.Logger.busy(1, "Applying OTA update")
-        FarmbotCore.Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
         spawn_link(fn -> NervesHub.update() end)
         {:reply, data, %{state | is_applying_update: true}}
     end
