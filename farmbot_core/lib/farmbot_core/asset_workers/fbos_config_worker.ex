@@ -75,18 +75,19 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   def maybe_flash_firmware(%{firmware_hardware: new_hardware} = new_fbos_config, %{firmware_hardware: old_hardware}) do
     force? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
-    rpc = fbos_config_to_flash_firmware_rpc(new_fbos_config)
     cond do
       new_hardware == nil ->
         FarmbotCore.Logger.warn 1, "Firmware hardware unset. Not flashing"
         :ok
         
       force? ->
+        rpc = fbos_config_to_flash_firmware_rpc(new_fbos_config)
         FarmbotCore.Logger.warn 1, "Firmware hardware forced flash"
         Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
         FarmbotCeleryScript.execute(rpc, make_ref())
       
       new_hardware != old_hardware ->
+        rpc = fbos_config_to_flash_firmware_rpc(new_fbos_config)
         FarmbotCore.Logger.warn 1, "Firmware hardware change from #{old_hardware} to #{new_hardware} flashing firmware"
         FarmbotCeleryScript.execute(rpc, make_ref())
 
