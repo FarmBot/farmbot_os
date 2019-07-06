@@ -30,38 +30,13 @@ defmodule FarmbotOS.Configurator.Router do
     case load_last_reset_reason() do
       reason when is_binary(reason) ->
         if String.contains?(reason, "CeleryScript request.") do
-          render_page(conn, "index", version: version(), last_reset_reason: nil)
+          redir(conn, "/network")
         else
-          render_page(conn, "index",
-            version: version(),
-            last_reset_reason: Phoenix.HTML.raw(reason)
-          )
+          render_page(conn, "index", version: version(), last_reset_reason: reason)
         end
 
       nil ->
-        render_page(conn, "index", version: version(), last_reset_reason: nil)
-    end
-  end
-
-  get "/view_logs" do
-    render_page(conn, "view_logs", logs: dump_logs())
-  end
-
-  get "/logs" do
-    case dump_log_db() do
-      {:ok, data} ->
-        md5 = data |> :erlang.md5() |> Base.encode16()
-
-        conn
-        |> put_resp_content_type("application/octet-stream")
-        |> put_resp_header(
-          "content-disposition",
-          "inline; filename=\"#{version()}-#{md5}-logs.sqlite3\""
-        )
-        |> send_resp(200, data)
-
-      {:error, posix} ->
-        send_resp(conn, 500, "Error downloading file: #{posix}")
+        redir(conn, "/network")
     end
   end
 
@@ -69,10 +44,27 @@ defmodule FarmbotOS.Configurator.Router do
 
   # NETWORKCONFIG
   get "/network" do
-    render_page(conn, "network",
-      interfaces: list_interfaces(),
-      post_action: "select_interface"
-    )
+    interfaces = list_interfaces()
+
+    case interfaces do
+      [<<"w", _::binary>> = ifname] ->
+        conn
+        |> put_session("iftype", "wireless")
+        |> put_session("ifname", ifname)
+        |> redir("/config_wireless")
+
+      [ifname] ->
+        conn
+        |> put_session("iftype", "wired")
+        |> put_session("ifname", ifname)
+        |> redir("/config_wired")
+
+      _ ->
+        render_page(conn, "network",
+          interfaces: interfaces,
+          post_action: "select_interface"
+        )
+    end
   end
 
   post "select_interface" do
@@ -271,7 +263,7 @@ defmodule FarmbotOS.Configurator.Router do
   defp render_page(conn, page, info \\ []) do
     page
     |> template_file()
-    |> EEx.eval_file(info, engine: Phoenix.HTML.Engine)
+    |> EEx.eval_file(Keyword.merge([version: version()], info), engine: Phoenix.HTML.Engine)
     |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   rescue
     e ->
@@ -320,14 +312,6 @@ defmodule FarmbotOS.Configurator.Router do
 
   def load_server do
     @data_layer.load_server()
-  end
-
-  defp dump_logs do
-    @data_layer.dump_logs()
-  end
-
-  defp dump_log_db do
-    @data_layer.dump_log_db()
   end
 
   defp save_config(conf) do

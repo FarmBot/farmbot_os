@@ -199,7 +199,6 @@ input[type="radio"]:checked:after {
   display: inline-block;
   padding: 0.5rem;
   cursor: pointer;
-  width: 9rem;
 }
 
 .connection-type-box {
