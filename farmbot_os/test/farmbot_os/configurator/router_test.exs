@@ -9,13 +9,13 @@ defmodule FarmbotOS.Configurator.RouterTest do
 
   @opts Router.init([])
 
-  test "index" do
+  test "index after reset" do
     MockDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
 
     conn = conn(:get, "/")
     conn = Router.call(conn, @opts)
-    assert conn.resp_body =~ "Configure your Farmbot"
+    assert conn.resp_body =~ "Configure"
     assert conn.resp_body =~ "<div class=\"last-shutdown-reason\">"
     assert conn.resp_body =~ "whoops!"
   end
@@ -31,7 +31,8 @@ defmodule FarmbotOS.Configurator.RouterTest do
 
     conn = conn(:get, redir)
     conn = Router.call(conn, @opts)
-    assert conn.resp_body =~ "Configure your Farmbot"
+    redir = redirected_to(conn)
+    assert redir == "/network"
   end
 
   test "celeryscript requests don't get listed as last reset reason" do
@@ -62,38 +63,14 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.status == 302
   end
 
-  test "secret log view page" do
-    MockDataLayer
-    |> expect(:dump_logs, fn -> [%{message: "hello, world!"}] end)
-
-    conn = conn(:get, "/view_logs")
-    conn = Router.call(conn, @opts)
-    assert conn.resp_body =~ "hello, world!"
-  end
-
-  test "secret log download page" do
-    MockDataLayer
-    |> expect(:dump_log_db, fn -> {:error, :enoent} end)
-
-    conn = conn(:get, "/logs")
-    conn = Router.call(conn, @opts)
-    assert conn.status == 500
-    assert conn.resp_body == "Error downloading file: enoent"
-
-    MockDataLayer
-    |> expect(:dump_log_db, fn -> {:ok, "this is supposed to be a sqlite db"} end)
-
-    conn = conn(:get, "/logs")
-    conn = Router.call(conn, @opts)
-    assert conn.status == 200
-    assert conn.resp_body == "this is supposed to be a sqlite db"
-    [disposition] = get_resp_header(conn, "content-disposition")
-    assert disposition =~ "-logs.sqlite3"
-  end
-
   test "network index" do
     MockNetworkLayer
-    |> expect(:list_interfaces, fn -> [{"eth0", %{mac_address: "aa:bb:cc:dd:ee"}}] end)
+    |> expect(:list_interfaces, fn ->
+      [
+        {"eth0", %{mac_address: "aa:bb:cc:dd:ee"}},
+        {"eth1", %{mac_address: "aa:bb:cc:dd:FF"}}
+      ]
+    end)
 
     conn = conn(:get, "/network")
     conn = Router.call(conn, @opts)

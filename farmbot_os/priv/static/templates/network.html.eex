@@ -19,7 +19,7 @@
   </head>
 
   <body>
-    <h1>Configure your FarmBot</h1>
+    <h1>Configure FarmBot <%= version %> </h1>
     <div class="widget">
       <div class="widget-header"> <h5>Network</h5> </div>
       <div class="widget-content">
@@ -28,22 +28,23 @@
           <input id="interface" name="interface" value="" hidden/>
           <% # Main form stuff %>
           <%= for {ifname, settings} <- interfaces do %>
+
             <label class="connection-type no-pad" for='<%= ifname %>'>
-              <input type="radio" id='<%= ifname %>' name="interfaceRadio" value=""/>
+              <input type="radio" id='<%= ifname %>' name="interfaceRadio" checked="false" onclick="select_interface()"/>
+              
               <div class="connection-type-box">
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
                 <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%></span>
               </div>
 
               <div class="connection-type-info">i</div>
+              
               <div class="connection-type-info-content">
                 <h4> <%= ifname %> mac address: </h4> <p><%= settings.mac_address %></p>
               </div>
             </label>
-          <% end %>
 
-          <% #/Main form stuff %>
-          <div class="button no-pad"> <input type="submit" value="next" onclick="select_interface()"> </div>
+          <% end %>
         </form>
       </div>
     </div>
