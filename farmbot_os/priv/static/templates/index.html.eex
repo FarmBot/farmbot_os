@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Configure your Farmbot Version <%= version %> </title>
+    <title> Configure Farmbot Version <%= version %> </title>
     <link rel="stylesheet" href="/styles.css">
 
     <script>
@@ -91,7 +91,6 @@
         <p>Get ready to configure your FarmBot!</p>
         <ul>
           <li>Network</li>
-          <li>Firmware</li>
           <li>Web App Credentials</li>
         </ul>
       </div>
