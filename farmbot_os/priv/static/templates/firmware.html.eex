@@ -61,7 +61,7 @@
   </script>
 
   <body>
-    <h1>Configure your FarmBot</h1>
+    <h1>Configure FarmBot <%= version %> </h1>
     <div class="widget">
       <div class="widget-header">
         <h5>Firmware</h5>
