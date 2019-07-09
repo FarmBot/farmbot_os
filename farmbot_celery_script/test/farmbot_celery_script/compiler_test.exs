@@ -133,7 +133,6 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              case(FarmbotCeleryScript.SysCalls.get_sequence(100)) do
                %FarmbotCeleryScript.AST{} = ast ->
-                 FarmbotCeleryScript.SysCalls.log("Executing Sequence")
                  env = []
                  FarmbotCeleryScript.Compiler.compile(ast, env)
 

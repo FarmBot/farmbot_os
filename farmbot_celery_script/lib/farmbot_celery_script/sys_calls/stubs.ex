@@ -10,6 +10,12 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def log(message), do: error(:log, [message])
 
   @impl true
+  def sequence_init_log(message), do: error(:log, [message])
+
+  @impl true
+  def sequence_complete_log(message), do: error(:log, [message])
+
+  @impl true
   def calibrate(axis), do: error(:calibrate, [axis])
 
   @impl true

@@ -19,10 +19,11 @@ defmodule FarmbotCeleryScript.AST do
           kind: kind,
           args: args,
           body: body,
-          comment: binary
+          comment: binary,
+          meta: any()
         }
 
-  defstruct [:args, :body, :kind, :comment]
+  defstruct [:args, :body, :kind, :comment, :meta]
 
   @doc "Decode a base map into CeleryScript AST."
   @spec decode(t() | map | [t() | map]) :: t()
@@ -41,12 +42,14 @@ defmodule FarmbotCeleryScript.AST do
     args = thing["args"] || thing[:args] || raise("Bad ast: #{inspect(thing)}")
     body = thing["body"] || thing[:body] || []
     comment = thing["comment"] || thing[:comment] || nil
+    meta = thing["meta"] || thing[:meta] || nil
 
     %AST{
       kind: String.to_atom(to_string(kind)),
       args: decode_args(args),
       body: decode_body(body),
-      comment: comment
+      comment: comment,
+      meta: meta
     }
   end
 
@@ -74,12 +77,13 @@ defmodule FarmbotCeleryScript.AST do
   end
 
   @spec new(atom, map, [map]) :: t()
-  def new(kind, args, body, comment \\ nil) when is_map(args) and is_list(body) do
+  def new(kind, args, body, comment \\ nil, meta \\ nil) when is_map(args) and is_list(body) do
     %AST{
       kind: String.to_atom(to_string(kind)),
       args: args,
       body: body,
-      comment: comment
+      comment: comment,
+      meta: meta
     }
     |> decode()
   end

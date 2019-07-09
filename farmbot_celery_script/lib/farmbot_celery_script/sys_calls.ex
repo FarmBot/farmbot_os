@@ -63,9 +63,19 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback zero(axis) :: ok_or_error
 
   @callback log(message :: String.t()) :: any()
+  @callback sequence_init_log(message :: String.t()) :: any()
+  @callback sequence_complete_log(message :: String.t()) :: any()
 
   def log(sys_calls \\ @sys_calls, message) when is_binary(message) do
     apply(sys_calls, :log, [message])
+  end
+
+  def sequence_init_log(sys_calls \\ @sys_calls, message) when is_binary(message) do
+    apply(sys_calls, :sequence_init_log, [message])
+  end
+
+  def sequence_complete_log(sys_calls \\ @sys_calls, message) when is_binary(message) do
+    apply(sys_calls, :sequence_complete_log, [message])
   end
 
   def calibrate(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
