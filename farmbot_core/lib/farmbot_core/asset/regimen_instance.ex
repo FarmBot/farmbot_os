@@ -31,7 +31,7 @@ defmodule FarmbotCore.Asset.RegimenInstance do
 
   def changeset(regimen_instance, params \\ %{}) do
     regimen_instance
-    |> cast(params, [:started_at, :next, :next_sequence_id, :monitor])
+    |> cast(params, [:started_at, :next, :next_sequence_id, :monitor, :updated_at])
     |> put_epoch()
     |> cast_assoc(:regimen)
     |> cast_assoc(:farm_event)
