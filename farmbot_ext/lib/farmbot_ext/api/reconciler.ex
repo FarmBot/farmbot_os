@@ -158,15 +158,14 @@ defmodule FarmbotExt.API.Reconciler do
   defp get_changeset(%{} = local_item, %Item{} = sync_item, %Changeset{} = cached) do
     cached_updated_at = Changeset.get_field(cached, :updated_at)
     sync_item_updated_at = sync_item.updated_at
+    cache_compare = compare_datetimes(sync_item_updated_at, cached_updated_at)
 
-    if compare_datetimes(sync_item_updated_at, cached_updated_at) == :eq do
-      if compare_datetimes(cached_updated_at, local_item.updated_at) == :gt do
-        Logger.info(
-          "Local data: #{local_item.__struct__} is out of date. Using cache do get newer data."
-        )
+    if cache_compare == :eq || cache_compare == :gt do
+      Logger.info(
+        "Local data: #{local_item.__struct__} is out of date. Using cache do get newer data."
+      )
 
-        {:update, cached}
-      end
+      {:update, cached}
     else
       Logger.info("Cached item is out of date")
       get_changeset(local_item, sync_item, nil)
