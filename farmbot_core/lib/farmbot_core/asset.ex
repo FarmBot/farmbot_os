@@ -224,13 +224,11 @@ defmodule FarmbotCore.Asset do
   end
 
   def delete_regimen!(regimen) do
-    IO.puts "regimen instance lookup"
     regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
     for ri <- regimen_instances do
       IO.puts "deleting regimen instance: #{inspect(ri)}"
       delete_regimen_instance!(ri)
     end
-    IO.puts "deleting regimen: #{inspect(regimen)}"
     Repo.delete!(regimen)
   end
 
@@ -239,7 +237,9 @@ defmodule FarmbotCore.Asset do
     regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
     |> Repo.preload([:farm_event, :regimen])
     for ri <- regimen_instances do
-      FarmbotCore.AssetSupervisor.update_child(ri)
+      ri
+      |> RegimenInstance.changeset(%{updated_at: DateTime.utc_now()})
+      |> Repo.update!()
     end
 
     regimen
