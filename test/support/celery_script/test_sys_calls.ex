@@ -47,6 +47,16 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def sequence_init_log(_message) do
+    :ok
+  end
+
+  @impl true
+  def sequence_complete_log(_message) do
+    :ok
+  end
+
+  @impl true
   def coordinate(x, y, z) do
     %{x: x, y: y, z: z}
   end

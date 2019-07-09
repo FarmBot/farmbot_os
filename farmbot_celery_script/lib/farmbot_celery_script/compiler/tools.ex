@@ -74,13 +74,29 @@ defmodule FarmbotCeleryScript.Compiler.Tools do
   end
 
   @doc false
-  defmacro compile(kind, args_pattern, body_patterrn, do: block) when is_atom(kind) do
+  defmacro compile(kind, args_pattern, body_pattern, do: block) when is_atom(kind) do
     quote do
       @kinds unquote(to_string(kind))
       def compile_ast(%AST{
             kind: unquote(kind),
             args: unquote(args_pattern),
-            body: unquote(body_patterrn)
+            body: unquote(body_pattern)
+          }) do
+        unquote(block)
+      end
+    end
+  end
+
+  @doc false
+  defmacro compile(kind, args_pattern, body_pattern, meta_pattern, do: block)
+           when is_atom(kind) do
+    quote do
+      @kinds unquote(to_string(kind))
+      def compile_ast(%AST{
+            kind: unquote(kind),
+            args: unquote(args_pattern),
+            body: unquote(body_pattern),
+            meta: unquote(meta_pattern)
           }) do
         unquote(block)
       end
