@@ -1,6 +1,7 @@
 defmodule FarmbotOS.Platform.Target.Network do
   @moduledoc "Manages Network Connections"
   use GenServer, shutdown: 10_000
+  require Logger
   require FarmbotCore.Logger
   import FarmbotOS.Platform.Target.Network.Utils
   alias FarmbotOS.Platform.Target.Network.{Distribution, PreSetup}
@@ -179,7 +180,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({VintageNet, property, old, new, _meta}, state) do
-    FarmbotCore.Logger.debug(1, """
+    Logger.debug("""
     Unknown property change: #{inspect(property)}
     old: 
 
