@@ -110,14 +110,15 @@ defmodule FarmbotCore.Logger do
   end
 
   defp elixir_log(%Log{} = log) do
-    # TODO Connor - fix time
     logger_meta = [
       application: :farmbot,
       function: log.function,
       file: log.file,
       line: log.line,
       module: log.module,
-      channels: log.meta[:channels] || log.meta["channels"]
+      channels: log.meta[:channels] || log.meta["channels"],
+      verbosity: log.verbosity
+      # TODO Connor - fix time
       # time: time
     ]
 
