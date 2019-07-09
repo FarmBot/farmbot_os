@@ -4,18 +4,21 @@ defmodule FarmbotExt.API do
   alias FarmbotCore.JSON
 
   alias FarmbotCore.Asset.{
-    StorageAuth,
     FbosConfig,
-    FirmwareConfig
+    FirmwareConfig,
+    StorageAuth
   }
 
-  alias FarmbotCore.{BotState, BotState.JobProgress.Percent}
+  alias FarmbotCore.{BotState, BotState.JobProgress.Percent, Project}
 
   require FarmbotCore.Logger
   import FarmbotCore.Config, only: [get_config_value: 3]
 
   use Tesla
   alias Tesla.Multipart
+
+  @version Project.version()
+  @target Project.target()
 
   # adapter(Tesla.Adapter.Hackney)
   plug(Tesla.Middleware.JSON, decode: &JSON.decode/1, encode: &JSON.encode/1)
@@ -29,6 +32,7 @@ defmodule FarmbotExt.API do
 
     uri = URI.parse(server)
     url = (uri.scheme || "https") <> "://" <> uri.host <> ":" <> to_string(uri.port)
+    user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
     Tesla.client([
       {Tesla.Middleware.BaseUrl, url},
@@ -36,7 +40,7 @@ defmodule FarmbotExt.API do
        [
          {"content-type", "application/json"},
          {"authorization", "Bearer: " <> binary_token},
-         {"user-agent", "farmbot-os"}
+         {"user-agent", user_agent}
        ]}
     ])
   end
