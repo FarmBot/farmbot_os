@@ -37,3 +37,5 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
     String.contains?(to_string(:os.cmd('git rev-parse --abbrev-ref HEAD')), "beta")
 
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
+
+config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5

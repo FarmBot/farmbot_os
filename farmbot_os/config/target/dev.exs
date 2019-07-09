@@ -70,6 +70,8 @@ config :nerves_hub,
 
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 5_000
 
+config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
+
 config :logger, backends: [RingLogger]
 
 config :logger, RingLogger,
