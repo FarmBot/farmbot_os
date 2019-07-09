@@ -37,6 +37,8 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
 
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 
+config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
+
 import_config "ecto.exs"
 import_config "logger.exs"
 import_config "#{Mix.env()}.exs"
