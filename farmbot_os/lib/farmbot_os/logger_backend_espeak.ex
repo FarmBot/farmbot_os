@@ -26,11 +26,12 @@ defmodule LoggerBackendEspeak do
 
   def handle_event({_level, _pid, {Logger, msg, _timestamp, meta}}, %{port: espeak} = state) do
     should_espeak? =
-      Enum.find(meta[:channels] || [], fn
-        :espeak -> true
-        "espeak" -> true
-        _ -> false
-      end)
+      meta[:channels] == :espeak ||
+        Enum.find(meta[:channels] || [], fn
+          :espeak -> true
+          "espeak" -> true
+          _ -> false
+        end)
 
     if should_espeak? do
       _ = Port.command(espeak, IO.iodata_to_binary(msg) <> "\n")
