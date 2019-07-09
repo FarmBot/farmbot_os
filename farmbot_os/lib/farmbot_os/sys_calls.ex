@@ -61,6 +61,26 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
+  def sequence_init_log(message) do
+    if FarmbotCore.Asset.fbos_config(:sequence_init_log) do
+      FarmbotCore.Logger.info(2, message)
+      :ok
+    else
+      :ok
+    end
+  end
+
+  @impl true
+  def sequence_complete_log(message) do
+    if FarmbotCore.Asset.fbos_config(:sequence_complete_log) do
+      FarmbotCore.Logger.info(2, message)
+      :ok
+    else
+      :ok
+    end
+  end
+
+  @impl true
   def reboot do
     FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
     :ok
@@ -482,8 +502,11 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def get_sequence(id) do
     case Asset.get_sequence(id) do
-      nil -> {:error, "sequence not found"}
-      %{} = sequence -> AST.decode(sequence)
+      nil ->
+        {:error, "sequence not found"}
+
+      %{} = sequence ->
+        %{AST.decode(sequence) | meta: %{sequence_name: sequence.name}}
     end
   end
 
