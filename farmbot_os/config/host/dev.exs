@@ -37,5 +37,7 @@ config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
     System.get_env("FARMBOT_TTY")
   ]
 
+config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
+
 config :logger,
   backends: [:console]
