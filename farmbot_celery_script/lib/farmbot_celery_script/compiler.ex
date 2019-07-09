@@ -86,7 +86,7 @@ defmodule FarmbotCeleryScript.Compiler do
   #    is added.
 
   # Compiles a `sequence` into an Elixir `fn`.
-  compile :sequence, %{locals: %{body: params}}, block do
+  compile :sequence, %{locals: %{body: params}}, block, meta do
     # Sort the args.body into two arrays.
     # The `params` side gets turned into
     # a keyword list. These `params` are passed in from a previous sequence.
@@ -104,7 +104,10 @@ defmodule FarmbotCeleryScript.Compiler do
       end)
 
     {:__block__, [], assignments} = compile_block(body)
+    sequence_name = meta[:sequence_name]
     steps = compile_block(block) |> decompose_block_to_steps()
+
+    steps = add_sequence_init_and_complete_logs(steps, sequence_name)
 
     quote location: :keep do
       fn params ->
@@ -263,8 +266,6 @@ defmodule FarmbotCeleryScript.Compiler do
       # We have to lookup the sequence by it's id.
       case FarmbotCeleryScript.SysCalls.get_sequence(unquote(id)) do
         %FarmbotCeleryScript.AST{} = ast ->
-          # TODO(Connor) - figure out a way of inserting the sequence name here
-          FarmbotCeleryScript.SysCalls.log("Executing Sequence")
           # compile the ast
           env = unquote(compile_params_to_function_args(parameter_applications))
           FarmbotCeleryScript.Compiler.compile(ast, env)
@@ -872,6 +873,32 @@ defmodule FarmbotCeleryScript.Compiler do
         fn -> unquote(step) end
       end
     end)
+  end
+
+  defp add_sequence_init_and_complete_logs(steps, sequence_name) when is_binary(sequence_name) do
+    # This looks really weird because of the logs before and
+    # after the compiled steps 
+    List.flatten([
+      quote do
+        fn ->
+          FarmbotCeleryScript.SysCalls.sequence_init_log(
+            "Sequence #{unquote(sequence_name)} init"
+          )
+        end
+      end,
+      steps,
+      quote do
+        fn ->
+          FarmbotCeleryScript.SysCalls.sequence_complete_log(
+            "Sequence #{unquote(sequence_name)} complete"
+          )
+        end
+      end
+    ])
+  end
+
+  defp add_sequence_init_and_complete_logs(steps, _) do
+    steps
   end
 
   # defp print_compiled_code(compiled) do
