@@ -1,5 +1,10 @@
 defmodule FarmbotCore.FirmwareOpenTask do
-  @moduledoc false
+  @moduledoc """
+  Will open the UART interface after it's been successfully flashed .
+  Must configure in application env: `attempt_threshold`. It can be an integer
+  or `:infinity` in which case it will try opening it indefinately. 
+  """
+  
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotFirmware.UARTTransport
@@ -30,17 +35,17 @@ defmodule FarmbotCore.FirmwareOpenTask do
   @impl GenServer
   def init(_args) do
     send(self(), :open)
-    {:ok, %{timer: nil, attempts: 0}}
+    {:ok, %{timer: nil, attempts: 0, threshold: @attempt_threshold}}
   end
 
   @impl GenServer
-  def handle_info(:open, %{attempts: at} = state) when at >= @attempt_threshold do
+  def handle_info(:open, %{attempts: at, threshold: attempt_threshold} = state) when at >= attempt_threshold do
     if state.timer, do: Process.cancel_timer(state.timer)
     FarmbotCore.Logger.debug 3, "Firmware didn't open after #{@attempt_threshold} tries. Not trying to open anymore"
     {:noreply, %{state | timer: nil}}
   end
   
-  def handle_info(:open, %{attempts: at} = state) do
+  def handle_info(:open, state) do
     if state.timer, do: Process.cancel_timer(state.timer)
 
     needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
@@ -50,12 +55,12 @@ defmodule FarmbotCore.FirmwareOpenTask do
       needs_flash? ->
         FarmbotCore.Logger.debug 3, "Firmware needs flash still. Not opening"
         timer = Process.send_after(self(), :open, 5000)
-        {:noreply, %{state | timer: timer, attempts: at + 1}}
+        {:noreply, increment_attempts(%{state | timer: timer})}
 
       is_nil(firmware_path) ->
         FarmbotCore.Logger.debug 3, "Firmware path not detected. Not opening"
         timer = Process.send_after(self(), :open, 5000)
-        {:noreply, %{state | timer: timer, attempts: at + 1}}
+        {:noreply, increment_attempts(%{state | timer: timer})}
 
       needs_open? ->
         FarmbotCore.Logger.debug 3, "Firmware needs to be opened"
@@ -77,5 +82,13 @@ defmodule FarmbotCore.FirmwareOpenTask do
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, %{state | timer: timer, attempts: 0}}
     end
+  end
+
+  defp increment_attempts(%{attempts: at, attempt_threshold: :infinity} = state) do
+    %{state | attempts: at + 1}
+  end
+
+  defp increment_attempts(%{attempts: at} = state) do
+    %{state | attempts: at + 1}
   end
 end

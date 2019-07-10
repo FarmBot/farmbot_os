@@ -11,7 +11,7 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstalla
 
 config :farmbot_core, FarmbotCore.FarmwareRuntime, runtime_dir: "/tmp/farmware_runtime"
 
-config :farmbot_core, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
@@ -38,6 +38,9 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
+
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
+  firmware_flash_attempt_threshold: 5
 
 import_config "ecto.exs"
 import_config "logger.exs"
