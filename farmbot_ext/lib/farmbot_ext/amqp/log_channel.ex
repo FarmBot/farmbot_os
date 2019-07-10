@@ -107,8 +107,16 @@ defmodule FarmbotExt.AMQP.LogChannel do
   end
 
   defp push_bot_log(chan, bot, log) do
-    json = JSON.encode!(log, pretty: true)
-    :ok = Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
+    # this will add quite a bit of overhead to logging, but probably not
+    # that big of a deal.
+    # List extracted from:
+    # https://github.com/FarmBot/Farmbot-Web-App/blob/b7f09e51e856bfca5cfedd7fef3c572bebdbe809/frontend/devices/actions.ts#L38
+    if Regex.match?(~r(WPA|PSK|PASSWORD|NERVES), String.upcase(log.message)) do
+      :ok
+    else
+      json = JSON.encode!(log, pretty: true)
+      :ok = Basic.publish(chan, @exchange, "bot.#{bot}.logs", json)
+    end
   end
 
   defp add_position_to_log(%{} = log, %{position: %{x: x, y: y, z: z}}) do
