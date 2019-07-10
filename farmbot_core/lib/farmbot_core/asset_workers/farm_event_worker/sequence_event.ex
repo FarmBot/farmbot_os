@@ -54,6 +54,6 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
           | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
         }
     }
-    FarmbotCeleryScript.schedule(celery_ast, at)
+    FarmbotCeleryScript.schedule(celery_ast, at, farm_event)
   end
 end
