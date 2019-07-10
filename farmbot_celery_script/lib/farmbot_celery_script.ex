@@ -6,8 +6,8 @@ defmodule FarmbotCeleryScript do
   alias FarmbotCeleryScript.{AST, Scheduler, StepRunner}
 
   @doc "Schedule an AST to execute on a DateTime"
-  def schedule(%AST{} = ast, %DateTime{} = at) do
-    Scheduler.schedule(ast, at)
+  def schedule(%AST{} = ast, %DateTime{} = at, %{} = data) do
+    Scheduler.schedule(ast, at, data)
   end
 
   @doc "Execute an AST in place"
