@@ -25,7 +25,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
       end)
 
     scheduled_time = DateTime.utc_now() |> DateTime.add(100, :millisecond)
-    {:ok, _} = Scheduler.schedule(sch, ast, scheduled_time)
+    {:ok, _} = Scheduler.schedule(sch, ast, scheduled_time, %{})
     assert_receive {:read_pin, [9, 0]}, 1000
   end
 end
