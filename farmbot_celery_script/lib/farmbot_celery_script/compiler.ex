@@ -881,17 +881,13 @@ defmodule FarmbotCeleryScript.Compiler do
     List.flatten([
       quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_init_log(
-            "Sequence #{unquote(sequence_name)} init"
-          )
+          FarmbotCeleryScript.SysCalls.sequence_init_log("Starting #{unquote(sequence_name)}")
         end
       end,
       steps,
       quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_complete_log(
-            "Sequence #{unquote(sequence_name)} complete"
-          )
+          FarmbotCeleryScript.SysCalls.sequence_complete_log("#{unquote(sequence_name)} complete")
         end
       end
     ])
