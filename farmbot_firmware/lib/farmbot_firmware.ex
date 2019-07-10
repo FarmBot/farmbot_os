@@ -389,12 +389,12 @@ defmodule FarmbotFirmware do
 
   # EmergencyLock should be ran immediately
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}, 0}
   end
 
   # EmergencyUnLock should be ran immediately
   def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code} | state.command_queue]}, 0}
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}, 0}
   end
 
   # If not in an acceptable state, return an error immediately.
