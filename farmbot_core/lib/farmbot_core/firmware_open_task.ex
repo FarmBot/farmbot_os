@@ -66,12 +66,19 @@ defmodule FarmbotCore.FirmwareOpenTask do
         FarmbotCore.Logger.debug 3, "Firmware needs to be opened"
         case swap_transport(firmware_path) do
           :ok -> 
-            {:noreply, %{state | timer: nil, attempts: 0}, :hibernate}
+            Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+            timer = Process.send_after(self(), :open, 5000)
+            {:noreply, %{state | timer: timer, attempts: 0}}
           _ ->
             FarmbotCore.Logger.debug 3, "Firmware failed to open"
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
         end
+      needs_open? == false ->
+        # Firmware should probably already be opened here.
+        # Can just ignore
+        timer = Process.send_after(self(), :open, 5000)
+        {:noreply, %{state | timer: timer}} 
       true ->
         FarmbotCore.Logger.debug 3, """
         Unknown firmware open state:
