@@ -95,7 +95,7 @@ defmodule FarmbotCore.Asset.Command do
   end
   
   def update(FarmwareInstallation, id, params) do 
-    Asset.upsert_farmware_env_by_id(id, params)
+    Asset.upsert_farmware_manifest_by_id(id, params)
     :ok
   end
 
