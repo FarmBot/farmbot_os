@@ -14,12 +14,18 @@ defmodule FarmbotCore.FirmwareTTYDetector do
 
   @error_retry_ms 5_000
 
+  @doc "Gets the detected TTY"
   def tty(server \\ __MODULE__) do
     GenServer.call(server, :tty)
   end
 
   def tty!(server \\ __MODULE__) do
     tty(server) || raise "No TTY detected"
+  end
+
+  @doc "Sets a TTY as detected by some other means"
+  def set_tty(server \\ __MODULE__, tty) when is_binary(tty) do
+    GenServer.call(server, {:tty, tty})
   end
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -32,6 +38,10 @@ defmodule FarmbotCore.FirmwareTTYDetector do
 
   def handle_call(:tty, _, detected_tty) do
     {:reply, detected_tty, detected_tty}
+  end
+
+  def handle_call({:tty, detected_tty}, _from, _old_value) do
+    {:reply, :ok, detected_tty}
   end
 
   def handle_info(:timeout, state) do

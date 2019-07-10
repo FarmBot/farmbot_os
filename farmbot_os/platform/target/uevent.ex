@@ -16,7 +16,9 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   @moduledoc false
 
   use GenServer
+  require Logger
   require FarmbotCore.Logger
+  alias FarmbotCore.{Config, FirmwareTTYDetector}
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -33,7 +35,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
 
     case new_ttys -- old_ttys do
       [new] -> new |> List.last() |> maybe_new_tty()
-      [_ | _] -> FarmbotCore.Logger.warn(3, "Multiple new tty devices detected. Ignoring.")
+      [_ | _] -> Logger.warn("Multiple new tty devices detected. Ignoring.")
       [] -> :ok
     end
 
@@ -50,10 +52,20 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   def maybe_new_tty("tty" <> _), do: :ok
 
   def maybe_new_tty(unknown) do
-    FarmbotCore.Logger.debug(3, "Unknown tty: #{inspect(unknown)}")
+    Logger.debug("Unknown tty: #{inspect(unknown)}")
   end
 
   def new_tty(tty) do
-    raise("FIXME: #{tty}")
+    case FirmwareTTYDetector.tty() do
+      nil ->
+        FarmbotCore.Logger.busy(1, "new firmware interfaces detected: #{tty}")
+        FirmwareTTYDetector.set_tty(tty)
+        Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
+      tty ->
+        Logger.debug("firmware interface already detected: #{tty}")
+        :ok
+    end
   end
 end

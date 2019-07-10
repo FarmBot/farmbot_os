@@ -10,6 +10,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.{Asset.FbosConfig, BotState, Config}
 
+  @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold]
+  @firmware_flash_attempt_threshold || Mix.raise """
+  Firmware open attempt threshold not configured:
+
+  config :farmbot_core, #{__MODULE__}, [
+    firmware_flash_attempt_threshold: :infinity
+  ]
+  """
+
   @impl FarmbotCore.AssetWorker
   def preload(%FbosConfig{}), do: []
 
@@ -28,7 +37,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     else
       Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
     end
-    {:ok, %{fbos_config: fbos_config, firmware_flash_tries: 0}, 0}
+    {:ok, %{fbos_config: fbos_config, firmware_flash_attempts: 0, firmware_flash_attempt_threshold: @firmware_flash_attempt_threshold}, 0}
   end
 
   @impl GenServer
@@ -38,15 +47,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     {:noreply, state}
   end
 
-  def handle_info({:step_complete, _, {:error, reason}}, %{firmware_flash_tries: tries} = state)
-  when tries >= 3 do
+  def handle_info({:step_complete, _, {:error, reason}}, %{firmware_flash_attempts: tries, firmware_flash_attempt_threshold: thresh} = state)
+  when tries >= thresh do
     FarmbotCore.Logger.error 1, """
     Failed flashing firmware: #{reason} 
     Tried #{tries} times. Not retrying
     """
     Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
     Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
-    {:noreply, %{state | firmware_flash_tries: 0}}
+    {:noreply, %{state | firmware_flash_attempts: 0}}
   end
 
   def handle_info({:step_complete, _, {:error, reason}}, %{fbos_config: %FbosConfig{} = fbos_config} = state) do
@@ -58,7 +67,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
     Process.sleep(5000)
     maybe_flash_firmware(fbos_config, fbos_config)
-    {:noreply, %{state | firmware_flash_tries: state.firmware_flash_tries + 1}}
+    {:noreply, %{state | firmware_flash_attempts: state.firmware_flash_attempts + 1}}
   end
 
   def handle_info(:timeout, %{fbos_config: %FbosConfig{} = fbos_config} = state) do
