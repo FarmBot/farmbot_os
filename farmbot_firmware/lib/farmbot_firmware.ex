@@ -673,6 +673,10 @@ defmodule FarmbotFirmware do
       old != new && old == :emergency_lock ->
         side_effects(new_state, :handle_emergency_unlock, [])
 
+      # Boot up emergency unlock
+      old == :boot && new != :emergency_lock ->
+        side_effects(new_state, :handle_emergency_unlock, [])
+
       old == new ->
         :ok
 
