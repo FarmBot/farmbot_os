@@ -5,7 +5,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()
-    {:ok, sch} = Scheduler.start_link([], [])
+    {:ok, sch} = Scheduler.start_link([registry_name: :"#{:random.uniform()}"], [])
     [shim: shim, sch: sch]
   end
 
@@ -26,6 +26,8 @@ defmodule FarmbotCeleryScript.SchedulerTest do
 
     scheduled_time = DateTime.utc_now() |> DateTime.add(100, :millisecond)
     {:ok, _} = Scheduler.schedule(sch, ast, scheduled_time, %{})
+    # Hack to force the scheduler to checkup instead of waiting the normal 15 seconds
+    send(sch, :checkup)
     assert_receive {:read_pin, [9, 0]}, 1000
   end
 end
