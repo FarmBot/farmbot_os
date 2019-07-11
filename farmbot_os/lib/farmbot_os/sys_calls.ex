@@ -88,7 +88,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def power_off do
-    FarmbotOS.System.reboot("Shut down requested by Sequence or frontend")
+    FarmbotOS.System.shutdown("Shut down requested by Sequence or frontend")
     :ok
   end
 
