@@ -155,6 +155,17 @@ defmodule FarmbotOS.Platform.Target.Network do
       ) do
     FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
+
+    case reset_ntp() do
+      :ok ->
+        :ok
+
+      error ->
+        FarmbotCore.Logger.error(1, """
+        Failed to configure NTP: #{inspect(error)}
+        """)
+    end
+
     {:noreply, %{state | first_connect?: false}}
   end
 
@@ -261,5 +272,11 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   defp network_not_found_timer_minutes(_state) do
     Asset.fbos_config(:network_not_found_timer) || @default_network_not_found_timer_minutes
+  end
+
+  defp reset_ntp do
+    ntp_server_1 = Config.get_config_value(:string, "settings", "default_ntp_server_1")
+    ntp_server_2 = Config.get_config_value(:string, "settings", "default_ntp_server_2")
+    Nerves.Time.set_ntp_servers([ntp_server_1, ntp_server_2])
   end
 end
