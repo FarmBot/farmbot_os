@@ -24,6 +24,11 @@ defmodule FarmbotExt.API.EagerLoader.Supervisor do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  def drop_all_cache() do
+    for {_, pid, _, _} <- Supervisor.which_children(FarmbotExt.API.EagerLoader.Supervisor),
+        do: GenServer.cast(pid, :drop)
+  end
+
   def init(_args) do
     children = [
       {EagerLoader, Device},

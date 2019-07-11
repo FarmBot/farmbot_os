@@ -112,6 +112,11 @@ defmodule FarmbotExt.API.EagerLoader do
     {:noreply, %{state | cache: Map.put(state.cache, id, changeset)}}
   end
 
+  def handle_cast(:drop, state) do
+    Logger.debug("dropping cache for: #{state.module}")
+    {:noreply, %{state | cache: %{}}}
+  end
+
   def handle_call({:get_cache, id}, _, state) do
     {result, cache} = Map.pop(state.cache, id)
     {:reply, result, %{state | cache: cache}}
