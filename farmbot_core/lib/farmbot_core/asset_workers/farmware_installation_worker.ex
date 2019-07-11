@@ -78,7 +78,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   def maybe_update(%FWI{} = installed_fwi, %FWI{} = updated) do
-    case Version.compare(installed_fwi.manifest.version, updated.manifest.version) do
+    case Version.compare(installed_fwi.manifest.package_version, updated.manifest.package_version) do
       # Installed is newer than remote.
       :gt ->
         success_log(updated, "up to date.")
@@ -174,16 +174,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
     |> File.write(json)
   end
 
-  def install_farmware_tools(%FWI{manifest: %{farmware_tools_version: version}} = fwi) do
+  def install_farmware_tools(%FWI{manifest: %{farmware_tools_version_requirement: version}} = fwi) do
     install_dir = install_dir(fwi)
     File.mkdir_p(Path.join(install_dir, "farmware_tools"))
 
-    release_url =
-      if version == "latest" do
-        "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
-      else
-        "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{version}"
-      end
+    release_url = "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
+      # if version == "latest" do
+      #   "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/latest"
+      # else
+      #   "https://api.github.com/repos/FarmBot-Labs/farmware-tools/releases/tags/#{version}"
+      # end
 
     with {:ok, {_commit, zip_url}} <- get_tools_zip_url(release_url),
          {:ok, zip_binary} <- get_zip(zip_url),
