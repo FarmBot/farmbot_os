@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Configurator.Supervisor do
   use Supervisor
-  alias FarmbotOS.Configurator.{Router, SchedulerSocket}
+  alias FarmbotOS.Configurator.{Router, LoggerSocket, SchedulerSocket}
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -37,6 +37,7 @@ defmodule FarmbotOS.Configurator.Supervisor do
     [
       {:_,
        [
+         {"/logger_socket", LoggerSocket, []},
          {"/scheduler_socket", SchedulerSocket, []},
          {:_, Plug.Cowboy.Handler, {Router, []}}
        ]}
