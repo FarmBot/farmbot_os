@@ -2,7 +2,7 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key false
-  @acceptable_manifest_version_requirement "2.0.0"
+  @acceptable_manifest_version "2.0.0"
   @acceptable_farmware_tools_version_requirement "2.0.0"
 
   alias FarmbotCore.Project
@@ -125,16 +125,9 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
 
   defp validate_farmware_manifest_version(%{valid?: false} = change), do: change
   defp validate_farmware_manifest_version(changeset) do
-    req = get_field(changeset, :farmware_manifest_version)
-    match =
-      try do
-        Version.match?(@acceptable_manifest_version_requirement, req)
-      rescue
-        Version.InvalidRequirementError -> :invalid_version
-      end
-
-    case match do
-      true ->
+    manifest_version = get_field(changeset, :farmware_manifest_version)
+    case Version.compare(@acceptable_manifest_version, manifest_version) do
+      :eq ->
         changeset
 
       _ ->
