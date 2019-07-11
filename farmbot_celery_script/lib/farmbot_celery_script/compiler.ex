@@ -296,7 +296,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :take_photo do
     # {:execute_script, [], ["take_photo", {:%{}, [], []}]}
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.execute_script("take_photo", %{})
+      FarmbotCeleryScript.SysCalls.execute_script("take-photo", %{})
     end
   end
 

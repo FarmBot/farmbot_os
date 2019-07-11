@@ -19,7 +19,7 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
 
   def lookup(farmware_name) do
     case Asset.get_farmware_manifest(farmware_name) do
-      nil -> {:error, "farmware not installed"}
+      nil -> {:error, "#{farmware_name} farmware not installed"}
       manifest -> {:ok, manifest}
     end
   end
