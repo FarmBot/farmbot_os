@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Debug Logger</title>
+    <script src="logger.js"></script>
+  </head>
+  <body>
+    <table border="1" style="width:100%" id="logger_table">
+      <col width="1%"> 
+      <col width="75%"> 
+      <col width="17%"> 
+      <tr>
+        <th>Level</th>
+        <th>Message</th>
+        <th>DateTime</th>
+        <th>Src</th>
+        <th>Module</th>
+        <th>Function</th>
+      </tr>
+    <table/>
+  </body>
+</html>

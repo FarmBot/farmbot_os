@@ -30,6 +30,10 @@ defmodule FarmbotOS.Configurator.Router do
     render_page(conn, "scheduler_debugger")
   end
 
+  get "/logger" do
+    render_page(conn, "logger")
+  end
+
   get "/" do
     case load_last_reset_reason() do
       reason when is_binary(reason) ->
