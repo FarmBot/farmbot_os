@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Scheduler Debugger</title>
+    <script src="scheduler_debugger.js"></script>
+  </head>
+  <body>
+    <table border="1" id="scheduler_table"/>
+  </body>
+</html>

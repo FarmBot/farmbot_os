@@ -26,6 +26,10 @@ defmodule FarmbotOS.Configurator.Router do
   get("/check_network_status.txt", do: redir(conn, "/"))
   get("/success.txt", do: redir(conn, "/"))
 
+  get "/scheduler_debugger" do
+    render_page(conn, "scheduler_debugger")
+  end
+
   get "/" do
     case load_last_reset_reason() do
       reason when is_binary(reason) ->
