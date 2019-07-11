@@ -174,7 +174,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
     |> File.write(json)
   end
 
-  def install_farmware_tools(%FWI{manifest: %{farmware_tools_version_requirement: version}} = fwi) do
+  def install_farmware_tools(%FWI{manifest: %{farmware_tools_version_requirement: _version}} = fwi) do
     install_dir = install_dir(fwi)
     File.mkdir_p(Path.join(install_dir, "farmware_tools"))
 
