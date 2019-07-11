@@ -69,6 +69,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     FarmbotCore.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
     # If a channel was still open, close it.
     if state.chan, do: ConnectionWorker.close_channel(state.chan)
+
+    try do
+      EagerLoader.Supervisor.drop_all_cache()
+    catch
+      _, _ -> :ok
+    end
   end
 
   def handle_info(:preload, state) do

@@ -61,17 +61,26 @@ defmodule FarmbotCore.Log do
     field(:commit, :string)
     field(:target, :string)
     field(:env, :string)
+    field(:hash, :binary)
+    field(:duplicates, :integer, default: 0)
     timestamps()
   end
 
   @required_fields [:level, :verbosity, :message]
-  @optional_fields [:meta, :function, :file, :line, :module, :id, :inserted_at, :updated_at]
+  @optional_fields [:meta, :function, :file, :line, :module, :id, :inserted_at, :updated_at, :duplicates]
 
   def changeset(log, params \\ %{}) do
     log
     |> new()
     |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
+    |> calculate_hash()
+  end
+
+  def calculate_hash(changeset) do
+    message = Ecto.Changeset.get_field(changeset, :message)
+    hash = :crypto.hash(:sha, message)
+    Ecto.Changeset.put_change(changeset, :hash, hash)
   end
 
   def new(%Log{} = merge) do

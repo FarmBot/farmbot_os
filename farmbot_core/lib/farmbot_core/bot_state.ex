@@ -155,7 +155,8 @@ defmodule FarmbotCore.BotState do
 
   @doc false
   def handle_call(:subscribe, {pid, _} = _from, state) do
-    Process.link(pid)
+    # TODO Just replace this with Elixir.Registry?
+    # Process.link(pid)
     {:reply, state.tree, %{state | subscribers: Enum.uniq([pid | state.subscribers])}}
   end
 
