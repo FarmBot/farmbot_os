@@ -11,3 +11,4 @@
 *.fw
 !signal_table.js
 !*.svg
+!templates/*.html.eex
