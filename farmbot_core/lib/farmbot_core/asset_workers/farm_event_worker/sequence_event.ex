@@ -29,7 +29,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
     {:noreply, state}
   end
 
-  def handle_info({FarmbtoCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
+  def handle_info({FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
       {:error, reason} -> reason
