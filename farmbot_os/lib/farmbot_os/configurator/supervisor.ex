@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Configurator.Supervisor do
   use Supervisor
-  alias FarmbotOS.Configurator.Router
+  alias FarmbotOS.Configurator.{Router, SchedulerSocket}
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -13,7 +13,11 @@ defmodule FarmbotOS.Configurator.Supervisor do
       num_acceptors: 1
     ]
 
-    opts = [port: default_port(), transport_options: transport_opts]
+    opts = [
+      port: default_port(),
+      transport_options: transport_opts,
+      dispatch: dispatch()
+    ]
 
     children = [
       {Plug.Adapters.Cowboy, scheme: :http, plug: Router, options: opts}
@@ -27,5 +31,15 @@ defmodule FarmbotOS.Configurator.Supervisor do
       nil -> 80
       str -> String.to_integer(str)
     end
+  end
+
+  defp dispatch() do
+    [
+      {:_,
+       [
+         {"/scheduler_socket", SchedulerSocket, []},
+         {:_, Plug.Cowboy.Handler, {Router, []}}
+       ]}
+    ]
   end
 end
