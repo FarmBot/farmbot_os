@@ -55,13 +55,26 @@ defmodule FarmbotCore.Logger do
     end
   end
 
-  def insert_log!(%Log{} = log) do
+  def insert_log!(params) do
+    changeset = Log.changeset(%Log{}, params)
     try do
-      log
-      |> Log.changeset(%{})
-      |> Repo.insert!()
+      hash = Ecto.Changeset.get_field(changeset, :hash)
+      case Repo.get_by(Log, hash: hash) do
+        nil -> 
+          Repo.insert!(changeset)
+        old -> 
+          params = 
+            params
+            |> Map.put(:inserted_at, DateTime.utc_now)
+            |> Map.put(:duplicates, old.duplicates + 1)
+            old
+            |> Log.changeset(params)
+            |> Repo.update!()
+      end
     catch
-      _, _ -> log
+      kind, err ->
+        IO.warn("Error inserting log: #{kind} #{inspect(err)}", __STACKTRACE__) 
+        Ecto.Changeset.apply_changes(changeset)
     end
   end
 
@@ -88,8 +101,7 @@ defmodule FarmbotCore.Logger do
         {fun, ar} -> "#{fun}/#{ar}"
         nil -> "no_function"
       end
-
-    struct!(FarmbotCore.Log,
+    %{
       level: level,
       verbosity: verbosity,
       message: message,
@@ -98,13 +110,13 @@ defmodule FarmbotCore.Logger do
       file: env.file,
       line: env.line,
       module: env.module
-    )
+    }
     |> dispatch_log()
   end
 
   @doc false
-  def dispatch_log(%Log{} = log) do
-    log
+  def dispatch_log(params) do
+    params
     |> insert_log!()
     |> elixir_log()
   end
