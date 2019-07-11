@@ -18,7 +18,7 @@ defmodule FarmbotCore.LoggerTest do
            )
 
     # insert the log again
-    assert FarmbotCore.Logger.insert_log!(log)
+    assert FarmbotCore.Logger.insert_log!(Map.from_struct(log))
 
     # Make sure the log is available for handling again.
     assert Enum.find(

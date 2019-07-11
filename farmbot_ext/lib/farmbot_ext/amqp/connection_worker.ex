@@ -176,10 +176,12 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
   defp close_connection(nil), do: :ok
 
-  defp close_connection(%{pid: _} = conn) do
-    if Process.alive?(conn.pid) do
+  defp close_connection(%{pid: pid}) do
+    if Process.alive?(pid) do
       try do
-        :ok = AMQP.Connection.close(conn)
+        Process.exit(pid, :close)
+        :ok
+        # :ok = AMQP.Connection.close(conn)
       rescue
         ex ->
           message = Exception.message(ex)
