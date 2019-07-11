@@ -30,13 +30,15 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
         :ok
 
       {:step_complete, ^ref, :ok} ->
+        Logger.debug("ok for #{label}")
         response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
         true = FarmwareRuntime.rpc_processed(runtime, response)
         loop(farmware_name, runtime, monitor, {nil, nil})
 
       {:step_complete, ^ref, {:error, reason}} ->
-        explaination = %AST{kind: :explaination, args: %{message: reason}}
-        response = %AST{kind: :rpc_error, args: %{label: label}, body: [explaination]}
+        Logger.debug("error for #{label}")
+        explanation = %AST{kind: :explanation, args: %{message: reason}}
+        response = %AST{kind: :rpc_error, args: %{label: label}, body: [explanation]}
         true = FarmwareRuntime.rpc_processed(runtime, response)
         loop(farmware_name, runtime, monitor, {nil, nil})
 
@@ -51,6 +53,7 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
           case FarmwareRuntime.process_rpc(runtime) do
             {:ok, %{args: %{label: label}} = rpc} ->
               ref = make_ref()
+              Logger.debug("executing rpc: #{inspect(rpc)}")
               _pid = spawn(FarmbotCeleryScript, :execute, [rpc, ref])
               loop(farmware_name, runtime, monitor, {ref, label})
 
