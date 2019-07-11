@@ -17,27 +17,6 @@ defmodule FarmbotCore.BotStateTest do
       assert match?({:error, %Ecto.Changeset{valid?: false}}, result)
       refute_receive {BotState, %Ecto.Changeset{valid?: true}}
     end
-
-    test "subscribing links current process" do
-      # Trap exits so we can assure we can see bot the
-      # BotState processess and the subscriber process crash.
-      Process.flag(:trap_exit, true)
-
-      # two links, BotState and Subscriber
-      {:ok, bot_state_pid} = BotState.start_link([], [])
-
-      fun = fn ->
-        _initial_state = BotState.subscribe(bot_state_pid)
-        exit(:crash)
-      end
-
-      # Spawn the subscriber function
-      fun_pid = spawn_link(fun)
-
-      # Make sure both BotState and Subscriber crashes
-      assert_receive {:EXIT, ^fun_pid, :crash}
-      assert_receive {:EXIT, ^bot_state_pid, :crash}
-    end
   end
 
   describe "pins" do
