@@ -5,7 +5,7 @@
 ##  for read only filesystem.
 
 # -name farmbot@0.0.0.0
--setcookie democookie
+-setcookie <%= @release.options[:cookie] %>
 
 ## Use Ctrl-C to interrupt the current shell rather than invoking the emulator's
 ## break handler and possibly exiting the VM.
