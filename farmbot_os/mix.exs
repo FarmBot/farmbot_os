@@ -18,8 +18,9 @@ defmodule FarmbotOS.MixProject do
       version: @version,
       branch: @branch,
       commit: @commit,
+      releases: [{:farmbot, release()}],
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
-      archives: [nerves_bootstrap: "~> 1.4"],
+      archives: [nerves_bootstrap: "~> 1.6"],
       start_permanent: Mix.env() == :prod,
       build_embedded: false,
       compilers: [:elixir_make | Mix.compilers()],
@@ -28,6 +29,7 @@ defmodule FarmbotOS.MixProject do
       deps_path: "deps/#{Mix.target()}",
       build_path: "_build/#{Mix.target()}",
       test_coverage: [tool: ExCoveralls],
+      preferred_cli_target: [run: :host, test: :host],
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
@@ -35,6 +37,15 @@ defmodule FarmbotOS.MixProject do
         "coveralls.html": :test
       ],
       deps: deps()
+    ]
+  end
+
+  def release do
+    [
+      overwrite: true,
+      cookie: "democookie",
+      include_erts: &Nerves.Release.erts/0,
+      steps: [&Nerves.Release.init/1, :assemble]
     ]
   end
 
@@ -66,9 +77,9 @@ defmodule FarmbotOS.MixProject do
       {:phoenix_html, "~> 2.13"},
 
       # Nerves stuff.
-      {:nerves, "~> 1.4", runtime: false},
+      {:nerves, "~> 1.5", runtime: false},
       {:nerves_hub_cli, "~> 0.7", runtime: false},
-      {:shoehorn, "~> 0.5"},
+      {:shoehorn, "~> 0.6"},
       {:ring_logger, "~> 0.8"},
 
       # Host/test only dependencies.
@@ -78,7 +89,7 @@ defmodule FarmbotOS.MixProject do
       {:elixir_make, "~> 0.5", runtime: false},
 
       # Target only deps
-      {:nerves_runtime, "~> 0.9", targets: @all_targets},
+      {:nerves_runtime, "~> 0.10", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
       {:nerves_hub, "~> 0.7", targets: @all_targets},
       {:mdns, "~> 1.0", targets: @all_targets},
@@ -89,9 +100,9 @@ defmodule FarmbotOS.MixProject do
       {:vintage_net,
        github: "nerves-networking/vintage_net", tag: "dhcp-properties", targets: @all_targets},
       {:busybox, "~> 0.1.2", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.7.2-farmbot.2", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi0, "1.7.2-farmbot.2", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.7.2-farmbot.3", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi3, "1.8.0-farmbot.1", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi0, "1.8.0-farmbot.0", runtime: false, targets: :rpi0},
+      {:farmbot_system_rpi, "1.8.0-farmbot.0", runtime: false, targets: :rpi}
     ]
   end
 
