@@ -60,6 +60,11 @@ defmodule FarmbotOS.MixProject do
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
 
+      # Configurator stuff
+      {:cors_plug, "~> 2.0"},
+      {:plug_cowboy, "~> 2.0"},
+      {:phoenix_html, "~> 2.13"},
+
       # Nerves stuff.
       {:nerves, "~> 1.4", runtime: false},
       {:nerves_hub_cli, "~> 0.7", runtime: false},
@@ -73,9 +78,6 @@ defmodule FarmbotOS.MixProject do
       {:elixir_make, "~> 0.5", runtime: false},
 
       # Target only deps
-      {:cors_plug, "~> 2.0"},
-      {:plug_cowboy, "~> 2.0"},
-      {:phoenix_html, "~> 2.13"},
       {:nerves_runtime, "~> 0.9", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
       {:nerves_hub, "~> 0.7", targets: @all_targets},
