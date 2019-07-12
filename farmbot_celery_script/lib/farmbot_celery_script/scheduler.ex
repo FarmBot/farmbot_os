@@ -22,6 +22,9 @@ defmodule FarmbotCeleryScript.Scheduler do
   alias FarmbotCeleryScript.{AST, Compiler, Scheduler, StepRunner}
   alias Scheduler, as: State
 
+  # 15 minutes
+  @grace_period_ms 900_000
+
   defmodule Dispatch do
     defstruct [
       :scheduled_at,
@@ -143,22 +146,22 @@ defmodule FarmbotCeleryScript.Scheduler do
   def handle_info(:checkup, %{next: {_compiled, at, _data, _pid}} = state) do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
-      diff when diff < 0 ->
+      diff_ms when diff_ms < 0 ->
         from_now =
           DateTime.utc_now()
-          |> DateTime.add(abs(diff), :millisecond)
+          |> DateTime.add(abs(diff_ms), :millisecond)
           |> Timex.from_now()
 
-        Logger.info("Next execution is still #{diff}ms too early (#{from_now})")
+        Logger.info("Next execution is still #{diff_ms}ms too early (#{from_now})")
 
         state
-        |> schedule_next_checkup(abs(diff))
+        |> schedule_next_checkup(abs(diff_ms))
         |> dispatch()
 
-      # now is more than 2 minutes (120 seconds) past schedule time
-      diff when diff > 120_000 ->
+      # now is more than the grace period past schedule time
+      diff_ms when diff_ms > @grace_period_ms ->
         from_now = Timex.from_now(at)
-        Logger.info("Next execution is #{diff}ms too late (#{from_now})")
+        Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
 
         state
         |> pop_next()
@@ -166,8 +169,8 @@ defmodule FarmbotCeleryScript.Scheduler do
         |> schedule_next_checkup()
         |> dispatch()
 
-      # now is late, but less than 2 minutes late
-      diff when diff >= 0 when diff <= 120_000 ->
+      # now is late, but less than the grace period late
+      diff_ms when diff_ms >= 0 when diff_ms <= @grace_period_ms ->
         Logger.info("Next execution is ready for execution: #{Timex.from_now(at)}")
 
         state
