@@ -2,12 +2,15 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
   require Logger
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.{Asset, FarmwareRuntime}
+  alias FarmbotExt.API.ImageUploader
 
   def execute_script(farmware_name, env) do
     with {:ok, manifest} <- lookup(farmware_name),
-         {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env) do
-      monitor = Process.monitor(runtime)
-      loop(farmware_name, runtime, monitor, {nil, nil})
+         {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
+         monitor <- Process.monitor(runtime),
+         :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
+         :ok <- ImageUploader.force_checkup() do
+      :ok
     else
       {:error, {:already_started, _pid}} ->
         {:error, "Farmware #{farmware_name} is already runtime"}
@@ -54,7 +57,7 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
             {:ok, %{args: %{label: label}} = rpc} ->
               ref = make_ref()
               Logger.debug("executing rpc: #{inspect(rpc)}")
-              _pid = spawn(FarmbotCeleryScript, :execute, [rpc, ref])
+              FarmbotCeleryScript.execute(rpc, ref)
               loop(farmware_name, runtime, monitor, {ref, label})
 
             {:error, :no_rpc} ->
