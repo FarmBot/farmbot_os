@@ -7,7 +7,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   
   use GenServer
   require FarmbotCore.Logger
-  alias FarmbotFirmware.UARTTransport
+  alias FarmbotFirmware.{UARTTransport, StubTransport}
   alias FarmbotCore.{Asset, Config}
   @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold]
   @attempt_threshold || Mix.raise """
@@ -32,6 +32,14 @@ defmodule FarmbotCore.FirmwareOpenTask do
     FarmbotFirmware.open_transport(UARTTransport, device: tty)
   end
 
+  def unswap_transport() do
+    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: StubTransport)
+    # Swap transport on FW module.
+    # Close tranpsort if it is open currently.
+    _ = FarmbotFirmware.close_transport()
+    FarmbotFirmware.open_transport(StubTransport, [])
+  end
+
   @impl GenServer
   def init(_args) do
     send(self(), :open)
@@ -51,6 +59,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
     needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
     needs_open? = Config.get_config_value(:bool, "settings", "firmware_needs_open")
     firmware_path = Asset.fbos_config(:firmware_path)
+    firmware_hardware = Asset.fbos_config(:firmware_hardware)
     cond do
       needs_flash? ->
         FarmbotCore.Logger.debug 3, "Firmware needs flash still. Not opening"
@@ -61,6 +70,13 @@ defmodule FarmbotCore.FirmwareOpenTask do
         FarmbotCore.Logger.debug 3, "Firmware path not detected. Not opening"
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, increment_attempts(%{state | timer: timer})}
+
+      firmware_hardware == "none" && needs_open? ->
+        FarmbotCore.Logger.debug 3, "Firmware needs to be closed"
+        unswap_transport()
+        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+        timer = Process.send_after(self(), :open, 5000)
+        {:noreply, %{state | timer: timer, attempts: 0}}
 
       needs_open? ->
         FarmbotCore.Logger.debug 3, "Firmware needs to be opened"
@@ -74,11 +90,13 @@ defmodule FarmbotCore.FirmwareOpenTask do
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
         end
+
       needs_open? == false ->
         # Firmware should probably already be opened here.
         # Can just ignore
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, %{state | timer: timer}} 
+
       true ->
         FarmbotCore.Logger.debug 3, """
         Unknown firmware open state:
