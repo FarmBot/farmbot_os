@@ -71,7 +71,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "E"] ->
         :ok = BotState.set_firmware_hardware("express_k10")
       [_, _, _, "S"] ->
-        :ok = BotState.set_firmware_hardware("stubduino")
+        :ok = BotState.set_firmware_version("none")
+        :ok = BotState.set_firmware_hardware("none")
     end
   end
 
