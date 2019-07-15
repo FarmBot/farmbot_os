@@ -82,10 +82,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def uuid, do: Nerves.Runtime.KV.get_active("nerves_fw_uuid")
 
   @doc "Loads the cert from storage"
-  def load_cert, do: Nerves.Runtime.KV.get("nerves_hub_cert") |> filter_parens()
+  def load_cert, do: Nerves.Runtime.KV.get_active("nerves_hub_cert") |> filter_parens()
 
   @doc "Loads the key from storage"
-  def load_key, do: Nerves.Runtime.KV.get("nerves_hub_key") |> filter_parens()
+  def load_key, do: Nerves.Runtime.KV.get_active("nerves_hub_key") |> filter_parens()
 
   @doc false
   def write_serial(serial_number) do
@@ -133,6 +133,12 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       # Stop Nerves Hub if it is running.
       _ = Supervisor.terminate_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
       _ = Supervisor.delete_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
+
+      cert = load_cert()
+      key = load_key()
+
+      if cert && key do
+      end
 
       # Cause NervesRuntime.KV to restart.
       # _ = GenServer.stop(Nerves.Runtime.KV, :restart)
