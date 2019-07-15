@@ -46,18 +46,16 @@ defmodule FarmbotExt.API do
   end
 
   def storage_client(%StorageAuth{url: url}) do
-    Tesla.client(
-      [
-        {Tesla.Middleware.BaseUrl, "https:" <> url},
-        {Tesla.Middleware.Headers,
-         [
-           {"user-agent", "farmbot-os"}
-         ]}
-      ],
-      [
-        {Tesla.Middleware.FormUrlencoded, []}
-      ]
-    )
+    user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
+
+    Tesla.client([
+      {Tesla.Middleware.BaseUrl, "https:" <> url},
+      {Tesla.Middleware.Headers,
+       [
+         {"user-agent", user_agent}
+       ]},
+      {Tesla.Middleware.FormUrlencoded, []}
+    ])
   end
 
   @file_chunk 4096
@@ -117,7 +115,7 @@ defmodule FarmbotExt.API do
       r
     else
       er ->
-        FarmbotCore.Logger.error(1, "Failed to upload image")
+        FarmbotCore.Logger.error(1, "Failed to upload image: #{inspect(er)}")
         BotState.set_job_progress(image_filename, %{prog | percent: -1, status: "error"})
         er
     end
