@@ -21,6 +21,8 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def init([]) do
+    _ = File.rm_rf!(@images_path)
+    _ = File.mkdir_p!(@images_path)
     {:ok, %{}, 0}
   end
 
