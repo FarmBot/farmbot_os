@@ -85,6 +85,12 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     {:noreply, %{state | fbos_config: new_fbos_config}}
   end
 
+  def maybe_flash_firmware(%{firmware_hardware: "none"} = _new_fbow_config, _ = _old_fbos_config) do
+    Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
+    Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
+    :ok
+  end
+
   def maybe_flash_firmware(%{firmware_hardware: new_hardware} = new_fbos_config, %{firmware_hardware: old_hardware}) do
     force? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
     cond do
