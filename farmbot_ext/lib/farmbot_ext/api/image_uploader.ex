@@ -31,7 +31,10 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_info(:timeout, state) do
-    files = Path.wildcard(Path.join(@images_path, "*.jpg"))
+    files =
+      Path.wildcard(Path.join(@images_path, "*"))
+      |> Enum.filter(&matches_any_pattern?(&1, [~r{/tmp/images/.*(jpg|jpeg|png|gif)}]))
+
     {:noreply, state, {:continue, files}}
   end
 
@@ -44,12 +47,29 @@ defmodule FarmbotExt.API.ImageUploader do
 
   # TODO(Connor) the meta here is likely inaccurate.
   defp try_upload(image_filename) do
-    meta = BotState.fetch().location_data.position
+    %{x: x, y: y, z: z} = BotState.fetch().location_data.position
+    meta = %{x: x, y: y, z: z}
 
-    with {:ok, %{status: s, body: body}} when s > 199 and s < 300 <-
+    with {:ok, %{status: s, body: _body}} when s > 199 and s < 300 <-
            API.upload_image(image_filename, meta) do
-      FarmbotCore.Logger.success(3, "Uploaded image: #{inspect(body)}")
+      FarmbotCore.Logger.success(3, "Uploaded image: #{image_filename}")
       File.rm(image_filename)
+    end
+  end
+
+  # Stolen from
+  # https://github.com/phoenixframework/
+  #  phoenix_live_reload/blob/151ce9e17c1b4ead79062098b70d4e6bc7c7e528
+  #  /lib/phoenix_live_reload/channel.ex#L27
+  defp matches_any_pattern?(path, patterns) do
+    path = to_string(path)
+
+    if String.contains?(path, "~") do
+      false
+    else
+      Enum.any?(patterns, fn pattern ->
+        String.match?(path, pattern)
+      end)
     end
   end
 end
