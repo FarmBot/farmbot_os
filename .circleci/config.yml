@@ -8,8 +8,8 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://github.com/elixir-lang/elixir/releases/download/v1.9.0/Precompiled.zip
-      unzip -d /usr/local/elixir Precompiled.zip
+      wget https://repo.hex.pm/builds/elixir/v1.9.0-otp-22.zip
+      unzip -d /usr/local/elixir v1.9.0-otp-22.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives
