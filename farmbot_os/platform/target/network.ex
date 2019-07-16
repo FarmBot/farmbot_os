@@ -278,6 +278,16 @@ defmodule FarmbotOS.Platform.Target.Network do
   defp reset_ntp do
     ntp_server_1 = Config.get_config_value(:string, "settings", "default_ntp_server_1")
     ntp_server_2 = Config.get_config_value(:string, "settings", "default_ntp_server_2")
-    Nerves.Time.set_ntp_servers([ntp_server_1, ntp_server_2])
+
+    if ntp_server_1 || ntp_server_2 do
+      Logger.info("Setting NTP servers: [#{ntp_server_1}, #{ntp_server_2}]")
+
+      [ntp_server_1, ntp_server_2]
+      |> Enum.reject(&is_nil/1)
+      |> Nerves.Time.set_ntp_servers()
+    else
+      Logger.info("Using default NTP servers")
+      :ok
+    end
   end
 end
