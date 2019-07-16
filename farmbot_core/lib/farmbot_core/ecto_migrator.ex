@@ -35,8 +35,22 @@ defmodule FarmbotCore.EctoMigrator do
     migrator = &Ecto.Migrator.run/4
     migrated = migrator.(repo, migrations_path, :up, opts)
     pid && repo.stop(pid)
-    Mix.Ecto.restart_apps_if_migrated(apps, migrated)
+    restart_apps_if_migrated(apps, migrated)
     Process.sleep(500)
+  end
+
+  # Pulled this out of Ecto because Ecto's version
+  # messes with Logger config
+  def restart_apps_if_migrated(_, []), do: :ok
+
+  def restart_apps_if_migrated(apps, [_|_]) do
+    for app <- Enum.reverse(apps) do
+      Application.stop(app)
+    end
+    for app <- apps do
+      Application.ensure_all_started(app)
+    end
+    :ok
   end
 
   @doc "Replacement for Mix.Tasks.Ecto.Drop"
