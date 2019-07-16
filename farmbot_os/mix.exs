@@ -100,7 +100,7 @@ defmodule FarmbotOS.MixProject do
       {:vintage_net,
        github: "nerves-networking/vintage_net", tag: "dhcp-properties", targets: @all_targets},
       {:busybox, "~> 0.1.2", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.8.0-farmbot.1", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi3, "1.8.0-farmbot.2", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi0, "1.8.0-farmbot.0", runtime: false, targets: :rpi0},
       {:farmbot_system_rpi, "1.8.0-farmbot.0", runtime: false, targets: :rpi}
     ]
