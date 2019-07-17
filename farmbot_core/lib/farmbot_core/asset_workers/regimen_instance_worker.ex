@@ -88,6 +88,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
             celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params}
         }
     }
-    FarmbotCeleryScript.schedule(celery_ast, at, regimen_instance)
+    FarmbotCeleryScript.schedule(celery_ast, at, sequence)
   end
 end

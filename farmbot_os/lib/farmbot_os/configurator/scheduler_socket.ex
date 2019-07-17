@@ -38,6 +38,17 @@ defmodule FarmbotOS.Configurator.SchedulerSocket do
             })
 
           {:text, json}
+
+        %Scheduler.Dispatch{data: %Sequence{} = sequence, scheduled_at: datetime} ->
+          json =
+            Jason.encode!(%{
+              id: sequence.local_id,
+              type: "Sequence",
+              data: Sequence.render(sequence),
+              at: datetime
+            })
+
+          {:text, json}
       end)
 
     {:reply, data, state}
