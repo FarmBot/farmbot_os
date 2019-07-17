@@ -45,12 +45,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
     no-hosts
     no-poll
     interface=#{ifname}
-    address=/setup.farm.bot/#{config[:address]}
-    address=/my.farm.bot/#{config[:address]}
-    address=/staging.farm.bot/#{config[:address]}
-    address=/farm.bot/#{config[:address]}
     address=/#/#{config[:address]}
     server=/#{config[:domain]}/#{config[:server]}
+    local=/#{config[:domain]}/
+    domain=#{config[:domain]}
     dhcp-option=3,#{config[:address]}
     dhcp-option=6,#{config[:address]}
     dhcp-range=#{config[:start]},#{config[:end]},12h
