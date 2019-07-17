@@ -112,7 +112,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       )
 
     # Start the plugin.
-    {cmd, _} = spawn_monitor(MuonTrap, :cmd, [exec, [manifest.args], opts])
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
       cmd: cmd,
