@@ -30,8 +30,18 @@ defmodule FarmbotCore.Asset.CommandTest do
 
   test "update farm_event" do
     id = id()
+    regimen_id = id()
     :ok = Command.update("FarmEvent", id, %{id: id, executable_type: "Sequence", monitor: false})
-    :ok = Command.update("FarmEvent", id, %{id: id, executable_type: "Regimen", monitor: false})
+    :ok = Command.update("Regimen", regimen_id, %{id: regimen_id, monitor: false})
+
+    :ok =
+      Command.update("FarmEvent", id, %{
+        id: id,
+        executable_type: "Regimen",
+        executable_id: regimen_id,
+        monitor: false
+      })
+
     assert Asset.get_farm_event(id).executable_type == "Regimen"
   end
 
