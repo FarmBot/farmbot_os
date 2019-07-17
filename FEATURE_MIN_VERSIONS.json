@@ -16,5 +16,6 @@
   "api_farmware_installations": "8.0.0",
   "api_farmware_env": "8.0.0",
   "flash_firmware": "8.0.0",
-  "express_k10": "8.0.0"
+  "express_k10": "8.0.0",
+  "none_firmware": "8.0.0"
 }
