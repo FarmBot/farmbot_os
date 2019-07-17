@@ -26,7 +26,8 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "ipv4"], %{ip: ip}, %{ip: ip}, _},
+        {VintageNet, ["interface", ifname, "addresses"], [%{address: ip} | _],
+         [%{address: ip} | _], _},
         %{opts: %{ifname: ifname}} = state
       ) do
     Logger.info("Distribution: no change in ip")
@@ -34,7 +35,7 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "ipv4"], _old, %{ip: nil}, _},
+        {VintageNet, ["interface", ifname, "addresses"], _old, [], _},
         %{opts: %{ifname: ifname}} = state
       ) do
     new_state = %{state | ip: nil, is_up: false}
@@ -43,7 +44,7 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "ipv4"], _old, %{ip: ip}, _},
+        {VintageNet, ["interface", ifname, "addresses"], _old, [%{address: ip} | _], _},
         %{opts: %{ifname: ifname}} = state
       ) do
     new_state = %{state | ip: ip, is_up: true}
@@ -56,7 +57,7 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   end
 
   defp handle_if_up(state) do
-    Logger.debug("#{state.opts.ifname} is up. IP is now #{state.ip}")
+    Logger.debug("#{state.opts.ifname} is up. IP is now #{inspect(state.ip)}")
 
     update_mdns(state.ip, state.opts.mdns_domain)
     update_net_kernel(state.ip, state.opts)
@@ -99,7 +100,6 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
   defp update_mdns(_ip, nil), do: :ok
 
   defp update_mdns(ip, _mdns_domain) do
-    ip_tuple = string_to_ip(ip)
     Mdns.Server.stop()
 
     # Give the interface time to settle to fix an issue where mDNS's multicast
@@ -107,8 +107,8 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
     # needs to be revisited.
     :timer.sleep(100)
 
-    Mdns.Server.start(interface: ip_tuple)
-    Mdns.Server.set_ip(ip_tuple)
+    Mdns.Server.start(interface: ip)
+    Mdns.Server.set_ip(ip)
   end
 
   defp init_net_kernel(state, opts) do
@@ -134,11 +134,6 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
           Logger.error("Erlang distribution failed to start: #{inspect(reason)}")
       end
     end
-  end
-
-  defp string_to_ip(s) do
-    {:ok, ip} = :inet.parse_address(to_charlist(s))
-    ip
   end
 
   defp erlang_distribution_enabled?(opts) do
