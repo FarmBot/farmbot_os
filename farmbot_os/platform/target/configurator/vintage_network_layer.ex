@@ -6,7 +6,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
     VintageNet.all_interfaces()
     |> Kernel.--(["usb0", "lo"])
     |> Enum.map(fn ifname ->
-      {ifname, %{mac_address: "fixme"}}
+      [{["interface", ^ifname, "mac_address"], mac_address}] =
+        VintageNet.get_by_prefix(["interface", ifname, "mac_address"])
+
+      {ifname, %{mac_address: mac_address}}
     end)
   end
 
