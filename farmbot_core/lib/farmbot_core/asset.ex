@@ -66,8 +66,22 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_farm_event!(farm_event, params) do
-    FarmEvent.changeset(farm_event, params)
-    |> Repo.update!()
+    farm_event = 
+      farm_event |> 
+      FarmEvent.changeset(params) 
+      |> Repo.update!()
+
+    if farm_event.executable_type == "Regimen" do
+      regimen_instance = get_regimen_instance(farm_event)
+      if regimen_instance do
+        regimen_instance
+        |> Repo.preload([:farm_event, :regimen])
+        |> RegimenInstance.changeset(%{updated_at: DateTime.utc_now()})
+        |> Repo.update!()
+      end
+    end
+
+    farm_event
   end
 
   def delete_farm_event!(farm_event) do
