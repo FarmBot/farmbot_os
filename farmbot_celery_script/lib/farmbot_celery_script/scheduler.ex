@@ -204,13 +204,13 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   defp schedule_next_checkup(%{checkup_timer: timer} = state, offset_ms)
        when is_reference(timer) do
-    Logger.debug("canceling checkup timer")
+    # Logger.debug("canceling checkup timer")
     Process.cancel_timer(timer)
     schedule_next_checkup(%{state | checkup_timer: nil}, offset_ms)
   end
 
   defp schedule_next_checkup(state, :default) do
-    Logger.debug("Scheduling next checkup in 15 seconds")
+    # Logger.debug("Scheduling next checkup in 15 seconds")
     checkup_timer = Process.send_after(self(), :checkup, 15_000)
     %{state | checkup_timer: checkup_timer}
   end
@@ -219,13 +219,15 @@ defmodule FarmbotCeleryScript.Scheduler do
   # it won't be noticed. This speeds up execution and gets it to pretty
   # close to millisecond accuracy
   defp schedule_next_checkup(state, offset_ms) when offset_ms <= 60000 do
-    Logger.debug("Scheduling next checkup in #{offset_ms} seconds")
+    _ = inspect(offset_ms)
+    # Logger.debug("Scheduling next checkup in #{offset_ms} seconds")
     checkup_timer = Process.send_after(self(), :checkup, offset_ms)
     %{state | checkup_timer: checkup_timer}
   end
 
   defp schedule_next_checkup(state, offset_ms) do
-    Logger.debug("Scheduling next checkup in 15 seconds (#{offset_ms})")
+    _ = inspect(offset_ms)
+    # Logger.debug("Scheduling next checkup in 15 seconds (#{offset_ms})")
     checkup_timer = Process.send_after(self(), :checkup, 15_000)
     %{state | checkup_timer: checkup_timer}
   end
