@@ -23,6 +23,9 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
         security: flags_to_security(flags)
       }
     end)
+    |> Enum.sort(fn
+      %{level: level1}, %{level: level2} -> level1 >= level2
+    end)
   end
 
   defp flags_to_security([:wpa2_psk_ccmp | _]), do: "WPA-PSK"
