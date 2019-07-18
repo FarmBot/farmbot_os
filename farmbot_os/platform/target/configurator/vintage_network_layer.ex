@@ -15,9 +15,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
 
   @impl FarmbotOS.Configurator.NetworkLayer
   def scan(ifname) do
-    VintageNet.get_by_prefix(["interface", ifname, "wifi", "access_points"])
-    |> Enum.at(0)
-    |> elem(1)
+    Iw.ap_scan(ifname)
     |> Enum.map(fn {_bssid, %{bssid: bssid, ssid: ssid, signal_percent: signal, flags: flags}} ->
       %{
         ssid: ssid,
@@ -26,6 +24,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
         security: flags_to_security(flags)
       }
     end)
+    |> Enum.uniq_by(fn %{ssid: ssid} -> ssid end)
     |> Enum.sort(fn
       %{level: level1}, %{level: level2} -> level1 >= level2
     end)
