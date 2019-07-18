@@ -32,7 +32,6 @@ erl_crash.dump
 
 # From other branches
 /cache
-*.js
 /release-*
 /node_modules
 scratchpad.*

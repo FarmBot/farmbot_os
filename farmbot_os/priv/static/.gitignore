@@ -10,5 +10,6 @@
 !favicon.ico
 *.fw
 !signal_table.js
+!security_icon_lookup.js
 !*.svg
 !templates/*.html.eex
