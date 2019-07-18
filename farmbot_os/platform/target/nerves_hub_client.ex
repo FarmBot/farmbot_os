@@ -53,7 +53,17 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :jwt, :key, :cert, :is_applying_update, :firmware_url]
+  defstruct [
+    :conn,
+    :chan,
+    :jwt,
+    :key,
+    :cert,
+    :is_applying_update,
+    :firmware_url,
+    :probably_connected
+  ]
+
   alias __MODULE__, as: State
 
   @doc false
@@ -174,7 +184,16 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       send(self(), :connect_amqp)
     end
 
-    {:ok, %State{conn: nil, chan: nil, jwt: nil, cert: cert, key: key, is_applying_update: false}}
+    {:ok,
+     %State{
+       conn: nil,
+       chan: nil,
+       jwt: nil,
+       cert: cert,
+       key: key,
+       is_applying_update: false,
+       probably_connected: false
+     }}
   end
 
   @impl GenServer
@@ -264,10 +283,20 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     {:noreply, state}
   end
 
-  def handle_info(:connect_nerves_hub, %{key: _key, cert: _cert} = state) do
+  def handle_info(
+        :connect_nerves_hub,
+        %{key: _key, cert: _cert, probably_connected: false} = state
+      ) do
     FarmbotCore.Logger.debug(3, "Starting OTA Service")
     do_restart_nerves_hub()
     FarmbotCore.Logger.debug(3, "OTA Service started")
+    {:noreply, %{state | probably_connected: true}}
+  end
+
+  def handle_info(
+        :connect_nerves_hub,
+        %{key: _key, cert: _cert, probably_connected: true} = state
+      ) do
     {:noreply, state}
   end
 
