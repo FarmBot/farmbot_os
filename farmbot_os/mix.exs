@@ -97,6 +97,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
       {:circuits_gpio, "~> 0.4", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
+      {:iw, "~> 0.2", targets: @all_targets},
       # {:vintage_net, "~> 0.3.1", targets: @all_targets},
       {:vintage_net,
        github: "nerves-networking/vintage_net", tag: "master", targets: @all_targets},
