@@ -7,6 +7,12 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
     {:ok, %{restart_counts: 0}}
   end
 
+  def application_exited(:nerves_runtime, _, state) do
+    # https://github.com/nerves-project/nerves_runtime/issues/152
+    _ = System.cmd("killall", ["-9", "kmsg_tailer"], into: IO.stream(:stdio, :line))
+    {:continue, state}
+  end
+
   def application_exited(app, reason, %{restart_counts: count} = state)
       when count >= 5 and
              app in [
