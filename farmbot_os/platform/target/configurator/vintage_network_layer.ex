@@ -14,20 +14,34 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
   end
 
   @impl FarmbotOS.Configurator.NetworkLayer
-  def scan(ifname) do
-    Iw.ap_scan(ifname)
-    |> Enum.map(fn {_bssid, %{bssid: bssid, ssid: ssid, signal_percent: signal, flags: flags}} ->
-      %{
-        ssid: ssid,
-        bssid: bssid,
-        level: signal,
-        security: flags_to_security(flags)
-      }
-    end)
-    |> Enum.uniq_by(fn %{ssid: ssid} -> ssid end)
-    |> Enum.sort(fn
-      %{level: level1}, %{level: level2} -> level1 >= level2
-    end)
+  def scan(ifname, attempts \\ 0)
+
+  def scan(ifname, 3 = attempts) do
+    raise """
+    Failed to scan for Wireless access points on #{ifname} #{attempts} times
+    """
+  end
+
+  def scan(ifname, attempts) do
+    case Iw.ap_scan(ifname) do
+      aps when map_size(aps) == 0 ->
+        scan(ifname, attempts + 1)
+
+      aps ->
+        aps
+        |> Enum.map(fn {_bssid, %{bssid: bssid, ssid: ssid, signal_percent: signal, flags: flags}} ->
+          %{
+            ssid: ssid,
+            bssid: bssid,
+            level: signal,
+            security: flags_to_security(flags)
+          }
+        end)
+        |> Enum.uniq_by(fn %{ssid: ssid} -> ssid end)
+        |> Enum.sort(fn
+          %{level: level1}, %{level: level2} -> level1 >= level2
+        end)
+    end
   end
 
   defp flags_to_security([:wpa2_psk_ccmp | _]), do: "WPA-PSK"
