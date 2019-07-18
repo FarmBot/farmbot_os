@@ -30,7 +30,7 @@
           <%= for {ifname, settings} <- interfaces do %>
 
             <label class="connection-type no-pad" for='<%= ifname %>'>
-              <input type="radio" id='<%= ifname %>' name="interfaceRadio" checked="false" onclick="select_interface()"/>
+              <input type="radio" id='<%= ifname %>' name="interfaceRadio" onclick="select_interface()"/>
               
               <div class="connection-type-box">
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
