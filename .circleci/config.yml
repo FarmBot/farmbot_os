@@ -49,6 +49,13 @@ install_jq: &install_jq
       chmod +x ./jq-linux64
       mv ./jq-linux64 /usr/bin/jq
 
+install_libnl: &install_libnl
+  run:
+    name: Install libnl
+    command: |
+      apt-get update
+      apt-get install pkg-config libnl-genl-3-dev -y
+
 build_firmware_steps: &build_firmware_steps
   steps:
     - checkout
@@ -64,6 +71,7 @@ build_firmware_steps: &build_firmware_steps
         key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
+    - <<: *install_libnl
     - run:
         name: Build Farmbot OS Firmware
         working_directory: /nerves/build/farmbot_os
