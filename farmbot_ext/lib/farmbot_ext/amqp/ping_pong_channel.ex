@@ -8,14 +8,17 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   use GenServer
   use AMQP
 
-  alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotExt.{API, AMQP.ConnectionWorker}
 
   require Logger
   require FarmbotCore.Logger
 
   @exchange "amq.topic"
 
-  defstruct [:conn, :chan, :jwt]
+  @lower_bound_ms 900_000
+  @upper_bound_ms 1_200_000
+
+  defstruct [:conn, :chan, :jwt, :http_ping_timer, :ping_fails]
   alias __MODULE__, as: State
 
   @doc false
@@ -26,7 +29,17 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   def init(args) do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt}, 1000}
+    http_ping_timer = Process.send_after(self(), :http_ping, 5000)
+
+    state = %State{
+      conn: nil,
+      chan: nil,
+      jwt: jwt,
+      http_ping_timer: http_ping_timer,
+      ping_fails: 0
+    }
+
+    {:ok, state, 1000}
   end
 
   def terminate(reason, state) do
@@ -57,6 +70,22 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to PingPong channel: #{inspect(err)}")
         {:noreply, %{state | conn: nil, chan: nil}, 1000}
+    end
+  end
+
+  def handle_info(:http_ping, state) do
+    ms = Enum.random(@lower_bound_ms..@upper_bound_ms)
+
+    case API.get(API.client(), "/api/device") do
+      {:ok, _} ->
+        http_ping_timer = Process.send_after(self(), :http_ping, ms)
+        {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: 0}}
+
+      _ ->
+        ping_fails = state.ping_fails + 1
+        FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails})")
+        http_ping_timer = Process.send_after(self(), :http_ping, ms)
+        {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: ping_fails}}
     end
   end
 
