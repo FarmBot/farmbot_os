@@ -23,9 +23,10 @@ defmodule FarmbotExt.API do
   # adapter(Tesla.Adapter.Hackney)
   plug(Tesla.Middleware.JSON, decode: &JSON.decode/1, encode: &JSON.encode/1)
   plug(Tesla.Middleware.FollowRedirects)
-  # plug(Tesla.Middleware.Logger)
+  plug(Tesla.Middleware.Logger)
 
   def client do
+    adapter = {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
     binary_token = get_config_value(:string, "authorization", "token")
     server = get_config_value(:string, "authorization", "server")
     {:ok, _tkn} = JWT.decode(binary_token)
@@ -34,28 +35,37 @@ defmodule FarmbotExt.API do
     url = (uri.scheme || "https") <> "://" <> uri.host <> ":" <> to_string(uri.port)
     user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
-    Tesla.client([
-      {Tesla.Middleware.BaseUrl, url},
-      {Tesla.Middleware.Headers,
-       [
-         {"content-type", "application/json"},
-         {"authorization", "Bearer: " <> binary_token},
-         {"user-agent", user_agent}
-       ]}
-    ])
+    Tesla.client(
+      [
+        {Tesla.Middleware.BaseUrl, url},
+        {Tesla.Middleware.Headers,
+         [
+           {"content-type", "application/json"},
+           {"authorization", "Bearer: " <> binary_token},
+           {"user-agent", user_agent}
+         ]}
+      ],
+      adapter
+    )
   end
 
   def storage_client(%StorageAuth{url: url}) do
+    adapter = {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
+    server = get_config_value(:string, "authorization", "server")
+    uri = URI.parse(server)
     user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
-    Tesla.client([
-      {Tesla.Middleware.BaseUrl, "https:" <> url},
-      {Tesla.Middleware.Headers,
-       [
-         {"user-agent", user_agent}
-       ]},
-      {Tesla.Middleware.FormUrlencoded, []}
-    ])
+    Tesla.client(
+      [
+        {Tesla.Middleware.FormUrlencoded, []},
+        {Tesla.Middleware.BaseUrl, "#{uri.scheme}:#{url}"},
+        {Tesla.Middleware.Headers,
+         [
+           {"user-agent", user_agent}
+         ]}
+      ],
+      adapter
+    )
   end
 
   @file_chunk 4096
@@ -63,8 +73,38 @@ defmodule FarmbotExt.API do
 
   def upload_image(image_filename, meta \\ %{}) do
     {:ok, changeset} = API.get_changeset(StorageAuth)
-    storage_auth = %StorageAuth{form_data: form_data} = Ecto.Changeset.apply_changes(changeset)
+    storage_auth = Ecto.Changeset.apply_changes(changeset)
 
+    if String.contains?(storage_auth.url, "direct_upload") do
+      direct_upload(storage_auth, image_filename, meta)
+    else
+      gcs_upload(storage_auth, image_filename, meta)
+    end
+  end
+
+  def direct_upload(%StorageAuth{form_data: form_data} = storage_auth, image_filename, meta) do
+    mp =
+      Map.from_struct(form_data)
+      |> Enum.map(fn
+        {:file, _} -> {"file", File.read!(image_filename)}
+        {key, value} -> {to_string(key), value}
+      end)
+
+    headers = []
+    server = get_config_value(:string, "authorization", "server")
+    uri = URI.parse(server)
+
+    case :hackney.request(:post, "#{uri.scheme}:#{storage_auth.url}", headers, {:multipart, mp}) do
+      {:ok, 200, _headers, _ref} ->
+        body = %{attachment_url: Path.join(server, form_data.key), meta: meta}
+        API.post(client(), "/api/images", body)
+
+      error ->
+        error
+    end
+  end
+
+  def gcs_upload(%StorageAuth{form_data: form_data} = storage_auth, image_filename, meta) do
     content_length = :filelib.file_size(image_filename)
     {:ok, pid} = Agent.start_link(fn -> 0 end)
 
