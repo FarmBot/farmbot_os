@@ -113,6 +113,16 @@ defmodule FarmbotOS.Platform.Target.Network do
 
         {:ok, distribution_pid} = Distribution.start_link(distribution_opts)
 
+        case reset_ntp() do
+          :ok ->
+            :ok
+
+          error ->
+            FarmbotCore.Logger.error(1, """
+            Failed to configure NTP: #{inspect(error)}
+            """)
+        end
+
         vintage_net_config = to_vintage_net(config)
         configure_result = VintageNet.configure(config.name, vintage_net_config)
 
@@ -152,17 +162,6 @@ defmodule FarmbotOS.Platform.Target.Network do
       ) do
     FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
-
-    case reset_ntp() do
-      :ok ->
-        :ok
-
-      error ->
-        FarmbotCore.Logger.error(1, """
-        Failed to configure NTP: #{inspect(error)}
-        """)
-    end
-
     {:noreply, %{state | first_connect?: false}}
   end
 
@@ -272,7 +271,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     Asset.fbos_config(:network_not_found_timer) || @default_network_not_found_timer_minutes
   end
 
-  defp reset_ntp do
+  def reset_ntp do
     ntp_server_1 = Config.get_config_value(:string, "settings", "default_ntp_server_1")
     ntp_server_2 = Config.get_config_value(:string, "settings", "default_ntp_server_2")
 
