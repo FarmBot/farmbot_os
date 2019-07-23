@@ -23,7 +23,7 @@ defmodule FarmbotExt.API do
   # adapter(Tesla.Adapter.Hackney)
   plug(Tesla.Middleware.JSON, decode: &JSON.decode/1, encode: &JSON.encode/1)
   plug(Tesla.Middleware.FollowRedirects)
-  # plug(Tesla.Middleware.Logger)
+  plug(Tesla.Middleware.Logger)
 
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
@@ -46,10 +46,12 @@ defmodule FarmbotExt.API do
   end
 
   def storage_client(%StorageAuth{url: url}) do
+    server = get_config_value(:string, "authorization", "server")
+    uri = URI.parse(server)
     user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
     Tesla.client([
-      {Tesla.Middleware.BaseUrl, "https:" <> url},
+      {Tesla.Middleware.BaseUrl, "#{uri.scheme}:#{url}"},
       {Tesla.Middleware.Headers,
        [
          {"user-agent", user_agent}
@@ -96,7 +98,7 @@ defmodule FarmbotExt.API do
       |> Multipart.add_field("signature", form_data.signature)
       |> Multipart.add_field("Content-Type", form_data."Content-Type")
       |> Multipart.add_field("GoogleAccessId", form_data."GoogleAccessId")
-      |> Multipart.add_file_content(stream, Path.basename(image_filename), name: "file")
+      |> Multipart.add_field("file", stream)
 
     storage_resp =
       storage_auth
