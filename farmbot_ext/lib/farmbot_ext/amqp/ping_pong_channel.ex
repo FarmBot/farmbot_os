@@ -12,6 +12,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
   require Logger
   require FarmbotCore.Logger
+  alias FarmbotCore.Leds
 
   @exchange "amq.topic"
 
@@ -31,6 +32,8 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     jwt = Keyword.fetch!(args, :jwt)
     http_ping_timer = Process.send_after(self(), :http_ping, 5000)
 
+    _ = Leds.blue(:off)
+
     state = %State{
       conn: nil,
       chan: nil,
@@ -45,6 +48,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   def terminate(reason, state) do
     FarmbotCore.Logger.error(1, "Disconnected from PingPong channel: #{inspect(reason)}")
     # If a channel was still open, close it.
+    _ = Leds.blue(:off)
     if state.chan, do: ConnectionWorker.close_channel(state.chan)
   end
 
@@ -62,6 +66,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
          {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to PingPong channel")
+      _ = Leds.blue(:solid)
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
@@ -78,12 +83,14 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
     case API.get(API.client(), "/api/device") do
       {:ok, _} ->
+        _ = Leds.blue(:solid)
         http_ping_timer = Process.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: 0}}
 
       _ ->
         ping_fails = state.ping_fails + 1
         FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails})")
+        _ = Leds.blue(:off)
         http_ping_timer = Process.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: ping_fails}}
     end
