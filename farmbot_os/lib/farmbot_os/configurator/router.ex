@@ -55,13 +55,13 @@ defmodule FarmbotOS.Configurator.Router do
     interfaces = list_interfaces()
 
     case interfaces do
-      [<<"w", _::binary>> = ifname] ->
+      [{<<"w", _::binary>> = ifname, _}] ->
         conn
         |> put_session("iftype", "wireless")
         |> put_session("ifname", ifname)
         |> redir("/config_wireless")
 
-      [ifname] ->
+      [{ifname, _}] ->
         conn
         |> put_session("iftype", "wired")
         |> put_session("ifname", ifname)
