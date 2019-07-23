@@ -89,43 +89,53 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     %{method: :dhcp}
   end
 
-  defp to_wifi(%{security: "NONE", ssid: ssid}) do
+  defp to_wifi(%{security: "NONE", ssid: ssid, regulatory_domain: reg_domain}) do
     %{
       key_mgmt: :none,
       ssid: ssid,
       scan_ssid: 1,
-      bgscan: :simple
+      bgscan: :simple,
+      regulatory_domain: reg_domain
     }
   end
 
-  defp to_wifi(%{security: "WPA-PSK", ssid: ssid, psk: psk}) do
+  defp to_wifi(%{security: "WPA-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
     %{
       ssid: ssid,
       key_mgmt: :wpa_psk,
       psk: psk,
       scan_ssid: 1,
-      bgscan: :simple
+      bgscan: :simple,
+      regulatory_domain: reg_domain
     }
   end
 
-  defp to_wifi(%{security: "WPA2-PSK", ssid: ssid, psk: psk}) do
+  defp to_wifi(%{security: "WPA2-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
     %{
       ssid: ssid,
       key_mgmt: :wpa_psk,
       psk: psk,
       scan_ssid: 1,
-      bgscan: :simple
+      bgscan: :simple,
+      regulatory_domain: reg_domain
     }
   end
 
-  defp to_wifi(%{security: "WPA-EAP", ssid: ssid, identity: id, password: pw}) do
+  defp to_wifi(%{
+         security: "WPA-EAP",
+         ssid: ssid,
+         identity: id,
+         password: pw,
+         regulatory_domain: reg_domain
+       }) do
     %{
       ssid: ssid,
       key_mgmt: :wpa_eap,
       identity: id,
       password: pw,
       scan_ssid: 1,
-      bgscan: :simple
+      bgscan: :simple,
+      regulatory_domain: reg_domain
     }
   end
 
