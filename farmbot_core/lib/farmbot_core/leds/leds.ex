@@ -17,4 +17,14 @@ defmodule FarmbotCore.Leds do
 
   defp led_handler,
     do: Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
+
+  def child_spec(opts) do
+    %{
+      id: __MODULE__,
+      start: {led_handler(), :start_link, [opts]},
+      type: :worker,
+      restart: :permanent,
+      shutdown: 500
+    }
+  end
 end
