@@ -8,7 +8,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
-  alias FarmbotCore.{Asset, BotState, JSON}
+  alias FarmbotCore.{Asset, BotState, JSON, Leds}
   alias FarmbotExt.AMQP.ConnectionWorker
   alias FarmbotExt.API.{EagerLoader, Preloader}
 
@@ -78,10 +78,14 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:preload, state) do
+    _ = Leds.green(:fast_blink)
+
     with :ok <- Preloader.preload_all() do
       if Asset.Query.auto_sync?() do
+        _ = Leds.green(:solid)
         BotState.set_sync_status("synced")
       else
+        _ = Leds.green(:slow_blink)
         BotState.set_sync_status("sync_now")
       end
 
@@ -90,6 +94,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     else
       {:error, reason} ->
         BotState.set_sync_status("sync_error")
+        _ = Leds.green(:slow_blink)
         FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
         Process.send_after(self(), :preload, 5000)
         {:noreply, state}
@@ -128,7 +133,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         id = data["id"] || String.to_integer(id_str)
-        handle_asset(asset_kind, id, body)
+        _ = handle_asset(asset_kind, id, body)
 
       ["bot", ^device, "sync", asset_kind, _id_str] ->
         Logger.warn("Unknown syncable asset: #{asset_kind}")
@@ -155,9 +160,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def handle_asset(asset_kind, id, params) do
     if Asset.Query.auto_sync?() do
       :ok = BotState.set_sync_status("syncing")
+      _ = Leds.green(:fast_blink)
       # Logger.info "Syncing #{asset_kind} #{id} #{inspect(params)}"
       Asset.Command.update(asset_kind, id, params)
       :ok = BotState.set_sync_status("synced")
+      _ = Leds.green(:solid)
     else
       cache_sync(asset_kind, id, params)
     end
@@ -165,12 +172,15 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def cache_sync(kind, id, params) when kind in @no_cache_kinds do
     :ok = BotState.set_sync_status("syncing")
+    _ = Leds.green(:fast_blink)
     :ok = Asset.Command.update(kind, id, params)
     :ok = BotState.set_sync_status("synced")
+    _ = Leds.green(:solid)
   end
 
   def cache_sync(_, _, nil) do
     :ok = BotState.set_sync_status("sync_now")
+    _ = Leds.green(:slow_blink)
   end
 
   def cache_sync(asset_kind, id, params) do
@@ -178,6 +188,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     changeset = Asset.Command.new_changeset(asset_kind, id, params)
     :ok = EagerLoader.cache(changeset)
     :ok = BotState.set_sync_status("sync_now")
+    _ = Leds.green(:slow_blink)
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do

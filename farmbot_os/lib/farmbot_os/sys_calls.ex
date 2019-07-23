@@ -526,6 +526,7 @@ defmodule FarmbotOS.SysCalls do
 
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
          :ok <- BotState.set_sync_status("syncing"),
+         _ <- Leds.green(:fast_blink),
          sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_0()),
          sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
          sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_2()),
@@ -533,10 +534,12 @@ defmodule FarmbotOS.SysCalls do
          _sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
       FarmbotCore.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
+      _ = Leds.green(:solid)
       :ok
     else
       error ->
         :ok = BotState.set_sync_status("sync_error")
+        _ = Leds.green(:slow_blink)
         {:error, inspect(error)}
     end
   end
