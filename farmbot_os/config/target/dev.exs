@@ -6,7 +6,7 @@ config :nerves_firmware_ssh,
   authorized_keys: local_key
 
 config :vintage_net,
-  regulatory_domain: "US",
+  regulatory_domain: "00",
   persistence: VintageNet.Persistence.Null,
   config: [
     {"wlan0", %{type: VintageNet.Technology.Null}}
