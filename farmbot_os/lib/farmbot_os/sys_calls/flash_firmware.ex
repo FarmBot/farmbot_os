@@ -25,12 +25,10 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       :ok
     else
       {:error, reason} when is_binary(reason) ->
-        FarmbotCore.Logger.error(2, "Error flashing firmware")
         {:error, reason}
 
       {_, exit_code} when is_number(exit_code) ->
-        FarmbotCore.Logger.error(2, "AVRDUDE ERROR: #{exit_code}")
-        {:error, "avrdude error: #{exit_code} see logs."}
+        {:error, "avrdude error: #{exit_code}"}
     end
   end
 
