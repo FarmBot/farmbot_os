@@ -6,7 +6,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   import FarmbotOS.Platform.Target.Network.Utils
   alias FarmbotOS.Platform.Target.Network.{Distribution, PreSetup}
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
-  alias FarmbotCore.{Asset, Config}
+  alias FarmbotCore.{Asset, Config, Leds}
 
   @default_network_not_found_timer_minutes 20
 
@@ -62,6 +62,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     first_connect? = is_first_connect?()
 
     if first_connect? do
+      _ = Leds.blue(:slow_blink)
       :ok = VintageNet.configure("wlan0", null())
       Process.sleep(1500)
       :ok = VintageNet.configure("wlan0", host())
