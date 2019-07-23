@@ -32,4 +32,8 @@ defmodule FarmbotCore.Leds.StubHandler do
   defp status_out(:slow_blink), do: IO.ANSI.blink_off()
   defp status_out(:fast_blink), do: IO.ANSI.blink_off()
   defp status_out(_), do: ""
+
+  def start_link(_args) do
+    :ignore
+  end
 end
