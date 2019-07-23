@@ -3,8 +3,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @behaviour FarmbotFirmware.SideEffects
   require Logger
   require FarmbotCore.Logger
-  alias FarmbotCore.{Asset, BotState}
-  alias FarmbotCore.FirmwareEstopTimer
+  alias FarmbotCore.{Asset, BotState, FirmwareEstopTimer, Leds}
 
   @impl FarmbotFirmware.SideEffects
   def handle_position(x: x, y: y, z: z) do
@@ -60,17 +59,22 @@ defmodule FarmbotCore.FirmwareSideEffects do
     case String.split(version, ".") do
       # Ramps
       [_, _, _, "R"] ->
+        _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("arduino")
       # Farmduino
       [_, _, _, "F"] ->
+        _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino")
       # Farmduino V14
       [_, _, _, "G"] ->
+        _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k14")
       # Express V10
       [_, _, _, "E"] ->
+        _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("express_k10")
       [_, _, _, "S"] ->
+        _ = Leds.red(:slow_blink)
         :ok = BotState.set_firmware_version("none")
         :ok = BotState.set_firmware_hardware("none")
     end
@@ -96,12 +100,14 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_emergency_lock() do
     _ = FirmwareEstopTimer.start_timer()
+    _ = Leds.yellow(:slow_blink)
     :ok = BotState.set_firmware_locked()
   end
 
   @impl FarmbotFirmware.SideEffects
   def handle_emergency_unlock() do
     _ = FirmwareEstopTimer.cancel_timer()
+    _ = Leds.yellow(:off)
     :ok = BotState.set_firmware_unlocked()
   end
 
