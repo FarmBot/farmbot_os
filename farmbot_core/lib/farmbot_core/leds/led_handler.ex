@@ -13,4 +13,6 @@ defmodule FarmbotCore.Leds.Handler do
   @callback white3(status) :: any
   @callback white4(status) :: any
   @callback white5(status) :: any
+
+  @callback start_link(any) :: GenServer.on_start()
 end
