@@ -28,6 +28,7 @@ defmodule FarmbotCore.AssetHelpers do
         Peripheral,
         PinBinding,
         Point,
+        PublicKey,
         Regimen,
         RegimenInstance,
         Sequence,

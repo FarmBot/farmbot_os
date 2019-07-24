@@ -8,6 +8,9 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
+config :farmbot_core, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
+  ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation,
   error_retry_time_ms: 30_000,
   install_dir: "/tmp/farmware"
