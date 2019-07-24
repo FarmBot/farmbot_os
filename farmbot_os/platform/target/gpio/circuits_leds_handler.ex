@@ -1,24 +1,59 @@
 defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   alias Circuits.GPIO
+  use GenServer
   @behaviour FarmbotCore.Leds.Handler
+  alias FarmbotCore.Leds.StubHandler
 
-  @slow_blink_speed 200
-  @fast_blink_speed 50
+  @slow_blink_speed 1000
+  @fast_blink_speed 250
 
   # @valid_status [:off, :solid, :slow_blink, :fast_blink]
 
   @moduledoc false
-  def red(status), do: GenServer.call(__MODULE__, {:red, status})
-  def blue(status), do: GenServer.call(__MODULE__, {:blue, status})
-  def green(status), do: GenServer.call(__MODULE__, {:green, status})
-  def yellow(status), do: GenServer.call(__MODULE__, {:yellow, status})
-  def white1(status), do: GenServer.call(__MODULE__, {:white1, status})
-  def white2(status), do: GenServer.call(__MODULE__, {:white2, status})
-  def white3(status), do: GenServer.call(__MODULE__, {:white3, status})
-  def white4(status), do: GenServer.call(__MODULE__, {:white4, status})
-  def white5(status), do: GenServer.call(__MODULE__, {:white5, status})
+  def red(status) do
+    _ = StubHandler.red(status)
+    GenServer.call(__MODULE__, {:red, status})
+  end
 
-  use GenServer
+  def blue(status) do
+    _ = StubHandler.blue(status)
+    GenServer.call(__MODULE__, {:blue, status})
+  end
+
+  def green(status) do
+    _ = StubHandler.green(status)
+    GenServer.call(__MODULE__, {:green, status})
+  end
+
+  def yellow(status) do
+    _ = StubHandler.yellow(status)
+    GenServer.call(__MODULE__, {:yellow, status})
+  end
+
+  def white1(status) do
+    _ = StubHandler.white1(status)
+    GenServer.call(__MODULE__, {:white1, status})
+  end
+
+  def white2(status) do
+    _ = StubHandler.white2(status)
+    GenServer.call(__MODULE__, {:white2, status})
+  end
+
+  def white3(status) do
+    _ = StubHandler.white3(status)
+    GenServer.call(__MODULE__, {:white3, status})
+  end
+
+  def white4(status) do
+    _ = StubHandler.white4(status)
+    GenServer.call(__MODULE__, {:white4, status})
+  end
+
+  def white5(status) do
+    _ = StubHandler.white5(status)
+    GenServer.call(__MODULE__, {:white5, status})
+  end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -30,7 +65,7 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     state =
       Map.new(leds, fn color ->
         {:ok, ref} = GPIO.open(color_to_pin(color), :output)
-        :ok = GPIO.set_pull_mode(ref, :pulldown)
+        :ok = GPIO.set_pull_mode(ref, :none)
         :ok = GPIO.write(ref, 0)
         {color, %{ref: ref, status: :off, blink_timer: nil, state: 0}}
       end)
@@ -65,7 +100,7 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     timer = restart_timer(state[color].blink_timer, color, @fast_blink_speed)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | blink_timer: timer, status: :slow_blink})}
+     update_color(state, color, %{state[color] | blink_timer: timer, status: :fast_blink})}
   end
 
   def handle_info({:blink_timer, color}, state) do
@@ -92,20 +127,18 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     {:noreply, new_state}
   end
 
-  defp color_to_pin(:red), do: 16
-  defp color_to_pin(:yellow), do: 22
-  defp color_to_pin(:white1), do: 26
-  defp color_to_pin(:white2), do: 05
-  defp color_to_pin(:white3), do: 20
+  defp color_to_pin(:red), do: 17
+  defp color_to_pin(:yellow), do: 23
+  defp color_to_pin(:white1), do: 27
+  defp color_to_pin(:white2), do: 06
+  defp color_to_pin(:white3), do: 21
   defp color_to_pin(:green), do: 24
   defp color_to_pin(:blue), do: 25
   defp color_to_pin(:white4), do: 12
   defp color_to_pin(:white5), do: 13
 
-  defp cancel_timer(nil), do: :ok
-
   defp cancel_timer(ref) do
-    Process.cancel_timer(ref)
+    ref && Process.cancel_timer(ref)
     :ok
   end
 

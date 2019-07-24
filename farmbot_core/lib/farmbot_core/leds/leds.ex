@@ -15,6 +15,28 @@ defmodule FarmbotCore.Leds do
   def white4(status) when status in @valid_status, do: led_handler().white4(status)
   def white5(status) when status in @valid_status, do: led_handler().white5(status)
 
+  def factory_test(status) do
+    red(:off)
+    blue(:off)
+    green(:off)
+    yellow(:off)
+    white1(:off)
+    white2(:off)
+    white3(:off)
+    white4(:off)
+    white5(:off)
+
+    red(status)
+    blue(status)
+    green(status)
+    yellow(status)
+    white1(status)
+    white2(status)
+    white3(status)
+    white4(status)
+    white5(status)
+  end
+
   defp led_handler,
     do: Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
 
