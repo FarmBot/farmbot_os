@@ -14,3 +14,13 @@ _This file is parsed by the FarmBot Web App._
 # v7
 
 * FarmBot OS now uses Python 3 rather than Python 2 when running Farmware. If you have added custom or 3rd-party Farmware, please check to make sure your FarmBot is still running as expected.
+
+# v8
+
+This release uses an improved Farmware API:
+<br>
+* If you have previously added custom or 3rd-party Farmware, you will need to reinstall the Farmware using the new manifest format.
+
+* If you are a Farmware developer using Farmware Tools (`import farmware_tools`), the reinstalled Farmware should continue working as before. If you have authored a Farmware that does not use the package, you will need to replace any FarmBot device communication in your Farmware to use the `farmware_tools` package.
+
+* See the [Farmware developer documentation](https://developer.farm.bot/docs/farmware) for more information.
