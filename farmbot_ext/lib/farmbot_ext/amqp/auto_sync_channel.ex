@@ -171,11 +171,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def cache_sync(kind, id, params) when kind in @no_cache_kinds do
-    :ok = BotState.set_sync_status("syncing")
-    _ = Leds.green(:fast_blink)
     :ok = Asset.Command.update(kind, id, params)
-    :ok = BotState.set_sync_status("synced")
-    _ = Leds.green(:solid)
   end
 
   def cache_sync(_, _, nil) do
