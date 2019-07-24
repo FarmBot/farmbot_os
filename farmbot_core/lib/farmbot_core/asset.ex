@@ -245,6 +245,14 @@ defmodule FarmbotCore.Asset do
   def delete_public_key!(public_key) do
     Repo.delete!(public_key)
   end
+
+  def new_public_key_from_home!() do
+    public_key_path = Path.join([System.get_env("HOME"), ".ssh", "id_rsa.pub"])
+    public_key = File.read!(public_key_path)
+    %PublicKey{}
+    |> PublicKey.changeset(%{public_key: public_key, name: "id_rsa.pub"})
+    |> Repo.insert()
+  end
   
   ## End PublicKey
 

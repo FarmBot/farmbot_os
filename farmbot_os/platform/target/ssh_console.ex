@@ -5,6 +5,17 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   use GenServer
   import FarmbotCore.Config, only: [get_config_value: 3]
   require FarmbotCore.Logger
+  alias FarmbotCore.Asset.PublicKey
+
+  @behaviour FarmbotCore.Asset.PublicKey
+
+  def ready? do
+    is_pid(GenServer.whereis(__MODULE__))
+  end
+
+  def add_key(%PublicKey{} = public_key) do
+    GenServer.call(__MODULE__, {:add_key, public_key})
+  end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -17,16 +28,35 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
 
     case start_ssh(port, decoded_authorized_key) do
       {:ok, ssh} ->
-        {:ok, %{ssh: ssh}}
+        send(self(), :checkup)
+        {:ok, %{ssh: ssh, port: port, decoded_authorized_key: decoded_authorized_key}}
 
-      _ ->
-        FarmbotCore.Logger.warn(1, "Could not start SSH.")
+      error ->
+        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
         :ignore
     end
   end
 
   def terminate(_, %{ssh: ssh}) do
-    :ssh.stop_daemon(ssh)
+    stop_ssh(ssh)
+  end
+
+  def handle_cast({:add_key, %PublicKey{public_key: authorized_key}}, %{ssh: ssh} = state) do
+    _ = stop_ssh(ssh)
+    decoded_authorized_key = do_decode(authorized_key)
+
+    case start_ssh(state.port, [decoded_authorized_key | state.decoded_authorized_key]) do
+      {:ok, ssh} ->
+        {:noreply, %{state | ssh: ssh}}
+
+      error ->
+        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
+        {:noreply, %{state | ssh: nil}}
+    end
+  end
+
+  defp stop_ssh(ssh) do
+    ssh && :ssh.stop_daemon(ssh)
   end
 
   defp start_ssh(port, decoded_authorized_keys) when is_list(decoded_authorized_keys) do

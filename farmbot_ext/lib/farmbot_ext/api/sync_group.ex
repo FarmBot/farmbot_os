@@ -11,7 +11,7 @@ defmodule FarmbotExt.API.SyncGroup do
     Peripheral,
     PinBinding,
     Point,
-    PublicKey,
+    # PublicKey,
     Regimen,
     SensorReading,
     Sensor,
@@ -28,8 +28,8 @@ defmodule FarmbotExt.API.SyncGroup do
       FbosConfig,
       FirmwareConfig,
       FarmwareEnv,
-      FarmwareInstallation,
-      PublicKey
+      FarmwareInstallation
+      # PublicKey
     ]
 
   @doc "Group 1 should have no external requirements"

@@ -2,6 +2,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PublicKey do
   alias FarmbotCore.Asset.PublicKey
   use GenServer
 
+  @ssh_handler Application.get_env(:farmbot_core, __MODULE__)[:ssh_handler]
+  @ssh_handler ||
+    Mix.raise("""
+      config :farmbot_core, #{__MODULE__}, 
+        ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+    """)
+
   def tracks_changes?(%PublicKey{}), do: false
 
   def preload(%PublicKey{}), do: []
@@ -11,10 +18,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PublicKey do
   end
 
   def init(%PublicKey{} = public_key) do
-    {:ok, %PublicKey{} = public_key, 0}
+    {:ok, %{public_key: public_key}, 0}
   end
 
-  def handle_info(:timeout, %PublicKey{} = public_key) do
-    {:noreply, public_key}
+  def handle_info(:timeout, state) do
+    if @ssh_handler.ready?() do
+      @ssh_handler.add_key(state.public_key)
+      {:noreply, state}
+    else
+      {:noreply, state, 5000}
+    end
   end
 end

@@ -19,6 +19,9 @@ config :shoehorn,
 
 config :tzdata, :autoupdate, :disabled
 
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
+  ssh_handler: FarmbotOS.Platform.Target.SSHConsole
+
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler,
   # gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
