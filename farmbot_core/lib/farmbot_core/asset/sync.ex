@@ -48,6 +48,7 @@ defmodule FarmbotCore.Asset.Sync do
     embeds_many(:peripherals, Item)
     embeds_many(:pin_bindings, Item)
     embeds_many(:points, Item)
+    embeds_many(:public_keys, Item)
     embeds_many(:regimens, Item)
     embeds_many(:sensor_readings, Item)
     embeds_many(:sensors, Item)
@@ -69,6 +70,7 @@ defmodule FarmbotCore.Asset.Sync do
       peripherals: Enum.map(sync.peripherals, &Item.render/1),
       pin_bindings: Enum.map(sync.pin_bindings, &Item.render/1),
       points: Enum.map(sync.points, &Item.render/1),
+      public_keys: Enum.map(sync.public_keys, &Item.render/1),
       regimens: Enum.map(sync.regimens, &Item.render/1),
       sensor_readings: Enum.map(sync.sensor_readings, &Item.render/1),
       sensors: Enum.map(sync.sensors, &Item.render/1),
@@ -91,6 +93,7 @@ defmodule FarmbotCore.Asset.Sync do
     |> cast_embed(:peripherals)
     |> cast_embed(:pin_bindings)
     |> cast_embed(:points)
+    |> cast_embed(:public_keys)
     |> cast_embed(:regimens)
     |> cast_embed(:sensor_readings)
     |> cast_embed(:sensors)
