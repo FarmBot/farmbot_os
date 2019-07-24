@@ -6,6 +6,9 @@ defmodule FarmbotCore.Asset.PublicKey do
 
   use FarmbotCore.Asset.Schema, path: "/api/public_keys"
 
+  @callback ready?() :: boolean()
+  @callback add_key(map()) :: :ok | term()
+
   schema "public_keys" do
     field(:id, :id)
 
