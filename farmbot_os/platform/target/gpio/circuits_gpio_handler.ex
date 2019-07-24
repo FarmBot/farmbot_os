@@ -11,15 +11,15 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     GenServer.start_link(__MODULE__, [pin_number, fun], name: name(pin_number))
   end
 
-  def terminate(reason, _state) do
-    Logger.warn("CircuitsGPIOHandler crash: #{inspect(reason)}")
+  def terminate(reason, state) do
+    Logger.warn("CircuitsGPIOHandler #{state.pin_number} crash: #{inspect(reason)}")
   end
 
   def init([pin_number, fun]) do
-    Logger.info("CircuitsGPIOHandler init")
+    Logger.info("CircuitsGPIOHandler #{pin_number} init")
     {:ok, pin} = GPIO.open(pin_number, :input)
-    :ok = GPIO.set_interrupts(pin, :both)
-    :ok = GPIO.set_pull_mode(pin, :pulldown)
+    :ok = GPIO.set_interrupts(pin, :rising)
+    :ok = GPIO.set_pull_mode(pin, :none)
     {:ok, %{pin_number: pin_number, pin: pin, fun: fun, debounce: nil}}
   end
 
@@ -35,7 +35,8 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     {:noreply, state}
   end
 
-  def handle_info({:circuits_gpio, _pin, _timestamp, _signal}, state) do
+  def handle_info({:circuits_gpio, pin, _timestamp, _signal}, state) do
+    Logger.debug("CircuitsGPIOHandler #{pin} triggered")
     state.fun.()
     {:noreply, %{state | debounce: debounce_timer()}}
   end
