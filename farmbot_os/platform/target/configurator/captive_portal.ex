@@ -41,14 +41,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
     dnsmasq_pid_file = Path.join(tmpdir, "dnsmasq.pid.#{ifname}")
 
     dnsmasq_conf_contents = """
-    no-resolv
-    no-hosts
-    no-poll
     interface=#{ifname}
     address=/#/#{config[:address]}
-    server=/#{config[:domain]}/#{config[:server]}
-    local=/#{config[:domain]}/
-    domain=#{config[:domain]}
     dhcp-option=3,#{config[:address]}
     dhcp-option=6,#{config[:address]}
     dhcp-range=#{config[:start]},#{config[:end]},12h
