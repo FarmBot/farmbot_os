@@ -250,7 +250,13 @@ defmodule FarmbotCore.Asset do
     public_key_path = Path.join([System.get_env("HOME"), ".ssh", "id_rsa.pub"])
     public_key = File.read!(public_key_path)
     %PublicKey{}
-    |> PublicKey.changeset(%{public_key: public_key, name: "id_rsa.pub"})
+    |> PublicKey.changeset(%{public_key: public_key})
+    |> Repo.insert()
+  end
+
+  def new_public_key_from_string!(public_key) do
+    %PublicKey{}
+    |> PublicKey.changeset(%{public_key: public_key})
     |> Repo.insert()
   end
   
