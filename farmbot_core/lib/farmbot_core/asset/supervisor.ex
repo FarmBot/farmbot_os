@@ -12,6 +12,7 @@ defmodule FarmbotCore.Asset.Supervisor do
     FbosConfig,
     FirmwareConfig,
     PinBinding,
+    PublicKey,
     Peripheral,
     RegimenInstance
   }
@@ -29,6 +30,7 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: RegimenInstance},
       {AssetSupervisor, module: FarmEvent},
       {AssetSupervisor, module: PinBinding},
+      {AssetSupervisor, module: PublicKey},
       {AssetSupervisor, module: Peripheral},
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
