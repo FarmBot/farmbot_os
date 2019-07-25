@@ -31,6 +31,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
     http_ping_timer = Process.send_after(self(), :http_ping, 5000)
+    send(self(), :connect_amqp)
 
     _ = Leds.blue(:off)
 
@@ -42,7 +43,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
       ping_fails: 0
     }
 
-    {:ok, state, 1000}
+    {:ok, state}
   end
 
   def terminate(reason, state) do
@@ -52,7 +53,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     if state.chan, do: ConnectionWorker.close_channel(state.chan)
   end
 
-  def handle_info(:timeout, state) do
+  def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
     ping = bot <> "_ping"
     route = "bot.#{bot}.ping"
@@ -70,11 +71,13 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
-        {:noreply, %{state | conn: nil, chan: nil}, 5000}
+        Process.send_after(self(), :amqp_connect, 5000)
+        {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to PingPong channel: #{inspect(err)}")
-        {:noreply, %{state | conn: nil, chan: nil}, 1000}
+        Process.send_after(self(), :amqp_connect, 2000)
+        {:noreply, %{state | conn: nil, chan: nil}}
     end
   end
 
