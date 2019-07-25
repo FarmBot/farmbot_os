@@ -175,11 +175,11 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
             validated_config_data = Ecto.Changeset.apply_changes(config_changeset)
             new_config = Map.put(config, name, validated_config_data)
             put_change(changeset, :config, new_config)
-          %{valid?: false} ->
-            add_error(changeset, :config, "invalid config item")
+          %{valid?: false} = config_changeset ->
+            add_error(changeset, :config, "invalid config item", config_changeset.errors)
         end
       {_, _}, changeset ->
-        add_error(changeset, :config, "invalid config item")
+        add_error(changeset, :config, "invalid config item (bad key or value type)")
     end)
   end
 
