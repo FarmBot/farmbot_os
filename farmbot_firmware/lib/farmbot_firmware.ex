@@ -487,8 +487,8 @@ defmodule FarmbotFirmware do
         ]
 
     to_process =
-      if loaded_params[:movement_home_at_boot_x] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:x]}],
+      if loaded_params[:movement_home_at_boot_z] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:z]}],
         else: to_process
 
     to_process =
@@ -497,8 +497,8 @@ defmodule FarmbotFirmware do
         else: to_process
 
     to_process =
-      if loaded_params[:movement_home_at_boot_z] == 1,
-        do: to_process ++ [{:command_movement_find_home, [:z]}],
+      if loaded_params[:movement_home_at_boot_x] == 1,
+        do: to_process ++ [{:command_movement_find_home, [:x]}],
         else: to_process
 
     {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
