@@ -324,15 +324,27 @@ defmodule FarmbotOS.SysCalls do
     {:error, "cannot write Sensor value. Use a Peripheral"}
   end
 
-  def write_pin(%BoxLed{id: id}, 0, 1) do
-    FarmbotCore.Logger.info(2, "Turning Boxled#{id} ON")
+  def write_pin(%BoxLed{id: 3}, 0, 1) do
+    FarmbotCore.Logger.info(2, "Turning Boxled3 ON")
     Leds.white4(:solid)
     :ok
   end
 
-  def write_pin(%BoxLed{id: id}, 0, 0) do
-    FarmbotCore.Logger.info(2, "Turning Boxled#{id} OFF")
+  def write_pin(%BoxLed{id: 3}, 0, 0) do
+    FarmbotCore.Logger.info(2, "Turning Boxled3 OFF")
     Leds.white4(:off)
+    :ok
+  end
+
+  def write_pin(%BoxLed{id: 4}, 0, 1) do
+    FarmbotCore.Logger.info(2, "Turning Boxled4 ON")
+    Leds.white5(:solid)
+    :ok
+  end
+
+  def write_pin(%BoxLed{id: 4}, 0, 0) do
+    FarmbotCore.Logger.info(2, "Turning Boxled4 OFF")
+    Leds.white5(:off)
     :ok
   end
 
