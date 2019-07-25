@@ -7,31 +7,6 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
 
   alias FarmbotCore.Project
 
-  defmodule Config do
-    use Ecto.Schema
-    @primary_key false
-
-    embedded_schema do
-      field(:label, :string)
-      field(:value, :string)
-      field(:order, :integer)
-    end
-
-    def view(config) do
-      %{
-        label: config.label,
-        value: config.value,
-        order: config.order
-      }
-    end
-
-    def changeset(config, params) do
-      config
-      |> cast(params, [:label, :value, :order])
-      |> validate_required([:label, :value, :order])
-    end
-  end
-
   embedded_schema do
     field(:package, :string)
     field(:language, :string)
@@ -58,7 +33,7 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
       zip: manifest.zip,
       executable: manifest.executable,
       args: manifest.args,
-      config: Map.new(manifest.config, fn({key, config_data}) -> {key, Config.view(config_data)} end),
+      config: manifest.config,
       package_version: manifest.package_version,
       farmware_tools_version_requirement: manifest.farmware_tools_version_requirement,
       farmware_manifest_version: manifest.farmware_manifest_version,
@@ -97,7 +72,6 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
     |> validate_farmware_manifest_version()
     |> validate_farmware_tools_version_requirement()
     |> validate_package_version()
-    |> validate_config()
     |> validate_url()
     |> validate_zip()
   end
@@ -163,24 +137,6 @@ defmodule FarmbotCore.Asset.FarmwareInstallation.Manifest do
       :error ->
         add_error(changeset, :package_version, "not a valid semver string")
     end
-  end
-
-  defp validate_config(%{valid?: false} = change), do: change
-  defp validate_config(changeset) do
-    config = get_field(changeset, :config)
-    Enum.reduce(config, changeset, fn
-      {name, %{} = params}, changeset when is_binary(name) ->
-        case Config.changeset(%Config{}, params) do
-          %{valid?: true} = config_changeset ->
-            validated_config_data = Ecto.Changeset.apply_changes(config_changeset)
-            new_config = Map.put(config, name, validated_config_data)
-            put_change(changeset, :config, new_config)
-          %{valid?: false} = config_changeset ->
-            add_error(changeset, :config, "invalid config item", config_changeset.errors)
-        end
-      {_, _}, changeset ->
-        add_error(changeset, :config, "invalid config item (bad key or value type)")
-    end)
   end
 
   defp validate_url(%{valid?: false} = change), do: change
