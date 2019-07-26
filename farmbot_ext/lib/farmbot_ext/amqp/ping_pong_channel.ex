@@ -71,12 +71,12 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
-        Process.send_after(self(), :amqp_connect, 5000)
+        Process.send_after(self(), :connect_amqp, 5000)
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to PingPong channel: #{inspect(err)}")
-        Process.send_after(self(), :amqp_connect, 2000)
+        Process.send_after(self(), :connect_amqp, 2000)
         {:noreply, %{state | conn: nil, chan: nil}}
     end
   end
