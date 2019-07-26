@@ -4,7 +4,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   """
   use GenServer
   import FarmbotCore.Config, only: [get_config_value: 3]
-  require FarmbotCore.Logger
+  require Logger
   alias FarmbotCore.Asset.PublicKey
 
   @behaviour FarmbotCore.Asset.PublicKey
@@ -32,7 +32,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
         {:ok, %{ssh: ssh, port: port, decoded_authorized_key: decoded_authorized_key}}
 
       error ->
-        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
+        Logger.warn("Could not start SSH: #{inspect(error)}")
         :ignore
     end
   end
@@ -50,7 +50,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
         {:noreply, %{state | ssh: ssh}}
 
       error ->
-        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
+        Logger.warn("Could not start SSH: #{inspect(error)}")
         {:noreply, %{state | ssh: nil}}
     end
   end
@@ -88,7 +88,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
       :public_key.ssh_decode(authorized_key, :auth_keys)
     rescue
       _err ->
-        FarmbotCore.Logger.warn(3, "Could not decode ssh keys.")
+        Logger.warn("Could not decode ssh keys.")
         []
     end
   end
