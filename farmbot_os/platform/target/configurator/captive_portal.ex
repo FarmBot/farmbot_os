@@ -42,8 +42,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
     dnsmasq_conf_contents = """
     interface=#{ifname}
+    server=#{config[:address]}
     address=/#/#{config[:address]}
-    dhcp-option=3,#{config[:address]}
     dhcp-option=6,#{config[:address]}
     dhcp-range=#{config[:start]},#{config[:end]},12h
     """
