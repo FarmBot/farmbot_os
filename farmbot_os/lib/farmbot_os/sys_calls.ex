@@ -122,7 +122,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def set_user_env(key, value) do
-    FarmbotCore.BotState.set_user_env(key, value)
+    _ = Asset.new_farmware_env(%{key: key, value: value})
+    :ok
   end
 
   @impl true
