@@ -81,7 +81,7 @@
   "uboot_env": {:hex, :uboot_env, "0.1.1", "b01e3ec0973e99473234f27839e29e63b5b81eba6a136a18a78d049d4813d6c5", [:mix], [], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.4.1", "d869e4c68901dd9531385bb0c8c40444ebf624e60b6962d95952775cac5e90cd", [:rebar3], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.8", "e22fc04499de0de3ed1116b770c7737779f226ceefa0badb3592e64d5cfb4eb9", [:mix], [], "hexpm"},
-  "vintage_net": {:git, "https://github.com/nerves-networking/vintage_net.git", "2b900cd027a032045adc147cd935d3380417d874", [tag: "master"]},
+  "vintage_net": {:hex, :vintage_net, "0.5.0", "211eee23ee294718fc54c0d4835aca8e2b1c392c52fd2cbb6bb7dc2a857ae842", [:make, :mix], [{:busybox, "~> 0.1", [hex: :busybox, repo: "hexpm", optional: true]}, {:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:gen_state_machine, "~> 2.0.0", [hex: :gen_state_machine, repo: "hexpm", optional: false]}, {:muontrap, "~> 0.4.1", [hex: :muontrap, repo: "hexpm", optional: false]}], "hexpm"},
   "websocket_client": {:hex, :websocket_client, "1.3.0", "2275d7daaa1cdacebf2068891c9844b15f4fdc3de3ec2602420c2fb486db59b6", [:rebar3], [], "hexpm"},
   "x509": {:hex, :x509, "0.6.0", "51a274a8368cf6fe771c1920ce5b075d28a076745987666593adb818aadf1bf7", [:mix], [], "hexpm"},
 }
