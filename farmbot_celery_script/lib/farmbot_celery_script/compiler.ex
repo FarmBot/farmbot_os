@@ -406,6 +406,16 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
+  # compiles set_pin_io_mode
+  compile :set_pin_io_mode, %{pin_number: pin_number, pin_io_mode: mode} do
+    quote location: :keep do
+      pin = unquote(compile_ast(pin_number))
+      mode = unquote(compile_ast(mode))
+      FarmbotCeleryScript.SysCalls.log("Setting pin mode: #{pin}: #{mode}")
+      FarmbotCeleryScript.SysCalls.set_pin_io_mode(pin, mode)
+    end
+  end
+
   # Expands find_home(all) into three find_home/1 calls
   compile :find_home, %{axis: "all"} do
     quote location: :keep do

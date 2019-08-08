@@ -55,6 +55,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
   @callback send_message(type :: String.t(), message :: String.t(), [atom]) :: ok_or_error
   @callback set_servo_angle(pin :: number(), value :: number()) :: ok_or_error
+  @callback set_pin_io_mode(pin :: number(), mode :: number()) :: ok_or_error
   @callback set_user_env(env_name :: String.t(), env_value :: String.t()) :: ok_or_error
   @callback sync() :: ok_or_error
   @callback wait(millis :: number()) :: ok_or_error

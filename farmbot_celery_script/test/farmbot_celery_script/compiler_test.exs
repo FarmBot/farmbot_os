@@ -326,6 +326,22 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
+  test "compiles set_pin_io_mode" do
+    compiled =
+      compile(%AST{
+        kind: :set_pin_io_mode,
+        args: %{pin_number: 23, pin_io_mode: "input"}
+      })
+
+    assert compiled ==
+             strip_nl("""
+             pin = 23
+             mode = "input"
+             FarmbotCeleryScript.SysCalls.log("Setting pin mode: \#{pin}: \#{mode}")
+             FarmbotCeleryScript.SysCalls.set_pin_io_mode(pin, mode)
+             """)
+  end
+
   defp compile(ast) do
     ast
     |> Compiler.compile_ast()
