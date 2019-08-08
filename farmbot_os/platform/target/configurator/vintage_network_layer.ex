@@ -16,9 +16,9 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
   @impl FarmbotOS.Configurator.NetworkLayer
   def scan(ifname) do
     _ = VintageNet.scan(ifname)
-    [{_, aps}] = VintageNet.get_by_prefix(["interface", "wlan0", "wifi", "access_points"])
+    [{_, aps}] = VintageNet.get_by_prefix(["interface", ifname, "wifi", "access_points"])
 
-    Enum.map(aps, fn {_bssid, %{bssid: bssid, ssid: ssid, signal_percent: signal, flags: flags}} ->
+    Enum.map(aps, fn %{bssid: bssid, ssid: ssid, signal_percent: signal, flags: flags} ->
       %{
         ssid: ssid,
         bssid: bssid,
