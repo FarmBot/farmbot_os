@@ -23,7 +23,7 @@ defmodule FarmbotExt.API do
   # adapter(Tesla.Adapter.Hackney)
   plug(Tesla.Middleware.JSON, decode: &JSON.decode/1, encode: &JSON.encode/1)
   plug(Tesla.Middleware.FollowRedirects)
-  plug(Tesla.Middleware.Logger)
+  # plug(Tesla.Middleware.Logger)
 
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
@@ -116,6 +116,11 @@ defmodule FarmbotExt.API do
       BotState.set_job_progress(image_filename, %{prog | status: "complete", percent: 100})
       r
     else
+      {:ok, %{status: s, body: body}} when s > 399 ->
+        FarmbotCore.Logger.error(1, "Failed to upload image (HTTP: #{s}): #{inspect(body)}")
+        BotState.set_job_progress(image_filename, %{prog | percent: -1, status: "error"})
+        {:error, body}
+
       er ->
         FarmbotCore.Logger.error(1, "Failed to upload image: #{inspect(er)}")
         BotState.set_job_progress(image_filename, %{prog | percent: -1, status: "error"})
