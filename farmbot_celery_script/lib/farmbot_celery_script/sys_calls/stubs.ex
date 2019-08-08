@@ -108,6 +108,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def set_servo_angle(pin, value), do: error(:set_servo_angle, [pin, value])
 
   @impl true
+  def set_pin_io_mode(pin, mode), do: error(:set_pin_io_mode, [pin, mode])
+
+  @impl true
   def set_user_env(env_name, env_value), do: error(:set_user_env, [env_name, env_value])
 
   @impl true
