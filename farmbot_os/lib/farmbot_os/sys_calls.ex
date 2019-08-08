@@ -18,7 +18,8 @@ defmodule FarmbotOS.SysCalls do
     ExecuteScript,
     FactoryReset,
     FlashFirmware,
-    SendMessage
+    SendMessage,
+    SetPinIOMode
   }
 
   alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState, Leds}
@@ -49,6 +50,9 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate factory_reset(package), to: FactoryReset
+
+  @impl true
+  defdelegate set_pin_io_mode(pin, mode), to: SetPinIOMode
 
   @impl true
   def log(message) do

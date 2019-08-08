@@ -72,6 +72,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def set_pin_io_mode(pin_number, mode) do
+    call({:set_pin_io_mode, [pin_number, mode]})
+  end
+
+  @impl true
   def install_first_party_farmware() do
     call({:install_first_party_farmware, []})
   end
