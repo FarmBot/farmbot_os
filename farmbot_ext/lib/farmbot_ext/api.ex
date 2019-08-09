@@ -90,6 +90,12 @@ defmodule FarmbotExt.API do
         end)
       end)
 
+    opts = if String.contains?(storage_auth.url, "direct_upload") do
+        []
+      else
+        [filename: image_filename, headers: [{"Content-Type", "image/jpeg"}]]
+      end
+
     mp =
       Multipart.new()
       |> Multipart.add_field("key", form_data.key)
@@ -98,7 +104,7 @@ defmodule FarmbotExt.API do
       |> Multipart.add_field("signature", form_data.signature)
       |> Multipart.add_field("Content-Type", form_data."Content-Type")
       |> Multipart.add_field("GoogleAccessId", form_data."GoogleAccessId")
-      |> Multipart.add_field("file", stream)
+      |> Multipart.add_field("file", stream, opts)
 
     storage_resp =
       storage_auth
