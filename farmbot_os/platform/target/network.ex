@@ -3,8 +3,15 @@ defmodule FarmbotOS.Platform.Target.Network do
   use GenServer, shutdown: 10_000
   require Logger
   require FarmbotCore.Logger
-  import FarmbotOS.Platform.Target.Network.Utils
-  alias FarmbotOS.Platform.Target.Network.{Distribution, PreSetup}
+
+  import FarmbotOS.Platform.Target.Network.Utils,
+    only: [
+      maybe_hack_tzdata: 0,
+      init_net_kernel: 0,
+      build_hostap_ssid: 0
+    ]
+
+  alias FarmbotOS.Platform.Target.Network.PreSetup
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
   alias FarmbotCore.{Asset, Config, Leds}
 
@@ -56,6 +63,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   @impl GenServer
   def init(_args) do
     _ = maybe_hack_tzdata()
+    _ = init_net_kernel()
     send(self(), :setup)
     # If a secret exists, assume that 
     # farmbot at one point has been connected to the internet
@@ -68,7 +76,7 @@ defmodule FarmbotOS.Platform.Target.Network do
       :ok = VintageNet.configure("wlan0", host())
     end
 
-    {:ok, %{network_not_found_timer: nil, first_connect?: first_connect?, distribution: nil}}
+    {:ok, %{network_not_found_timer: nil, first_connect?: first_connect?}}
   end
 
   @impl GenServer
@@ -103,16 +111,6 @@ defmodule FarmbotOS.Platform.Target.Network do
     case Config.get_network_config(ifname) do
       %Config.NetworkInterface{} = config ->
         FarmbotCore.Logger.busy(3, "Setting up network interface: #{ifname}")
-        {:ok, hostname} = :inet.gethostname()
-
-        distribution_opts = %{
-          ifname: config.name,
-          mdns_domain: "#{hostname}.local",
-          node_name: "farmbot",
-          node_host: :mdns_domain
-        }
-
-        {:ok, distribution_pid} = Distribution.start_link(distribution_opts)
 
         case reset_ntp() do
           :ok ->
@@ -130,7 +128,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         FarmbotCore.Logger.success(3, "#{config.name} setup: #{inspect(configure_result)}")
 
         state = start_network_not_found_timer(state)
-        {:noreply, %{state | distribution: distribution_pid}}
+        {:noreply, state}
 
       nil ->
         {:noreply, state}
