@@ -45,7 +45,8 @@ defmodule FarmbotCore.Config.NetworkInterface do
       :ipv4_gateway,
       :ipv4_subnet_mask,
       :domain,
-      :name_servers
+      :name_servers,
+      :regulatory_domain
     ])
     |> validate_required(@required_fields)
     |> validate_inclusion(:type, ["wireless", "wired"])
