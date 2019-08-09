@@ -8,17 +8,30 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   require FarmbotCore.Logger
 
   @impl VintageNet.Technology
-  def normalize(config) do
+  def normalize(%{wifi: _} = config) do
     %{config | type: VintageNet.Technology.WiFi}
     |> VintageNet.Technology.WiFi.normalize()
   end
 
+  def normalize(config) do
+    %{config | type: VintageNet.Technology.Ethernet}
+    |> VintageNet.Technology.Ethernet.normalize()
+  end
+
   @impl VintageNet.Technology
-  def to_raw_config(ifname, config, opts) do
+  def to_raw_config(ifname, %{wifi: _} = config, opts) do
     {:ok, normalized} = normalize(config)
 
     ifname
     |> vintage_wifi(normalized, opts)
+    |> dnsmasq(opts)
+  end
+
+  def to_raw_config(ifname, config, opts) do
+    {:ok, normalized} = normalize(config)
+
+    ifname
+    |> vintage_ethernet(normalized, opts)
     |> dnsmasq(opts)
   end
 
@@ -42,6 +55,11 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
     dnsmasq_conf_contents = """
     interface=#{ifname}
+    except-interface=lo
+    localise-queries
+    bogus-priv
+    bind-interfaces
+    listen-address=#{config[:address]}
     server=#{config[:address]}
     address=/#/#{config[:address]}
     dhcp-option=6,#{config[:address]}
@@ -90,6 +108,13 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
     with {:ok, config} <- VintageNet.Technology.WiFi.normalize(config),
          {:ok, raw_config} <- VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts) do
       %{raw_config | type: VintageNet.Technology.WiFi}
+    end
+  end
+
+  defp vintage_ethernet(ifname, config, opts) do
+    with {:ok, config} <- VintageNet.Technology.Ethernet.normalize(config),
+         {:ok, raw_config} <- VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts) do
+      %{raw_config | type: VintageNet.Technology.Ethernet}
     end
   end
 end
