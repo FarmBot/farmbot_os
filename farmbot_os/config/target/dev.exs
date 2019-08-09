@@ -12,6 +12,28 @@ config :vintage_net,
     {"wlan0", %{type: VintageNet.Technology.Null}}
   ]
 
+config :mdns_lite,
+  mdns_config: %{
+    host: :hostname,
+    ttl: 120
+  },
+  services: [
+    # service type: _http._tcp.local - used in match
+    %{
+      name: "Web Server",
+      protocol: "http",
+      transport: "tcp",
+      port: 80
+    },
+    # service_type: _ssh._tcp.local - used in match
+    %{
+      name: "Secure Socket",
+      protocol: "ssh",
+      transport: "tcp",
+      port: 22
+    }
+  ]
+
 config :shoehorn,
   init: [:nerves_runtime, :vintage_net, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
