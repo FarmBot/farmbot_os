@@ -9,7 +9,23 @@ config :vintage_net,
   regulatory_domain: "00",
   persistence: VintageNet.Persistence.Null,
   config: [
-    {"wlan0", %{type: VintageNet.Technology.Null}}
+    {"wlan0", %{type: VintageNet.Technology.Null}},
+    {"usb0",
+     %{
+       type: FarmbotOS.Platform.Target.Configurator.CaptivePortal,
+       ipv4: %{
+         method: :static,
+         address: "192.168.25.1",
+         netmask: "255.255.255.0"
+       },
+       dnsmasq: %{
+         domain: "farmbot",
+         server: "192.168.25.1",
+         address: "192.168.25.1",
+         start: "192.168.25.2",
+         end: "192.168.25.10"
+       }
+     }}
   ]
 
 config :mdns_lite,
