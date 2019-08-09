@@ -19,7 +19,6 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
 
     state =
       %State{opts: opts}
-      |> init_mdns(opts)
       |> init_net_kernel(opts)
 
     {:ok, state}
@@ -58,25 +57,10 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
 
   defp handle_if_up(state) do
     Logger.debug("#{state.opts.ifname} is up. IP is now #{inspect(state.ip)}")
-
-    update_mdns(state.ip, state.opts.mdns_domain)
     update_net_kernel(state.ip, state.opts)
   end
 
   defp handle_if_down(_state), do: :ok
-
-  defp init_mdns(state, %{mdns_domain: nil}), do: state
-
-  defp init_mdns(state, opts) do
-    Mdns.Server.add_service(%Mdns.Server.Service{
-      domain: resolve_mdns_name(opts.mdns_domain),
-      data: :ip,
-      ttl: 120,
-      type: :a
-    })
-
-    state
-  end
 
   defp resolve_mdns_name(nil), do: nil
 
@@ -95,20 +79,6 @@ defmodule FarmbotOS.Platform.Target.Network.Distribution do
     |> String.split(".")
     |> hd()
     |> Kernel.<>(".local")
-  end
-
-  defp update_mdns(_ip, nil), do: :ok
-
-  defp update_mdns(ip, _mdns_domain) do
-    Mdns.Server.stop()
-
-    # Give the interface time to settle to fix an issue where mDNS's multicast
-    # membership is not registered. This occurs on wireless interfaces and
-    # needs to be revisited.
-    :timer.sleep(100)
-
-    Mdns.Server.start(interface: ip)
-    Mdns.Server.set_ip(ip)
   end
 
   defp init_net_kernel(state, opts) do
