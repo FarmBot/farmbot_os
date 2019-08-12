@@ -50,7 +50,6 @@ defmodule FarmbotCore.Asset do
     :ok
   end
 
-
   ## End Device
 
   ## Begin FarmEvent
@@ -375,11 +374,12 @@ defmodule FarmbotCore.Asset do
 
   def new_farmware_env(params) do
     key = params["key"] || params[:key]
-
-    fwe =
-      if key do
-        Repo.get_by(FarmwareEnv, key: key)
-      end || %FarmwareEnv{}
+    fwe = with key when is_binary(key) <- key,
+      [fwe | _] <- Repo.all(from fwe in FarmwareEnv, where: fwe.key == ^key) do
+      fwe
+    else
+      _ -> %FarmwareEnv{}
+    end
 
     FarmwareEnv.changeset(fwe, params)
     |> Repo.insert_or_update()

@@ -8,6 +8,7 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotCore.Asset.{
     BoxLed,
     Peripheral,
+    Private,
     Sensor
   }
 
@@ -126,8 +127,16 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def set_user_env(key, value) do
-    _ = Asset.new_farmware_env(%{key: key, value: value})
-    :ok
+    with {:ok, fwe} <- Asset.new_farmware_env(%{key: key, value: value}),
+         _ <- Private.mark_dirty!(fwe) do
+      :ok
+    else
+      {:error, reason} ->
+        {:error, inspect(reason)}
+
+      error ->
+        {:error, inspect(error)}
+    end
   end
 
   @impl true
