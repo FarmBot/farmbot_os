@@ -4,7 +4,6 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddFirmwareFlashSetting do
   import FarmbotCore.Config.MigrationHelpers
 
   def change do
-    update_config_value(:string, "settings", "firmware_hardware", nil)
     create_settings_config("firmware_needs_flash", :bool, true)
   end
 end
