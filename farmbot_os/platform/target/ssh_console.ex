@@ -3,8 +3,8 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   SSH IEx console.
   """
   use GenServer
-  import FarmbotCore.Config, only: [get_config_value: 3]
   require Logger
+  require FarmbotCore.Logger
   alias FarmbotCore.Asset.PublicKey
 
   @behaviour FarmbotCore.Asset.PublicKey
@@ -17,19 +17,22 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     GenServer.cast(__MODULE__, {:add_key, public_key})
   end
 
+  def restart_ssh do
+    GenServer.cast(__MODULE__, :restart)
+  end
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   def init([]) do
-    port = get_config_value(:float, "settings", "ssh_port") |> round()
-    authorized_key = get_config_value(:string, "settings", "authorized_ssh_key")
-    decoded_authorized_key = do_decode(authorized_key)
+    port = 22
 
-    case start_ssh(port, decoded_authorized_key) do
+    case start_ssh(port, []) do
       {:ok, ssh} ->
         send(self(), :checkup)
-        {:ok, %{ssh: ssh, port: port, decoded_authorized_key: decoded_authorized_key}}
+
+        {:ok, %{ssh: ssh, port: port, public_keys: []}}
 
       error ->
         Logger.warn("Could not start SSH: #{inspect(error)}")
@@ -41,13 +44,26 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     stop_ssh(ssh)
   end
 
+  def handle_cast(:restart, %{ssh: ssh} = state) do
+    _ = stop_ssh(ssh)
+
+    case start_ssh(state.port, state.public_keys) do
+      {:ok, ssh} ->
+        {:noreply, %{state | ssh: ssh}}
+
+      error ->
+        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
+        {:noreply, %{state | ssh: nil}}
+    end
+  end
+
   def handle_cast({:add_key, %PublicKey{public_key: authorized_key}}, %{ssh: ssh} = state) do
     _ = stop_ssh(ssh)
     decoded_authorized_key = do_decode(authorized_key)
 
-    case start_ssh(state.port, [decoded_authorized_key | state.decoded_authorized_key]) do
+    case start_ssh(state.port, [decoded_authorized_key]) do
       {:ok, ssh} ->
-        {:noreply, %{state | ssh: ssh}}
+        {:noreply, %{state | ssh: ssh, public_keys: [decoded_authorized_key | state.public_keys]}}
 
       error ->
         Logger.warn("Could not start SSH: #{inspect(error)}")
