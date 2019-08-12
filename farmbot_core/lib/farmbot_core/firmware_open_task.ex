@@ -43,6 +43,11 @@ defmodule FarmbotCore.FirmwareOpenTask do
   @impl GenServer
   def init(_args) do
     send(self(), :open)
+    firmware_path = Asset.fbos_config(:firmware_path)
+    firmware_hardware = Asset.fbos_config(:firmware_hardware)
+    if firmware_path && firmware_hardware do
+      Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
+    end
     {:ok, %{timer: nil, attempts: 0, threshold: @attempt_threshold}}
   end
 
