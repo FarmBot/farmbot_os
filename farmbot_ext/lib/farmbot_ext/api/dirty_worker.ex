@@ -126,7 +126,8 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   defp http_request(dirty, state) do
     Logger.debug("#{state.module} dirty request (patch)")
-    path = state.module.path()
+    # IO.inspect(dirty, label: "PATCH")
+    path = Path.join(state.module.path(), to_string(dirty.id))
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
   end
