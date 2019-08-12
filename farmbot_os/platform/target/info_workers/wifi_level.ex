@@ -38,14 +38,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
         %{ssid: ssid} = state
       )
       when is_binary(ssid) do
-    ap =
-      Enum.find_value(new, fn
-        {_bssid, %{ssid: ^ssid} = ap} ->
-          ap
-
-        _ ->
-          false
-      end)
+    ap = find_ap(new, ssid)
 
     if ap do
       :ok = BotState.report_wifi_level(ap.signal_dbm)
@@ -57,5 +50,12 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
 
   def handle_info({VintageNet, _property, _old, _new, _meta}, state) do
     {:noreply, state}
+  end
+
+  defp find_ap(new, ssid) do
+    Enum.find_value(new, fn
+      %{ssid: ^ssid} = ap -> ap
+      _ -> false
+    end)
   end
 end
