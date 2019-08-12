@@ -61,8 +61,10 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
 
   def init_net_kernel do
     {:ok, hostname} = :inet.gethostname()
+    name = :"farmbot@#{hostname}.local"
     _ = :os.cmd('epmd -daemon')
     _ = :net_kernel.stop()
-    :net_kernel.start([:"farmbot@#{hostname}.local"])
+    FarmbotCore.BotState.set_node_name(to_string(name))
+    :net_kernel.start([name])
   end
 end
