@@ -30,5 +30,11 @@ defmodule FarmbotCore.Config.Repo.Migrations.MigrateSettings do
     delete_settings_config("api_migrated", :bool)
     delete_settings_config("firmware_needs_first_sync", :bool)
     delete_settings_config("first_boot", :bool)
+    delete_settings_config("authorized_ssh_key", :string)
+    delete_settings_config("firmware_hardware", :string)
+    delete_settings_config("first_party_farmware", :bool)
+    delete_settings_config("first_sync", :bool)
+    delete_settings_config("ssh_port", :float)
+    delete_settings_config("os_auto_update", :bool)
   end
 end
