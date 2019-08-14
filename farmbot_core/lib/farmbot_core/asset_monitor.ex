@@ -14,6 +14,7 @@ defmodule FarmbotCore.AssetMonitor do
     FirmwareConfig,
     FarmEvent,
     FarmwareInstallation,
+    FirstPartyFarmware,
     FarmwareEnv,
     Peripheral,
     RegimenInstance,
@@ -125,6 +126,7 @@ defmodule FarmbotCore.AssetMonitor do
       RegimenInstance,
       PinBinding,
       PublicKey,
+      FirstPartyFarmware,
       FarmwareInstallation,
       FarmwareEnv
     ]

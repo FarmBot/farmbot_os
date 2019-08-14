@@ -44,6 +44,7 @@ defmodule FarmbotCore.Asset.Sync do
     embeds_many(:diagnostic_dumps, Item)
     embeds_many(:farm_events, Item)
     embeds_many(:farmware_envs, Item)
+    embeds_many(:first_party_farmwares, Item)
     embeds_many(:farmware_installations, Item)
     embeds_many(:peripherals, Item)
     embeds_many(:pin_bindings, Item)
@@ -66,6 +67,7 @@ defmodule FarmbotCore.Asset.Sync do
       diagnostic_dumps: Enum.map(sync.diagnostic_dumps, &Item.render/1),
       farm_events: Enum.map(sync.farm_events, &Item.render/1),
       farmware_envs: Enum.map(sync.farmware_envs, &Item.render/1),
+      first_party_farmwares: Enum.map(sync.first_party_farmwares, &Item.render/1),
       farmware_installations: Enum.map(sync.farmware_installations, &Item.render/1),
       peripherals: Enum.map(sync.peripherals, &Item.render/1),
       pin_bindings: Enum.map(sync.pin_bindings, &Item.render/1),
@@ -90,6 +92,7 @@ defmodule FarmbotCore.Asset.Sync do
     |> cast_embed(:farm_events)
     |> cast_embed(:farmware_envs)
     |> cast_embed(:farmware_installations)
+    |> cast_embed(:first_party_farmwares)
     |> cast_embed(:peripherals)
     |> cast_embed(:pin_bindings)
     |> cast_embed(:points)
