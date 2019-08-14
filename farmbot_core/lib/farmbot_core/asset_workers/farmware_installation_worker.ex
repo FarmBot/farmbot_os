@@ -23,7 +23,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
     {:ok, fwi, 0}
   end
 
-  def handle_info(:timeout, %FWI{manifest: nil} = fwi) do
+  def handle_info(:timeout, %{manifest: nil} = fwi) do
     FarmbotCore.Logger.busy(3, "Installing Farmware from url: #{fwi.url}")
 
     with {:ok, %{} = manifest} <- get_manifest_json(fwi),

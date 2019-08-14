@@ -22,6 +22,7 @@ defmodule FarmbotCore.AssetHelpers do
         DiagnosticDump,
         FarmwareEnv,
         FarmwareInstallation,
+        FirstPartyFarmware,
         FarmEvent,
         FbosConfig,
         FirmwareConfig,
