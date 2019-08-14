@@ -11,6 +11,7 @@ defmodule FarmbotCore.Asset do
     DeviceCert,
     DiagnosticDump,
     FarmwareEnv,
+    FirstPartyFarmware,
     FarmwareInstallation,
     FarmEvent,
     FbosConfig,
@@ -346,14 +347,23 @@ defmodule FarmbotCore.Asset do
 
   @doc "Get a FarmwareManifest by it's name."
   def get_farmware_manifest(package) do
-    Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
-    |> Enum.find(fn %{package: pkg} -> pkg == package end)
+    first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware, select: fwi.manifest))
+    regular_farmwares = Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
+    Enum.find(
+      first_party_farmwares ++ regular_farmwares, 
+      fn %{package: pkg} -> pkg == package end
+    )
   end
 
   def upsert_farmware_manifest_by_id(id, params) do
     fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
-
     FarmwareInstallation.changeset(fwi, params)
+    |> Repo.insert_or_update()
+  end
+
+  def upsert_first_party_farmware_manifest_by_id(id, params) do
+    fwi = Repo.get_by(FirstPartyFarmware, id: id) || %FirstPartyFarmware{}
+    FirstPartyFarmware.changeset(fwi, params)
     |> Repo.insert_or_update()
   end
 

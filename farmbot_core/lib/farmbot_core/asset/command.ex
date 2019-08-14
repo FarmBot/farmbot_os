@@ -105,6 +105,10 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
+  def update(FirstPartyFarmware, id, params) do
+    Asset.upsert_first_party_farmware_manifest_by_id(id, params)
+  end
+
   def update(FarmEvent, id, params) do
     old = Asset.get_farm_event(id)
     if old, 
@@ -189,6 +193,7 @@ defmodule FarmbotCore.Asset.Command do
   defp as_module!("DiagnosticDump"), do: Asset.DiagnosticDump 
   defp as_module!("FarmEvent"), do: Asset.FarmEvent 
   defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv 
+  defp as_module!("FirstPartyFarmware"), do: Asset.FirstPartyFarmware 
   defp as_module!("FarmwareInstallation"), do: Asset.FarmwareInstallation 
   defp as_module!("FbosConfig"), do: Asset.FbosConfig 
   defp as_module!("FirmwareConfig"), do: Asset.FirmwareConfig 
