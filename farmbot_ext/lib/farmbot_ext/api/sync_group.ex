@@ -5,6 +5,7 @@ defmodule FarmbotExt.API.SyncGroup do
     Device,
     FarmEvent,
     FarmwareEnv,
+    FirstPartyFarmware,
     FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
@@ -28,6 +29,7 @@ defmodule FarmbotExt.API.SyncGroup do
       FbosConfig,
       FirmwareConfig,
       FarmwareEnv,
+      FirstPartyFarmware,
       FarmwareInstallation
       # PublicKey
     ]
