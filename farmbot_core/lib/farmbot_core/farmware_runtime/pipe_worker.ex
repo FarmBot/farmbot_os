@@ -40,6 +40,7 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   end
 
   def handle_call({:write, packet}, _from, state) do
+    Logger.debug "writing #{byte_size(packet)} bytes"
     reply = :erlang.port_command(state.pipe, packet)
     {:reply, reply, state}
   end
@@ -62,7 +63,7 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   end
 
   def handle_info({pipe, {:data, data}}, %{pipe: pipe, buffer: buffer} = state) do
-    Logger.debug "bufferring #{byte_size(data)} bytes"
+    Logger.debug "buffering #{byte_size(data)} bytes"
     {:noreply, %{state | buffer: buffer <> data}}
   end
 
