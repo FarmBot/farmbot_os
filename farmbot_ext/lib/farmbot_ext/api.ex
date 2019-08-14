@@ -202,7 +202,7 @@ defmodule FarmbotExt.API do
   end
 
   def get_changeset(%module{} = data) do
-    get_body!(module.path())
+    get_body!(module.path() <> ".json")
     |> case do
       {:ok, %{} = single} ->
         {:ok, module.changeset(data, single)}
@@ -236,7 +236,7 @@ defmodule FarmbotExt.API do
   end
 
   def get_changeset(%module{} = data, path) do
-    get_body!(Path.join(module.path(), to_string(path)))
+    get_body!(Path.join(module.path(), to_string(path) <> ".json"))
     |> case do
       {:ok, %{} = single} ->
         {:ok, module.changeset(data, single)}
