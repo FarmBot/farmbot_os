@@ -64,6 +64,7 @@ defmodule FarmbotExt.API.Reconciler do
     table = module.__schema__(:source) |> String.to_atom()
     # items is a list of changesets
     items = Changeset.get_field(sync_changeset, table)
+    items || raise("Could not find #{table} in sync")
 
     # TODO(Connor) maybe move this into Asset.Query
     ids_fbos_knows_about =
