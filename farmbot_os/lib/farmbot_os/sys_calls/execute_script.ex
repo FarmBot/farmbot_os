@@ -13,9 +13,10 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
       :ok
     else
       {:error, {:already_started, _pid}} ->
-        {:error, "Farmware #{farmware_name} is already runtime"}
+        {:error, "Farmware #{farmware_name} is already running"}
 
       {:error, reason} when is_binary(reason) ->
+        _ = ImageUploader.force_checkup()
         {:error, reason}
     end
   end
