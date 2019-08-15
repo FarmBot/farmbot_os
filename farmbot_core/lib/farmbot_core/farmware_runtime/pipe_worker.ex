@@ -4,6 +4,15 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   """
   use GenServer
   require Logger
+  alias __MODULE__, as: State
+  defstruct [
+    :pipe_name,
+    :pipe,
+    :buffer,
+    :caller,
+    :size,
+    :timeout_timer
+  ]
 
   @read_time 5
 
@@ -26,7 +35,7 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   def init([pipe_name]) do
     with {_, 0} <- System.cmd("mkfifo", [pipe_name]),
          pipe <- :erlang.open_port(to_charlist(pipe_name), [:eof, :binary]) do
-      {:ok, %{pipe_name: pipe_name, pipe: pipe, buffer: <<>>, caller: nil, size: nil}}
+      {:ok, %State{pipe_name: pipe_name, pipe: pipe, buffer: <<>>}}
     else
       {:error, _} = error -> {:stop, error}
       {_, _num} -> {:stop, {:error, "mkfifo"}}
@@ -48,8 +57,8 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   def handle_call({:read, amnt}, {_pid, ref} = from, %{caller: nil, size: nil} = state) do
     Logger.debug "requesting: #{amnt} bytes"
     Process.send_after(self(), {:read, amnt, from}, @read_time)
-    Process.send_after(self(), {:timeout, amnt, from}, 5000)
-    {:reply, ref, %{state | caller: from, size: amnt}}
+    timeout_timer = Process.send_after(self(), {:timeout, amnt, from}, 5000)
+    {:reply, ref, %{state | caller: from, size: amnt, timeout_timer: timeout_timer}}
   end
 
   def handle_info({:timeout, size, {pid, ref}}, %{caller: {pid, ref}} = state) do
@@ -68,6 +77,7 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   end
 
   def handle_info({:read, size, caller}, %{buffer: buffer} = state) when byte_size(buffer) >= size do
+    _ = state.timeout_timer && Process.cancel_timer(state.timeout_timer)
     {pid, ref} = caller
     {resp, buffer} = String.split_at(buffer, size)
     send(pid, {__MODULE__, ref, {:ok, resp}})
@@ -76,10 +86,12 @@ defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
   end
 
   def handle_info({:read, size, caller}, %{buffer: buffer} = state) when byte_size(buffer) < size do
+    _ = state.timeout_timer && Process.cancel_timer(state.timeout_timer)
     if byte_size(buffer) != 0 do
       Logger.debug "pipe worker still waiting on #{size - byte_size(buffer)} bytes for #{inspect(caller)} Currently #{byte_size(buffer)} bytes in buffer"
     end
     Process.send_after(self(), {:read, size, caller}, @read_time)
-    {:noreply, state}
+    timeout_timer = Process.send_after(self(), {:timeout, size, caller}, 5000)
+    {:noreply, %{state | timeout_timer: timeout_timer}}
   end
 end
