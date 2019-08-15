@@ -181,7 +181,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   end
 
   # farmware exit
-  def handle_info({:DOWN, _ref, :process, cmd, _reason}, %{cmd: cmd} = state) do
+  def handle_info({:DOWN, _ref, :process, _pid, _reason}, %{cmd: _cmd_pid} = state) do
     Logger.debug("Farmware exit")
     {:stop, :normal, state}
   end
