@@ -1,11 +1,20 @@
-defmodule FarmbotOS.SysCalls.ExecuteScript do
+defmodule FarmbotOS.SysCalls.Farmware do
   require Logger
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.{Asset, FarmwareRuntime}
+  alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}
   alias FarmbotExt.API.ImageUploader
 
+  def update_farmware(farmware_name) do
+    with {:ok, installation} <- lookup_installation(farmware_name) do
+      AssetSupervisor.cast_child(installation, :update)
+    else
+      {:error, reason} when is_binary(reason) ->
+        {:error, reason}
+    end
+  end
+
   def execute_script(farmware_name, env) do
-    with {:ok, manifest} <- lookup(farmware_name),
+    with {:ok, manifest} <- lookup_manifest(farmware_name),
          {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
          monitor <- Process.monitor(runtime),
          :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
@@ -21,10 +30,17 @@ defmodule FarmbotOS.SysCalls.ExecuteScript do
     end
   end
 
-  def lookup(farmware_name) do
+  def lookup_manifest(farmware_name) do
     case Asset.get_farmware_manifest(farmware_name) do
       nil -> {:error, "#{farmware_name} farmware not installed"}
       manifest -> {:ok, manifest}
+    end
+  end
+
+  def lookup_installation(farmware_name) do
+    case Asset.get_farmware_installation(farmware_name) do
+      nil -> {:error, "#{farmware_name} farmware not installed"}
+      farmware -> {:ok, farmware}
     end
   end
 
