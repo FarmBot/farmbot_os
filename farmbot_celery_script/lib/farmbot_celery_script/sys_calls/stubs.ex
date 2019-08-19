@@ -41,6 +41,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def execute_script(package, args), do: error(:execute_script, [package, args])
 
   @impl true
+  def update_farmware(package), do: error(:update_farmware, [package])
+
+  @impl true
   def factory_reset(package), do: error(:factory_reset, [package])
 
   @impl true

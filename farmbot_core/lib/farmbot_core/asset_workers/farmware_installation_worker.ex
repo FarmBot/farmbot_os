@@ -22,6 +22,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   def init(fwi) do
     {:ok, fwi, 0}
   end
+  
+  def handle_cast(:update, fwi) do
+    send self(), :timeout
+    {:noreply, fwi}
+  end
 
   def handle_info(:timeout, %{manifest: nil} = fwi) do
     FarmbotCore.Logger.busy(3, "Installing Farmware from url: #{fwi.url}")

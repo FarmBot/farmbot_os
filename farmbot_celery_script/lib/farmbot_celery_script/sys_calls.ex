@@ -30,6 +30,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback emergency_lock() :: ok_or_error
   @callback emergency_unlock() :: ok_or_error
   @callback execute_script(package, args :: map()) :: ok_or_error
+  @callback update_farmware(package) :: ok_or_error
   @callback factory_reset(package :: String.t()) :: ok_or_error
   @callback find_home(axis) :: ok_or_error
   @callback firmware_reboot() :: ok_or_error
@@ -112,6 +113,10 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def execute_script(sys_calls \\ @sys_calls, package, %{} = env) when is_binary(package) do
     ok_or_error(sys_calls, :execute_script, [package, env])
+  end
+
+  def update_farmware(sys_calls \\ @sys_calls, package) when is_binary(package) do
+    ok_or_error(sys_calls, :update_farmware, [package])
   end
 
   def factory_reset(sys_calls \\ @sys_calls, package) do

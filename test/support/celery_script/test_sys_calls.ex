@@ -147,6 +147,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def update_farmware(name) do
+    call({:update_farmware, [name]})
+  end
+
+  @impl true
   def read_status do
     call({:read_status, []})
   end

@@ -292,6 +292,14 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
+  compile :update_farmware, %{label: package} do
+    quote location: :keep do
+      package = unquote(compile_ast(package))
+      FarmbotCeleryScript.SysCalls.log("Updating Farmware: #{package}")
+      FarmbotCeleryScript.SysCalls.update_farmware(package)
+    end
+  end
+
   # TODO(Connor) - see above TODO
   compile :take_photo do
     # {:execute_script, [], ["take_photo", {:%{}, [], []}]}
