@@ -355,6 +355,15 @@ defmodule FarmbotCore.Asset do
     )
   end
 
+  def get_farmware_installation(package) do
+    first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware))
+    regular_farmwares = Repo.all(from(fwi in FarmwareInstallation))
+    Enum.find(
+      first_party_farmwares ++ regular_farmwares, 
+      fn %{manifest: %{package: pkg}} -> pkg == package end
+    )
+  end
+
   def upsert_farmware_manifest_by_id(id, params) do
     fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
     FarmwareInstallation.changeset(fwi, params)
