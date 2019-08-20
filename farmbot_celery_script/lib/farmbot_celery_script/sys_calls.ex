@@ -219,6 +219,10 @@ defmodule FarmbotCeleryScript.SysCalls do
     number_or_error(sys_calls, :set_servo_angle, [pin_num, pin_value])
   end
 
+  def set_pin_io_mode(sys_calls \\ @sys_calls, pin_number, pin_io_mode) do
+    ok_or_error(sys_calls, :set_pin_io_mode, [pin_number, pin_io_mode])
+  end
+
   def set_user_env(sys_calls \\ @sys_calls, key, value) do
     ok_or_error(sys_calls, :set_user_env, [key, value])
   end
