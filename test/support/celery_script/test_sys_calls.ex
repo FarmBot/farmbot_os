@@ -241,6 +241,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
     call({:zero, [axis]})
   end
 
+  @impl true
+  def eval_assertion(expression) do
+    call({:eval_assertion, [expression]})
+  end
+
   defp call(data) do
     {handler, kind, args} = GenServer.call(__MODULE__, data, :infinity)
     handler.(kind, args)

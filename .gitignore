@@ -56,3 +56,4 @@ nerves-hub
 *.pem
 *.db
 *.db-journal
+*.lua
