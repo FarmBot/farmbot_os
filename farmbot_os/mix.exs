@@ -82,6 +82,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_hub_cli, "~> 0.7", runtime: false},
       {:shoehorn, "~> 0.6"},
       {:ring_logger, "~> 0.8"},
+      {:luerl, github: "rvirding/luerl"},
 
       # Host/test only dependencies.
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},

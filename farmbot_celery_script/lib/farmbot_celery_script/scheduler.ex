@@ -136,7 +136,7 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   def handle_info(:checkup, %{next: nil} = state) do
-    Logger.debug("Scheduling next checkup with no next")
+    # Logger.debug("Scheduling next checkup with no next")
 
     state
     |> schedule_next_checkup()
