@@ -97,9 +97,9 @@ defmodule FarmbotCore.FarmwareRuntime do
     # Create pipe dir if it doesn't exist
     _ = File.mkdir_p(@runtime_dir)
 
-    # Open a pipe
-    {:ok, req} = PipeWorker.start_link(request_pipe)
-    {:ok, resp} = PipeWorker.start_link(response_pipe)
+    # Open pipes
+    {:ok, req} = PipeWorker.start_link(request_pipe, :in)
+    {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
 
     exec = System.find_executable(manifest.executable)
     installation_path = install_dir(manifest)
@@ -112,6 +112,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       )
 
     # Start the plugin.
+    Logger.debug "spawning farmware: #{exec} #{manifest.args}"
     {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
