@@ -166,8 +166,35 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
+  # `Assert` is a internal node useful for self testing.
+  compile :assertion, %{lua: expression, op: op, _then: then_ast} do
+    quote location: :keep do
+      case FarmbotCeleryScript.SysCalls.eval_assertion(unquote(compile_ast(expression))) do
+        {:error, reason} ->
+          {:error, reason}
+
+        true ->
+          :ok
+
+        false when unquote(op) == "abort" ->
+          FarmbotCeleryScript.SysCalls.log("Assertion failed (aborting)")
+          {:error, "Assertion failed (aborting)"}
+
+        false when unquote(op) == "recover" ->
+          FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering)")
+          unquote(compile_block(then_ast))
+
+        false when unquote(op) == "abort_recover" ->
+          FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering then aborting)")
+          unquote(compile_block([then_ast, %AST{kind: :abort, args: %{}}]))
+      end
+    end
+  end
+
   # Compiles an if statement.
   compile :_if, %{_then: then_ast, _else: else_ast, lhs: lhs, op: op, rhs: rhs} do
+    rhs = compile_ast(rhs)
+
     # Turns the left hand side arg into
     # a number. x, y, z, and pin{number} are special that need to be
     # evaluated before evaluating the if statement.
@@ -188,6 +215,10 @@ defmodule FarmbotCeleryScript.Compiler do
           quote [location: :keep],
             do: FarmbotCeleryScript.SysCalls.read_pin(unquote(String.to_integer(pin)), nil)
 
+        "expression" ->
+          quote [location: :keep],
+            do: FarmbotCeleryScript.SysCalls.eval_assertion(rhs)
+
         # Named pin has two intents here
         # in this case we want to read the named pin.
         %AST{kind: :named_pin} = ast ->
@@ -197,8 +228,6 @@ defmodule FarmbotCeleryScript.Compiler do
         %AST{} = ast ->
           compile_ast(ast)
       end
-
-    rhs = compile_ast(rhs)
 
     # Turn the `op` arg into Elixir code
     if_eval =
@@ -237,6 +266,11 @@ defmodule FarmbotCeleryScript.Compiler do
           # ast will look like: {:>, [], [lhs, compile_ast(rhs)]}
           quote location: :keep do
             unquote(lhs) > unquote(rhs)
+          end
+
+        _ ->
+          quote location: :keep do
+            unquote(lhs)
           end
       end
 
@@ -333,6 +367,12 @@ defmodule FarmbotCeleryScript.Compiler do
     # AST looks like: {:nothing, [], []}
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.nothing()
+    end
+  end
+
+  compile :abort do
+    quote location: :keep do
+      Macro.escape({:error, "aborted"})
     end
   end
 

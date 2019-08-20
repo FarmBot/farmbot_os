@@ -23,6 +23,8 @@ defmodule FarmbotOS.SysCalls do
     SetPinIOMode
   }
 
+  alias FarmbotOS.Lua
+
   alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState, Leds}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
 
@@ -57,6 +59,9 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate set_pin_io_mode(pin, mode), to: SetPinIOMode
+
+  @impl true
+  defdelegate eval_assertion(expression), to: Lua
 
   @impl true
   def log(message) do
