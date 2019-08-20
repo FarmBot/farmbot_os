@@ -46,8 +46,11 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
   defp loop(farmware_name, runtime, monitor, {ref, label}) do
     receive do
-      {:DOWN, ^monitor, :process, ^runtime, :normal} ->
+      {:DOWN, ^monitor, :process, _runtime, :normal} ->
         :ok
+
+      {:DOWN, ^monitor, :process, _runtime, error} ->
+        {:error, inspect(error)}
 
       {:step_complete, ^ref, :ok} ->
         Logger.debug("ok for #{label}")
@@ -70,7 +73,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
           Logger.info("Already processing a celeryscript request: #{label}")
           loop(farmware_name, runtime, monitor, {ref, label})
         else
-          case FarmwareRuntime.process_rpc(runtime) do
+          case Process.alive?(runtime) && FarmwareRuntime.process_rpc(runtime) do
             {:ok, %{args: %{label: label}} = rpc} ->
               ref = make_ref()
               Logger.debug("executing rpc: #{inspect(rpc)}")
@@ -79,6 +82,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
             {:error, :no_rpc} ->
               loop(farmware_name, runtime, monitor, {ref, label})
+
+            false ->
+              :ok
           end
         end
     end
