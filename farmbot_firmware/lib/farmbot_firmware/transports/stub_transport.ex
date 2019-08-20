@@ -250,6 +250,16 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
+  def handle_call({tag, {:pin_mode_write, _args}} = code, _from, state) do
+    resp_codes = [
+      GCODE.new(:report_echo, [GCODE.encode(code)]),
+      GCODE.new(:report_begin, [], tag),
+      GCODE.new(:report_success, [], tag)
+    ]
+
+    {:reply, :ok, state, {:continue, resp_codes}}
+  end
+
   def handle_call({tag, {:position_read, _}} = code, _from, state) do
     resp_codes = [
       GCODE.new(:report_echo, [GCODE.encode(code)]),
