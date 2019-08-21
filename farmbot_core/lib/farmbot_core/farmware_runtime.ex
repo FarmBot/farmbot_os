@@ -79,17 +79,18 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   def init([manifest, env]) do
     package = manifest.package
+    <<clause1 :: binary-size(8), _::binary>> = Ecto.UUID.generate()
 
     request_pipe =
       Path.join([
         @runtime_dir,
-        package <> "-" <> Ecto.UUID.generate() <> "-farmware-request-pipe"
+        package <> "-" <> clause1 <> "-farmware-request-pipe"
       ])
 
     response_pipe =
       Path.join([
         @runtime_dir,
-        package <> "-" <> Ecto.UUID.generate() <> "-farmware-response-pipe"
+        package <> "-" <> clause1 <> "-farmware-response-pipe"
       ])
 
     env = build_env(manifest, env, request_pipe, response_pipe)
