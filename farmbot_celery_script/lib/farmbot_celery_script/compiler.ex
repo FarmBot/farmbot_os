@@ -167,7 +167,7 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # `Assert` is a internal node useful for self testing.
-  compile :assertion, %{lua: expression, op: op, _then: then_ast} do
+  compile :assertion, %{lua: expression, assertion_type: assertion_type, _then: then_ast} do
     quote location: :keep do
       case FarmbotCeleryScript.SysCalls.eval_assertion(unquote(compile_ast(expression))) do
         {:error, reason} ->
@@ -176,15 +176,15 @@ defmodule FarmbotCeleryScript.Compiler do
         true ->
           :ok
 
-        false when unquote(op) == "abort" ->
+        false when unquote(assertion_type) == "abort" ->
           FarmbotCeleryScript.SysCalls.log("Assertion failed (aborting)")
           {:error, "Assertion failed (aborting)"}
 
-        false when unquote(op) == "recover" ->
+        false when unquote(assertion_type) == "recover" ->
           FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering)")
           unquote(compile_block(then_ast))
 
-        false when unquote(op) == "abort_recover" ->
+        false when unquote(assertion_type) == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering then aborting)")
           unquote(compile_block([then_ast, %AST{kind: :abort, args: %{}}]))
       end
