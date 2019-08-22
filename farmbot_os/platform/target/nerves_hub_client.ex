@@ -426,7 +426,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         {:ok, conn}
 
       err ->
-        FarmbotCore.Logger.error(1, "Error connecting to AMPQ: #{inspect(err)}")
+        FarmbotCore.Logger.error(1, "Error connecting to AMQP: #{inspect(err)}")
         err
     end
   end
