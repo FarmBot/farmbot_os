@@ -182,6 +182,10 @@ defmodule FarmbotCeleryScript.Compiler do
         true ->
           :ok
 
+        false when unquote(assertion_type) == "continue" ->
+          FarmbotCeleryScript.SysCalls.log("Assertion failed (continuing)")
+          :ok
+
         false when unquote(assertion_type) == "abort" ->
           FarmbotCeleryScript.SysCalls.log("Assertion failed (aborting)")
           {:error, "Assertion failed (aborting)"}
