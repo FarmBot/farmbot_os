@@ -9,6 +9,13 @@ defmodule FarmbotExt.API.DirtyWorker do
   use GenServer
   @timeout 10000
 
+  # these resources can't be accessed by `id`.
+  @singular [
+    FarmbotCore.Asset.Device,
+    FarmbotCore.Asset.FirmwareConfig,
+    FarmbotCore.Asset.FbosConfig
+  ]
+
   @doc false
   def child_spec(module) when is_atom(module) do
     %{
@@ -124,9 +131,15 @@ defmodule FarmbotExt.API.DirtyWorker do
     API.post(API.client(), path, data)
   end
 
+  defp http_request(dirty, %{module: module} = state) when module in @singular do
+    Logger.debug("#{state.module} dirty request (patch)")
+    path = path = state.module.path()
+    data = render(state.module, dirty)
+    API.patch(API.client(), path, data)
+  end
+
   defp http_request(dirty, state) do
     Logger.debug("#{state.module} dirty request (patch)")
-    # IO.inspect(dirty, label: "PATCH")
     path = Path.join(state.module.path(), to_string(dirty.id))
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
