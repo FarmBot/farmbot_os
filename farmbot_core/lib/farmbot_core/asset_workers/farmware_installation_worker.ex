@@ -8,7 +8,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
 
   config = Application.get_env(:farmbot_core, __MODULE__)
   @install_dir config[:install_dir] || Mix.raise("Missing Install Dir")
-  @error_retry_time_ms config[:error_retry_time_ms] || 30_000
+  @error_retry_time_ms config[:error_retry_time_ms] || 25_000
+  @back_off_time_ms  config[:back_off_time_ms] || 5_000
   @manifest_name "manifest.json"
 
   def preload(%FWI{}), do: []
@@ -20,15 +21,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   def init(fwi) do
-    {:ok, fwi, 0}
+    {:ok, %{fwi: fwi, backoff: 0}, 0}
   end
   
-  def handle_cast(:update, fwi) do
-    send self(), :timeout
-    {:noreply, fwi}
+  def handle_cast(:update, state) do
+    FarmbotCore.Logger.debug(3, "Will attempt Farmware update")
+    {:noreply, state, 0}
   end
 
-  def handle_info(:timeout, %{manifest: nil} = fwi) do
+  def handle_info(:timeout, %{fwi: %{manifest: nil} = fwi} = state) do
     FarmbotCore.Logger.busy(3, "Installing Farmware from url: #{fwi.url}")
 
     with {:ok, %{} = manifest} <- get_manifest_json(fwi),
@@ -41,11 +42,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
       FarmbotCore.Logger.success(1, "Installed Farmware #{updated.manifest.package} from #{fwi.url}")
       # TODO(Connor) -> No reason to keep this process alive?
       BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
-      {:noreply, fwi}
+      {:noreply, %{state | backoff: 0}}
     else
       error ->
-        error_log(fwi, "failed to download Farmware manifest: #{inspect(error)}")
-        {:noreply, fwi, @error_retry_time_ms}
+        backoff = state.backoff + @back_off_time_ms
+        timeout = @error_retry_time_ms + backoff
+        error_log(fwi, "Failed to download Farmware manifest. Trying again in #{timeout}ms #{inspect(error)}")
+        {:noreply, %{state | backoff: backoff}, timeout}
     end
   end
 
@@ -58,45 +61,47 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   #     yet to be implemented APIs (due to out of date farmbot os)
   #   * update farmware tools, it uses an API that doesn't exist yet (due to
   #     not updating farmbot os)
-  def handle_info(:timeout, %FWI{} = fwi) do
+  def handle_info(:timeout, %{fwi: %FWI{} = fwi} = state) do
     with {:ok, %{} = i_manifest} <- load_manifest_json(fwi),
          %{valid?: true} = d_changeset <- FWI.changeset(fwi, %{manifest: i_manifest}),
          %FWI{} = dirty <- Ecto.Changeset.apply_changes(d_changeset),
          {:ok, n_manifest} <- get_manifest_json(fwi),
          %{valid?: true} = n_changeset <- FWI.changeset(fwi, %{manifest: n_manifest}),
          {:ok, %FWI{} = updated} <- Repo.update(n_changeset) do
-      maybe_update(dirty, updated)
+      maybe_update(%{state | fwi: dirty}, updated)
     else
       # Farmware wasn't found. Reinstall
       {:error, :enoent} ->
+        error_log(fwi, "farmware not installed. Maybe uninstalled out of band?")
         updated =
-          FWI.changeset(fwi, %{manifest: nil})
+          FWI.changeset(fwi, %{manifest: nil, updated_at: fwi.updated_at})
           |> Repo.update!()
 
-        {:noreply, updated, 0}
+        {:noreply, %{state | fwi: updated}, 0}
 
       error ->
-        error_log(fwi, "failed to check for updates: #{inspect(error)}")
-
-        {:noreply, fwi, @error_retry_time_ms}
+        backoff = state.backoff + @back_off_time_ms
+        timeout = @error_retry_time_ms + backoff
+        error_log(fwi, "failed to check for updates. Trying again in #{timeout}ms #{inspect(error)}")
+        {:noreply, %{state | backoff: backoff}, timeout}
     end
   end
 
-  def maybe_update(%FWI{} = installed_fwi, %FWI{} = updated) do
+  def maybe_update(%{fwi: %FWI{} = installed_fwi} = state, %FWI{} = updated) do
     case Version.compare(installed_fwi.manifest.package_version, updated.manifest.package_version) do
       # Installed is newer than remote.
       :gt ->
         success_log(updated, "up to date.")
         BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
 
-        {:noreply, updated}
+        {:noreply, %{state | fwi: updated}}
 
       # No difference between installed and remote.
       :eq ->
         success_log(updated, "up to date.")
         BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
 
-        {:noreply, updated}
+        {:noreply, %{state | fwi: updated}}
 
       # Installed version is older than remote
       :lt ->
@@ -107,11 +112,14 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
              :ok <- install_farmware_tools(updated),
              :ok <- write_manifest(updated) do
           BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
-          {:noreply, updated}
+          {:noreply, %{state | fwi: updated, backoff: 0}}
+
         else
           er ->
-            error_log(updated, "update failed: #{inspect(er)}")
-            {:noreply, updated, @error_retry_time_ms}
+            backoff = state.backoff + @back_off_time_ms
+            timeout = @error_retry_time_ms + backoff
+            error_log(updated, "update failed. Trying again in #{timeout}ms #{inspect(er)}")
+            {:noreply, %{state | fwi: updated, backoff: backoff}, timeout}
         end
     end
   end
