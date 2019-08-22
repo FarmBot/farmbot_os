@@ -1,4 +1,4 @@
-# CeleryScript IF `expression` field.
+# CeleryScript Assert expressions.
 
 The CeleryScript `if` block takes a possible left hand side value of
 `expression` which allows an arbitrary string to be evaluated. This 
