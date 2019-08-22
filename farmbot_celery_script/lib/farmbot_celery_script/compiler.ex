@@ -326,7 +326,7 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  compile :update_farmware, %{label: package} do
+  compile :update_farmware, %{package: package} do
     quote location: :keep do
       package = unquote(compile_ast(package))
       FarmbotCeleryScript.SysCalls.log("Updating Farmware: #{package}")
