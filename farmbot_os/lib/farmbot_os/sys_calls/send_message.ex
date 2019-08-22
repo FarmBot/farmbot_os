@@ -52,6 +52,9 @@ defmodule FarmbotOS.SysCalls.SendMessage do
            y: FarmbotCeleryScript.FormatUtil.format_float(y),
            z: FarmbotCeleryScript.FormatUtil.format_float(z)
          ]}
+
+      {:error, reason} ->
+        {:error, inspect(reason)}
     end
   end
 
