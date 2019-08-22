@@ -45,7 +45,7 @@ defmodule FarmbotOS.MixProject do
       overwrite: true,
       cookie: "democookie",
       include_erts: &Nerves.Release.erts/0,
-      strip_beams: Mix.env() == :prod,
+      strip_beams: false,
       steps: [&Nerves.Release.init/1, :assemble]
     ]
   end
