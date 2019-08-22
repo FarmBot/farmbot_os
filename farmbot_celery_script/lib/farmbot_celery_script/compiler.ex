@@ -56,7 +56,13 @@ defmodule FarmbotCeleryScript.Compiler do
   Recursive function that will emit Elixir AST from CeleryScript AST.
   """
   @spec compile(AST.t(), Keyword.t()) :: [compiled()]
-  def compile(%AST{kind: kind} = ast, env \\ []) when kind in @valid_entry_points do
+  def compile(ast, env \\ [])
+
+  def compile(%AST{kind: :abort}, _env) do
+    fn -> {:error, "aborted"} end
+  end
+
+  def compile(%AST{kind: kind} = ast, env) when kind in @valid_entry_points do
     # compile the ast
     {_, _, _} = compiled = compile_ast(ast)
 
@@ -186,7 +192,17 @@ defmodule FarmbotCeleryScript.Compiler do
 
         false when unquote(assertion_type) == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering then aborting)")
-          unquote(compile_block([then_ast, %AST{kind: :abort, args: %{}}]))
+          # {:__block__, meta, then_block} = unquote(compile_block(then_ast))
+          # {:__block__, _, abort_block} = unquote(compile_block([%AST{kind: :abort, args: %{}}]))
+          # {:__block, meta, then_block ++ abort_block}
+          then_block = unquote(compile_block(then_ast))
+          # abort_block = unquote(compile_block([%AST{kind: :abort, args: %{}}]))
+          IO.inspect(then_block, label: "THEN")
+          # IO.inspect(abort_block, label: "ABORT")
+          then_block ++
+            [
+              FarmbotCeleryScript.Compiler.compile(%AST{kind: :abort, args: %{}}, [])
+            ]
       end
     end
   end
