@@ -47,6 +47,8 @@ defmodule FarmbotOS.Lua do
     |> set_table([:home], &Firmware.home/2)
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
     |> set_table([:get_position], &Firmware.get_position/2)
+    |> set_table([:check_position], &Firmware.check_position/2)
+    |> set_table([:get_pin], &Firmware.get_pin/2)
     |> set_table([:get_pins], &Firmware.get_pins/2)
     |> set_table([:coordinate], &Firmware.coordinate/2)
     |> set_table([:read_status], &Info.read_status/2)
