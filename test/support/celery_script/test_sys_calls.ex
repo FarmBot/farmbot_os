@@ -242,8 +242,8 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
-  def eval_assertion(expression) do
-    call({:eval_assertion, [expression]})
+  def eval_assertion(comment, expression) do
+    call({:eval_assertion, [comment, expression]})
   end
 
   defp call(data) do
