@@ -6,6 +6,11 @@ defmodule FarmbotOS.Lua do
     Info
   }
 
+  def log_assertion(passed?, message) do
+    # FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, [assertion_passed: passed?])
+    FarmbotCore.Logger.dispatch_log(__ENV__, :info, 2, message, assertion_passed: passed?)
+  end
+
   @doc """
   Evaluates some Lua code. The code should
   return a boolean value.
