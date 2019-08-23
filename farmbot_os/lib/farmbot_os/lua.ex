@@ -1,21 +1,24 @@
 defmodule FarmbotOS.Lua do
   @type t() :: tuple()
   @type table() :: [{any, any}]
+  require FarmbotCore.Logger
+
   alias FarmbotOS.Lua.Ext.{
+    Data,
     Firmware,
     Info
   }
 
-  def log_assertion(passed?, message) do
-    # FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, [assertion_passed: passed?])
-    FarmbotCore.Logger.dispatch_log(__ENV__, :info, 2, message, assertion_passed: passed?)
+  def log_assertion(passed?, type, message) do
+    meta = [assertion_passed: passed?, assertion_type: type]
+    FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, meta)
   end
 
   @doc """
   Evaluates some Lua code. The code should
   return a boolean value.
   """
-  def eval_assertion(str) when is_binary(str) do
+  def eval_assertion(comment, str) when is_binary(str) do
     init()
     |> eval(str)
     |> case do
@@ -35,6 +38,17 @@ defmodule FarmbotOS.Lua do
         {:error, "lua runtime error evaluating expression"}
 
       {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
+        FarmbotCore.Logger.error(
+          1,
+          """
+          Failed to parse expression:
+          `#{comment}.lua:#{line}`
+
+          #{IO.iodata_to_binary(parse_error)}
+          """,
+          channels: [:toast]
+        )
+
         {:error, "failed to parse expression (line:#{line}): #{IO.iodata_to_binary(parse_error)}"}
 
       error ->
@@ -59,6 +73,14 @@ defmodule FarmbotOS.Lua do
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
     |> set_table([:version], &Info.version/2)
+    |> set_table([:update_device], &Data.update_device/2)
+    |> set_table([:get_device], &Data.get_device/2)
+    |> set_table([:update_fbos_config], &Data.update_fbos_config/2)
+    |> set_table([:get_fbos_config], &Data.get_fbos_config/2)
+    |> set_table([:update_firmware_config], &Data.update_firmware_config/2)
+    |> set_table([:get_firmware_config], &Data.get_firmware_config/2)
+    |> set_table([:new_farmware_env], &Data.new_farmware_env/2)
+    |> set_table([:new_sensor_reading], &Data.new_sensor_reading/2)
   end
 
   @spec set_table(t(), Path.t(), any()) :: t()

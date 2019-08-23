@@ -11,12 +11,6 @@ standard library](https://www.lua.org/manual/5.2/).
 ```lua
 -- Comments are ignored by the interpreter
 
--- help(function_name)
---    Returns docs for a function
-
-print(help("send_message"));
-print(help("get_position"));
-
 -- get_position()
 --    Returns a table containing the current position data
 
@@ -28,6 +22,8 @@ else
   return false;
 end
 
+return get_position("y") <= 20;
+
 -- get_pins()
 --    Returns a table containing current pin data
 
@@ -36,10 +32,106 @@ if pins[9] == 1.0 then
   return true;
 end
 
+return get_pin(10) == 0;
+
 -- send_message(type, message, channels)
 --    Sends a message to farmbot's logger
 
-send_message("info", "hello, world", ["toast"])
+send_message("info", "hello, world", ["toast"]);
+
+-- calibrate(axis)
+--    calibrate an axis
+
+calibrate("x");
+calibrate("y");
+calibrate("z");
+
+-- emergency_lock()
+-- emergency_unlock()
+--    lock and unlock farmbot's firmware.
+send_message("error", "locking the firmware!");
+emergancy_lock();
+emergency_unlock();
+
+-- find_home(axis)
+--    Find home on an axis.
+
+find_home("x");
+find_home("y");
+find_home("z");
+
+-- home(axis)
+--    Go to home on an axis.
+
+home("x");
+home("y");
+home("z");
+
+-- coordinate(x, y, z)
+--    create a vec3
+move_to = coordinate(1.0, 0, 0);
+
+-- move_absolute(x, y, z)
+--    Move in a line to a position
+move_absolute(1.0, 0, 0);
+move_absolute(coordinate(1.0, 20, 30));
+
+-- check_position(vec3, tolerance)
+--    Check a position against Farmbot's current
+--    position within a error threshold
+
+move_absolute(1.0, 0, 0);
+return check_position({x = 1.0, y = 0; z = 0}, 0.50);
+
+move_absolute(20, 100, 100);
+return check_position(coordinate(20, 100, 100), 1);
+
+-- read_status(arg0)
+--    Get a field on farmbot's current state
+
+status = read_status();
+return status.informational_settings.wifi_level >= 5;
+
+return read_status("location_data", "raw_encoders") >= 1900;
+
+-- version()
+--    return Farmbot's current version
+return version() == "8.1.2";
+
+-- get_device(field)
+--    return the device settings
+
+return get_device().timezone == "America/los_angeles";
+
+return get_device("name") == "Test Farmbot";
+
+-- update_device(table)
+--    update device settings
+
+update_device({name = "Test Farmbot"});
+
+-- get_fbos_config(field)
+--    return the current fbos_config
+
+return get_fbos_config("auto_sync");
+return get_fbos_config().os_auto_update;
+
+-- update_fbos_config(table)
+--    update the current fbos_config
+
+update_fbos_config({auto_sync = true, os_auto_update = false});
+
+-- get_firmware_config(field)
+--    return current firmware_config data
+
+return get_firmware_config().encoder_enabled_x == 1.0;
+
+return get_firmware_config("encoder_enabled_z");
+
+-- update_firmware_config(table)
+--    update current firmware_config data
+
+update_firmware_config({encoder_enabled_z = 1.0});
 ```
 
 ## Expression contract

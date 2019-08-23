@@ -67,24 +67,25 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback log(message :: String.t()) :: any()
   @callback sequence_init_log(message :: String.t()) :: any()
   @callback sequence_complete_log(message :: String.t()) :: any()
-  @callback eval_assertion(expression :: String.t()) :: true | false | error()
+  @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
+              true | false | error()
 
-  def eval_assertion(sys_calls \\ @sys_calls, expression) when is_binary(expression) do
-    case sys_calls.eval_assertion(expression) do
+  def eval_assertion(sys_calls \\ @sys_calls, comment, expression) when is_binary(expression) do
+    case sys_calls.eval_assertion(comment, expression) do
       true ->
         true
 
       false ->
         false
 
-      {:error, reason} when is_binary(reason) ->
-        or_error(sys_calls, :eval_assertion, [expression], reason)
+      {:error, reason} = error when is_binary(reason) ->
+        or_error(sys_calls, :eval_assertion, [comment, expression], error)
     end
   end
 
-  def log_assertion(sys_calls \\ @sys_calls, passed?, message) do
-    if function_exported?(sys_calls, :log_assertion, 2) do
-      apply(sys_calls, :log_assertion, [passed?, message])
+  def log_assertion(sys_calls \\ @sys_calls, passed?, type, message) do
+    if function_exported?(sys_calls, :log_assertion, 3) do
+      apply(sys_calls, :log_assertion, [passed?, type, message])
     end
   end
 
