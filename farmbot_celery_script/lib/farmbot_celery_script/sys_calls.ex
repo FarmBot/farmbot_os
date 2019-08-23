@@ -82,6 +82,12 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
+  def log_assertion(sys_calls \\ @sys_calls, passed?, message) do
+    if function_exported?(sys_calls, :log_assertion, 2) do
+      apply(sys_calls, :log_assertion, [passed?, message])
+    end
+  end
+
   def log(sys_calls \\ @sys_calls, message) when is_binary(message) do
     apply(sys_calls, :log, [message])
   end
