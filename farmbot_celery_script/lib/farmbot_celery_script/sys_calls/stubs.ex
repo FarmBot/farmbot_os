@@ -130,7 +130,7 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def zero(axis), do: error(:zero, [axis])
 
   @impl true
-  def eval_assertion(expression), do: error(:eval_assertion, [expression])
+  def eval_assertion(comment, expression), do: error(:eval_assertion, [comment, expression])
 
   defp error(fun, _args) do
     msg = """

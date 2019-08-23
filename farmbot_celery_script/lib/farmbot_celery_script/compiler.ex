@@ -187,11 +187,16 @@ defmodule FarmbotCeleryScript.Compiler do
 
     quote location: :keep do
       comment_header = unquote(comment_header)
+      assertion_type = unquote(assertion_type)
 
-      case FarmbotCeleryScript.SysCalls.eval_assertion(unquote(compile_ast(expression))) do
+      case FarmbotCeleryScript.SysCalls.eval_assertion(
+             unquote(comment),
+             unquote(compile_ast(expression))
+           ) do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
+            assertion_type,
             "#{comment_header}failed to evaluate, aborting"
           )
 
@@ -200,34 +205,43 @@ defmodule FarmbotCeleryScript.Compiler do
         true ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             true,
+            assertion_type,
             "#{comment_header}passed, continuing execution"
           )
 
           :ok
 
-        false when unquote(assertion_type) == "continue" ->
+        false when assertion_type == "continue" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
+            assertion_type,
             "#{comment_header}failed, continuing execution"
           )
 
           :ok
 
-        false when unquote(assertion_type) == "abort" ->
-          FarmbotCeleryScript.SysCalls.log_assertion(false, "#{comment_header}failed, aborting")
-          {:error, "Assertion failed (aborting)"}
-
-        false when unquote(assertion_type) == "recover" ->
+        false when assertion_type == "abort" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
+            assertion_type,
+            "#{comment_header}failed, aborting"
+          )
+
+          {:error, "Assertion failed (aborting)"}
+
+        false when assertion_type == "recover" ->
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            false,
+            assertion_type,
             "#{comment_header}failed, recovering and continuing"
           )
 
           unquote(compile_block(then_ast))
 
-        false when unquote(assertion_type) == "abort_recover" ->
+        false when assertion_type == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
+            assertion_type,
             "#{comment_header}failed, recovering and aborting"
           )
 
