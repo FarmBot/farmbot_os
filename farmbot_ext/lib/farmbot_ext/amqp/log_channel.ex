@@ -96,6 +96,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
         # ANSWER(Connor) - because the FE needed it.
         created_at: DateTime.from_naive!(log.inserted_at, "Etc/UTC") |> DateTime.to_unix(),
         channels: log.meta[:channels] || log.meta["channels"] || [],
+        assertion_passed: log.meta[:assertion_passed],
         message: log.message
       }
 
