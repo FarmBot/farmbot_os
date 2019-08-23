@@ -94,7 +94,7 @@ defmodule FarmbotCore.Logger do
 
   @doc false
   def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
-      when level in [:info, :debug, :busy, :warn, :success, :error, :fun] and is_number(verbosity) and
+      when level in [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion] and is_number(verbosity) and
              is_binary(message) and is_list(meta) do
     fun =
       case env.function do
@@ -129,7 +129,8 @@ defmodule FarmbotCore.Logger do
       line: log.line,
       module: log.module,
       channels: log.meta[:channels] || log.meta["channels"],
-      verbosity: log.verbosity
+      verbosity: log.verbosity,
+      assertion_passed: log.meta[:assertion_passed]
       # TODO Connor - fix time
       # time: time
     ]

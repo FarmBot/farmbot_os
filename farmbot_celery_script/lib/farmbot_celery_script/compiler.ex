@@ -173,36 +173,66 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # `Assert` is a internal node useful for self testing.
-  compile :assertion, %{lua: expression, assertion_type: assertion_type, _then: then_ast} do
+  def compile_ast(%AST{
+        kind: :assertion,
+        args: %{lua: expression, assertion_type: assertion_type, _then: then_ast},
+        comment: comment
+      }) do
+    comment_header =
+      if comment do
+        "[#{comment}] "
+      else
+        "[Assertion] "
+      end
+
     quote location: :keep do
+      comment_header = unquote(comment_header)
+
       case FarmbotCeleryScript.SysCalls.eval_assertion(unquote(compile_ast(expression))) do
         {:error, reason} ->
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            false,
+            "#{comment_header}failed to evaluate, aborting"
+          )
+
           {:error, reason}
 
         true ->
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            true,
+            "#{comment_header}passed, continuing execution"
+          )
+
           :ok
 
         false when unquote(assertion_type) == "continue" ->
-          FarmbotCeleryScript.SysCalls.log("Assertion failed (continuing)")
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            false,
+            "#{comment_header}failed, continuing execution"
+          )
+
           :ok
 
         false when unquote(assertion_type) == "abort" ->
-          FarmbotCeleryScript.SysCalls.log("Assertion failed (aborting)")
+          FarmbotCeleryScript.SysCalls.log_assertion(false, "#{comment_header}failed, aborting")
           {:error, "Assertion failed (aborting)"}
 
         false when unquote(assertion_type) == "recover" ->
-          FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering)")
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            false,
+            "#{comment_header}failed, recovering and continuing"
+          )
+
           unquote(compile_block(then_ast))
 
         false when unquote(assertion_type) == "abort_recover" ->
-          FarmbotCeleryScript.SysCalls.log("Assertion failed (recovering then aborting)")
-          # {:__block__, meta, then_block} = unquote(compile_block(then_ast))
-          # {:__block__, _, abort_block} = unquote(compile_block([%AST{kind: :abort, args: %{}}]))
-          # {:__block, meta, then_block ++ abort_block}
+          FarmbotCeleryScript.SysCalls.log_assertion(
+            false,
+            "#{comment_header}failed, recovering and aborting"
+          )
+
           then_block = unquote(compile_block(then_ast))
-          # abort_block = unquote(compile_block([%AST{kind: :abort, args: %{}}]))
-          IO.inspect(then_block, label: "THEN")
-          # IO.inspect(abort_block, label: "ABORT")
+
           then_block ++
             [
               FarmbotCeleryScript.Compiler.compile(%AST{kind: :abort, args: %{}}, [])
