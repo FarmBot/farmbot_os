@@ -35,7 +35,7 @@ defmodule FarmbotExt.MixProject do
     [
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:tesla, "~> 1.2"},
-      {:hackney, "~> 1.14"},
+      {:hackney, "~> 1.15"},
       {:uuid, "~> 1.1"},
       {:amqp, "1.1.1"},
       {:mox, "~> 0.5", only: :test},
