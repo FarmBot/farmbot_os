@@ -374,17 +374,20 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def handle_call({:handle_nerves_hub_update_available, %{"firmware_url" => url}}, _from, state) do
     case Asset.fbos_config(:os_auto_update) do
       true ->
+        set_update_available_in_bot_state()
         FarmbotCore.Logger.busy(1, "Applying OTA update")
         _ = set_firmware_needs_flash()
         {:reply, :apply, %{state | is_applying_update: true, firmware_url: url}}
 
       _ ->
+        set_update_available_in_bot_state()
         FarmbotCore.Logger.info(1, "New Farmbot OS is available!")
         {:reply, :ignore, %{state | firmware_url: url}}
     end
   end
 
   def handle_call({:handle_nerves_hub_update_available, _data}, _from, state) do
+    set_update_available_in_bot_state()
     FarmbotCore.Logger.busy(1, "Applying OTA update")
     {:reply, :apply, %{state | is_applying_update: true}}
   end
@@ -395,11 +398,18 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         {:reply, nil, state}
 
       data ->
+        set_update_available_in_bot_state()
         FarmbotCore.Logger.busy(1, "Applying OTA update")
         _ = set_firmware_needs_flash()
 
         spawn_link(fn -> NervesHub.update() end)
         {:reply, data, %{state | is_applying_update: true}}
+    end
+  end
+
+  defp set_update_available_in_bot_state() do
+    if Process.whereis(BotState) do
+      BotState.set_update_available(true)
     end
   end
 
