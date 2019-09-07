@@ -4,14 +4,17 @@
 | [![Master Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/staging) | [![Beta Build Status](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/next.svg?style=svg)](https://circleci.com/gh/FarmBot-Labs/farmbot_os/tree/next)|
 ---
 
-# FarmBot OS
-The "brains" of the FarmBot Project
-
 <!-- DON'T CHANGE THE TEXT BELOW. It is used in documentation links. -->
-# :floppy_disk: LATEST OS IMAGE DOWNLOADS
+# :floppy_disk: Latest OS Image Downloads
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
 
-:star: **[RPi 3 (Ships with FarmBot.io kits)](https://github.com/FarmBot/farmbot_os/releases/download/v7.0.1/farmbot-rpi3-7.0.1.img)**
+Download the version of FarmBot OS that corresponds to the FarmBot kit and computer you have:
+
+| FarmBot Kit  | Computer | Download Link |
+| --- | --- | --- |
+| Genesis v1.2, Genesis v1.3, Genesis v1.4, Genesis XL v1.4 | Raspberry Pi 3 | [Download FBOS](https://github.com/FarmBot/farmbot_os/releases/download/v7.0.1/farmbot-rpi3-7.0.1.img) |
+| Express v1.0, Express XL v1.0 | Raspberry Pi Zero W | Coming soon |
+
 ---
 
 ## Installation
