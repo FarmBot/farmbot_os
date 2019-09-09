@@ -111,7 +111,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         |> FarmbotCeleryScript.execute(make_ref())
       
       new_hardware != old_hardware ->
-        FarmbotCore.Logger.warn 1, "Firmware hardware change from #{package_to_string(old_hardware)} to #{package_to_string(new_hardware)} flashing firmware"
+        FarmbotCore.Logger.warn 1, "Firmware hardware change from #{package_to_string(old_hardware)} to #{package_to_string(new_hardware)}"
         new_hardware
         |> fbos_config_to_flash_firmware_rpc()
         |> FarmbotCeleryScript.execute(make_ref())
