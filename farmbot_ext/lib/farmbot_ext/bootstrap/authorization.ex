@@ -44,6 +44,18 @@ defmodule FarmbotExt.Bootstrap.Authorization do
     end
   end
 
+  @doc "Helper fucntion that returns the secret after a successful request"
+  def authorize_with_password_v2(email, password, server) do
+    with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
+         secret <- build_secret(email, password, rsa_key),
+         {:ok, payload} <- build_payload(email, password, rsa_key),
+         {:ok, resp} <- request_token(server, payload),
+         {:ok, body} <- JSON.decode(resp),
+         {:ok, encoded} <- get_encoded(body) do
+      {:ok, {encoded, secret}}
+    end
+  end
+
   defp get_encoded(%{"token" => %{"encoded" => encoded}}), do: {:ok, encoded}
   defp get_encoded(_), do: {:error, :bad_response}
 
