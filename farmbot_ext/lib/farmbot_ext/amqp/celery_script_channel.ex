@@ -140,8 +140,15 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   defp compute_reply_from_amqp_state(state, error) do
     # Run error warning if error not nil
     if error,
-      do: FarmbotCore.Logger.error(1, "Failed to connect to AutoSync channel: #{inspect(error)}")
+      do:
+        FarmbotCore.Logger.error(
+          1,
+          "Failed to connect to CeleryScript channel: #{inspect(error)}"
+        )
 
+    # Try to reconnect every 5 seconds. This should have some randomness 
+    # sprinkled onto it in the case of mass disconnects etc.
+    Process.send_after(self(), :timeout, 5000)
     {:noreply, %{state | conn: nil, chan: nil}}
   end
 end
