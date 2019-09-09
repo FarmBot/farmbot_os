@@ -466,8 +466,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def set_firmware_needs_flash() do
-    Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
-    Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+    # Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
+    # Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
     :ok
   end
 
