@@ -122,6 +122,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def toggle_pin(number) do
+    call({:toggle_pin, [number]})
+  end
+
+  @impl true
   def wait(millis) do
     call({:wait, [millis]})
   end
