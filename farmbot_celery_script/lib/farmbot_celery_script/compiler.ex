@@ -799,13 +799,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   compile :toggle_pin, %{pin_number: pin_number} do
     quote location: :keep do
-      # mode 0 = digital
-      case FarmbotCeleryScript.SysCalls.read_pin(unquote(compile_ast(pin_number)), 0) do
-        0 -> FarmbotCeleryScript.SysCalls.write_pin(unquote(compile_ast(pin_number)), 0, 1)
-        _ -> FarmbotCeleryScript.SysCalls.write_pin(unquote(compile_ast(pin_number)), 0, 0)
-      end
-
-      FarmbotCeleryScript.SysCalls.read_pin(unquote(compile_ast(pin_number)), 0)
+      FarmbotCeleryScript.SysCalls.toggle_pin(unquote(pin_number))
     end
   end
 

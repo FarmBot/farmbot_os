@@ -51,6 +51,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback point(point_type :: String.t(), resource_id) :: number() | error()
   @callback power_off() :: ok_or_error
   @callback read_pin(pin_num :: number(), pin_mode :: number()) :: number | error()
+  @callback toggle_pin(pin_num :: number()) :: ok_or_error
   @callback read_status() :: ok_or_error
   @callback reboot() :: ok_or_error
   @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
@@ -218,6 +219,10 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do
     number_or_error(sys_calls, :read_pin, [pin_num, pin_mode])
+  end
+
+  def toggle_pin(sys_calls \\ @sys_calls, pun_num) do
+    ok_or_error(sys_calls, :toggle_pin, [pun_num])
   end
 
   def read_status(sys_calls \\ @sys_calls) do
