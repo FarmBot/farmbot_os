@@ -30,8 +30,6 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
 
     case start_ssh(port, []) do
       {:ok, ssh} ->
-        send(self(), :checkup)
-
         {:ok, %{ssh: ssh, port: port, public_keys: []}}
 
       error ->
