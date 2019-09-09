@@ -9,6 +9,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   require FarmbotCore.Logger
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.{Asset.FbosConfig, BotState, Config}
+  import FarmbotFirmware.PackageUtils, only: [package_to_string: 1]
 
   @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold]
   @firmware_flash_attempt_threshold || Mix.raise """
@@ -110,7 +111,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         |> FarmbotCeleryScript.execute(make_ref())
       
       new_hardware != old_hardware ->
-        FarmbotCore.Logger.warn 1, "Firmware hardware change from #{old_hardware} to #{new_hardware} flashing firmware"
+        FarmbotCore.Logger.warn 1, "Firmware hardware change from #{package_to_string(old_hardware)} to #{package_to_string(new_hardware)} flashing firmware"
         new_hardware
         |> fbos_config_to_flash_firmware_rpc()
         |> FarmbotCeleryScript.execute(make_ref())
