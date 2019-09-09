@@ -257,10 +257,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       end
 
     case new_device_cert do
-      {:ok, data} ->
+      {:ok, _data} ->
         # DO NOT DO THIS. The api will do it behind the scenes
         # Asset.update_device!(%{update_channel: detect_update_channel()})
-        FarmbotCore.Logger.debug(3, "DeviceCert created: #{inspect(data)}")
+        FarmbotCore.Logger.debug(3, "DeviceCert created")
         FarmbotCore.Logger.debug(3, "Waiting for cert and key data from AMQP from farmbot api...")
         {:noreply, state}
 
