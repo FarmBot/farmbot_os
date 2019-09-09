@@ -11,7 +11,8 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
       FarmbotExt.AMQP.Supervisor,
-      FarmbotExt.API.ImageUploader
+      FarmbotExt.API.ImageUploader,
+      FarmbotExt.Bootstrap.DropPasswordTask
     ]
 
     opts = [strategy: :one_for_one]
