@@ -95,6 +95,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def read_pin(pin_num, pin_mode), do: error(:read_pin, [pin_num, pin_mode])
 
   @impl true
+  def toggle_pin(pin_num), do: error(:toggle_pin, [pin_num])
+
+  @impl true
   def read_status(), do: error(:read_status, [])
 
   @impl true
