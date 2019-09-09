@@ -2,11 +2,12 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector
+  import FarmbotFirmware.PackageUtils, only: [find_hex_file: 1, package_to_string: 1]
   require FarmbotCore.Logger
   require Logger
 
   def flash_firmware(package) do
-    FarmbotCore.Logger.busy(2, "Starting firmware flash for package: #{package}")
+    FarmbotCore.Logger.busy(2, "Flashing #{package_to_string(package)} firmware")
 
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
@@ -45,25 +46,6 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     end
   end
 
-  defp find_hex_file("arduino") do
-    Application.app_dir(:farmbot_firmware, ["priv", "arduino_firmware.hex"]) |> assert_exists()
-  end
-
-  defp find_hex_file("farmduino") do
-    Application.app_dir(:farmbot_firmware, ["priv", "farmduino.hex"]) |> assert_exists()
-  end
-
-  defp find_hex_file("farmduino_k14") do
-    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
-  end
-
-  defp find_hex_file("express_k10") do
-    Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"]) |> assert_exists()
-  end
-
-  defp find_hex_file(hardware) when is_binary(hardware),
-    do: {:error, "unknown firmware hardware: #{hardware}"}
-
   defp find_reset_fun(_) do
     config = Application.get_env(:farmbot_firmware, FarmbotFirmware.UARTTransport)
 
@@ -71,19 +53,6 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       {:ok, &module.reset/0}
     else
       {:ok, fn -> :ok end}
-    end
-  end
-
-  defp assert_exists(fname) do
-    if File.exists?(fname) do
-      {:ok, fname}
-    else
-      {:error,
-       """
-       File does not exist: #{fname}
-       The arduino firmware is a git submodule to the farmbot project.
-       Please call `make arudino_firmware`.
-       """}
     end
   end
 end
