@@ -64,6 +64,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
          {:ok, _} <- maybe_purge(chan, chan_name, purge?),
          :ok <- Queue.bind(chan, chan_name, @exchange, routing_key: route),
          {:ok, _} <- Basic.consume(chan, chan_name, self(), no_ack: true) do
+      Process.link(conn.pid)
+      Process.link(chan.pid)
       %{conn: conn, chan: chan}
     else
       nil -> %{conn: nil, chan: nil}
