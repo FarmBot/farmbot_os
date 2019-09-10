@@ -45,17 +45,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     maybe_connect(chan_name, route, auto_delete, purge?)
   end
 
-  @doc "Takes the 'bot' claim seen in the JWT and connects to the RPC server."
-  @callback maybe_connect_celeryscript(String.t()) :: map()
-  def maybe_connect_celeryscript(jwt_dot_bot) do
-    auto_delete = true
-    chan_name = jwt_dot_bot <> "_from_clients"
-    purge? = true
-    route = "bot.#{jwt_dot_bot}.from_clients"
-
-    maybe_connect(chan_name, route, auto_delete, purge?)
-  end
-
   defp maybe_connect(chan_name, route, auto_delete, purge?) do
     with %{} = conn <- FarmbotExt.AMQP.ConnectionWorker.connection(),
          {:ok, chan} <- Channel.open(conn),
