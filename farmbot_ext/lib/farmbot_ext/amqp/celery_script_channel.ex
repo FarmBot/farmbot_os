@@ -26,7 +26,8 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
     Process.flag(:sensitive, true)
-    {:ok, %State{conn: nil, chan: nil, jwt: jwt, rpc_requests: %{}}, 0}
+    send(self(), :timeout)
+    {:ok, %State{conn: nil, chan: nil, jwt: jwt, rpc_requests: %{}}}
   end
 
   def terminate(reason, state) do
