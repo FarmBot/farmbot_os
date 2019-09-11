@@ -42,7 +42,7 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
-  def log(_message) do
+  def log(_message, _force) do
     :ok
   end
 

@@ -73,8 +73,8 @@ defmodule FarmbotOS.SysCalls do
   defdelegate toggle_pin(number), to: PinControl
 
   @impl true
-  def log(message) do
-    if FarmbotCore.Asset.fbos_config(:sequence_body_log) do
+  def log(message, force?) do
+    if force? || FarmbotCore.Asset.fbos_config(:sequence_body_log) do
       FarmbotCore.Logger.info(2, message)
       :ok
     else
