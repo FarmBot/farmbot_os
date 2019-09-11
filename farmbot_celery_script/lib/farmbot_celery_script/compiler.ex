@@ -256,7 +256,7 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   # Compiles an if statement.
-  compile :_if, %{_then: then_ast, _else: else_ast, lhs: lhs, op: op, rhs: rhs} do
+  compile :_if, %{_then: then_ast, _else: else_ast, lhs: lhs_ast, op: op, rhs: rhs} do
     rhs = compile_ast(rhs)
 
     # Turns the left hand side arg into
@@ -265,7 +265,7 @@ defmodule FarmbotCeleryScript.Compiler do
     # any AST is also aloud to be on the lefthand side as
     # well, so if that is the case, compile it first.
     lhs =
-      case lhs do
+      case lhs_ast do
         "x" ->
           quote [location: :keep], do: FarmbotCeleryScript.SysCalls.get_current_x()
 
@@ -278,10 +278,6 @@ defmodule FarmbotCeleryScript.Compiler do
         "pin" <> pin ->
           quote [location: :keep],
             do: FarmbotCeleryScript.SysCalls.read_pin(unquote(String.to_integer(pin)), nil)
-
-        "expression" ->
-          quote [location: :keep],
-            do: FarmbotCeleryScript.SysCalls.eval_assertion(rhs)
 
         # Named pin has two intents here
         # in this case we want to read the named pin.
@@ -338,6 +334,18 @@ defmodule FarmbotCeleryScript.Compiler do
           end
       end
 
+    truthy_suffix =
+      case then_ast do
+        %{kind: :execute} -> "branching"
+        %{kind: :nothing} -> "continuing execution"
+      end
+
+    falsey_suffix =
+      case else_ast do
+        %{kind: :execute} -> "branching"
+        %{kind: :nothing} -> "continuing execution"
+      end
+
     # Finally, compile the entire if statement.
     # outputted code will look something like:
     # if get_current_x() == 123 do
@@ -346,13 +354,29 @@ defmodule FarmbotCeleryScript.Compiler do
     #    nothing()
     # end
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("If Statement evaluation")
+      prefix_string = FarmbotCeleryScript.SysCalls.format_lhs(unquote(lhs_ast))
+      # examples:
+      # "current x position is 100"
+      # "pin 13 > 1"
+      # "peripheral 10 is unknon"
+      result_str =
+        case unquote(op) do
+          "is" -> "#{prefix_string} is #{unquote(rhs)}"
+          "not" -> "#{prefix_string} is not #{unquote(rhs)}"
+          "is_undefined" -> "#{prefix_string} is unknown"
+        end
 
       if unquote(if_eval) do
-        FarmbotCeleryScript.SysCalls.log("If Statement will branch")
+        FarmbotCeleryScript.SysCalls.log(
+          "Evaluated IF statement: #{result_str}; #{unquote(truthy_suffix)}"
+        )
+
         unquote(compile_block(then_ast))
       else
-        FarmbotCeleryScript.SysCalls.log("If Statement will not branch")
+        FarmbotCeleryScript.SysCalls.log(
+          "Evaluated IF statement: #{result_str}; #{unquote(falsey_suffix)}"
+        )
+
         unquote(compile_block(else_ast))
       end
     end

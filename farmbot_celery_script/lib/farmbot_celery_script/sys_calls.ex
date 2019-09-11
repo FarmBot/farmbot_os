@@ -71,6 +71,20 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
               true | false | error()
 
+  def format_lhs(sys_calls \\ @sys_calls, lhs)
+
+  def format_lhs(_sys_calls, "x"), do: "current X position"
+  def format_lhs(_sys_calls, "y"), do: "current Y position"
+  def format_lhs(_sys_calls, "z"), do: "current z position"
+  def format_lhs(_sys_calls, "pin" <> num), do: "Pin #{num} value"
+
+  def format_lhs(sys_calls, %{kind: :named_pin, args: %{pin_type: type, pin_id: pin_id}}) do
+    case named_pin(sys_calls, type, pin_id) do
+      %{label: label} -> label
+      {:error, _reason} -> "unknown left hand side"
+    end
+  end
+
   def eval_assertion(sys_calls \\ @sys_calls, comment, expression) when is_binary(expression) do
     case sys_calls.eval_assertion(comment, expression) do
       true ->
