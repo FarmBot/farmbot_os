@@ -156,7 +156,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              package = "take-photo"
              env = %{"a" => "123"}
-             FarmbotCeleryScript.SysCalls.log("Executing Farmware: \#{package}")
+             FarmbotCeleryScript.SysCalls.log("Executing Farmware: \#{package}", true)
              FarmbotCeleryScript.SysCalls.execute_script(package, env)
              """)
   end
@@ -236,7 +236,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
                y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
                z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-               FarmbotCeleryScript.SysCalls.log("Moving to (\#{x_str}, \#{y_str}, \#{z_str})")
+               FarmbotCeleryScript.SysCalls.log("Moving to (\#{x_str}, \#{y_str}, \#{z_str})", true)
                FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
              end
              """)
@@ -270,7 +270,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
                y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
                z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-               FarmbotCeleryScript.SysCalls.log("Moving relative to (\#{x_str}, \#{y_str}, \#{z_str})")
+               FarmbotCeleryScript.SysCalls.log("Moving relative to (\#{x_str}, \#{y_str}, \#{z_str})", true)
                FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
              end
              """)
