@@ -10,17 +10,29 @@ defmodule FarmbotOS.SysCalls.PinControl do
   require FarmbotCore.Logger
 
   def toggle_pin(pin_number) when is_number(pin_number) do
+    peripheral = Asset.get_peripheral_by_pin(pin_number)
+
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
-        do_toggle_pin(pin_number, 0)
+        do_toggle_pin(peripheral || pin_number, 0)
 
       {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
-        do_toggle_pin(pin_number, 1)
+        do_toggle_pin(peripheral || pin_number, 1)
     end
   end
 
   def toggle_pin(pin_number) do
     {:error, "Unknown pin data: #{inspect(pin_number)}"}
+  end
+
+  defp do_toggle_pin(%Peripheral{pin: pin_number} = data, value) do
+    with :ok <- FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: 0]}),
+         value when is_number(value) <- do_read_pin(data, 0) do
+      :ok
+    else
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
   end
 
   defp do_toggle_pin(pin_number, value) do
