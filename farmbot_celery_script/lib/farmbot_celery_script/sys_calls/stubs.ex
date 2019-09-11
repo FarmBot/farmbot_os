@@ -7,7 +7,7 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   require Logger
 
   @impl true
-  def log(message), do: error(:log, [message])
+  def log(message, force?), do: error(:log, [message, force?])
 
   @impl true
   def sequence_init_log(message), do: error(:log, [message])

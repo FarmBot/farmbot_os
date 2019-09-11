@@ -65,7 +65,7 @@ defmodule FarmbotCeleryScript.SysCalls do
               ok_or_error
   @callback zero(axis) :: ok_or_error
 
-  @callback log(message :: String.t()) :: any()
+  @callback log(message :: String.t(), force? :: boolean()) :: any()
   @callback sequence_init_log(message :: String.t()) :: any()
   @callback sequence_complete_log(message :: String.t()) :: any()
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
@@ -90,8 +90,9 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
-  def log(sys_calls \\ @sys_calls, message) when is_binary(message) do
-    apply(sys_calls, :log, [message])
+  # TODO: Connor, due to default arg here, things get weird
+  def log(message, force? \\ false) when is_binary(message) do
+    apply(@sys_calls, :log, [message, force?])
   end
 
   def sequence_init_log(sys_calls \\ @sys_calls, message) when is_binary(message) do

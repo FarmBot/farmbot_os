@@ -385,7 +385,7 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       package = unquote(compile_ast(package))
       env = unquote(Macro.escape(Map.new(env)))
-      FarmbotCeleryScript.SysCalls.log("Executing Farmware: #{package}")
+      FarmbotCeleryScript.SysCalls.log("Executing Farmware: #{package}", true)
       FarmbotCeleryScript.SysCalls.execute_script(package, env)
     end
   end
@@ -393,7 +393,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :update_farmware, %{package: package} do
     quote location: :keep do
       package = unquote(compile_ast(package))
-      FarmbotCeleryScript.SysCalls.log("Updating Farmware: #{package}")
+      FarmbotCeleryScript.SysCalls.log("Updating Farmware: #{package}", true)
       FarmbotCeleryScript.SysCalls.update_farmware(package)
     end
   end
@@ -458,7 +458,7 @@ defmodule FarmbotCeleryScript.Compiler do
         x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
         y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
         z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-        FarmbotCeleryScript.SysCalls.log("Moving to (#{x_str}, #{y_str}, #{z_str})")
+        FarmbotCeleryScript.SysCalls.log("Moving to (#{x_str}, #{y_str}, #{z_str})", true)
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -480,7 +480,12 @@ defmodule FarmbotCeleryScript.Compiler do
         x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
         y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
         z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-        FarmbotCeleryScript.SysCalls.log("Moving relative to (#{x_str}, #{y_str}, #{z_str})")
+
+        FarmbotCeleryScript.SysCalls.log(
+          "Moving relative to (#{x_str}, #{y_str}, #{z_str})",
+          true
+        )
+
         FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, unquote(compile_ast(speed)))
       end
     end
@@ -531,7 +536,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands find_home(all) into three find_home/1 calls
   compile :find_home, %{axis: "all"} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Finding home on all axes")
+      FarmbotCeleryScript.SysCalls.log("Finding home on all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.find_home("z"),
            :ok <- FarmbotCeleryScript.SysCalls.find_home("y") do
@@ -544,7 +549,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :find_home, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
-        FarmbotCeleryScript.SysCalls.log("Finding home on the #{String.upcase(axis)} axis")
+        FarmbotCeleryScript.SysCalls.log("Finding home on the #{String.upcase(axis)} axis", true)
         FarmbotCeleryScript.SysCalls.find_home(axis)
       else
         {:error, reason} ->
@@ -556,7 +561,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands home(all) into three home/1 calls
   compile :home, %{axis: "all", speed: speed} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Going to home on all axes")
+      FarmbotCeleryScript.SysCalls.log("Going to home on all axes", true)
 
       with speed when is_number(speed) <- unquote(compile_ast(speed)),
            :ok <- FarmbotCeleryScript.SysCalls.home("z", speed),
@@ -571,7 +576,7 @@ defmodule FarmbotCeleryScript.Compiler do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)),
            speed when is_number(speed) <- unquote(compile_ast(speed)) do
-        FarmbotCeleryScript.SysCalls.log("Going to home on the #{String.upcase(axis)} axis")
+        FarmbotCeleryScript.SysCalls.log("Going to home on the #{String.upcase(axis)} axis", true)
         FarmbotCeleryScript.SysCalls.home(axis, speed)
       else
         {:error, reason} ->
@@ -583,7 +588,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands zero(all) into three zero/1 calls
   compile :zero, %{axis: "all"} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Zeroing all axes")
+      FarmbotCeleryScript.SysCalls.log("Zeroing all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.zero("z"),
            :ok <- FarmbotCeleryScript.SysCalls.zero("y") do
@@ -596,7 +601,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :zero, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
-        FarmbotCeleryScript.SysCalls.log("Zeroing the #{String.upcase(axis)} axis")
+        FarmbotCeleryScript.SysCalls.log("Zeroing the #{String.upcase(axis)} axis", true)
         FarmbotCeleryScript.SysCalls.zero(axis)
       else
         {:error, reason} ->
@@ -608,7 +613,7 @@ defmodule FarmbotCeleryScript.Compiler do
   # Expands calibrate(all) into three calibrate/1 calls
   compile :calibrate, %{axis: "all"} do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Calibrating all axes")
+      FarmbotCeleryScript.SysCalls.log("Calibrating all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.calibrate("z"),
            :ok <- FarmbotCeleryScript.SysCalls.calibrate("y") do
@@ -624,7 +629,7 @@ defmodule FarmbotCeleryScript.Compiler do
   compile :calibrate, %{axis: axis} do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <- unquote(compile_ast(axis)) do
-        FarmbotCeleryScript.SysCalls.log("Calibrating the #{String.upcase(axis)} axis")
+        FarmbotCeleryScript.SysCalls.log("Calibrating the #{String.upcase(axis)} axis", true)
         FarmbotCeleryScript.SysCalls.calibrate(axis)
       else
         {:error, reason} ->
