@@ -148,6 +148,11 @@ defmodule FarmbotOS.SysCalls.PinControl do
     end
   end
 
+  # Catches unsupplied `mode`
+  defp do_read_pin(%type{mode: mode} = peripheral, nil) when type in [Peripheral, Sensor] do
+    do_read_pin(peripheral, mode)
+  end
+
   # Generic pin digital
   defp do_read_pin(pin_number, 0) when is_number(pin_number) do
     case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
