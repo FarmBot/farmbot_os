@@ -81,15 +81,12 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     regimen_params = AST.decode(regimen_instance.regimen.body)
     # there may be many sequence scopes from here downward
     celery_ast =  AST.decode(sequence)
-
-    celery_ast = %{
-      celery_ast
-      | args: %{
-          celery_ast.args
-          | locals: %{
-            celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params}
-        }
-    }
+    celery_args = 
+      celery_ast.args
+      |> Map.put(:sequence_name, sequence.name)
+      |> Map.put(:locals, %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params})
+    
+    celery_ast = %{celery_ast | args: celery_args}
     FarmbotCeleryScript.schedule(celery_ast, at, sequence)
   end
 end

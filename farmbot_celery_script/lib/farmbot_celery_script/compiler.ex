@@ -92,7 +92,7 @@ defmodule FarmbotCeleryScript.Compiler do
   #    is added.
 
   # Compiles a `sequence` into an Elixir `fn`.
-  compile :sequence, %{locals: %{body: params}}, block, meta do
+  compile :sequence, %{locals: %{body: params}} = args, block, meta do
     # Sort the args.body into two arrays.
     # The `params` side gets turned into
     # a keyword list. These `params` are passed in from a previous sequence.
@@ -110,7 +110,7 @@ defmodule FarmbotCeleryScript.Compiler do
       end)
 
     {:__block__, [], assignments} = compile_block(body)
-    sequence_name = meta[:sequence_name]
+    sequence_name = meta[:sequence_name] || args[:sequence_name]
     steps = compile_block(block) |> decompose_block_to_steps()
 
     steps = add_sequence_init_and_complete_logs(steps, sequence_name)
