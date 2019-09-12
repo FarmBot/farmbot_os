@@ -19,8 +19,11 @@ defmodule FarmbotFirmware.Request do
     end
 
     case GenServer.call(firmware_server, code, :infinity) do
-      {:ok, tag} -> wait_for_request_result(tag, code)
-      {:error, status} -> {:error, status}
+      {:ok, tag} ->
+        wait_for_request_result(tag, code)
+
+      {:error, status} ->
+        {:error, status}
     end
   end
 
@@ -71,8 +74,10 @@ defmodule FarmbotFirmware.Request do
       {tag, report} ->
         wait_for_request_result_process(report, tag, code, result)
     after
-      5_000 ->
-        if result, do: {:ok, {tag, result}}, else: {:error, {:timeout, result}}
+      10_000 ->
+        if result,
+          do: {:ok, {tag, result}},
+          else: {:error, "timeout waiting for request to complete"}
     end
   end
 
