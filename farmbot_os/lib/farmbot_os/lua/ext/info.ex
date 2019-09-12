@@ -50,6 +50,21 @@ defmodule FarmbotOS.Lua.Ext.Info do
     {[FarmbotCore.Project.version(), nil], lua}
   end
 
+  @doc "Returns the current hour"
+  def current_hour(_args, lua) do
+    {[DateTime.utc_now().hour], lua}
+  end
+
+  @doc "Returns the current minute"
+  def current_minute(_args, lua) do
+    {[DateTime.utc_now().minute], lua}
+  end
+
+  @doc "Returns the current second"
+  def current_second(_args, lua) do
+    {[DateTime.utc_now().second], lua}
+  end
+
   defp do_send_message(kind, message, channels, lua) do
     case SysCalls.send_message(kind, message, channels) do
       :ok ->

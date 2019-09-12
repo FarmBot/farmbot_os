@@ -164,3 +164,8 @@ else
   return pins[9] == 1.0
 end
 ```
+
+```lua
+time = current_hour() + ":" + current_minute() + ":" + current_second();
+return time == "10:15:20"
+```
