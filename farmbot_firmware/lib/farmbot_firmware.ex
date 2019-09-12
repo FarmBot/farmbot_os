@@ -209,7 +209,7 @@ defmodule FarmbotFirmware do
   end
 
   @doc """
-  Sets the Firmware server to stop recording input and output 
+  Sets the Firmware server to stop recording input and output
   GCODES.
   """
   def exit_vcr_mode(server \\ __MODULE__) do
@@ -330,11 +330,15 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{current: c} = state) when is_tuple(c) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_busy, []}})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
     # Logger.debug "Got checkup message when current command still executing"
     {:noreply, state}
   end
 
   def handle_info(:timeout, %{command_queue: [{pid, {tag, code}} | rest]} = state) do
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     case GenServer.call(state.transport_pid, {tag, code}) do
       :ok ->
         new_state = %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}
@@ -552,6 +556,8 @@ defmodule FarmbotFirmware do
 
   # report_idle => goto(_, :idle)
   def handle_report({:report_idle, []}, %{status: _} = state) do
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_busy, [false])
     side_effects(state, :handle_idle, [true])
     send(self(), :timeout)
