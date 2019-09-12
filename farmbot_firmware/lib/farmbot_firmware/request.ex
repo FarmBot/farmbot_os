@@ -1,10 +1,12 @@
 defmodule FarmbotFirmware.Request do
   @moduledoc false
-  alias Farmbot.{Firmware, Firmware.GCODE}
+  alias FarmbotFirmware
+  alias FarmbotFirmware.GCODE
 
   @spec request(GenServer.server(), GCODE.t()) ::
-          {:ok, GCODE.t()} | {:error, :invalid_command | :firmware_error | Firmware.status()}
-  def request(firmware_server \\ Firmware, code)
+          {:ok, GCODE.t()}
+          | {:error, :invalid_command | :firmware_error | FarmbotFirmware.status()}
+  def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
     if kind not in [
