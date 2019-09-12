@@ -1,5 +1,6 @@
 defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   require Logger
+  require FarmbotCore.Logger
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.{
     Asset,
@@ -32,7 +33,9 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   def handle_info({FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
-      {:error, reason} -> reason
+      {:error, reason} -> 
+        FarmbotCore.Logger.error(2, "Event scheduled at #{scheduled_at} failed to execute: #{reason}")
+        reason
     end
     _ = Asset.add_execution_to_farm_event!(state.farm_event, %{
       scheduled_at: scheduled_at,
