@@ -659,7 +659,7 @@ defmodule FarmbotFirmware do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
 
-    side_effects(state, :report_home_complete, axis)
+    side_effects(state, :handle_home_complete, axis)
     {:noreply, state}
   end
 
