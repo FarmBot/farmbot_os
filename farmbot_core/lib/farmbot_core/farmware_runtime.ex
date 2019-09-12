@@ -77,6 +77,12 @@ defmodule FarmbotCore.FarmwareRuntime do
     GenServer.start_link(__MODULE__, [manifest, env], name: String.to_atom(package))
   end
 
+  @doc "Stop a farmware"
+  def stop(pid) do
+    Logger.info "Terminating farmware process"
+    GenServer.stop(pid, :normal)
+  end
+
   def init([manifest, env]) do
     package = manifest.package
     <<clause1 :: binary-size(8), _::binary>> = Ecto.UUID.generate()
@@ -185,7 +191,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   # farmware exit
   def handle_info({:DOWN, _ref, :process, _pid, _reason}, %{cmd: _cmd_pid} = state) do
     Logger.debug("Farmware exit")
-    {:stop, :normal, state}
+    {:noreply, %{state | cmd: nil}}
   end
 
   # successful result of an io:read/2 in :get_header context
