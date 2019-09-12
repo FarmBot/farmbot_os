@@ -147,8 +147,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
         reply = JSON.encode!(result_ast)
         AMQP.Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.from_device", reply)
-        msg = ["CeleryScript Error\n", reason]
-        Logger.error(msg)
+        FarmbotCore.Logger.error(2, "Failed to execute command: #{reason}")
         {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
 
       nil ->

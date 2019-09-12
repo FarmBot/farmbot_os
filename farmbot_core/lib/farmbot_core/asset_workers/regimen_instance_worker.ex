@@ -58,7 +58,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   def handle_info({FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
-      {:error, reason} -> reason
+      {:error, reason} -> 
+        FarmbotCore.Logger.error(2, "Regimen scheduled at #{scheduled_at} failed to execute: #{reason}")
+        reason
     end
     _ = Asset.add_execution_to_regimen_instance!(state.regimen_instance, %{
       scheduled_at: scheduled_at,
