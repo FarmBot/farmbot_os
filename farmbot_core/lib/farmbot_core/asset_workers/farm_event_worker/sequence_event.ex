@@ -50,13 +50,12 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
     sequence || raise("Sequence #{farm_event.executable_id} is not synced")
     param_appls = AST.decode(farm_event.body)
     celery_ast =  AST.decode(sequence)
-    celery_ast = %{
-      celery_ast
-      | args: %{
-          celery_ast.args
-          | locals: %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls}
-        }
-    }
+    celery_args = 
+      celery_ast.args
+      |> Map.put(:sequence_name, sequence.name)
+      |> Map.put(:locals, %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls})
+    
+    celery_ast = %{celery_ast | args: celery_args}
     FarmbotCeleryScript.schedule(celery_ast, at, farm_event)
   end
 end
