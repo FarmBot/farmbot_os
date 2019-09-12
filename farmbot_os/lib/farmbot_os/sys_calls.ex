@@ -324,7 +324,9 @@ defmodule FarmbotOS.SysCalls do
         {:error, "sequence not found"}
 
       %{} = sequence ->
-        %{AST.decode(sequence) | meta: %{sequence_name: sequence.name}}
+        ast = AST.decode(sequence)
+        args = Map.put(ast.args, :sequence_name, sequence.name)
+        %{%{ast | args: args} | meta: %{sequence_name: sequence.name}}
     end
   end
 
