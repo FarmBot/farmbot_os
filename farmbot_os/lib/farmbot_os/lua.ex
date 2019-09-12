@@ -73,6 +73,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
     |> set_table([:version], &Info.version/2)
+    |> set_table([:current_month], &Info.current_month/2)
     |> set_table([:current_hour], &Info.current_hour/2)
     |> set_table([:current_minute], &Info.current_minute/2)
     |> set_table([:current_second], &Info.current_second/2)
