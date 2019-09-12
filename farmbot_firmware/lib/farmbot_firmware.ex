@@ -297,6 +297,23 @@ defmodule FarmbotFirmware do
   end
 
   # @spec handle_info(:timeout, state) :: {:noreply, state}
+  def handle_info(
+        :timeout,
+        %{command_queue: [{pid, {tag, {:command_emergency_lock, []} = code}} | _]} = state
+      ) do
+    case GenServer.call(state.transport_pid, {tag, code}) do
+      :ok ->
+        new_state = %{state | tag: tag, current: code, command_queue: [], caller_pid: pid}
+        _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
+        _ = vcr_write(state, :out, {state.tag, code})
+
+        {:noreply, new_state}
+
+      error ->
+        {:stop, error, state}
+    end
+  end
+
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
     Logger.debug("Starting next configuration code: #{inspect(code)}")
 
@@ -396,6 +413,11 @@ defmodule FarmbotFirmware do
 
   # EmergencyLock should be ran immediately
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_emergency_lock, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_emergency_lock, []}})
+
     send(self(), :timeout)
     {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
