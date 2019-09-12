@@ -304,7 +304,7 @@ defmodule FarmbotFirmware do
       :ok ->
         new_state = %{state | current: code, configuration_queue: rest}
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
-        _ = vcr_write(state.vcr_fd, :out, {state.tag, code})
+        _ = vcr_write(state, :out, {state.tag, code})
         {:noreply, new_state}
 
       error ->
@@ -312,12 +312,19 @@ defmodule FarmbotFirmware do
     end
   end
 
+  def handle_info(:timeout, %{current: c} = state) when is_tuple(c) do
+    # Logger.debug "Got checkup message when current command still executing"
+    {:noreply, state}
+  end
+
   def handle_info(:timeout, %{command_queue: [{pid, {tag, code}} | rest]} = state) do
     case GenServer.call(state.transport_pid, {tag, code}) do
       :ok ->
         new_state = %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
-        _ = vcr_write(state.vcr_fd, :out, {state.tag, code})
+        _ = vcr_write(state, :out, {state.tag, code})
+        for {pid, _code} <- rest, do: send(pid, {state.tag, {:report_busy, []}})
+
         {:noreply, new_state}
 
       error ->
@@ -389,12 +396,14 @@ defmodule FarmbotFirmware do
 
   # EmergencyLock should be ran immediately
   def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}, 0}
+    send(self(), :timeout)
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # EmergencyUnLock should be ran immediately
   def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}, 0}
+    send(self(), :timeout)
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # If not in an acceptable state, return an error immediately.
@@ -406,17 +415,19 @@ defmodule FarmbotFirmware do
   def handle_command({tag, {_, _}} = code, {pid, _ref}, state) do
     new_state = %{state | command_queue: state.command_queue ++ [{pid, code}]}
 
-    case new_state.status do
-      :idle ->
-        {:reply, {:ok, tag}, new_state, 0}
+    case {new_state.status, state.current} do
+      {:idle, nil} ->
+        send(self(), :timeout)
+        {:reply, {:ok, tag}, new_state}
 
       # Don't do any flow control if state is emergency_lock.
       # This allows a transport to decide
       # if a command should be blocked or not.
-      :emergency_lock ->
-        {:reply, {:ok, tag}, new_state, 0}
+      {:emergency_lock, _} ->
+        send(self(), :timeout)
+        {:reply, {:ok, tag}, new_state}
 
-      _ ->
+      _unknown ->
         {:reply, {:ok, tag}, new_state}
     end
   end
@@ -429,17 +440,19 @@ defmodule FarmbotFirmware do
   # Extracts tag
   def handle_cast({tag, {_, _} = code}, state) do
     _ = side_effects(state, :handle_input_gcode, [{tag, code}])
-    _ = vcr_write(state.vcr_fd, :in, {tag, code})
+    _ = vcr_write(state, :in, {tag, code})
     handle_report(code, %{state | tag: tag})
   end
 
   @doc false
-  @spec handle_report({GCODE.report_kind(), GCODE.args()}, state) ::
-          {:noreply, state(), 0} | {:noreply, state()}
+  @spec handle_report({GCODE.report_kind(), GCODE.args()}, state) :: {:noreply, state()}
   def handle_report({:report_emergency_lock, []} = code, state) do
     Logger.info("Emergency lock")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    {:noreply, goto(%{state | current: nil, caller_pid: nil}, :emergency_lock), 0}
+    for {pid, _code} <- state.command_queue, do: send(pid, code)
+
+    send(self(), :timeout)
+    {:noreply, goto(%{state | current: nil, caller_pid: nil}, :emergency_lock)}
   end
 
   # "ARDUINO STARTUP COMPLETE" => goto(:boot, :no_config)
@@ -447,7 +460,7 @@ defmodule FarmbotFirmware do
         {:unknown, [_, "ARDUINO", "STARTUP", "COMPLETE"]},
         %{status: :boot} = state
       ) do
-    Logger.info("ARDUINO STARTUP COMPLETE")
+    Logger.info("ARDUINO STARTUP COMPLETE (text) transport=#{state.transport}")
     handle_report({:report_no_config, []}, state)
   end
 
@@ -455,7 +468,7 @@ defmodule FarmbotFirmware do
         {:report_idle, []},
         %{status: :boot} = state
       ) do
-    Logger.info("ARDUINO STARTUP COMPLETE")
+    Logger.info("ARDUINO STARTUP COMPLETE (idle) transport=#{state.transport}")
     handle_report({:report_no_config, []}, state)
   end
 
@@ -463,7 +476,7 @@ defmodule FarmbotFirmware do
         {:report_debug_message, ["ARDUINO STARTUP COMPLETE"]},
         %{status: :boot} = state
       ) do
-    Logger.info("ARDUINO STARTUP COMPLETE")
+    Logger.info("ARDUINO STARTUP COMPLETE (r99) transport=#{state.transport}")
     handle_report({:report_no_config, []}, state)
   end
 
@@ -501,7 +514,8 @@ defmodule FarmbotFirmware do
         do: to_process ++ [{:command_movement_find_home, [:x]}],
         else: to_process
 
-    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration), 0}
+    send(self(), :timeout)
+    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
   end
 
   def handle_report({:report_debug_message, msg}, state) do
@@ -518,52 +532,65 @@ defmodule FarmbotFirmware do
   def handle_report({:report_idle, []}, %{status: _} = state) do
     side_effects(state, :handle_busy, [false])
     side_effects(state, :handle_idle, [true])
-    {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle), 0}
+    send(self(), :timeout)
+    {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle)}
   end
 
   def handle_report({:report_begin, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    {:noreply, state}
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    {:noreply, goto(state, :begin)}
   end
 
   def handle_report({:report_success, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     new_state = %{state | current: nil, caller_pid: nil}
     side_effects(state, :handle_busy, [false])
-
-    if new_state.status == :emergency_lock do
-      {:noreply, goto(new_state, :idle), 0}
-    else
-      {:noreply, new_state, 0}
-    end
+    send(self(), :timeout)
+    {:noreply, goto(new_state, :idle)}
   end
 
   def handle_report({:report_busy, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_busy, [true])
-    {:noreply, state}
+    {:noreply, goto(state, :busy)}
   end
 
   def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_busy, [false])
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_error, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_busy, [false])
-    {:noreply, %{state | caller_pid: nil, current: nil}, 0}
+    send(self(), :timeout)
+    {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
   def handle_report({:report_invalid, []} = code, %{status: :configuration} = state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_invalid, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    {:noreply, %{state | caller_pid: nil, current: nil}, 0}
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    send(self(), :timeout)
+    {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
   def handle_report({:report_retry, []} = code, %{status: :configuration} = state) do
@@ -573,11 +600,15 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_retry, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     {:noreply, state}
   end
 
   def handle_report({:report_parameter_value, param} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_parameter_value, [param])
     {:noreply, state}
   end
@@ -586,13 +617,13 @@ defmodule FarmbotFirmware do
     to_process = [{:parameter_write, param}]
     side_effects(state, :handle_parameter_value, [param])
     side_effects(state, :handle_parameter_calibration_value, [param])
-
-    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration),
-     0}
+    send(self(), :timeout)
+    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration)}
   end
 
   # report_parameters_complete => goto(:configuration, :idle)
-  def handle_report({:report_parameters_complete, []}, %{status: :configuration} = state) do
+  def handle_report({:report_parameters_complete, []}, %{status: status} = state)
+      when status in [:begin, :configuration] do
     {:noreply, goto(state, :idle)}
   end
 
@@ -602,54 +633,80 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_position, position} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_position, [position])
     {:noreply, state}
   end
 
   def handle_report({:report_axis_state, axis_state} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_axis_state, [axis_state])
     {:noreply, state}
   end
 
   def handle_report({:report_calibration_state, calibration_state} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_calibration_state, [calibration_state])
+    {:noreply, state}
+  end
+
+  def handle_report({:report_home_complete, axis} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    side_effects(state, :report_home_complete, axis)
     {:noreply, state}
   end
 
   def handle_report({:report_position_change, position} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_position_change, [position])
     {:noreply, state}
   end
 
   def handle_report({:report_encoders_scaled, encoders} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_encoders_scaled, [encoders])
     {:noreply, state}
   end
 
   def handle_report({:report_encoders_raw, encoders} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_encoders_raw, [encoders])
     {:noreply, state}
   end
 
   def handle_report({:report_end_stops, end_stops} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_end_stops, [end_stops])
     {:noreply, state}
   end
 
   def handle_report({:report_pin_value, value} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_pin_value, [value])
     {:noreply, state}
   end
 
   def handle_report({:report_software_version, version} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
     side_effects(state, :handle_software_version, [version])
     {:noreply, state}
   end
@@ -677,11 +734,27 @@ defmodule FarmbotFirmware do
       old == :boot && new != :emergency_lock ->
         side_effects(new_state, :handle_emergency_unlock, [])
 
+      # start of a command.
+      old == :idle && new == :begin ->
+        :ok
+
+      # command processing
+      old == :begin && new == :busy ->
+        :ok
+
+      # command completion
+      old == :begin && new == :idle ->
+        :ok
+
+      # command completion
+      old == :busy && new == :idle ->
+        :ok
+
       old == new ->
         :ok
 
       true ->
-        Logger.debug("unhandled state change: #{old} => #{new}")
+        Logger.debug("firmware state change: #{old} => #{new}")
     end
 
     new_state
@@ -691,16 +764,25 @@ defmodule FarmbotFirmware do
   defp side_effects(%{side_effects: nil}, _function, _args), do: nil
   defp side_effects(%{side_effects: m}, function, args), do: apply(m, function, args)
 
-  @spec vcr_write(nil | File.io_device(), :in | :out, GCODE.t()) :: :ok
-  defp vcr_write(nil, _direction, _code), do: :ok
+  @spec vcr_write(state, :in | :out, GCODE.t()) :: :ok
+  defp vcr_write(%{vcr_fd: nil}, _direction, _code), do: :ok
 
-  defp vcr_write(fd, :in, code), do: vcr_write(fd, "<", code)
+  defp vcr_write(state, :in, code), do: vcr_write(state, "<", code)
 
-  defp vcr_write(fd, :out, code), do: vcr_write(fd, ">", code)
+  defp vcr_write(state, :out, code), do: vcr_write(state, "\n>", code)
 
-  defp vcr_write(fd, direction, code) do
+  defp vcr_write(state, direction, code) do
     data = GCODE.encode(code)
-    time = :os.system_time()
-    IO.write(fd, direction <> " #{time} " <> data <> "\n")
+    time = :os.system_time(:second)
+
+    current_data =
+      if state.current do
+        GCODE.encode({state.tag, state.current})
+      else
+        "nil"
+      end
+
+    state_data = "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
+    IO.write(state.vcr_fd, direction <> " #{time} " <> data <> " state=" <> state_data <> "\n")
   end
 end
