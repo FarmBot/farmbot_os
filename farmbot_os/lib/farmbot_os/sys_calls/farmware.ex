@@ -21,8 +21,10 @@ defmodule FarmbotOS.SysCalls.Farmware do
          :ok <- ImageUploader.force_checkup() do
       :ok
     else
-      {:error, {:already_started, _pid}} ->
-        {:error, "Farmware #{farmware_name} is already running"}
+      {:error, {:already_started, pid}} ->
+        Logger.warn("Farmware #{farmware_name} is already running")
+        _ = FarmwareRuntime.stop(pid)
+        execute_script(farmware_name, env)
 
       {:error, reason} when is_binary(reason) ->
         _ = ImageUploader.force_checkup()
@@ -46,10 +48,10 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
   defp loop(farmware_name, runtime, monitor, {ref, label}) do
     receive do
-      {:DOWN, ^monitor, :process, _runtime, :normal} ->
+      {:DOWN, ^monitor, :process, ^runtime, :normal} ->
         :ok
 
-      {:DOWN, ^monitor, :process, _runtime, error} ->
+      {:DOWN, ^monitor, :process, ^runtime, error} ->
         {:error, inspect(error)}
 
       {:step_complete, ^ref, :ok} ->
@@ -66,26 +68,33 @@ defmodule FarmbotOS.SysCalls.Farmware do
         loop(farmware_name, runtime, monitor, {nil, nil})
 
       msg ->
+        _ = FarmwareRuntime.stop(runtime)
         {:error, "unhandled message: #{inspect(msg)} in state: #{inspect({ref, label})}"}
     after
       500 ->
-        if is_reference(ref) do
-          Logger.info("Already processing a celeryscript request: #{label}")
-          loop(farmware_name, runtime, monitor, {ref, label})
-        else
-          case Process.alive?(runtime) && FarmwareRuntime.process_rpc(runtime) do
-            {:ok, %{args: %{label: label}} = rpc} ->
-              ref = make_ref()
-              Logger.debug("executing rpc: #{inspect(rpc)}")
-              FarmbotCeleryScript.execute(rpc, ref)
-              loop(farmware_name, runtime, monitor, {ref, label})
+        cond do
+          # already have a request processing
+          is_reference(ref) ->
+            Logger.info("Already processing a celeryscript request: #{label}")
+            loop(farmware_name, runtime, monitor, {ref, label})
 
-            {:error, :no_rpc} ->
-              loop(farmware_name, runtime, monitor, {ref, label})
+          # check to see if it's alive just in case?
+          Process.alive?(runtime) ->
+            case FarmwareRuntime.process_rpc(runtime) do
+              {:ok, %{args: %{label: label}} = rpc} ->
+                ref = make_ref()
+                Logger.debug("executing rpc: #{inspect(rpc)}")
+                FarmbotCeleryScript.execute(rpc, ref)
+                loop(farmware_name, runtime, monitor, {ref, label})
 
-            false ->
-              :ok
-          end
+              {:error, :no_rpc} ->
+                loop(farmware_name, runtime, monitor, {ref, label})
+            end
+
+          # No other conditions: Process stopped, but missed the message?
+          true ->
+            _ = FarmwareRuntime.stop(runtime)
+            :ok
         end
     end
   end
