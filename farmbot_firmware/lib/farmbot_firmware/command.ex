@@ -1,10 +1,13 @@
 defmodule FarmbotFirmware.Command do
   @moduledoc false
-  alias Farmbot.{Firmware, Firmware.GCODE}
+  alias FarmbotFirmware
+  alias FarmbotFirmware.GCODE
 
   @spec command(GenServer.server(), GCODE.t() | {GCODE.kind(), GCODE.args()}) ::
-          :ok | {:error, :invalid_command | :firmware_error | :emergency_lock | Firmware.status()}
-  def command(firmware_server \\ Firmware, code)
+          :ok
+          | {:error,
+             :invalid_command | :firmware_error | :emergency_lock | FarmbotFirmware.status()}
+  def command(firmware_server \\ FarmbotFirmware, code)
 
   def command(firmware_server, {_tag, {_, _}} = code) do
     case GenServer.call(firmware_server, code, :infinity) do
@@ -17,7 +20,7 @@ defmodule FarmbotFirmware.Command do
     command(firmware_server, {to_string(:rand.uniform(100)), code})
   end
 
-  defp wait_for_command_result(_tag, code, retries \\ 0, err \\ nil) do
+  defp wait_for_command_result(tag, code, retries \\ 0, err \\ nil) do
     receive do
       {tag, {:report_begin, []}} ->
         wait_for_command_result(tag, code, retries, err)
@@ -50,7 +53,9 @@ defmodule FarmbotFirmware.Command do
         wait_for_command_result(tag, code, retries, err)
     after
       30_000 ->
-        raise("Firmware server failed to respond within 30 seconds")
+        raise(
+          "Firmware command: #{GCODE.encode({tag, code})} failed to respond within 30 seconds"
+        )
     end
   end
 end
