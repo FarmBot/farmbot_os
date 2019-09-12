@@ -31,6 +31,8 @@ defmodule FarmbotFirmware.SideEffects do
   @type calibration_state :: :idle | :home | :end
   @callback handle_calibration_state([{axis(), calibration_state()}]) :: any()
 
+  @callback handle_home_complete([axis()]) :: any()
+
   @callback handle_input_gcode(GCODE.t()) :: any()
   @callback handle_output_gcode(GCODE.t()) :: any()
   @callback handle_debug_message([String.t()]) :: any()

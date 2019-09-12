@@ -21,6 +21,11 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
+  def handle_home_complete(_) do
+    :noop
+  end
+
+  @impl FarmbotFirmware.SideEffects
   def handle_calibration_state([{_axis, _state}]) do
     :noop
   end

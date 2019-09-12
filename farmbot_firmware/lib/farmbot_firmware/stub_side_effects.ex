@@ -142,6 +142,9 @@ defmodule FarmbotFirmware.StubSideEffects do
   def handle_idle(_), do: :noop
 
   @impl SideEffects
+  def handle_home_complete(_), do: :noop
+
+  @impl SideEffects
   def handle_input_gcode(_), do: :noop
 
   @impl SideEffects
