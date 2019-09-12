@@ -50,6 +50,11 @@ defmodule FarmbotOS.Lua.Ext.Info do
     {[FarmbotCore.Project.version(), nil], lua}
   end
 
+  @doc "Returns the current month"
+  def current_month(_args, lua) do
+    {[DateTime.utc_now().month], lua}
+  end
+
   @doc "Returns the current hour"
   def current_hour(_args, lua) do
     {[DateTime.utc_now().hour], lua}
