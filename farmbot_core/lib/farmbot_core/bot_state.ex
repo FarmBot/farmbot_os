@@ -34,14 +34,18 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_encoders_scaled, x, y, z})
   end
 
-  @doc "Sets pins.pin.value"
-  def set_pin_value(bot_state_server \\ __MODULE__, pin, value) do
-    GenServer.call(bot_state_server, {:set_pin_value, pin, value})
-  end
-
   @doc "Sets the location_data.encoders_raw"
   def set_encoders_raw(bot_state_server \\ __MODULE__, x, y, z) do
     GenServer.call(bot_state_server, {:set_encoders_raw, x, y, z})
+  end
+
+  def set_axis_state(bot_state_server \\ __MODULE__, axis, state) do
+    GenServer.call(bot_state_server, {:set_axis_state, axis, state})
+  end
+
+  @doc "Sets pins.pin.value"
+  def set_pin_value(bot_state_server \\ __MODULE__, pin, value) do
+    GenServer.call(bot_state_server, {:set_pin_value, pin, value})
   end
 
   @doc "Sets mcu_params[param] = value"
@@ -212,6 +216,22 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_encoders_raw, x, y, z}, _from, state) do
     change = %{location_data: %{raw_encoders: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_axis_state, axis, axis_state}, _from, state) do
+    change = %{
+      location_data: %{
+        axis_states: %{
+          state.location_data.axis_states | axis => to_string(axis_state)
+        }
+      }
+    }
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
