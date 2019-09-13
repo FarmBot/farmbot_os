@@ -228,7 +228,7 @@ defmodule FarmbotCore.BotState do
     change = %{
       location_data: %{
         axis_states: %{
-          state.location_data.axis_states | axis => to_string(axis_state)
+          axis => to_string(axis_state)
         }
       }
     }
