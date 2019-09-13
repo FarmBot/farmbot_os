@@ -554,6 +554,14 @@ defmodule FarmbotFirmware do
     {:noreply, state}
   end
 
+  # an idle report while there is a current command running
+  # should not count.
+  def handle_report({:report_idle, []}, %{current: c} = state) when is_tuple(c) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_busy, []}})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+    {:noreply, state}
+  end
+
   # report_idle => goto(_, :idle)
   def handle_report({:report_idle, []}, %{status: _} = state) do
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
