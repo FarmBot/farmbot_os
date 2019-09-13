@@ -55,27 +55,61 @@ defmodule FarmbotCore.Asset.PinBinding do
 end
 
 defimpl String.Chars, for: FarmbotCore.Asset.PinBinding do
+  def to_string(%FarmbotCore.Asset.PinBinding{special_action: action, pin_num: 16}) do
+    special_action(1, action, 16)
+  end
+
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 16}) do
-    "Button 1"
+    "Button 1: (Pi 16)"
+  end
+
+  def to_string(%FarmbotCore.Asset.PinBinding{special_action: action, pin_num: 22}) do
+    special_action(2, action, 22)
   end
 
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 22}) do
-    "Button 2"
+    "Button 2: (Pi 22)"
+  end
+
+  def to_string(%FarmbotCore.Asset.PinBinding{special_action: action, pin_num: 26}) do
+    special_action(3, action, 26)
   end
 
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 26}) do
-    "Button 3"
+    "Button 3: (Pi 26)"
+  end
+
+  def to_string(%FarmbotCore.Asset.PinBinding{special_action: action, pin_num: 5}) do
+    special_action(4, action, 5)
   end
 
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 5}) do
-    "Button 4"
+    "Button 4: (Pi 5)"
+  end
+
+  def to_string(%FarmbotCore.Asset.PinBinding{special_action: action, pin_num: 20}) do
+    special_action(5, action, 20)
   end
 
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 20}) do
-    "Button 5"
+    "Button 5: (Pi 20)"
   end
 
   def to_string(%FarmbotCore.Asset.PinBinding{pin_num: num}) do
     "Pi GPIO #{num}"
   end
+
+  defp special_action(button_number, action, pin_num) do
+    "Button #{button_number}: #{format_action(action)} (Pi #{pin_num})"  
+  end
+
+  defp format_action("dump_info"), do: "Dump Info"
+  defp format_action("emergency_lock"), do:  "E-Stop"
+  defp format_action("emergency_unlock"), do: "E-Unlock"
+  defp format_action("power_off"), do: "Power Off"
+  defp format_action("read_status"), do: "Read Status"
+  defp format_action("reboot"), do: "Reboot"
+  defp format_action("sync"), do: "Sync"
+  defp format_action("take_photo"), do: "Take Photo" 
+  defp format_action(_), do: nil
 end
