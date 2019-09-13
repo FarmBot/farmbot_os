@@ -1,2 +1,2 @@
 #!/bin/bash
-iex --name console@localhost --cookie democookie --remsh farmbot@farmbot-$1.local
+iex --name console --cookie democookie --remsh farmbot@farmbot-$1.local
