@@ -16,8 +16,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_axis_state([{_axis, _state}]) do
-    :noop
+  def handle_axis_state([{axis, state}]) do
+    BotState.set_axis_state(axis, state)
   end
 
   @impl FarmbotFirmware.SideEffects
