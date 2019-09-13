@@ -67,6 +67,9 @@ defmodule FarmbotOS.SysCalls do
   defdelegate read_pin(number, mode), to: PinControl
 
   @impl true
+  defdelegate read_cached_pin(number), to: PinControl
+
+  @impl true
   defdelegate write_pin(number, mode, value), to: PinControl
 
   @impl true
@@ -172,6 +175,21 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
+  def get_cached_x do
+    get_cached_position(:x)
+  end
+
+  @impl true
+  def get_cached_y do
+    get_cached_position(:y)
+  end
+
+  @impl true
+  def get_cached_z do
+    get_cached_position(:z)
+  end
+
+  @impl true
   def zero(axis) do
     axis = assert_axis!(axis)
 
@@ -209,6 +227,16 @@ defmodule FarmbotOS.SysCalls do
       {:error, _} = error -> error
       position -> Keyword.fetch!(position, axis)
     end
+  end
+
+  def get_cached_position() do
+    %{x: x, y: y, z: z} = FarmbotCore.BotState.fetch().location_data.position
+    [x: x, y: y, z: z]
+  end
+
+  def get_cached_position(axis) do
+    axis = assert_axis!(axis)
+    Keyword.fetch!(get_cached_position(), axis)
   end
 
   @impl true

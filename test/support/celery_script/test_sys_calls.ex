@@ -107,6 +107,21 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def get_cached_x do
+    call({:get_cached_x, []})
+  end
+
+  @impl true
+  def get_cached_y do
+    call({:get_cached_y, []})
+  end
+
+  @impl true
+  def get_cached_z do
+    call({:get_cached_z, []})
+  end
+
+  @impl true
   def write_pin(pin_number, mode, value) do
     call({:write_pin, [pin_number, mode, value]})
   end
@@ -119,6 +134,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   @impl true
   def read_pin(number, mode) do
     call({:read_pin, [number, mode]})
+  end
+
+  @impl true
+  def read_cached_pin(number) do
+    call({:read_cached_pin, [number]})
   end
 
   @impl true
