@@ -213,15 +213,46 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def move_absolute(x, y, z, speed) do
+    do_move_absolute(x, y, z, speed, max_retries())
+  end
+
+  defp do_move_absolute(x, y, z, speed, retries, errors \\ [])
+
+  defp do_move_absolute(x, y, z, speed, 0, errors) do
     params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
-    # Logger.debug "moving to location: #{inspect(params)}"
 
     case FarmbotFirmware.command({nil, {:command_movement, params}}) do
       :ok ->
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        errors =
+          [reason | errors]
+          |> Enum.reverse()
+          |> Enum.map(&inspect/1)
+          |> Enum.join(", ")
+
+        {:error, "movement error(s): #{errors}"}
+    end
+  end
+
+  defp do_move_absolute(x, y, z, speed, retries, errors) do
+    params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
+
+    case FarmbotFirmware.command({nil, {:command_movement, params}}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        FarmbotCore.Logger.error(1, "Movement failed. Retrying up to #{retries} more time(s)")
+        do_move_absolute(x, y, z, speed, retries - 1, [reason | errors])
+    end
+  end
+
+  defp max_retries do
+    case FarmbotFirmware.request({:parameter_read, [:param_mov_nr_retry]}) do
+      {:ok, {_, {:report_parameter_value, [param_mov_nr_retry: nr]}}} -> floor(nr)
+      _ -> 3
     end
   end
 
