@@ -29,7 +29,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     Point
     Regimen
     Sensor
-    SensorReading
     Sequence
     Tool
   )
