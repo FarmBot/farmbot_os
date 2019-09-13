@@ -22,7 +22,7 @@ defmodule FarmbotOS.SysCalls.SendMessage do
 
   def render(templ) do
     with {:ok, pos} <- pos(),
-         {:ok, pins} <- pins(Enum.to_list(0..69)),
+         {:ok, pins} <- pins(),
          env <- Keyword.merge(pos, pins) do
       env = Map.new(env, fn {k, v} -> {to_string(k), to_string(v)} end)
 
@@ -44,33 +44,22 @@ defmodule FarmbotOS.SysCalls.SendMessage do
   end
 
   def pos do
-    case FarmbotFirmware.request({:position_read, []}) do
-      {:ok, {_, {:report_position, [x: x, y: y, z: z]}}} ->
-        {:ok,
-         [
-           x: FarmbotCeleryScript.FormatUtil.format_float(x),
-           y: FarmbotCeleryScript.FormatUtil.format_float(y),
-           z: FarmbotCeleryScript.FormatUtil.format_float(z)
-         ]}
+    [x: x, y: y, z: z] = FarmbotOS.SysCalls.get_cached_position()
 
-      {:error, reason} ->
-        {:error, inspect(reason)}
-    end
+    {:ok,
+     [
+       x: FarmbotCeleryScript.FormatUtil.format_float(x),
+       y: FarmbotCeleryScript.FormatUtil.format_float(y),
+       z: FarmbotCeleryScript.FormatUtil.format_float(z)
+     ]}
   end
 
-  def pins(nums, acc \\ [])
-
-  def pins([p | rest], acc) do
-    case FarmbotFirmware.request({:pin_read, [p: p]}) do
-      {:ok, {_, {:report_pin_value, [p: ^p, v: v]}}} ->
-        v = FarmbotCeleryScript.FormatUtil.format_float(v)
-        acc = Keyword.put(acc, :"pin#{p}", v)
-        pins(rest, acc)
-
-      er ->
-        er
-    end
+  def pins() do
+    {:ok,
+     FarmbotCore.BotState.fetch().pins
+     |> Map.new()
+     |> Enum.map(fn {p, %{value: v}} ->
+       {:"pin#{p}", FarmbotCeleryScript.FormatUtil.format_float(v)}
+     end)}
   end
-
-  def pins([], acc), do: {:ok, acc}
 end
