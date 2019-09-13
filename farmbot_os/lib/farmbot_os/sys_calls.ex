@@ -243,6 +243,9 @@ defmodule FarmbotOS.SysCalls do
       :ok ->
         :ok
 
+      {:error, :emergency_lock} ->
+        {:error, "emergency_lock"}
+
       {:error, reason} ->
         FarmbotCore.Logger.error(1, "Movement failed. Retrying up to #{retries} more time(s)")
         do_move_absolute(x, y, z, speed, retries - 1, [reason | errors])
