@@ -9,6 +9,14 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   require FarmbotCore.Logger
 
+  def read_cached_pin(%_{pin: number}) do
+    read_cached_pin(number)
+  end
+
+  def read_cached_pin(pin_number) do
+    FarmbotCore.BotState.fetch().pins()[pin_number][:value]
+  end
+
   def toggle_pin(pin_number) when is_number(pin_number) do
     peripheral = Asset.get_peripheral_by_pin(pin_number)
 
@@ -198,19 +206,16 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   # Peripheral digital
-  def write_pin(%Peripheral{pin: pin, label: label}, 0, 1) do
-    FarmbotCore.Logger.info(2, "Turning the #{label} ON (digital)")
+  def write_pin(%Peripheral{pin: pin, label: _label}, 0, 1) do
     do_write_pin(pin, 0, 1)
   end
 
-  def write_pin(%Peripheral{pin: pin, label: label}, 0, 0) do
-    FarmbotCore.Logger.info(2, "Turning the #{label} OFF (digital)")
+  def write_pin(%Peripheral{pin: pin, label: _label}, 0, 0) do
     do_write_pin(pin, 0, 0)
   end
 
   # Peripheral analog
-  def write_pin(%Peripheral{pin: pin, label: label}, 1, value) do
-    FarmbotCore.Logger.info(2, "Setting the #{label} to #{value} (analog)")
+  def write_pin(%Peripheral{pin: pin, label: _label}, 1, _value) do
     do_write_pin(pin, 0, 0)
   end
 
@@ -248,17 +253,14 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   # Generic pin digital
   def write_pin(pin, 0, 1) do
-    FarmbotCore.Logger.info(2, "Turning pin #{pin} ON (digital)")
     do_write_pin(pin, 0, 1)
   end
 
   def write_pin(pin, 0, 0) do
-    FarmbotCore.Logger.info(2, "Turning pin #{pin} OFF (digital)")
     do_write_pin(pin, 0, 0)
   end
 
   def write_pin(pin, 1, value) do
-    FarmbotCore.Logger.info(2, "Setting pin #{pin} to #{value} (analog)")
     do_write_pin(pin, 1, value)
   end
 

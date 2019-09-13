@@ -65,6 +65,15 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def get_current_z(), do: error(:get_current_z, [])
 
   @impl true
+  def get_cached_x(), do: error(:get_cached_x, [])
+
+  @impl true
+  def get_cached_y(), do: error(:get_cached_y, [])
+
+  @impl true
+  def get_cached_z(), do: error(:get_cached_z, [])
+
+  @impl true
   def get_sequence(resource_id), do: error(:get_sequence, [resource_id])
 
   @impl true
@@ -93,6 +102,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
 
   @impl true
   def read_pin(pin_num, pin_mode), do: error(:read_pin, [pin_num, pin_mode])
+
+  @impl true
+  def read_cached_pin(pin_num), do: error(:read_cached_pin, [pin_num])
 
   @impl true
   def toggle_pin(pin_num), do: error(:toggle_pin, [pin_num])

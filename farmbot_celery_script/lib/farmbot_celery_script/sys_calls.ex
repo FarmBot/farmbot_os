@@ -38,6 +38,11 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback get_current_x() :: number() | error()
   @callback get_current_y() :: number() | error()
   @callback get_current_z() :: number() | error()
+
+  @callback get_cached_x() :: number() | error()
+  @callback get_cached_y() :: number() | error()
+  @callback get_cached_z() :: number() | error()
+
   @callback get_sequence(resource_id) :: FarmbotCeleryScript.AST.t() | error()
   @callback get_toolslot_for_tool(resource_id) ::
               %{x: number(), y: number(), z: number()} | error()
@@ -51,6 +56,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback point(point_type :: String.t(), resource_id) :: number() | error()
   @callback power_off() :: ok_or_error
   @callback read_pin(pin_num :: number(), pin_mode :: number()) :: number | error()
+  @callback read_cached_pin(pin_num :: number()) :: number | error()
   @callback toggle_pin(pin_num :: number()) :: ok_or_error
   @callback read_status() :: ok_or_error
   @callback reboot() :: ok_or_error
@@ -184,6 +190,18 @@ defmodule FarmbotCeleryScript.SysCalls do
     number_or_error(sys_calls, :get_current_z, [])
   end
 
+  def get_cached_x(sys_calls \\ @sys_calls) do
+    number_or_nil_or_error(sys_calls, :get_cached_x, [])
+  end
+
+  def get_cached_y(sys_calls \\ @sys_calls) do
+    number_or_nil_or_error(sys_calls, :get_cached_y, [])
+  end
+
+  def get_cached_z(sys_calls \\ @sys_calls) do
+    number_or_nil_or_error(sys_calls, :get_cached_z, [])
+  end
+
   def get_sequence(sys_calls \\ @sys_calls, sequence_id) do
     case sys_calls.get_sequence(sequence_id) do
       %AST{} = ast -> ast
@@ -234,6 +252,10 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do
     number_or_error(sys_calls, :read_pin, [pin_num, pin_mode])
+  end
+
+  def read_cached_pin(sys_calls \\ @sys_calls, pin_num) do
+    number_or_nil_or_error(sys_calls, :read_cached_pin, [pin_num])
   end
 
   def toggle_pin(sys_calls \\ @sys_calls, pun_num) do
@@ -294,6 +316,14 @@ defmodule FarmbotCeleryScript.SysCalls do
   defp number_or_error(sys_calls, fun, args) do
     case apply(sys_calls, fun, args) do
       result when is_number(result) -> result
+      error -> or_error(sys_calls, fun, args, error)
+    end
+  end
+
+  defp number_or_nil_or_error(sys_calls, fun, args) do
+    case apply(sys_calls, fun, args) do
+      result when is_number(result) -> result
+      nil -> nil
       error -> or_error(sys_calls, fun, args, error)
     end
   end

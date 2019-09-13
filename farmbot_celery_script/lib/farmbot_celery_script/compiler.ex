@@ -267,23 +267,26 @@ defmodule FarmbotCeleryScript.Compiler do
     lhs =
       case lhs_ast do
         "x" ->
-          quote [location: :keep], do: FarmbotCeleryScript.SysCalls.get_current_x()
+          quote [location: :keep],
+            do: FarmbotCeleryScript.SysCalls.get_cached_x()
 
         "y" ->
-          quote [location: :keep], do: FarmbotCeleryScript.SysCalls.get_current_y()
+          quote [location: :keep],
+            do: FarmbotCeleryScript.SysCalls.get_cached_y()
 
         "z" ->
-          quote [location: :keep], do: FarmbotCeleryScript.SysCalls.get_current_z()
+          quote [location: :keep],
+            do: FarmbotCeleryScript.SysCalls.get_cached_z()
 
         "pin" <> pin ->
           quote [location: :keep],
-            do: FarmbotCeleryScript.SysCalls.read_pin(unquote(String.to_integer(pin)), nil)
+            do: FarmbotCeleryScript.SysCalls.read_cached_pin(unquote(String.to_integer(pin)))
 
         # Named pin has two intents here
         # in this case we want to read the named pin.
         %AST{kind: :named_pin} = ast ->
           quote [location: :keep],
-            do: FarmbotCeleryScript.SysCalls.read_pin(unquote(compile_ast(ast)), nil)
+            do: FarmbotCeleryScript.SysCalls.read_cached_pin(unquote(compile_ast(ast)))
 
         %AST{} = ast ->
           compile_ast(ast)
