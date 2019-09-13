@@ -364,6 +364,8 @@ defmodule FarmbotCeleryScript.Compiler do
           "is" -> "#{prefix_string} is #{unquote(rhs)}"
           "not" -> "#{prefix_string} is not #{unquote(rhs)}"
           "is_undefined" -> "#{prefix_string} is unknown"
+          "<" -> "#{prefix_string} is less than #{unquote(rhs)}"
+          ">" -> "#{prefix_string} is greater than #{unquote(rhs)}"
         end
 
       if unquote(if_eval) do
