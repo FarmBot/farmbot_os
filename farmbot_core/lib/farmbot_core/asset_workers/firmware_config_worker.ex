@@ -40,8 +40,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
       {:error, :configuration} -> 
         FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{calib_param}: #{value_str}"
         :ok
+
       :ok ->
-        FarmbotCore.Logger.success 1, "Firmware parameter updated: #{calib_param} #{value_str}"
+        FarmbotCore.Logger.success 1, "Set #{calib_param} to #{value_str}"
         :ok
     end
   end
@@ -50,16 +51,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
     value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
     with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
           {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
-      FarmbotCore.Logger.success 1, "Firmware parameter updated: #{param} #{value_str}"
+      FarmbotCore.Logger.success 1, "Set #{param} to #{value_str}"
       :ok
-      else
-    {:error, reason} ->
-      FarmbotCore.Logger.error 1, "Error writing firmware parameter: #{param}: #{inspect(reason)}"
+    else
+      {:error, reason} ->
+        FarmbotCore.Logger.error 1, "Error writing firmware parameter: #{param}: #{inspect(reason)}"
 
-    {:ok, {_, {:report_parameter_value, [{param, value}]}}} ->
-      value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
-      FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value_str}"
-
+      {:ok, {_, {:report_parameter_value, [{param, value}]}}} ->
+        value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
+        FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value_str}"
     end
   end
 end
