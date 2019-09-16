@@ -1,5 +1,10 @@
 # Changelog
 
+# 8.0.1
+* Updated log messages
+    * AMQP connection log should be less noisy on first boot
+    * Farmware installation logs will be more condensed
+
 # 8.0.0
 * Reorganize project structure
 * Split original single application into multiple OTP applications:
