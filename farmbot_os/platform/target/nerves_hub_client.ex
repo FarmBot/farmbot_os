@@ -435,8 +435,13 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         Process.monitor(conn.pid)
         {:ok, conn}
 
+      # Squash this log since it will be displayed for the 
+      # main AMQP connection
+      {:error, :unknown_host} = err ->
+        err
+
       err ->
-        FarmbotCore.Logger.error(1, "Error connecting to AMQP: #{inspect(err)}")
+        FarmbotCore.Logger.error(1, "Error opening AMQP connection for OTA certs #{inspect(err)}")
         err
     end
   end
