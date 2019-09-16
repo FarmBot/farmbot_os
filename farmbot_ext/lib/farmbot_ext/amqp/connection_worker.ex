@@ -111,7 +111,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
         {:noreply, %{state | conn: conn}}
 
       err ->
-        Logger.error("Error connecting to AMQP: #{inspect(err)}")
+        Logger.error("Error Opening AMQP connection: #{inspect(err)}")
         Process.send_after(self(), :timeout, 5000)
         {:noreply, %{state | conn: nil}}
     end
