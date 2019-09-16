@@ -97,6 +97,43 @@ build_firmware_steps: &build_firmware_steps
         paths:
           - "/nerves/deploy/system"
 
+build_firmware_clean_steps: &build_firmware_clean_steps
+  steps:
+    - checkout
+    - run: git submodule update --init --recursive
+    - run:
+        name: Setup ENV
+        command: |
+          echo "$MIX_TARGET" > MIX_TARGET
+          echo "$MIX_ENV" > MIX_ENV
+    - <<: *install_elixir
+    - <<: *install_hex_archives
+    - <<: *install_libnl
+    - run:
+        name: Build Farmbot OS Firmware
+        working_directory: /nerves/build/farmbot_os
+        command: |
+          mix deps.get
+          mix compile --force
+          mix firmware
+    - run:
+        name: Create artifact dir
+        command: mkdir -p /nerves/deploy/system/artifacts
+    - run:
+        name: Create artifacts
+        command: |
+          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+    - save_cache:
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        paths:
+          - /nerves/build/farmbot_os/_build/
+          - /nerves/build/farmbot_os/deps/
+          - ~/.nerves/
+    - save_cache:
+        key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
+        paths:
+          - "/nerves/deploy/system"
+
 deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
   steps:
     - checkout
@@ -397,6 +434,28 @@ jobs:
     <<: *build_firmware_steps
 
 ################################################################################
+#                           target=rpi app_env=prod                            #
+################################################################################
+
+  build_clean_rpi_prod:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi
+      MIX_ENV: prod
+    <<: *build_firmware_clean_steps
+
+################################################################################
+#                           target=rpi3 app_env=prod                           #
+################################################################################
+
+  build_clean_rpi3_prod:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+    <<: *build_firmware_clean_steps
+
+################################################################################
 #                    target=rpi app_env=prod channel=stable                    #
 ################################################################################
 
@@ -672,13 +731,13 @@ workflows:
   # master branch to staging.farmbot.io
   nerves_hub_prod_stable_staging:
     jobs:
-      - build_rpi_prod:
+      - build_clean_rpi_prod:
           context: farmbot-staging
           filters:
             branches:
               only:
                 - master
-      - build_rpi3_prod:
+      - build_clean_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
@@ -687,22 +746,22 @@ workflows:
       - deploy_rpi_prod_stable:
           context: farmbot-staging
           requires:
-            - build_rpi_prod
+            - build_clean_rpi_prod
       - deploy_rpi3_prod_stable:
           context: farmbot-staging
           requires:
-            - build_rpi3_prod
+            - build_clean_rpi3_prod
 
   # master branch to my.farmbot.io
   nerves_hub_prod_stable_production:
     jobs:
-      - build_rpi_prod:
+      - build_clean_rpi_prod:
           context: farmbot-production
           filters:
             branches:
               only:
                 - master
-      - build_rpi3_prod:
+      - build_clean_rpi3_prod:
           context: farmbot-production
           filters:
             branches:
@@ -711,16 +770,16 @@ workflows:
       - deploy_rpi_prod_stable:
           context: farmbot-production
           requires:
-            - build_rpi_prod
+            - build_clean_rpi_prod
       - deploy_rpi3_prod_stable:
           context: farmbot-production
           requires:
-            - build_rpi3_prod
+            - build_clean_rpi3_prod
       - publish_prod_firmware_master_release:
           context: org-global
           requires:
-            - build_rpi_prod
-            - build_rpi3_prod
+            - build_clean_rpi_prod
+            - build_clean_rpi3_prod
 
   # any tag containint an `-rcXXX` tag to staging.farmbot.io
   nerves_hub_prod_beta_staging:
