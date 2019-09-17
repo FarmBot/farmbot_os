@@ -77,7 +77,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:preload, state) do
-    _ = Leds.green(:fast_blink)
+    _ = Leds.green(:really_fast_blink)
 
     with :ok <- Preloader.preload_all() do
       if Asset.Query.auto_sync?() do
@@ -159,7 +159,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   def handle_asset(asset_kind, id, params) do
     if Asset.Query.auto_sync?() do
       :ok = BotState.set_sync_status("syncing")
-      _ = Leds.green(:fast_blink)
+      _ = Leds.green(:really_fast_blink)
       # Logger.info "Syncing #{asset_kind} #{id} #{inspect(params)}"
       Asset.Command.update(asset_kind, id, params)
       :ok = BotState.set_sync_status("synced")
