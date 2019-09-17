@@ -55,6 +55,7 @@
   "nerves_toolchain_arm_unknown_linux_gnueabihf": {:hex, :nerves_toolchain_arm_unknown_linux_gnueabihf, "1.2.0", "ba48ce7c846ee12dfca8148dc7240988d96a3f2eb9c234bf08bffe4f0f7a3c62", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}, {:nerves_toolchain_ctng, "~> 1.6.0", [hex: :nerves_toolchain_ctng, repo: "hexpm", optional: false]}], "hexpm"},
   "nerves_toolchain_armv6_rpi_linux_gnueabi": {:hex, :nerves_toolchain_armv6_rpi_linux_gnueabi, "1.2.0", "007668c7ad1f73bad8fd54ad1a27a3b0fb91bca51b4af6bb3bbdac968ccae0ba", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}, {:nerves_toolchain_ctng, "~> 1.6.0", [hex: :nerves_toolchain_ctng, repo: "hexpm", optional: false]}], "hexpm"},
   "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "1.6.0", "452f8589c1a58ac787477caab20a8cfc6671e345837ccc19beefe49ae35ba983", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}], "hexpm"},
+  "nimble_csv": {:hex, :nimble_csv, "0.6.0", "a3673f26d41f986774fe6060e309615343d3cb83a6d435754d8b1fdbd5764879", [:mix], [], "hexpm"},
   "nimble_parsec": {:hex, :nimble_parsec, "0.5.0", "90e2eca3d0266e5c53f8fbe0079694740b9c91b6747f2b7e3c5d21966bba8300", [:mix], [], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm"},
   "pbcs": {:hex, :pbcs, "0.1.1", "199c7fd4af3351758378355909145a2d187c565555ed16bde30b5055114652ed", [:mix], [], "hexpm"},
