@@ -3,7 +3,7 @@ defmodule FarmbotCore.Leds do
   @led_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @led_handler || Mix.raise("You forgot a led handler!")
 
-  @valid_status [:off, :solid, :slow_blink, :fast_blink]
+  @valid_status [:off, :solid, :slow_blink, :fast_blink, :really_fast_blink]
 
   def red(status) when status in @valid_status, do: led_handler().red(status)
   def blue(status) when status in @valid_status, do: led_handler().blue(status)

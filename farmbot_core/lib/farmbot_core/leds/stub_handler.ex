@@ -27,10 +27,12 @@ defmodule FarmbotCore.Leds.StubHandler do
 
   defp status_in(:slow_blink), do: IO.ANSI.blink_slow()
   defp status_in(:fast_blink), do: IO.ANSI.blink_rapid()
+  defp status_in(:really_fast_blink), do: IO.ANSI.blink_rapid()
   defp status_in(_), do: ""
 
   defp status_out(:slow_blink), do: IO.ANSI.blink_off()
   defp status_out(:fast_blink), do: IO.ANSI.blink_off()
+  defp status_out(:really_fast_blink), do: IO.ANSI.blink_off()
   defp status_out(_), do: ""
 
   def start_link(_args) do
