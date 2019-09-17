@@ -4,6 +4,11 @@
 * Updated log messages
     * AMQP connection log should be less noisy on first boot
     * Farmware installation logs will be more condensed
+* Updated dependencies
+    * `nerves_hub` 
+    * `nerves_runtime`
+* Enhancements
+    * Syncing LED blink speed increased
 
 # 8.0.0
 * Reorganize project structure
