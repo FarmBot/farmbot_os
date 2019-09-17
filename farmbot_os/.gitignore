@@ -18,3 +18,4 @@ erl_crash.dump
 *.sqlite3
 auth_secret.exs
 log
+*.csv
