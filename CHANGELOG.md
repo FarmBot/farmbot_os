@@ -1,12 +1,14 @@
 # Changelog
 
+# 8.0.2
+* Updated dependencies
+    * `nerves_hub` 
+    * `nerves_runtime`
+
 # 8.0.1
 * Updated log messages
     * AMQP connection log should be less noisy on first boot
     * Farmware installation logs will be more condensed
-* Updated dependencies
-    * `nerves_hub` 
-    * `nerves_runtime`
 * Enhancements
     * Syncing LED blink speed increased
 
