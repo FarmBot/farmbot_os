@@ -90,6 +90,9 @@ defmodule FarmbotOS.MixProject do
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false},
       {:elixir_make, "~> 0.5", runtime: false},
 
+      # Data collection
+      {:nimble_csv, "~> 0.6.0", runtime: false},
+
       # Target only deps
       {:nerves_runtime, "~> 0.10", targets: @all_targets},
       {:nerves_time, "~> 0.2", targets: @all_targets},
