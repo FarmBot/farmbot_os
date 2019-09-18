@@ -4,6 +4,11 @@
 * Updated dependencies
     * `nerves_hub` 
     * `nerves_runtime`
+* Updated log messages
+    * Configuration changes now log human readable names
+    * Firmware changes now log human readable names
+* Bug fixes
+    * Fix farmbot ignoring `movement_invert_2_endpoints` params
 
 # 8.0.1
 * Updated log messages
