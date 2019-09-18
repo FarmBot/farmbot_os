@@ -274,13 +274,13 @@ defmodule FarmbotFirmware.Param do
     do: {"find home on boot, z-axis", nil, format_bool(value)}
 
   def to_human(:movement_invert_endpoints_x, value),
-    do: {"invert endstops, x-axis", nil, format_bool(value)}
+    do: {"swap endstops, x-axis", nil, format_bool(value)}
 
   def to_human(:movement_invert_endpoints_y, value),
-    do: {"invert endstops, y-axis", nil, format_bool(value)}
+    do: {"swap endstops, y-axis", nil, format_bool(value)}
 
   def to_human(:movement_invert_endpoints_z, value),
-    do: {"invert endstops, z-axis", nil, format_bool(value)}
+    do: {"swap endstops, z-axis", nil, format_bool(value)}
 
   def to_human(:movement_enable_endpoints_x, value),
     do: {"enable endstops, x-axis", nil, format_bool(value)}
@@ -334,13 +334,13 @@ defmodule FarmbotFirmware.Param do
     do: {"negative coordinates only, z-axis", nil, format_bool(value)}
 
   def to_human(:movement_step_per_mm_x, value),
-    do: {"steps per mm x-axis", @steps_per_mm, format_float(value)}
+    do: {"steps per mm, x-axis", @steps_per_mm, format_float(value)}
 
   def to_human(:movement_step_per_mm_y, value),
-    do: {"steps per mm y-axis", @steps_per_mm, format_float(value)}
+    do: {"steps per mm, y-axis", @steps_per_mm, format_float(value)}
 
   def to_human(:movement_step_per_mm_z, value),
-    do: {"steps per mm z-axis", @steps_per_mm, format_float(value)}
+    do: {"steps per mm, z-axis", @steps_per_mm, format_float(value)}
 
   def to_human(:movement_min_spd_x, value),
     do: {"minimum speed, x-axis", @steps_per_mm, format_float(value)}
