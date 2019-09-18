@@ -83,8 +83,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   @impl GenServer
   def handle_cast({:new_data, new_fbos_config}, %{fbos_config: %FbosConfig{} = old_fbos_config} = state) do
-    FarmbotCore.Logger.debug 3, "Got new fbos config"
-    _ = set_config_to_state(new_fbos_config)
+    _ = set_config_to_state(new_fbos_config, old_fbos_config)
     _ = maybe_flash_firmware(state, new_fbos_config.firmware_hardware, old_fbos_config.firmware_hardware)
     {:noreply, %{state | fbos_config: new_fbos_config}}
   end
@@ -120,6 +119,66 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         # Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
         :ok
     end
+  end
+
+  def set_config_to_state(new_fbos_config, old_fbos_config) do
+    interesting_params = [
+      :arduino_debug_messages,
+      :firmware_input_log,
+      :firmware_output_log,
+      :auto_sync,
+      :beta_opt_in,
+      :disable_factory_reset,
+      :network_not_found_timer,
+      :os_auto_update,
+      :sequence_body_log,
+      :sequence_complete_log,
+      :sequence_init_log,
+    ]
+    new_interesting_fbos_config = Map.take(new_fbos_config, interesting_params) |> MapSet.new()
+    old_interesting_fbos_config = Map.take(old_fbos_config, interesting_params) |> MapSet.new()
+    difference = MapSet.difference(new_interesting_fbos_config, old_interesting_fbos_config)
+    Enum.each(difference, fn
+      {:arduino_debug_messages, bool} ->
+        FarmbotCore.Logger.success 1, "Set arduino debug messages to #{bool}"
+
+      {:firmware_input_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set arduino input logs to #{bool}"
+
+      {:firmware_output_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set arduino output logs to #{bool}"
+
+      {:auto_sync, bool} ->
+        FarmbotCore.Logger.success 1, "Set auto sync to #{bool}"
+
+      {:beta_opt_in, true} ->
+        FarmbotCore.Logger.success 1, "Opting into beta updates"
+
+      {:beta_opt_in, false} ->
+        FarmbotCore.Logger.success 1, "Opting out of beta updates"
+
+      {:os_auto_update, bool} ->
+        FarmbotCore.Logger.success 1, "Set OS auto update to #{bool}"
+
+      {:disable_factory_reset, bool} ->
+        FarmbotCore.Logger.success 1, "Set disable factory reset to #{bool}"
+
+      {:network_not_found_timer, seconds} ->
+        FarmbotCore.Logger.success 1, "Set connection attempt period to #{seconds}"
+
+      {:sequence_body_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set sequence step log messages to #{bool}"
+
+      {:sequence_complete_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set sequence complete log messages to #{bool}"
+
+      {:sequence_init_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set sequence init log messages to #{bool}"
+
+      {param, value} ->
+        FarmbotCore.Logger.success 1, "Set #{param} to #{value}"
+    end)
+    set_config_to_state(new_fbos_config)
   end
 
   def set_config_to_state(fbos_config) do
