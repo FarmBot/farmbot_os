@@ -7,6 +7,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotFirmware
+  alias FarmbotFirmware.Param
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
 
   def preload(%FirmwareConfig{}), do: []
@@ -35,31 +36,31 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   defp do_write_read(calib_param, value)
       when calib_param in [:movement_axis_nr_steps_z, :movement_axis_nr_steps_y, :movement_axis_nr_steps_z]
   do
-    value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
+    {human, units, value_str} = Param.to_human(calib_param, value)
     case FarmbotFirmware.command({:parameter_write, [{calib_param, value}]}) do
       {:error, :configuration} -> 
-        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{calib_param}: #{value_str}"
+        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{human}: #{value_str} #{units}"
         :ok
 
       :ok ->
-        FarmbotCore.Logger.success 1, "Set #{calib_param} to #{value_str}"
+        FarmbotCore.Logger.success 1, "Set #{human} to #{value_str} #{units}"
         :ok
     end
   end
 
   defp do_write_read(param, value) do
-    value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
+    {human, units, value_str} = Param.to_human(param, value)
     with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
           {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
-      FarmbotCore.Logger.success 1, "Set #{param} to #{value_str}"
+      FarmbotCore.Logger.success 1, "Set #{human} to #{value_str} #{units}"
       :ok
     else
       {:error, reason} ->
         FarmbotCore.Logger.error 1, "Error writing firmware parameter: #{param}: #{inspect(reason)}"
 
       {:ok, {_, {:report_parameter_value, [{param, value}]}}} ->
-        value_str = FarmbotCeleryScript.FormatUtil.format_float(value)
-        FarmbotCore.Logger.error 1, "Error writing firmware parameter #{param}: incorrect data reply: #{value_str}"
+        {human, units, value_str} = Param.to_human(param, value)
+        FarmbotCore.Logger.error 1, "Error writing firmware parameter #{human}: incorrect data reply: #{value_str} #{units}"
     end
   end
 end
