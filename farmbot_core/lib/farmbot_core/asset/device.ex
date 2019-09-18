@@ -17,6 +17,8 @@ defmodule FarmbotCore.Asset.Device do
 
     field(:name, :string)
     field(:timezone, :string)
+    field(:last_ota, :utc_datetime)
+    field(:last_ota_checkup, :utc_datetime)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -25,13 +27,23 @@ defmodule FarmbotCore.Asset.Device do
     %{
       id: device.id,
       name: device.name,
-      timezone: device.timezone
+      timezone: device.timezone,
+      last_ota: device.last_ota,
+      last_ota_checkup: device.last_ota_checkup 
     }
   end
 
   def changeset(device, params \\ %{}) do
     device
-    |> cast(params, [:id, :name, :timezone, :monitor, :created_at, :updated_at])
+    |> cast(params, [:id, 
+      :name, 
+      :timezone, 
+      :last_ota, 
+      :last_ota_checkup, 
+      :monitor, 
+      :created_at, 
+      :updated_at
+    ])
     |> validate_required([])
   end
 end
