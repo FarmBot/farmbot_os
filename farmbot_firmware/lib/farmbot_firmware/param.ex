@@ -484,7 +484,7 @@ defmodule FarmbotFirmware.Param do
     do: {"pin guard 1 timeout", @seconds, format_float(value)}
 
   def to_human(:pin_guard_1_active_state, value),
-    do: {"pin guard 1 active state", nil, format_high_low(value)}
+    do: {"pin guard 1 safe state", nil, format_high_low_inverted(value)}
 
   def to_human(:pin_guard_2_pin_nr, value),
     do: {"pin guard 2 pin number", nil, format_float(value)}
@@ -493,7 +493,7 @@ defmodule FarmbotFirmware.Param do
     do: {"pin guard 2 timeout", @seconds, format_float(value)}
 
   def to_human(:pin_guard_2_active_state, value),
-    do: {"pin guard 2 active state", nil, format_high_low(value)}
+    do: {"pin guard 2 safe state", nil, format_high_low_inverted(value)}
 
   def to_human(:pin_guard_3_pin_nr, value),
     do: {"pin guard 3 pin number", nil, format_float(value)}
@@ -502,7 +502,7 @@ defmodule FarmbotFirmware.Param do
     do: {"pin guard 3 timeout", @seconds, format_float(value)}
 
   def to_human(:pin_guard_3_active_state, value),
-    do: {"pin guard 3 active state", nil, format_high_low(value)}
+    do: {"pin guard 3 safe state", nil, format_high_low_inverted(value)}
 
   def to_human(:pin_guard_4_pin_nr, value),
     do: {"pin guard 4 pin number", nil, format_float(value)}
@@ -511,7 +511,7 @@ defmodule FarmbotFirmware.Param do
     do: {"pin guard 4 timeout", @seconds, format_float(value)}
 
   def to_human(:pin_guard_4_active_state, value),
-    do: {"pin guard 4 active state", nil, format_high_low(value)}
+    do: {"pin guard 4 safe state", nil, format_high_low_inverted(value)}
 
   def to_human(:pin_guard_5_pin_nr, value),
     do: {"pin guard 5 pin number", nil, format_float(value)}
@@ -520,7 +520,7 @@ defmodule FarmbotFirmware.Param do
     do: {"pin guard 5 timeout", @seconds, format_float(value)}
 
   def to_human(:pin_guard_5_active_state, value),
-    do: {"pin guard 5 active state", nil, format_high_low(value)}
+    do: {"pin guard 5 safe state", nil, format_high_low_inverted(value)}
 
   def format_float(value) when is_integer(value) do
     format_float(value / 1)
@@ -537,6 +537,6 @@ defmodule FarmbotFirmware.Param do
   def format_bool(val) when val == 1, do: true
   def format_bool(val) when val == 0, do: false
 
-  def format_high_low(val) when val == 1, do: "HIGH"
-  def format_high_low(val) when val == 0, do: "LOW"
+  def format_high_low_inverted(val) when val == 0, do: "HIGH"
+  def format_high_low_inverted(val) when val == 1, do: "LOW"
 end
