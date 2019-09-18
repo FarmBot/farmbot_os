@@ -134,6 +134,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,
+      :update_channel
     ]
     new_interesting_fbos_config = Map.take(new_fbos_config, interesting_params) |> MapSet.new()
     old_interesting_fbos_config = Map.take(old_fbos_config, interesting_params) |> MapSet.new()
@@ -157,14 +158,17 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       {:beta_opt_in, false} ->
         FarmbotCore.Logger.success 1, "Opting out of beta updates"
 
+      {:update_channel, channel} ->
+        FarmbotCore.Logger.success 1, "Set OS update channel to #{channel}"
+
       {:os_auto_update, bool} ->
         FarmbotCore.Logger.success 1, "Set OS auto update to #{bool}"
 
       {:disable_factory_reset, bool} ->
-        FarmbotCore.Logger.success 1, "Set disable factory reset to #{bool}"
+        FarmbotCore.Logger.success 1, "Set automatic factory reset to #{!bool}"
 
-      {:network_not_found_timer, seconds} ->
-        FarmbotCore.Logger.success 1, "Set connection attempt period to #{seconds}"
+      {:network_not_found_timer, minutes} ->
+        FarmbotCore.Logger.success 1, "Set connection attempt period to #{minutes} minutes"
 
       {:sequence_body_log, bool} ->
         FarmbotCore.Logger.success 1, "Set sequence step log messages to #{bool}"
