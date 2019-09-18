@@ -24,6 +24,7 @@ defmodule Mix.Tasks.Farmbot.NervesHub do
           [
             "identifier",
             "status",
+            "healthy",
             "version",
             "tags",
             "firmware_uuid",
@@ -37,6 +38,7 @@ defmodule Mix.Tasks.Farmbot.NervesHub do
     row = [
       data["identifier"],
       data["status"],
+      data["healthy"],
       data["version"],
       Enum.join(data["tags"], ", "),
       data["firmware_metadata"]["uuid"],
