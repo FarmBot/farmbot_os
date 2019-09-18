@@ -210,4 +210,333 @@ defmodule FarmbotFirmware.Param do
   def encode(:pin_guard_5_pin_nr), do: 221
   def encode(:pin_guard_5_time_out), do: 222
   def encode(:pin_guard_5_active_state), do: 223
+
+  @typedoc "The human readable name of a param"
+  @type human() :: String.t()
+
+  @typedoc "Human readable units for param"
+  @type unit() :: String.t()
+
+  @seconds "(seconds)"
+  @steps "(steps)"
+  @steps_per_mm "(steps/mm)"
+  @amps "(amps)"
+
+  @doc "Translates a param to a human readable string"
+  @spec to_human(parameter :: t() | number(), value :: number()) ::
+          {human(), value :: String.t(), nil | unit()}
+  def to_human(parameter, value)
+  def to_human(id, value) when is_number(id), do: decode(id) |> to_human(value)
+
+  def to_human(:param_version, value),
+    do: {"param_version", nil, format_float(value)}
+
+  def to_human(:param_test, value),
+    do: {"param_test", nil, format_bool(value)}
+
+  def to_human(:param_config_ok, value),
+    do: {"param_config_ok", nil, format_bool(value)}
+
+  def to_human(:param_use_eeprom, value),
+    do: {"use eeprom", nil, format_bool(value)}
+
+  def to_human(:param_e_stop_on_mov_err, value),
+    do: {"e-stop on movement errors", nil, format_bool(value)}
+
+  def to_human(:param_mov_nr_retry, value),
+    do: {"max retries", nil, format_float(value)}
+
+  def to_human(:movement_timeout_x, value),
+    do: {"timeout after, x-axis", @seconds, format_float(value)}
+
+  def to_human(:movement_timeout_y, value),
+    do: {"timeout after, y-axis", @seconds, format_float(value)}
+
+  def to_human(:movement_timeout_z, value),
+    do: {"timeout after, z-axis", @seconds, format_float(value)}
+
+  def to_human(:movement_keep_active_x, value),
+    do: {"always power motors, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_keep_active_y, value),
+    do: {"always power motors, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_keep_active_z, value),
+    do: {"always power motors, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_at_boot_x, value),
+    do: {"find home on boot, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_at_boot_y, value),
+    do: {"find home on boot, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_at_boot_z, value),
+    do: {"find home on boot, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_endpoints_x, value),
+    do: {"invert endstops, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_endpoints_y, value),
+    do: {"invert endstops, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_endpoints_z, value),
+    do: {"invert endstops, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_enable_endpoints_x, value),
+    do: {"enable endstops, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_enable_endpoints_y, value),
+    do: {"enable endstops, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_enable_endpoints_z, value),
+    do: {"enable endstops, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_motor_x, value),
+    do: {"invert motor, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_motor_y, value),
+    do: {"invert motor, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_motor_z, value),
+    do: {"invert motor, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_secondary_motor_x, value),
+    do: {"enable 2nd x motor", nil, format_bool(value)}
+
+  def to_human(:movement_secondary_motor_invert_x, value),
+    do: {"invert 2nd x motor", nil, format_bool(value)}
+
+  def to_human(:movement_steps_acc_dec_x, value),
+    do: {"accelerate for, x-axis", @steps, format_float(value)}
+
+  def to_human(:movement_steps_acc_dec_y, value),
+    do: {"accelerate for, y-axis", @steps, format_float(value)}
+
+  def to_human(:movement_steps_acc_dec_z, value),
+    do: {"accelerate for, z-axis", @steps, format_float(value)}
+
+  def to_human(:movement_stop_at_home_x, value),
+    do: {"stop at home, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_stop_at_home_y, value),
+    do: {"stop at home, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_stop_at_home_z, value),
+    do: {"stop at home, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_up_x, value),
+    do: {"negative coordinates only, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_up_y, value),
+    do: {"negative coordinates only, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_home_up_z, value),
+    do: {"negative coordinates only, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_step_per_mm_x, value),
+    do: {"steps per mm x-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_step_per_mm_y, value),
+    do: {"steps per mm y-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_step_per_mm_z, value),
+    do: {"steps per mm z-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_min_spd_x, value),
+    do: {"minimum speed, x-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_min_spd_y, value),
+    do: {"minimum speed, y-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_min_spd_z, value),
+    do: {"minimum speed, z-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_home_spd_x, value),
+    do: {"homing speed, x-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_home_spd_y, value),
+    do: {"homing speed, y-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_home_spd_z, value),
+    do: {"homing speed, z-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_max_spd_x, value),
+    do: {"max speed, x-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_max_spd_y, value),
+    do: {"max speed, y-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_max_spd_z, value),
+    do: {"max speed, z-axis", @steps_per_mm, format_float(value)}
+
+  def to_human(:movement_invert_2_endpoints_x, value),
+    do: {"invert endstops, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_2_endpoints_y, value),
+    do: {"invert endstops, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_invert_2_endpoints_z, value),
+    do: {"invert endstops, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_motor_current_x, value),
+    do: {"motor current, x-axis", @amps, format_float(value)}
+
+  def to_human(:movement_motor_current_y, value),
+    do: {"motor current, y-axis", @amps, format_float(value)}
+
+  def to_human(:movement_motor_current_z, value),
+    do: {"motor current, z-axis", @amps, format_float(value)}
+
+  def to_human(:movement_stall_sensitivity_x, value),
+    do: {"stall sensitivity, x-axis", nil, format_float(value)}
+
+  def to_human(:movement_stall_sensitivity_y, value),
+    do: {"stall sensitivity, y-axis", nil, format_float(value)}
+
+  def to_human(:movement_stall_sensitivity_z, value),
+    do: {"stall sensitivity, z-axis", nil, format_float(value)}
+
+  def to_human(:encoder_enabled_x, value),
+    do: {"enable encoders, x-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_enabled_y, value),
+    do: {"enable encoders, y-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_enabled_z, value),
+    do: {"enable encoders, z-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_type_x, value),
+    do: {"encoder type, x-axis", nil, format_float(value)}
+
+  def to_human(:encoder_type_y, value),
+    do: {"encoder type, y-axis", nil, format_float(value)}
+
+  def to_human(:encoder_type_z, value),
+    do: {"encoder type, z-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_max_x, value),
+    do: {"max missed steps, x-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_max_y, value),
+    do: {"max missed steps, y-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_max_z, value),
+    do: {"max missed steps, z-axis", nil, format_float(value)}
+
+  def to_human(:encoder_scaling_x, value),
+    do: {"encoder scaling, x-axis", nil, format_float(value)}
+
+  def to_human(:encoder_scaling_y, value),
+    do: {"encoder scaling, y-axis", nil, format_float(value)}
+
+  def to_human(:encoder_scaling_z, value),
+    do: {"encoder scaling, z-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_decay_x, value),
+    do: {"encoder missed steps decay, x-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_decay_y, value),
+    do: {"encoder missed steps decay, y-axis", nil, format_float(value)}
+
+  def to_human(:encoder_missed_steps_decay_z, value),
+    do: {"encoder missed steps decay, z-axis", nil, format_float(value)}
+
+  def to_human(:encoder_use_for_pos_x, value),
+    do: {"use encoders for positioning, x-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_use_for_pos_y, value),
+    do: {"use encoders for positioning, y-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_use_for_pos_z, value),
+    do: {"use encoders for positioning, z-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_invert_x, value),
+    do: {"invert encoders, x-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_invert_y, value),
+    do: {"invert encoders, y-axis", nil, format_bool(value)}
+
+  def to_human(:encoder_invert_z, value),
+    do: {"invert encoders, z-axis", nil, format_bool(value)}
+
+  def to_human(:movement_axis_nr_steps_x, value),
+    do: {"axis length, x-axis", @steps, format_float(value)}
+
+  def to_human(:movement_axis_nr_steps_y, value),
+    do: {"axis length, y-axis", @steps, format_float(value)}
+
+  def to_human(:movement_axis_nr_steps_z, value),
+    do: {"axis length, z-axis", @steps, format_float(value)}
+
+  def to_human(:movement_stop_at_max_x, value),
+    do: {"stop at max, x-axis", nil, format_bool(value)}
+
+  def to_human(:movement_stop_at_max_y, value),
+    do: {"stop at max, y-axis", nil, format_bool(value)}
+
+  def to_human(:movement_stop_at_max_z, value),
+    do: {"stop at max, z-axis", nil, format_bool(value)}
+
+  def to_human(:pin_guard_1_pin_nr, value),
+    do: {"pin guard 1 pin number", nil, format_float(value)}
+
+  def to_human(:pin_guard_1_time_out, value),
+    do: {"pin guard 1 timeout", @seconds, format_float(value)}
+
+  def to_human(:pin_guard_1_active_state, value),
+    do: {"pin guard 1 active state", nil, format_high_low(value)}
+
+  def to_human(:pin_guard_2_pin_nr, value),
+    do: {"pin guard 2 pin number", nil, format_float(value)}
+
+  def to_human(:pin_guard_2_time_out, value),
+    do: {"pin guard 2 timeout", @seconds, format_float(value)}
+
+  def to_human(:pin_guard_2_active_state, value),
+    do: {"pin guard 2 active state", nil, format_high_low(value)}
+
+  def to_human(:pin_guard_3_pin_nr, value),
+    do: {"pin guard 3 pin number", nil, format_float(value)}
+
+  def to_human(:pin_guard_3_time_out, value),
+    do: {"pin guard 3 timeout", @seconds, format_float(value)}
+
+  def to_human(:pin_guard_3_active_state, value),
+    do: {"pin guard 3 active state", nil, format_high_low(value)}
+
+  def to_human(:pin_guard_4_pin_nr, value),
+    do: {"pin guard 4 pin number", nil, format_float(value)}
+
+  def to_human(:pin_guard_4_time_out, value),
+    do: {"pin guard 4 timeout", @seconds, format_float(value)}
+
+  def to_human(:pin_guard_4_active_state, value),
+    do: {"pin guard 4 active state", nil, format_high_low(value)}
+
+  def to_human(:pin_guard_5_pin_nr, value),
+    do: {"pin guard 5 pin number", nil, format_float(value)}
+
+  def to_human(:pin_guard_5_time_out, value),
+    do: {"pin guard 5 timeout", @seconds, format_float(value)}
+
+  def to_human(:pin_guard_5_active_state, value),
+    do: {"pin guard 5 active state", nil, format_high_low(value)}
+
+  def format_float(value) when is_integer(value) do
+    format_float(value / 1)
+  end
+
+  def format_float(value) when is_float(value) do
+    case :math.fmod(value, 1) do
+      # value has no remainder
+      rem when rem <= 0.0 -> :erlang.float_to_binary(value, decimals: 0)
+      _ -> :erlang.float_to_binary(value, decimals: 1)
+    end
+  end
+
+  def format_bool(val) when val == 1, do: true
+  def format_bool(val) when val == 0, do: false
+
+  def format_high_low(val) when val == 1, do: "HIGH"
+  def format_high_low(val) when val == 0, do: "LOW"
 end
