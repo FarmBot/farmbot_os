@@ -169,6 +169,7 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
       "regimens",
       "pin_bindings",
       "points",
+      "point_groups",
       "farm_events",
       "firmware_configs",
       "fbos_configs",
