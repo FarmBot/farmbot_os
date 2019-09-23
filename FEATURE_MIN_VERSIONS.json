@@ -11,7 +11,6 @@
   "use_update_channel": "6.4.12",
   "long_scaling_factor": "7.0.1",
   "variables": "8.0.0",
-  "mark_as_step": "8.0.0",
   "firmware_restart": "8.0.0",
   "api_farmware_installations": "8.0.0",
   "api_farmware_env": "8.0.0",
