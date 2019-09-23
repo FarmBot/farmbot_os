@@ -19,12 +19,13 @@ defmodule FarmbotOS.SysCalls do
     FlashFirmware,
     SendMessage,
     SetPinIOMode,
-    PinControl
+    PinControl,
+    ResourceUpdate
   }
 
   alias FarmbotOS.Lua
 
-  alias FarmbotCore.{Asset, Asset.Repo, Asset.Private, Asset.Sync, BotState, Leds}
+  alias FarmbotCore.{Asset, Asset.Private, Asset.Sync, BotState, Leds}
   alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
 
   @behaviour FarmbotCeleryScript.SysCalls
@@ -76,6 +77,9 @@ defmodule FarmbotOS.SysCalls do
   defdelegate toggle_pin(number), to: PinControl
 
   @impl true
+  defdelegate resource_update(kind, id, params), to: ResourceUpdate
+
+  @impl true
   def log(message, force?) do
     if force? || FarmbotCore.Asset.fbos_config(:sequence_body_log) do
       FarmbotCore.Logger.info(2, message)
@@ -120,29 +124,6 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def firmware_reboot do
     GenServer.stop(FarmbotFirmware, :reboot)
-  end
-
-  @impl true
-  def resource_update(kind, id, params) do
-    module = Module.concat(Asset, kind)
-
-    with true <- Code.ensure_loaded?(module),
-         %{} = orig <- Repo.get_by(module, [id: id], preload: [:local_meta]),
-         %{valid?: true} = change <- module.changeset(orig, params),
-         {:ok, new} <- Repo.update(change),
-         new <- Repo.preload(new, [:local_meta]) do
-      Private.mark_dirty!(new, %{})
-      :ok
-    else
-      false ->
-        {:error, "unknown asset kind: #{kind}"}
-
-      nil ->
-        {:error, "Could not find asset by kind: #{kind} and id: #{id}"}
-
-      %{valid?: false} = changeset ->
-        {:error, "failed to update #{kind}: #{inspect(changeset.errors)}"}
-    end
   end
 
   @impl true
