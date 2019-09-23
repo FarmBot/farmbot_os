@@ -854,7 +854,7 @@ defmodule FarmbotCeleryScript.Compiler do
       FarmbotCeleryScript.SysCalls.resource_update(
         unquote(compile_ast(kind)),
         unquote(compile_ast(id)),
-        unquote(compile_ast(params))
+        unquote(Macro.escape(params))
       )
     end
   end
