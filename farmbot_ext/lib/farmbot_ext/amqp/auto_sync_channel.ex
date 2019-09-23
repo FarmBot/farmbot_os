@@ -27,6 +27,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     Peripheral
     PinBinding
     Point
+    PointGroup
     Regimen
     Sensor
     Sequence
