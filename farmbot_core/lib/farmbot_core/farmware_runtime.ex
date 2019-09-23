@@ -191,7 +191,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   # farmware exit
   def handle_info({:DOWN, _ref, :process, _pid, _reason}, %{cmd: _cmd_pid} = state) do
     Logger.debug("Farmware exit")
-    {:noreply, %{state | cmd: nil}}
+    {:stop, :normal, %{state | cmd: nil}}
   end
 
   # successful result of an io:read/2 in :get_header context
