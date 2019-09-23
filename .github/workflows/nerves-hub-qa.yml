@@ -1,0 +1,56 @@
+on: 
+  pull_request:
+    branches:
+    - staging
+    - master
+    paths-ignore:
+    - 'docs/**'
+    - 'scripts/**'
+    - 'support/**'
+    - '**.md'
+
+jobs:
+  run_tests: 
+    container: nervesproject/nerves_system_br:latest
+    runs-on: ubuntu-18.04
+    steps:
+    - name: install mix archives
+      run: |
+        mix local.hex --force
+        mix local.rebar --force
+        mix archive.install hex nerves_bootstrap "~> 1.6" --force
+
+  build_deploy_firmware:
+    container: nervesproject/nerves_system_br:latest
+    runs-on: ubuntu-18.04
+    needs: [run_tests]
+    steps:
+    - name: Install Elixir
+      run: |
+        wget https://repo.hex.pm/builds/elixir/v1.9.0-otp-22.zip
+        unzip -d /usr/local/elixir v1.9.0-otp-22.zip
+    - name: install mix archives
+      run: |
+        /usr/local/elixir/bin/mix local.hex --force
+        /usr/local/elixir/bin/mix local.rebar --force
+        /usr/local/elixir/bin/mix archive.install hex nerves_bootstrap "~> 1.6" --force
+    - name: build firmware
+      env:
+        MIX_ENV: prod
+        MIX_TARGET: rpi3
+      run: |
+        cd farmbot_os
+        /usr/local/elixir/bin/mix deps.get
+        /usr/local/elixir/bin/mix compile --force
+        /usr/local/elixir/bin/mix firmware
+    - name: deploy firmware to NervesHub
+      env:
+        MIX_ENV: prod
+        MIX_TARGET: rpi3
+        NERVES_HUB_KEY: ${{ secrets.NERVES_HUB_KEY }}
+        NERVES_HUB_CERT: ${{ secrets.NERVES_HUB_CERT }}
+        NERVES_HUB_FW_PRIVATE_KEY: ${{ secrets.NERVES_HUB_FW_PRIVATE_KEY }}
+        NERVES_HUB_FW_PUBLIC_KEY: ${{ secrets.NERVES_HUB_FW_PUBLIC_KEY }}
+      run: |
+        cd farmbot_os
+        /usr/local/elixir/bin/mix nerves_hub.firmware publish --deploy rpi3-prod-next --tty 3600 _build/rpi3/rpi3_prod/nerves/images/farmbot.fw
