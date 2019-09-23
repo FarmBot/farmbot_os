@@ -1,5 +1,11 @@
 # Changelog
 
+# 8.0.3
+* Features
+    * Add new firmware params to support trinamic motor drivers
+* Bug fixes
+    * Fix farmware sometimes hanging sequences
+
 # 8.0.2
 * Updated dependencies
     * `nerves_hub` 
