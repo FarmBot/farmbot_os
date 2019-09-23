@@ -222,6 +222,12 @@ defmodule FarmbotCore.Asset do
     Repo.get_by(Point, params)
   end
 
+  def update_point(point, params) do
+    point
+    |> Point.changeset(params)
+    |> Repo.update()
+  end
+
   ## End Point
 
   ## Begin PublicKey
