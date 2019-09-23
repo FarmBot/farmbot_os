@@ -12,6 +12,7 @@ defmodule FarmbotExt.API.SyncGroup do
     Peripheral,
     PinBinding,
     Point,
+    PointGroup,
     # PublicKey,
     Regimen,
     SensorReading,
@@ -48,10 +49,11 @@ defmodule FarmbotExt.API.SyncGroup do
   def group_2,
     do: [
       # Requires Peripheral, Point, Sensor, SensorReading, Tool
-      Sequence
+      Sequence,
+      PointGroup
     ]
 
-  @doc "Group 3 relies on assets in Group 3"
+  @doc "Group 3 relies on assets in Group 2"
   def group_3,
     do: [
       # Requires Sequence
