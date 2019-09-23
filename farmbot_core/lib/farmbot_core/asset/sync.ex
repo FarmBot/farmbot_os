@@ -49,6 +49,7 @@ defmodule FarmbotCore.Asset.Sync do
     embeds_many(:peripherals, Item)
     embeds_many(:pin_bindings, Item)
     embeds_many(:points, Item)
+    embeds_many(:point_groups, Item)
     embeds_many(:public_keys, Item)
     embeds_many(:regimens, Item)
     embeds_many(:sensor_readings, Item)

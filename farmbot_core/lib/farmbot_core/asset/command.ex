@@ -200,6 +200,7 @@ defmodule FarmbotCore.Asset.Command do
   defp as_module!("Peripheral"), do: Asset.Peripheral 
   defp as_module!("PinBinding"), do: Asset.PinBinding 
   defp as_module!("Point"), do: Asset.Point 
+  defp as_module!("PointGroup"), do: Asset.PointGroup 
   defp as_module!("Regimen"), do: Asset.Regimen 
   defp as_module!("Sensor"), do: Asset.Sensor 
   defp as_module!("SensorReading"), do: Asset.SensorReading 
