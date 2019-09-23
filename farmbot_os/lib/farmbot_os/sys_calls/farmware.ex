@@ -13,6 +13,20 @@ defmodule FarmbotOS.SysCalls.Farmware do
     end
   end
 
+  def lookup_manifest(farmware_name) do
+    case Asset.get_farmware_manifest(farmware_name) do
+      nil -> {:error, "#{farmware_name} farmware not installed"}
+      manifest -> {:ok, manifest}
+    end
+  end
+
+  def lookup_installation(farmware_name) do
+    case Asset.get_farmware_installation(farmware_name) do
+      nil -> {:error, "#{farmware_name} farmware not installed"}
+      farmware -> {:ok, farmware}
+    end
+  end
+
   def execute_script(farmware_name, env) do
     with {:ok, manifest} <- lookup_manifest(farmware_name),
          {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
@@ -29,20 +43,6 @@ defmodule FarmbotOS.SysCalls.Farmware do
       {:error, reason} when is_binary(reason) ->
         _ = ImageUploader.force_checkup()
         {:error, reason}
-    end
-  end
-
-  def lookup_manifest(farmware_name) do
-    case Asset.get_farmware_manifest(farmware_name) do
-      nil -> {:error, "#{farmware_name} farmware not installed"}
-      manifest -> {:ok, manifest}
-    end
-  end
-
-  def lookup_installation(farmware_name) do
-    case Asset.get_farmware_installation(farmware_name) do
-      nil -> {:error, "#{farmware_name} farmware not installed"}
-      farmware -> {:ok, farmware}
     end
   end
 
@@ -80,22 +80,26 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
           # check to see if it's alive just in case?
           Process.alive?(runtime) ->
-            case FarmwareRuntime.process_rpc(runtime) do
-              {:ok, %{args: %{label: label}} = rpc} ->
-                ref = make_ref()
-                Logger.debug("executing rpc: #{inspect(rpc)}")
-                FarmbotCeleryScript.execute(rpc, ref)
-                loop(farmware_name, runtime, monitor, {ref, label})
-
-              {:error, :no_rpc} ->
-                loop(farmware_name, runtime, monitor, {ref, label})
-            end
+            process(farmware_name, runtime, monitor, {ref, label})
 
           # No other conditions: Process stopped, but missed the message?
           true ->
             _ = FarmwareRuntime.stop(runtime)
             :ok
         end
+    end
+  end
+
+  defp process(farmware_name, runtime, monitor, {ref, label}) do
+    case FarmwareRuntime.process_rpc(runtime) do
+      {:ok, %{args: %{label: label}} = rpc} ->
+        ref = make_ref()
+        Logger.debug("executing rpc: #{inspect(rpc)}")
+        FarmbotCeleryScript.execute(rpc, ref)
+        loop(farmware_name, runtime, monitor, {ref, label})
+
+      {:error, :no_rpc} ->
+        loop(farmware_name, runtime, monitor, {ref, label})
     end
   end
 end
