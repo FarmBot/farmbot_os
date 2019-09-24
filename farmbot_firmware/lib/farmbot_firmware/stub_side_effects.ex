@@ -92,7 +92,13 @@ defmodule FarmbotFirmware.StubSideEffects do
       movement_stop_at_home_y: 1.0,
       pin_guard_2_time_out: 60.0,
       encoder_scaling_z: 5556.0,
-      encoder_missed_steps_decay_x: 5.0
+      encoder_missed_steps_decay_x: 5.0,
+      movement_motor_current_x: 600,
+      movement_motor_current_y: 600,
+      movement_motor_current_z: 600,
+      movement_stall_sensitivity_x: 30,
+      movement_stall_sensitivity_y: 30,
+      movement_stall_sensitivity_z: 30
     ]
   end
 

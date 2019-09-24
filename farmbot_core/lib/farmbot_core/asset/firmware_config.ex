@@ -85,6 +85,12 @@ defmodule FarmbotCore.Asset.FirmwareConfig do
     field(:movement_timeout_x, :float)
     field(:movement_timeout_y, :float)
     field(:movement_timeout_z, :float)
+    field(:movement_motor_current_x, :float)
+    field(:movement_motor_current_y, :float)
+    field(:movement_motor_current_z, :float)
+    field(:movement_stall_sensitivity_x, :float)
+    field(:movement_stall_sensitivity_y, :float)
+    field(:movement_stall_sensitivity_z, :float)
     field(:param_e_stop_on_mov_err, :float)
     field(:param_mov_nr_retry, :float)
     field(:pin_guard_1_active_state, :float)
@@ -181,6 +187,12 @@ defmodule FarmbotCore.Asset.FirmwareConfig do
       movement_timeout_x: firmware_config.movement_timeout_x,
       movement_timeout_y: firmware_config.movement_timeout_y,
       movement_timeout_z: firmware_config.movement_timeout_z,
+      movement_motor_current_x: firmware_config.movement_motor_current_x,
+      movement_motor_current_y: firmware_config.movement_motor_current_y,
+      movement_motor_current_z: firmware_config.movement_motor_current_z,
+      movement_stall_sensitivity_x: firmware_config.movement_stall_sensitivity_x,
+      movement_stall_sensitivity_y: firmware_config.movement_stall_sensitivity_y,
+      movement_stall_sensitivity_z: firmware_config.movement_stall_sensitivity_z,
       param_e_stop_on_mov_err: firmware_config.param_e_stop_on_mov_err,
       param_mov_nr_retry: firmware_config.param_mov_nr_retry,
       pin_guard_1_active_state: firmware_config.pin_guard_1_active_state,
@@ -277,6 +289,12 @@ defmodule FarmbotCore.Asset.FirmwareConfig do
       :movement_timeout_x,
       :movement_timeout_y,
       :movement_timeout_z,
+      :movement_motor_current_x,
+      :movement_motor_current_y,
+      :movement_motor_current_z,
+      :movement_stall_sensitivity_x,
+      :movement_stall_sensitivity_y,
+      :movement_stall_sensitivity_z,
       :param_e_stop_on_mov_err,
       :param_mov_nr_retry,
       :pin_guard_1_active_state,

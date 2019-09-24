@@ -220,7 +220,7 @@ defmodule FarmbotFirmware.Param do
   @seconds "(seconds)"
   @steps "(steps)"
   @steps_per_mm "(steps/mm)"
-  @amps "(amps)"
+  @milliamps "(milliamps)"
 
   @doc "Translates a param to a human readable string"
   @spec to_human(parameter :: t() | number(), value :: number()) ::
@@ -379,13 +379,13 @@ defmodule FarmbotFirmware.Param do
     do: {"invert endstops, z-axis", nil, format_bool(value)}
 
   def to_human(:movement_motor_current_x, value),
-    do: {"motor current, x-axis", @amps, format_float(value)}
+    do: {"motor current, x-axis", @milliamps, format_float(value)}
 
   def to_human(:movement_motor_current_y, value),
-    do: {"motor current, y-axis", @amps, format_float(value)}
+    do: {"motor current, y-axis", @milliamps, format_float(value)}
 
   def to_human(:movement_motor_current_z, value),
-    do: {"motor current, z-axis", @amps, format_float(value)}
+    do: {"motor current, z-axis", @milliamps, format_float(value)}
 
   def to_human(:movement_stall_sensitivity_x, value),
     do: {"stall sensitivity, x-axis", nil, format_float(value)}
