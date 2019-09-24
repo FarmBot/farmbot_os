@@ -119,6 +119,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:report_memory_usage, megabytes})
   end
 
+  def report_cpu_usage(bot_state_server \\ __MODULE__, percent) do
+    GenServer.call(bot_state_server, {:report_cpu_usage, percent})
+  end
+
   def report_soc_temp(bot_state_server \\ __MODULE__, temp_celcius) do
     GenServer.call(bot_state_server, {:report_soc_temp, temp_celcius})
   end
@@ -365,6 +369,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:report_memory_usage, megabytes}, _form, state) do
     change = %{informational_settings: %{memory_usage: megabytes}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:report_cpu_usage, percent}, _form, state) do
+    change = %{informational_settings: %{cpu_usage: percent}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
