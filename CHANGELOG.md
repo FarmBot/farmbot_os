@@ -5,6 +5,7 @@
     * Add new firmware params to support trinamic motor drivers
 * Bug fixes
     * Fix farmware sometimes hanging sequences
+    * Fix the `mark_as` step
 
 # 8.0.2
 * Updated dependencies
