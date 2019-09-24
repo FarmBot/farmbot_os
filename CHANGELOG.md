@@ -1,5 +1,11 @@
 # Changelog
 
+# 8.1.0
+* Features
+    * Add loops to Sequences
+        * Add `point_group` CeleryScript node
+        * Add `every_point` CeleryScript node
+
 # 8.0.3
 * Features
     * Add new firmware params to support trinamic motor drivers
