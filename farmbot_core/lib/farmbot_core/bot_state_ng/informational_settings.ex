@@ -16,6 +16,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:commit, :string, default: Project.commit())
     field(:firmware_version, :string)
     field(:node_name, :string)
+    field(:private_ip, :string)
     field(:soc_temp, :integer)
     field(:throttled, :string)
     field(:wifi_level, :integer)
@@ -47,6 +48,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       commit: informational_settings.commit,
       firmware_version: informational_settings.firmware_version,
       node_name: informational_settings.node_name,
+      private_ip: informational_settings.private_ip,
       soc_temp: informational_settings.soc_temp,
       throttled: informational_settings.throttled,
       wifi_level: informational_settings.wifi_level,
@@ -74,6 +76,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :commit,
       :firmware_version,
       :node_name,
+      :private_ip,
       :soc_temp,
       :throttled,
       :wifi_level,
