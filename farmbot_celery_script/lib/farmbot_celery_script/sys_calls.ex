@@ -77,6 +77,12 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
               true | false | error()
 
+  @callback get_point_group(String.t() | resource_id) :: %{required(:point_ids) => [resource_id]}
+
+  def get_point_group(sys_calls \\ @sys_calls, point_group_id) do
+    point_group_or_error(sys_calls, :get_point_group, [point_group_id])
+  end
+
   def format_lhs(sys_calls \\ @sys_calls, lhs)
 
   def format_lhs(_sys_calls, "x"), do: "current X position"
@@ -331,6 +337,13 @@ defmodule FarmbotCeleryScript.SysCalls do
   defp coord_or_error(sys_calls, fun, args) do
     case apply(sys_calls, fun, args) do
       %{x: x, y: y, z: z} = coord when is_number(x) when is_number(y) when is_number(z) -> coord
+      error -> or_error(sys_calls, fun, args, error)
+    end
+  end
+
+  defp point_group_or_error(sys_calls, fun, args) do
+    case apply(sys_calls, fun, args) do
+      %{point_ids: ids} = point_group when is_list(ids) -> point_group
       error -> or_error(sys_calls, fun, args, error)
     end
   end
