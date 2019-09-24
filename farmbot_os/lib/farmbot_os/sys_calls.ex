@@ -21,7 +21,8 @@ defmodule FarmbotOS.SysCalls do
     SetPinIOMode,
     PinControl,
     ResourceUpdate,
-    Movement
+    Movement,
+    PointLookup
   }
 
   alias FarmbotOS.Lua
@@ -122,6 +123,15 @@ defmodule FarmbotOS.SysCalls do
   defdelegate home(axis, speed), to: Movement
 
   @impl true
+  defdelegate point(kind, id), to: PointLookup
+
+  @impl true
+  defdelegate get_point_group(type_or_id), to: PointLookup
+
+  @impl true
+  defdelegate get_toolslot_for_tool(id), to: PointLookup
+
+  @impl true
   def log(message, force?) do
     if force? || FarmbotCore.Asset.fbos_config(:sequence_body_log) do
       FarmbotCore.Logger.info(2, message)
@@ -183,14 +193,6 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
-  def point(kind, id) do
-    case Asset.get_point(id: id) do
-      nil -> {:error, "#{kind} not found"}
-      %{x: x, y: y, z: z} -> %{x: x, y: y, z: z}
-    end
-  end
-
-  @impl true
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
     :ok
@@ -241,16 +243,6 @@ defmodule FarmbotOS.SysCalls do
         ast = AST.decode(sequence)
         args = Map.put(ast.args, :sequence_name, sequence.name)
         %{%{ast | args: args} | meta: %{sequence_name: sequence.name}}
-    end
-  end
-
-  @impl true
-  def get_toolslot_for_tool(id) do
-    with %{id: ^id} <- Asset.get_tool(id: id),
-         %{x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
-      %{x: x, y: y, z: z}
-    else
-      nil -> {:error, "Could not find point for tool by id: #{id}"}
     end
   end
 
