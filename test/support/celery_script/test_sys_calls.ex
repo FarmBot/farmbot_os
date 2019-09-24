@@ -87,6 +87,11 @@ defmodule Farmbot.TestSupport.CeleryScript.TestSysCalls do
   end
 
   @impl true
+  def get_point_group(type_or_id) do
+    call({:get_point_group, [type_or_id]})
+  end
+
+  @impl true
   def move_absolute(x, y, z, speed) do
     call({:move_absolute, [x, y, z, speed]})
   end
