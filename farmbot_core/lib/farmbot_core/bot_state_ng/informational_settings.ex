@@ -23,6 +23,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:uptime, :integer)
     field(:memory_usage, :integer)
     field(:disk_usage, :integer)
+    field(:cpu_usage, :integer)
     field(:sync_status, :string, default: "sync_now")
     field(:locked, :boolean, default: false)
     field(:last_status, :string)
@@ -54,6 +55,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       uptime: informational_settings.uptime,
       memory_usage: informational_settings.memory_usage,
       disk_usage: informational_settings.disk_usage,
+      cpu_usage: informational_settings.cpu_usage,
       sync_status: informational_settings.sync_status,
       locked: informational_settings.locked,
       last_status: informational_settings.last_status,
@@ -81,6 +83,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :uptime,
       :memory_usage,
       :disk_usage,
+      :cpu_usage,
       :sync_status,
       :locked,
       :last_status,
