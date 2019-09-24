@@ -89,6 +89,16 @@ defmodule FarmbotCore.BotStateNGTest do
       assert mut.informational_settings.memory_usage == 512
     end
 
+    test "reports cpu_usage" do
+      orig = BotStateNG.new()
+
+      mut =
+        BotStateNG.changeset(orig, %{informational_settings: %{cpu_usage: 10}})
+        |> Ecto.Changeset.apply_changes()
+
+      assert mut.informational_settings.cpu_usage == 10
+    end
+
     test "reports uptime" do
       orig = BotStateNG.new()
 
