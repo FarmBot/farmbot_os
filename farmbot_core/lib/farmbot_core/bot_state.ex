@@ -101,6 +101,11 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_node_name, node_name})
   end
 
+    @doc "sets informational_settings.private_ip"
+  def set_private_ip(bot_state_server \\ __MODULE__, private_ip) do
+    GenServer.call(bot_state_server, {:set_private_ip, private_ip})
+  end
+
   @doc "Fetch the current state."
   def fetch(bot_state_server \\ __MODULE__) do
     GenServer.call(bot_state_server, :fetch)
@@ -330,6 +335,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_node_name, node_name}, _from, state) do
     change = %{informational_settings: %{node_name: node_name}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_private_ip, private_ip}, _from, state) do
+    change = %{informational_settings: %{private_ip: private_ip}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)
