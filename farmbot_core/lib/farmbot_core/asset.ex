@@ -19,6 +19,7 @@ defmodule FarmbotCore.Asset do
     Peripheral,
     PinBinding,
     Point,
+    PointGroup,
     PublicKey,
     Regimen,
     RegimenInstance,
@@ -228,7 +229,20 @@ defmodule FarmbotCore.Asset do
     |> Repo.update()
   end
 
+  @doc "Returns all points matching Point.pointer_type"
+  def get_all_points_by_type(type) do
+    Repo.all(from p in Point, where: p.pointer_type == ^type)
+  end
+
   ## End Point
+
+  ## Begin PointGroup
+
+  def get_point_group(params) do
+    Repo.get_by(PointGroup, params)
+  end
+
+  ## End PointGroup
 
   ## Begin PublicKey
 

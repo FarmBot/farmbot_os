@@ -1,0 +1,44 @@
+{
+  "args": {
+    "locals": {
+      "args": {},
+      "body": [],
+      "comment": null,
+      "kind": "scope_declaration",
+      "meta": null
+    }
+  },
+  "body": [
+    {
+      "args": {
+        "sequence_id": 19012
+      },
+      "body": [
+        {
+          "args": {
+            "data_value": {
+              "args": {
+                "resource_id": 31
+              },
+              "body": null, 
+              "comment": null,
+              "kind": "point_group",
+              "meta": null
+            },
+            "label": "parent"
+          },
+          "body": null,
+          "comment": null,
+          "kind": "parameter_application",
+          "meta": null
+        }
+      ],
+      "comment": null,
+      "kind": "execute",
+      "meta": null
+    }
+  ],
+  "comment": null,
+  "kind": "sequence",
+  "meta": null
+}
