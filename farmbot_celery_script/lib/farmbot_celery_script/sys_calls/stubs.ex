@@ -98,6 +98,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def point(point_type, resource_id), do: error(:point, [point_type, resource_id])
 
   @impl true
+  def get_point_group(id_or_type), do: error(:get_point_group, [id_or_type])
+
+  @impl true
   def power_off(), do: error(:power_off, [])
 
   @impl true
