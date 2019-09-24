@@ -95,6 +95,12 @@ defmodule FarmbotCore.BotStateNG.McuParams do
     field(:encoder_invert_x, :float)
     field(:encoder_missed_steps_max_x, :float)
     field(:movement_invert_motor_y, :float)
+    field(:movement_motor_current_x, :float)
+    field(:movement_motor_current_y, :float)
+    field(:movement_motor_current_z, :float)
+    field(:movement_stall_sensitivity_x, :float)
+    field(:movement_stall_sensitivity_y, :float)
+    field(:movement_stall_sensitivity_z, :float)
   end
 
   def new() do
@@ -192,7 +198,13 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       movement_axis_nr_steps_z: mcu_params.movement_axis_nr_steps_z,
       encoder_invert_x: mcu_params.encoder_invert_x,
       encoder_missed_steps_max_x: mcu_params.encoder_missed_steps_max_x,
-      movement_invert_motor_y: mcu_params.movement_invert_motor_y
+      movement_invert_motor_y: mcu_params.movement_invert_motor_y,
+      movement_motor_current_x: mcu_params.movement_motor_current_x,
+      movement_motor_current_y: mcu_params.movement_motor_current_y,
+      movement_motor_current_z: mcu_params.movement_motor_current_z,
+      movement_stall_sensitivity_x: mcu_params.movement_stall_sensitivity_x,
+      movement_stall_sensitivity_y: mcu_params.movement_stall_sensitivity_y,
+      movement_stall_sensitivity_z: mcu_params.movement_stall_sensitivity_z
     }
   end
 
@@ -286,7 +298,13 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       :movement_axis_nr_steps_z,
       :encoder_invert_x,
       :encoder_missed_steps_max_x,
-      :movement_invert_motor_y
+      :movement_invert_motor_y,
+      :movement_motor_current_x,
+      :movement_motor_current_y,
+      :movement_motor_current_z,
+      :movement_stall_sensitivity_x,
+      :movement_stall_sensitivity_y,
+      :movement_stall_sensitivity_z
     ])
   end
 end
