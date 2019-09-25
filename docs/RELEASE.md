@@ -80,6 +80,8 @@ Local password: *super duper secret*
 
 ### Exporting certs and keys
 The API and CI need copies of these keys and certs.
+These certs need to be updated before they expire. By default they are good for
+1 year
 
 ```
 mix nerves_hub.user cert export
@@ -106,9 +108,9 @@ You will also need the CA cert bundle for the WebApp:
 
 Now the FarmBot API needs the values of in it's environment:
 
-* `NERVES_HUB_KEY` -> `cat nerves-hub/key.pem`
-* `NERVES_HUB_CERT` -> `cat nerves-hub/cert.pem`
-* `NERVES_HUB_CA` -> `cat nerves-hub/nerves-hub-ca-certs.pem`
+* `NERVES_HUB_KEY` -> `heroku config:set NERVES_HUB_KEY="$(cat nerves-hub/key.pem)" --app $APP`
+* `NERVES_HUB_CERT` -> `heroku config:set NERVES_HUB_CERT="$(cat nerves-hub/cert.pem)" --app $APP`
+* `NERVES_HUB_CA` -> `heroku config:set NERVES_HUB_CA="$(cat nerves-hub/ca.pem)" --app $APP`
 
 CircleCI will need:
 
