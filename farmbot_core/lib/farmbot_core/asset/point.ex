@@ -23,6 +23,7 @@ defmodule FarmbotCore.Asset.Point do
     field(:y, :float)
     field(:z, :float)
     field(:tool_id, :integer)
+    field(:discarded_at, :utc_datetime)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -37,6 +38,7 @@ defmodule FarmbotCore.Asset.Point do
       pointer_type: point.pointer_type,
       radius: point.radius,
       tool_id: point.tool_id,
+      discarded_at: point.discarded_at,
       x: point.x,
       y: point.y,
       z: point.z
@@ -57,6 +59,7 @@ defmodule FarmbotCore.Asset.Point do
       :y,
       :z,
       :tool_id,
+      :discarded_at,
       :monitor,
       :created_at,
       :updated_at
