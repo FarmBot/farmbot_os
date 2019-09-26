@@ -231,7 +231,7 @@ defmodule FarmbotCore.Asset do
 
   @doc "Returns all points matching Point.pointer_type"
   def get_all_points_by_type(type) do
-    Repo.all(from p in Point, where: p.pointer_type == ^type)
+    Repo.all(from p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
   end
 
   ## End Point
