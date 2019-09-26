@@ -1,5 +1,6 @@
 defmodule FarmbotOS.SysCalls.PointLookup do
   alias FarmbotCore.Asset
+  require Logger
 
   def point(kind, id) do
     case Asset.get_point(id: id) do
@@ -25,6 +26,7 @@ defmodule FarmbotOS.SysCalls.PointLookup do
   end
 
   def get_point_group(type) when is_binary(type) do
+    Logger.debug("Looking up points by type: #{type}")
     points = Asset.get_all_points_by_type(type)
 
     Enum.reduce(points, %{point_ids: []}, fn
