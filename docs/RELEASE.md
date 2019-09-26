@@ -114,10 +114,10 @@ Now the FarmBot API needs the values of in it's environment:
 
 CircleCI will need:
 
-* `NERVES_HUB_KEY` -> `cat nerves-hub/key.pem`
-* `NERVES_HUB_CERT` -> `cat nerves-hub/cert.pem`
-* `NERVES_HUB_FW_PRIVATE_KEY` -> `cat nerves-hub/<KEY NAME>.priv`
-* `NERVES_HUB_FW_PUBLIC_KEY` -> `cat nerves-hub/<KEY NAME>.pub`
+* `NERVES_HUB_KEY` -> `base64 $(cat nerves-hub/key.pem)`
+* `NERVES_HUB_CERT` -> `base64 $(cat nerves-hub/cert.pem)`
+* `NERVES_HUB_FW_PRIVATE_KEY` -> `base64 $(cat nerves-hub/<KEY NAME>.priv)`
+* `NERVES_HUB_FW_PUBLIC_KEY` -> `base64 $(cat nerves-hub/<KEY NAME>.pub)`
 
 ### Provisioning and Tags
 
