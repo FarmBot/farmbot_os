@@ -48,7 +48,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
       }
     ]
 
-    compiled_celery_env = Compiler.compile_params_to_function_args(celery_env)
+    compiled_celery_env = Compiler.Utils.compile_params_to_function_args(celery_env, [])
     [body_item] = Compiler.compile(sequence, compiled_celery_env)
     assert body_item.() == 600
   end
@@ -97,7 +97,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
       ]
     }
 
-    elixir_ast = Compiler.compile_ast(celery_ast)
+    elixir_ast = Compiler.compile_ast(celery_ast, [])
 
     elixir_code =
       elixir_ast
@@ -344,7 +344,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
   defp compile(ast) do
     ast
-    |> Compiler.compile_ast()
+    |> Compiler.compile_ast([])
     |> Macro.to_string()
     |> Code.format_string!()
     |> IO.iodata_to_binary()
