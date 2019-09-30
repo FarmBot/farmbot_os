@@ -1,6 +1,6 @@
 defmodule FarmbotCore.FarmwareRuntime.PipeWorkerTest do
   use ExUnit.Case, async: false
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
+  # alias FarmbotCore.FarmwareRuntime.PipeWorker
 
   # TODO Find a suitable tool for testing domain sockets?
 
