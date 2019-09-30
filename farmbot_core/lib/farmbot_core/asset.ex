@@ -230,16 +230,56 @@ defmodule FarmbotCore.Asset do
   end
 
   @doc "Returns all points matching Point.pointer_type"
-  def get_all_points_by_type(type) do
-    Repo.all(from p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
+  def get_all_points_by_type(type, order_by \\ "xy_ascending") do
+    (from p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
+    |> Repo.all()
+    |> sort_points(order_by)
   end
+
+  def sort_points(points, order_by) do
+    points
+    |> Enum.group_by(&group_points_by(&1, order_by))
+    |> Enum.sort(&group_sort(&1, &2, order_by))
+    |> Enum.map(fn({_group_index, group}) -> Enum.sort(group, &sort_points(&1, &2, order_by)) end)
+    |> List.flatten()
+  end
+
+  def group_points_by(%{x: x}, algo) when algo in ~w(xy_ascending xy_descending), do: x
+  def group_points_by(%{y: y}, algo) when algo in ~w(yx_ascending yx_descending), do: y
+  def group_points_by(%{x: x, y: y}, "random"), do: Enum.random([x, y])
+
+  def group_sort({lgroup, _}, {rgroup, _}, "xy_ascending"), do: lgroup <= rgroup
+  def group_sort({lgroup, _}, {rgroup, _}, "yx_ascending"), do: lgroup <= rgroup
+
+  def group_sort({lgroup, _}, {rgroup, _}, "xy_descending"), do: lgroup >= rgroup
+  def group_sort({lgroup, _}, {rgroup, _}, "yx_descending"), do: lgroup >= rgroup
+
+  def sort_points(%{y: ly}, %{y: ry}, "xy_ascending"), do: ly <= ry
+  def sort_points(%{y: ly}, %{y: ry}, "xy_descending"), do: ly >= ry
+  def sort_points(%{x: lx}, %{x: rx}, "yx_ascending"), do: lx <= rx
+  def sort_points(%{x: lx}, %{x: rx}, "yx_descending"), do: lx >= rx
+  def sort_points(_, _, "random"), do: Enum.random([true, false])
 
   ## End Point
 
   ## Begin PointGroup
 
   def get_point_group(params) do
-    Repo.get_by(PointGroup, params)
+    case Repo.get_by(PointGroup, params) do
+      nil -> 
+        nil
+
+      %{sort_type: nil} = group -> 
+        group 
+
+      %{point_ids: unsorted, sort_type: sort_by} = point_group ->
+        sorted = 
+          Repo.all(from p in Point, where: p.id in ^unsorted)
+          |> sort_points(sort_by)
+          |> Enum.map(&Map.fetch!(&1, :id))
+
+        %{point_group | point_ids: sorted}
+    end
   end
 
   ## End PointGroup
