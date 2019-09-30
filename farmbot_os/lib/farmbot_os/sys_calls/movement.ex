@@ -73,12 +73,20 @@ defmodule FarmbotOS.SysCalls.Movement do
   defp do_move_absolute(x, y, z, speed, retries, errors \\ [])
 
   defp do_move_absolute(x, y, z, speed, 0, errors) do
-    params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
-
-    case FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok ->
-        :ok
-
+    with {:ok, speed_x} <- param_read(:movement_max_spd_x),
+         {:ok, speed_y} <- param_read(:movement_max_spd_y),
+         {:ok, speed_z} <- param_read(:movement_max_spd_z),
+         params <- [
+           x: x / 1.0,
+           y: y / 1.0,
+           z: z / 1.0,
+           a: speed / 100 * (speed_x || 1),
+           b: speed / 100 * (speed_y || 1),
+           c: speed / 100 * (speed_z || 1)
+         ],
+         :ok <- FarmbotFirmware.command({nil, {:command_movement, params}}) do
+      :ok
+    else
       {:error, reason} ->
         errors =
           [reason | errors]
@@ -91,12 +99,20 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   defp do_move_absolute(x, y, z, speed, retries, errors) do
-    params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
-
-    case FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok ->
-        :ok
-
+    with {:ok, speed_x} <- param_read(:movement_max_spd_x),
+         {:ok, speed_y} <- param_read(:movement_max_spd_y),
+         {:ok, speed_z} <- param_read(:movement_max_spd_z),
+         params <- [
+           x: x / 1.0,
+           y: y / 1.0,
+           z: z / 1.0,
+           a: speed / 100 * (speed_x || 1),
+           b: speed / 100 * (speed_y || 1),
+           c: speed / 100 * (speed_z || 1)
+         ],
+         :ok <- FarmbotFirmware.command({nil, {:command_movement, params}}) do
+      :ok
+    else
       {:error, :emergency_lock} ->
         {:error, "emergency_lock"}
 
