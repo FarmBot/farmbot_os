@@ -20,7 +20,8 @@ defmodule FarmbotOS.SysCalls do
     SendMessage,
     SetPinIOMode,
     PinControl,
-    ResourceUpdate
+    ResourceUpdate,
+    Movement
   }
 
   alias FarmbotOS.Lua
@@ -78,6 +79,47 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate resource_update(kind, id, params), to: ResourceUpdate
+
+  @impl true
+  defdelegate get_current_x(), to: Movement
+
+  @impl true
+  defdelegate get_current_y(), to: Movement
+
+  @impl true
+  defdelegate get_current_z(), to: Movement
+
+  @impl true
+  defdelegate get_cached_x(), to: Movement
+
+  @impl true
+  defdelegate get_cached_y(), to: Movement
+
+  @impl true
+  defdelegate get_cached_z(), to: Movement
+
+  @impl true
+  defdelegate zero(axis), to: Movement
+
+  defdelegate get_position(), to: Movement
+
+  defdelegate get_position(axis), to: Movement
+
+  defdelegate get_cached_position(), to: Movement
+
+  defdelegate get_cached_position(axis), to: Movement
+
+  @impl true
+  defdelegate move_absolute(x, y, z, speed), to: Movement
+
+  @impl true
+  defdelegate calibrate(axis), to: Movement
+
+  @impl true
+  defdelegate find_home(axis), to: Movement
+
+  @impl true
+  defdelegate home(axis, speed), to: Movement
 
   @impl true
   def log(message, force?) do
@@ -141,170 +183,10 @@ defmodule FarmbotOS.SysCalls do
   end
 
   @impl true
-  def get_current_x do
-    get_position(:x)
-  end
-
-  @impl true
-  def get_current_y do
-    get_position(:y)
-  end
-
-  @impl true
-  def get_current_z do
-    get_position(:z)
-  end
-
-  @impl true
-  def get_cached_x do
-    get_cached_position(:x)
-  end
-
-  @impl true
-  def get_cached_y do
-    get_cached_position(:y)
-  end
-
-  @impl true
-  def get_cached_z do
-    get_cached_position(:z)
-  end
-
-  @impl true
-  def zero(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:position_write_zero, [axis]}) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
-    end
-  end
-
-  @impl true
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
       %{x: x, y: y, z: z} -> %{x: x, y: y, z: z}
-    end
-  end
-
-  def get_position() do
-    case FarmbotFirmware.request({nil, {:position_read, []}}) do
-      {:ok, {_, {:report_position, params}}} ->
-        params
-
-      {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
-    end
-  end
-
-  def get_position(axis) do
-    axis = assert_axis!(axis)
-
-    case get_position() do
-      {:error, _} = error -> error
-      position -> Keyword.fetch!(position, axis)
-    end
-  end
-
-  def get_cached_position() do
-    %{x: x, y: y, z: z} = FarmbotCore.BotState.fetch().location_data.position
-    [x: x, y: y, z: z]
-  end
-
-  def get_cached_position(axis) do
-    axis = assert_axis!(axis)
-    Keyword.fetch!(get_cached_position(), axis)
-  end
-
-  @impl true
-  def move_absolute(x, y, z, speed) do
-    do_move_absolute(x, y, z, speed, max_retries())
-  end
-
-  defp do_move_absolute(x, y, z, speed, retries, errors \\ [])
-
-  defp do_move_absolute(x, y, z, speed, 0, errors) do
-    params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
-
-    case FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        errors =
-          [reason | errors]
-          |> Enum.reverse()
-          |> Enum.map(&inspect/1)
-          |> Enum.join(", ")
-
-        {:error, "movement error(s): #{errors}"}
-    end
-  end
-
-  defp do_move_absolute(x, y, z, speed, retries, errors) do
-    params = [x: x / 1.0, y: y / 1.0, z: z / 1.0, s: speed / 1.0]
-
-    case FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok ->
-        :ok
-
-      {:error, :emergency_lock} ->
-        {:error, "emergency_lock"}
-
-      {:error, reason} ->
-        FarmbotCore.Logger.error(1, "Movement failed. Retrying up to #{retries} more time(s)")
-        do_move_absolute(x, y, z, speed, retries - 1, [reason | errors])
-    end
-  end
-
-  defp max_retries do
-    case FarmbotFirmware.request({:parameter_read, [:param_mov_nr_retry]}) do
-      {:ok, {_, {:report_parameter_value, [param_mov_nr_retry: nr]}}} -> floor(nr)
-      _ -> 3
-    end
-  end
-
-  @impl true
-  def calibrate(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_calibrate, [axis]}) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
-    end
-  end
-
-  @impl true
-  def find_home(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_find_home, [axis]}) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
-    end
-  end
-
-  @impl true
-  def home(axis, _speed) do
-    # TODO(Connor) fix speed
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_home, [axis]}) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
     end
   end
 
@@ -318,17 +200,6 @@ defmodule FarmbotOS.SysCalls do
   def emergency_unlock do
     _ = FarmbotFirmware.command({:command_emergency_unlock, []})
     :ok
-  end
-
-  defp assert_axis!(axis) when is_atom(axis),
-    do: axis
-
-  defp assert_axis!(axis) when axis in ~w(x y z),
-    do: String.to_existing_atom(axis)
-
-  defp assert_axis!(axis) do
-    # {:error, "unknown axis #{axis}"}
-    raise("unknown axis #{axis}")
   end
 
   @impl true
