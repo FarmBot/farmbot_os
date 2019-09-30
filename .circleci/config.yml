@@ -506,20 +506,7 @@ jobs:
     <<: *deploy_nerves_hub_firmware_steps
 
 ################################################################################
-#                   target=rpi app_env=prod channel=staging                    #
-################################################################################
-
-  deploy_rpi_prod_staging:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi
-      MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi-prod-staging
-      NERVES_HUB_TTL: "--ttl 3600"
-    <<: *deploy_nerves_hub_firmware_steps
-
-################################################################################
-#                   target=rpi3 app_env=prod channel=staging                   #
+#                     target=rpi3 app_env=prod channel=staging                    #
 ################################################################################
 
   deploy_rpi3_prod_staging:
@@ -528,33 +515,7 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       NERVES_HUB_DEPLOY: rpi3-prod-staging
-      NERVES_HUB_TTL: "--ttl 3600"
-    <<: *deploy_nerves_hub_firmware_steps
-
-################################################################################
-#                     target=rpi app_env=prod channel=next                     #
-################################################################################
-
-  deploy_rpi_prod_next:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi
-      MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi-prod-next
-      NERVES_HUB_TTL: "--ttl 3600"
-    <<: *deploy_nerves_hub_firmware_steps
-
-################################################################################
-#                     target=rpi3 app_env=prod channel=next                    #
-################################################################################
-
-  deploy_rpi3_prod_next:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi3
-      MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi3-prod-next
-      NERVES_HUB_TTL: "--ttl 3600"
+      NERVES_HUB_TTL: "--ttl 900"
     <<: *deploy_nerves_hub_firmware_steps
 
 ################################################################################
@@ -863,90 +824,40 @@ workflows:
             # - build_rpi_prod
             - build_rpi3_prod
 
-  # next branch to staging.farmbot.io
-  deploy_staging_next:
+  # staging branch to staging.farmbot.io
+  nerves_hub_prod_staging_staging:
     jobs:
-      - test_farmbot_celery_script:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - next
-      - test_farmbot_firmware:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - next
-      - test_farmbot_core:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - next
-      - test_farmbot_ext:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - next
-      - test_farmbot_os:
-          context: org-global
-          filters:
-            branches:
-              only:
-                - next
-      - report_coverage:
-          context: org-global
-          requires:
-            - test_farmbot_celery_script
-            - test_farmbot_firmware
-            - test_farmbot_core
-            - test_farmbot_ext
-            - test_farmbot_os
-
       - build_rpi3_prod:
           context: farmbot-staging
           filters:
             branches:
               only:
-                - next
-          requires:
-            - test_farmbot_celery_script
-            - test_farmbot_firmware
-            - test_farmbot_core
-            - test_farmbot_ext
-            - test_farmbot_os
+                - staging
 
-      - build_rpi_prod:
+      - deploy_rpi3_prod_staging:
           context: farmbot-staging
           filters:
             branches:
               only:
-                - next
-          requires:
-            - test_farmbot_celery_script
-            - test_farmbot_firmware
-            - test_farmbot_core
-            - test_farmbot_ext
-            - test_farmbot_os
-
-      - deploy_rpi3_prod_next:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - next
+                - staging
           requires:
             - build_rpi3_prod
-            - report_coverage
 
-      - deploy_rpi_prod_next:
-          context: farmbot-staging
+  # staging branch to production.farmbot.io
+  nerves_hub_prod_staging_production:
+    jobs:
+      - build_rpi3_prod:
+          context: farmbot-production
           filters:
             branches:
               only:
-                - next
+                - staging
+
+      - deploy_rpi3_prod_staging:
+          context: farmbot-production
+          filters:
+            branches:
+              only:
+                - staging
           requires:
-            - build_rpi_prod
-            - report_coverage
+            - build_rpi3_prod
