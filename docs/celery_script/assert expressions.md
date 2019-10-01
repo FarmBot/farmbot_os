@@ -86,6 +86,10 @@ return check_position({x = 1.0, y = 0; z = 0}, 0.50);
 move_absolute(20, 100, 100);
 return check_position(coordinate(20, 100, 100), 1);
 
+-- With a speed param. Should be a percent 0-100
+move_absolute(100.6, 200, 0, 100);
+return check_position(coordinate(100.6, 200, 0), 1);
+
 -- read_status(arg0)
 --    Get a field on farmbot's current state
 
