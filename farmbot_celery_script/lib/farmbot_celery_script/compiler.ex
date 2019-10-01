@@ -52,11 +52,13 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   def compile(%AST{kind: kind} = ast, env) when kind in @valid_entry_points do
-    # compile the ast
-    {_, new_env, _} = compiled = compile_ast(ast, env)
+    compile_entry_point(compile_ast(ast, env), env, [])
+  end
+
+  def compile_entry_point([{_, new_env, _} = compiled | rest], env, acc) do
     env = Keyword.merge(env, new_env)
 
-    # print_compiled_code(compiled)
+    print_compiled_code(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
 
@@ -66,11 +68,15 @@ defmodule FarmbotCeleryScript.Compiler do
     case Macro.to_string(compiled) |> Code.eval_string(new_env, __ENV__) do
       {fun, new_env} when is_function(fun, 1) ->
         env = Keyword.merge(env, new_env)
-        apply(fun, [env])
+        compile_entry_point(rest, env, acc ++ apply(fun, [env]))
 
       {{:error, error}, _} ->
         {:error, error}
     end
+  end
+
+  def compile_entry_point([], _, acc) do
+    acc
   end
 
   defdelegate assertion(ast, env), to: Compiler.Assertion
@@ -255,10 +261,14 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  # defp print_compiled_code(compiled) do
-  #   compiled
-  #   |> Macro.to_string()
-  #   |> Code.format_string!()
-  #   |> IO.puts()
-  # end
+  defp print_compiled_code(compiled) do
+    IO.puts("========")
+
+    compiled
+    |> Macro.to_string()
+    |> Code.format_string!()
+    |> IO.puts()
+
+    IO.puts("========\n\n")
+  end
 end
