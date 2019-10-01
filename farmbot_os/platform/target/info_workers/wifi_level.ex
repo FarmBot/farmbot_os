@@ -19,6 +19,8 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
       Disabling WiFi status reporting
       """)
 
+      VintageNet.subscribe(["interface", "eth0"])
+
       {:noreply, state}
     else
       case FarmbotCore.Config.get_network_config("wlan0") do
@@ -31,6 +33,14 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
           {:noreply, %{state | ssid: nil}}
       end
     end
+  end
+
+  def handle_info(
+        {VintageNet, ["interface", _, "addresses"], _old, [%{address: address} | _], _meta},
+        state
+      ) do
+    FarmbotCore.BotState.set_private_ip(to_string(:inet.ntoa(address)))
+    {:noreply, state}
   end
 
   def handle_info(

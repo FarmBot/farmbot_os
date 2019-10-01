@@ -65,9 +65,6 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
     _ = :os.cmd('epmd -daemon')
     _ = :net_kernel.stop()
     FarmbotCore.BotState.set_node_name(to_string(name))
-    {:ok, ips} = :inet.getif()
-    ip = ips |> Enum.at(0) |> Tuple.to_list() |> Enum.at(0) |> Tuple.to_list() |> Enum.join(".")
-    FarmbotCore.BotState.set_private_ip(ip)
     :net_kernel.start([name])
   end
 end
