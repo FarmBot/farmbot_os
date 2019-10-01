@@ -53,7 +53,12 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
 
   @doc "Moves in a straight line to a location"
   def move_absolute([x, y, z], lua) when is_number(x) and is_number(y) and is_number(z) do
-    case SysCalls.move_absolute(x, y, z, 100) do
+    move_absolute([x, y, z, 100], lua)
+  end
+
+  def move_absolute([x, y, z, speed], lua)
+      when is_number(x) and is_number(y) and is_number(z) and is_number(speed) do
+    case SysCalls.move_absolute(x, y, z, speed) do
       :ok ->
         {[true], lua}
 
@@ -63,6 +68,10 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   def move_absolute([table], lua) when is_list(table) do
+    move_absolute([table, 100], lua)
+  end
+
+  def move_absolute([table, speed], lua) when is_list(table) and is_number(speed) do
     axis_finder = fn
       axis, {axis, nil} -> apply(SysCalls, :"get_current_#{axis}", [])
       axis, {axis, value} -> value
@@ -72,7 +81,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     x = Enum.find_value(table, &axis_finder.("x", &1))
     y = Enum.find_value(table, &axis_finder.("y", &1))
     z = Enum.find_value(table, &axis_finder.("z", &1))
-    move_absolute([x, y, z], lua)
+    move_absolute([x, y, z, speed], lua)
   end
 
   @doc """
