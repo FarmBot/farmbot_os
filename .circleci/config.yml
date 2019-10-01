@@ -506,7 +506,7 @@ jobs:
     <<: *deploy_nerves_hub_firmware_steps
 
 ################################################################################
-#                     target=rpi3 app_env=prod channel=staging                    #
+#                     target=rpi3 app_env=prod channel=staging                 #
 ################################################################################
 
   deploy_rpi3_prod_staging:
@@ -515,6 +515,19 @@ jobs:
       MIX_TARGET: rpi3
       MIX_ENV: prod
       NERVES_HUB_DEPLOY: rpi3-prod-staging
+      NERVES_HUB_TTL: "--ttl 900"
+    <<: *deploy_nerves_hub_firmware_steps
+
+################################################################################
+#                     target=rpi3 app_env=prod channel=qa                      #
+################################################################################
+
+  deploy_rpi3_prod_qa:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+      NERVES_HUB_DEPLOY: rpi3-prod-qa
       NERVES_HUB_TTL: "--ttl 900"
     <<: *deploy_nerves_hub_firmware_steps
 
@@ -637,6 +650,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
       - test_farmbot_firmware:
           context: org-global
           filters:
@@ -646,6 +660,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
       - test_farmbot_core:
           context: org-global
           filters:
@@ -655,6 +670,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
       - test_farmbot_ext:
           context: org-global
           filters:
@@ -664,6 +680,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
       - test_farmbot_os:
           context: org-global
           filters:
@@ -673,6 +690,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
       - report_coverage:
           context: org-global
           requires:
@@ -688,6 +706,7 @@ workflows:
                 - staging
                 - beta
                 - next
+                - /^qa\/.*/
 
   # master branch to staging.farmbot.io
   nerves_hub_prod_stable_staging:
@@ -824,7 +843,7 @@ workflows:
             # - build_rpi_prod
             - build_rpi3_prod
 
-  # staging branch to staging.farmbot.io
+  # any branch matching qa/** to staging.farmbot.io
   nerves_hub_prod_staging_staging:
     jobs:
       - build_rpi3_prod:
@@ -832,18 +851,18 @@ workflows:
           filters:
             branches:
               only:
-                - staging
+                - /^qa\/.*/
 
-      - deploy_rpi3_prod_staging:
+      - deploy_rpi3_prod_qa:
           context: farmbot-staging
           filters:
             branches:
               only:
-                - staging
+                - /^qa\/.*/
           requires:
             - build_rpi3_prod
 
-  # staging branch to production.farmbot.io
+  # any branch matching qa/** to production.farmbot.io
   nerves_hub_prod_staging_production:
     jobs:
       - build_rpi3_prod:
@@ -851,13 +870,13 @@ workflows:
           filters:
             branches:
               only:
-                - staging
+                - /^qa\/.*/
 
-      - deploy_rpi3_prod_staging:
+      - deploy_rpi3_prod_qa:
           context: farmbot-production
           filters:
             branches:
               only:
-                - staging
+                - /^qa\/.*/
           requires:
             - build_rpi3_prod
