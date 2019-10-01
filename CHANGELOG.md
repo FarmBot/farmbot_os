@@ -4,7 +4,6 @@
 * Bug fixes
     * Fix the `move_absolute` step to honor speed parameter correctly
 
-
 # 8.0.3
 * Features
     * Add new firmware params to support trinamic motor drivers
