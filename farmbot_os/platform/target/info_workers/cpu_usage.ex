@@ -26,6 +26,11 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.CpuUsage do
   end
 
   def collect_report do
-    round(:erlang.statistics(:scheduler_wall_time))
+    :erlang.system_flag(:scheduler_wall_time, true)
+    stat0 = :lists.sort(:erlang.statistics(:scheduler_wall_time))
+    Process.sleep(1000)
+    stat1 = :lists.sort(:erlang.statistics(:scheduler_wall_time))
+    {active, total} = Enum.zip(stat0, stat1) |> List.foldl({0, 0}, fn {{_, a0, t0}, {_, a1, t1}}, {ai, ti} -> {ai + (a1 - a0), ai + (t1 - t0)} end)
+    ((active / total) * (:erlang.system_info(:schedulers) + :erlang.system_info(:dirty_cpu_schedulers))) / :erlang.system_info(:logical_processors_available)
   end
 end
