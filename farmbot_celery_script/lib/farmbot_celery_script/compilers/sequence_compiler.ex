@@ -30,7 +30,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
       ) do
     # remove the iterable from the parameter applications, 
     # since it will be injected after this.
-    params =
+    _params =
       Enum.reduce(params, [], fn
         # Remove point_group from parameter appls
         %{kind: :parameter_application, args: %{data_value: %{kind: :point_group}}}, acc -> acc
@@ -69,6 +69,8 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
 
           # compile a `sequence` ast, injecting the appropriate `point` ast with
           # the matching `label`
+          # TODO(Connor) - the body of this ast should have the 
+          # params as sorted earlier. Figure out why this doesn't work
           compile_sequence(
             %{sequence_ast | args: %{locals: %{locals | body: [parameter_application]}}},
             env
