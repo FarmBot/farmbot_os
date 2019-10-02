@@ -11,6 +11,19 @@ defmodule FarmbotCeleryScript.Compiler do
     Compiler.IdentifierSanitizer
   }
 
+  @doc "Sets debug mode for the compiler"
+  def debug_mode(bool \\ true) do
+    old = Application.get_env(:farmbot_celery_script, __MODULE__)
+    new = Keyword.put(old, :debug, bool)
+    Application.put_env(:farmbot_celery_script, __MODULE__, new)
+    bool
+  end
+
+  @doc "Returns current debug mode value"
+  def debug_mode?() do
+    Application.get_env(:farmbot_celery_script, __MODULE__)[:debug_mode] || false
+  end
+
   @valid_entry_points [:sequence, :rpc_request]
 
   @typedoc """
@@ -57,8 +70,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   def compile_entry_point([{_, new_env, _} = compiled | rest], env, acc) do
     env = Keyword.merge(env, new_env)
-
-    print_compiled_code(compiled)
+    debug_mode?() && print_compiled_code(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
 
