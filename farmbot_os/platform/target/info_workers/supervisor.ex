@@ -4,7 +4,6 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Supervisor do
 
   alias FarmbotOS.Platform.Target.InfoWorker.{
     DiskUsage,
-    CpuUsage,
     MemoryUsage,
     SocTemp,
     Throttle,
@@ -19,7 +18,6 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Supervisor do
   def init([]) do
     children = [
       DiskUsage,
-      CpuUsage,
       MemoryUsage,
       SocTemp,
       Throttle,
