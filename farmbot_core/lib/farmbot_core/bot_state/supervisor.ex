@@ -8,7 +8,8 @@ defmodule FarmbotCore.BotState.Supervisor do
   def init([]) do
     children = [
       FarmbotCore.BotState,
-      FarmbotCore.BotState.FileSystem
+      FarmbotCore.BotState.FileSystem,
+      FarmbotCore.BotState.SchedulerUsageReporter
     ]
     Supervisor.init(children, [strategy: :one_for_all])
   end
