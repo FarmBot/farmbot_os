@@ -252,11 +252,10 @@ defmodule FarmbotOS.Platform.Target.Network do
     millis = minutes * 60000
     new_timer = Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
 
-    FarmbotCore.Logger.warn(1, """
-    FarmBot will factory reset in #{minutes} minutes if the network does not 
-    reassociate. 
-    If you see this message directly after configuration, this message can be safely ignored.
-    """)
+    FarmbotCore.Logger.warn(
+      1,
+      "FarmBot will factory reset in #{minutes} minutes if the network does not reassociate. If you see this message directly after configuration, this message can be safely ignored."
+    )
 
     %{state | network_not_found_timer: new_timer}
   end
