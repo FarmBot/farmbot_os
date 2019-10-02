@@ -109,15 +109,20 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert elixir_code =~
              strip_nl("""
-             fn params ->
-               _ = inspect(params)
-               #{var_name} = FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
-               [fn -> #{var_name} end]
-             end
+             [
+               fn params ->
+                 _ = inspect(params)
+
+                 #{var_name} =
+                   FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
+
+                 [fn -> #{var_name} end]
+               end
+             ]
              """)
 
     refute String.contains?(elixir_code, label)
-    {fun, _} = Code.eval_string(elixir_code, [], __ENV__)
+    {[fun], _} = Code.eval_string(elixir_code, [], __ENV__)
     assert is_function(fun, 1)
   end
 
