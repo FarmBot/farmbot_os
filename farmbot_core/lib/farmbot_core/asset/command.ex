@@ -15,6 +15,7 @@ defmodule FarmbotCore.Asset.Command do
     PublicKey,
     Regimen,
     Sensor,
+    PointGroup,
     SensorReading,
     Sequence
   }
@@ -159,6 +160,21 @@ defmodule FarmbotCore.Asset.Command do
     if old,
       do: Asset.update_sequence!(old, params),
       else: Asset.new_sequence!(params)
+
+    :ok
+  end
+
+  def update(PointGroup, id, nil) do
+    point_group = Asset.get_point_group(id: id)
+    point_group && Asset.delete_point_group!(point_group)
+    :ok
+  end
+
+  def update(PointGroup, id, params) do
+    old = Asset.get_point_group(id: id)
+    if old,
+      do: Asset.update_point_group!(old, params),
+      else: Asset.new_point_group!(params)
 
     :ok
   end
