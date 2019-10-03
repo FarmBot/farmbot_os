@@ -46,7 +46,9 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
     # will be a point_group or every_point node
     group_ast = loop_parameter_appl_ast.args.data_value
     # check if it's a point_group first, then fall back to every_point
-    point_group_arg = group_ast.args[:resource_id] || group_ast.args[:every_point_type]
+    point_group_arg =
+      group_ast.args[:point_group_id] || group_ast.args[:resource_id] ||
+        group_ast.args[:every_point_type]
 
     # lookup all point_groups related to this value
     case FarmbotCeleryScript.SysCalls.get_point_group(point_group_arg) do

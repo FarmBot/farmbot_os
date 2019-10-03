@@ -32,6 +32,7 @@ defmodule FarmbotCore.Asset do
   alias FarmbotCore.AssetSupervisor
 
   import Ecto.Query
+  require Logger
 
   ## Begin Device
 
@@ -55,6 +56,11 @@ defmodule FarmbotCore.Asset do
   ## End Device
 
   ## Begin FarmEvent
+
+  @doc "Returns all FarmEvents"
+  def list_farm_events do
+    Repo.all(FarmEvent)
+  end
 
   def new_farm_event!(params) do
     %FarmEvent{}
@@ -174,6 +180,13 @@ defmodule FarmbotCore.Asset do
 
   ## Begin RegimenInstance
 
+  @doc "returns every regimen instance"
+  def list_regimen_instances() do
+    RegimenInstance
+    |> Repo.all()
+    |> Repo.preload([:regimen, :farm_event])
+  end
+
   def get_regimen_instance(%FarmEvent{} = farm_event) do
     regimen = Repo.one(from r in Regimen, where: r.id == ^farm_event.executable_id)
     regimen && Repo.one(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id)    
@@ -282,6 +295,85 @@ defmodule FarmbotCore.Asset do
 
         %{point_group | point_ids: sorted}
     end
+  end
+
+  def new_point_group!(params) do
+    %PointGroup{}
+    |> PointGroup.changeset(params)
+    |> Repo.insert!()
+  end
+
+  def update_point_group!(point_group, params) do
+    updated = 
+      point_group
+      |> PointGroup.changeset(params)
+      |> Repo.update!()
+
+    regimen_instances = list_regimen_instances()
+    farm_events = list_farm_events()
+
+    # check for any matching asset using this point group.
+    # This is pretty recursive and probably isn't super great
+    # for performance, but SQL can't check this stuff unfortunately.
+    for asset <- farm_events ++ regimen_instances do
+      # TODO(Connor) this might be worth creating a behaviour for
+      if uses_point_group?(asset, point_group) do
+        Logger.debug "#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it."
+        FarmbotCore.AssetSupervisor.update_child(asset)
+      end
+    end
+    
+    updated
+  end
+
+  def delete_point_group!(%PointGroup{} = point_group) do
+    Repo.delete!(point_group)
+  end
+
+  def uses_point_group?(%FarmEvent{body: body}, %PointGroup{id: point_group_id}) do
+    
+    any_body_node_uses_point_group?(body, point_group_id)
+  end
+
+  def uses_point_group?(%Regimen{body: body, regimen_items: regimen_items}, %PointGroup{id: point_group_id}) do
+    any_body_node_uses_point_group?(body, point_group_id) || Enum.find(regimen_items, fn(%{sequence_id: sequence_id}) -> 
+      any_body_node_uses_point_group?(get_sequence(sequence_id).body, point_group_id)
+    end)
+  end
+
+  def uses_point_group?(%RegimenInstance{farm_event: farm_event, regimen: regimen}, point_group) do
+    uses_point_group?(farm_event, point_group) || uses_point_group?(regimen, point_group)
+  end
+
+  def any_body_node_uses_point_group?(body, point_group_id) do
+    Enum.find(body, fn 
+      %{
+        kind: "execute",
+        body: execute_body
+      } -> any_body_node_uses_point_group?(execute_body, point_group_id)
+      %{
+        args: %{
+          "data_value" => %{
+            "args" => %{"resource_id" => ^point_group_id},
+            "kind" => "point_group"
+          },
+          "label" => "parent"
+        },
+        kind: "parameter_application"
+      } -> true
+
+      %{
+        args: %{
+          "data_value" => %{
+            "args" => %{"point_group_id" => ^point_group_id},
+            "kind" => "point_group"
+          },
+          "label" => "parent"
+        },
+        kind: "parameter_application"
+      } -> true
+      _ -> false
+    end)
   end
 
   ## End PointGroup
