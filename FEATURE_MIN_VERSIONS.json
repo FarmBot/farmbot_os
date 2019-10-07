@@ -17,5 +17,6 @@
   "flash_firmware": "8.0.0",
   "express_k10": "8.0.0",
   "none_firmware": "8.0.0",
+  "assertion_block": "8.0.0",
   "mark_as_step": "8.0.3"
 }
