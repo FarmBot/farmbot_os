@@ -42,6 +42,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
     field(:sequence_body_log, :boolean)
     field(:sequence_complete_log, :boolean)
     field(:sequence_init_log, :boolean)
+    field(:boot_sequence_id, :id)
 
     # private
     field(:monitor, :boolean, default: true)
@@ -65,7 +66,8 @@ defmodule FarmbotCore.Asset.FbosConfig do
       update_channel: fbos_config.update_channel,
       sequence_body_log: fbos_config.sequence_body_log,
       sequence_complete_log: fbos_config.sequence_complete_log,
-      sequence_init_log: fbos_config.sequence_init_log
+      sequence_init_log: fbos_config.sequence_init_log,
+      boot_sequence_id: fbos_config.boot_sequence_id
     }
   end
 
@@ -88,6 +90,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,
+      :boot_sequence_id,
       :monitor,
       :created_at,
       :updated_at
