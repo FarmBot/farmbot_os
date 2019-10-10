@@ -177,6 +177,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     cert = load_cert()
     key = load_key()
 
+    _ = set_controller_uuid()
+
     if cert && key do
       send(self(), :connect_nerves_hub)
     else
@@ -434,6 +436,12 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   defp set_update_available_in_bot_state() do
     if Process.whereis(BotState) do
       BotState.set_update_available(true)
+    end
+  end
+
+  defp set_controller_uuid() do
+    if Process.whereis(BotState) do
+      BotState.set_controller_uuid(uuid())
     end
   end
 
