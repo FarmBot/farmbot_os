@@ -11,9 +11,10 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
   embedded_schema do
     field(:target, :string, default: to_string(Project.target()))
     field(:env, :string, default: to_string(Project.env()))
-    field(:controller_version, :string, default: Project.version())
     field(:firmware_commit, :string, default: Project.arduino_commit())
-    field(:commit, :string, default: Project.commit())
+    field(:controller_version, :string, default: Project.version())
+    field(:controller_uuid, :string)
+    field(:controller_commit, :string, default: Project.commit())
     field(:firmware_version, :string)
     field(:node_name, :string)
     field(:private_ip, :string)
@@ -45,8 +46,11 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       target: informational_settings.target,
       env: informational_settings.env,
       controller_version: informational_settings.controller_version,
+      controller_uuid: informational_settings.controller_uuid,
+      controller_commit: informational_settings.controller_commit,
+      # this field is required for the frontend. Maybe remove in the future.      
+      commit: informational_settings.controller_commit,
       firmware_commit: informational_settings.firmware_commit,
-      commit: informational_settings.commit,
       firmware_version: informational_settings.firmware_version,
       node_name: informational_settings.node_name,
       private_ip: informational_settings.private_ip,
@@ -76,8 +80,9 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :target,
       :env,
       :controller_version,
+      :controller_uuid,
+      :controller_commit,
       :firmware_commit,
-      :commit,
       :firmware_version,
       :node_name,
       :private_ip,
