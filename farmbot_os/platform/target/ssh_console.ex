@@ -59,9 +59,14 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     _ = stop_ssh(ssh)
     decoded_authorized_key = do_decode(authorized_key)
 
-    case start_ssh(state.port, [decoded_authorized_key]) do
+    case start_ssh(state.port, decoded_authorized_key) do
       {:ok, ssh} ->
-        {:noreply, %{state | ssh: ssh, public_keys: [decoded_authorized_key | state.public_keys]}}
+        {:noreply,
+         %{
+           state
+           | ssh: ssh,
+             public_keys: [List.first(decoded_authorized_key) | state.public_keys]
+         }}
 
       error ->
         Logger.warn("Could not start SSH: #{inspect(error)}")
