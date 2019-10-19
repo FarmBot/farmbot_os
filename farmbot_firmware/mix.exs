@@ -42,6 +42,7 @@ defmodule FarmbotFirmware.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:circuits_uart, "~> 1.3"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},

@@ -34,6 +34,7 @@ defmodule FarmbotExt.MixProject do
   defp deps do
     [
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
+      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.15"},
       {:uuid, "~> 1.1"},
