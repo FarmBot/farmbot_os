@@ -69,6 +69,7 @@ defmodule FarmbotOS.MixProject do
   defp deps do
     [
       # Farmbot stuff
+      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
 
