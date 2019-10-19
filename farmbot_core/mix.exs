@@ -57,6 +57,7 @@ defmodule FarmbotCore.MixProject do
     [
       {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
       {:farmbot_firmware, path: "../farmbot_firmware", env: Mix.env()},
+      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:elixir_make, "~> 0.6", runtime: false},
       {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.4"},
