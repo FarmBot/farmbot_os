@@ -1,26 +1,17 @@
-defmodule FarmbotCeleryScript.MixProject do
+defmodule FarmbotTelemetry.MixProject do
   use Mix.Project
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
 
   def project do
     [
-      app: :farmbot_celery_script,
+      app: :farmbot_telemetry,
       version: @version,
       elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
+      version: "0.1.0",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps(),
-      dialyzer: [
-        flags: [
-          "-Wunmatched_returns",
-          :error_handling,
-          :race_conditions,
-          :underspecs
-        ]
-      ],
-      test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         test: :test,
         coveralls: :test,
@@ -28,28 +19,23 @@ defmodule FarmbotCeleryScript.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
-      ]
+      ],
+      deps: deps()
     ]
   end
-
-  def elixirc_paths(:test),
-    do: ["lib", Path.expand("./test/support"), Path.expand("../test/support/celery_script")]
-
-  def elixirc_paths(_), do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {FarmbotTelemetry.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:jason, "~> 1.1"},
-      {:timex, "~> 3.4"},
+      {:telemetry, "~> 0.4.0"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}

@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Farmbot.Coveralls do
   Mix Task to report the coverage for all of the individual projects that make
   up the repository.
   """
-  
+
   use Mix.Task
   Module.register_attribute(__MODULE__, :projects, accumulate: true)
   @projects :farmbot_celery_script
@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Farmbot.Coveralls do
   @projects :farmbot_ext
   @projects :farmbot_firmware
   @projects :farmbot_os
+  @projects :farmbot_telemetry
 
   def run(args) do
     @projects
@@ -46,7 +47,7 @@ defmodule Mix.Tasks.Farmbot.Coveralls do
           end)
           else
           _ -> Mix.raise("""
-          Could not read coverage JSON from #{coverage_file}. 
+          Could not read coverage JSON from #{coverage_file}.
           Make sure to run `mix coveralls.json` in each project's parent
           directory.
           """)
