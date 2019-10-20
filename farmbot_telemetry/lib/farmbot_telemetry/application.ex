@@ -2,14 +2,28 @@ defmodule FarmbotTelemetry.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  alias FarmbotTelemetry.LogHandler
+
+  alias FarmbotTelemetry.{
+    AMQPClass,
+    DNSClass,
+    HTTPClass,
+    NetworkClass
+  }
 
   use Application
 
   def start(_type, _args) do
-    children = [
-      # Starts a worker by calling: FarmbotTelemetry.Worker.start_link(arg)
-      # {FarmbotTelemetry.Worker, arg}
-    ]
+    children =
+      for class <- [AMQPClass, DNSClass, HTTPClass, NetworkClass] do
+        {FarmbotTelemetry,
+         [
+           class: class,
+           handler_id: "#{class}-LogHandler",
+           handler: &LogHandler.handle_event/4,
+           config: [level: :info]
+         ]}
+      end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
