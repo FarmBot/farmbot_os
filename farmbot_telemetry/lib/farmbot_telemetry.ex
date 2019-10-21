@@ -2,16 +2,19 @@ defmodule FarmbotTelemetry do
   @moduledoc """
   Interface for farmbot system introspection
   """
-  alias FarmbotTelemetry.Class
+  alias FarmbotTelemetry.EventClass
 
-  @typedoc "Module that implements the FarmbotTelemetry.Class behaviour"
+  @typedoc "Module that implements the FarmbotTelemetry.EventClass behaviour"
   @type class() :: module()
 
   @typedoc "First argument to the handler"
-  @type event() :: nonempty_maybe_improper_list(class(), Class.type())
+  @type event() :: nonempty_maybe_improper_list(class(), EventClass.type())
 
   @typedoc "Second argument to the handler"
-  @type data() :: %{required(:action) => Class.action(), required(:timestamp) => DateTime.t()}
+  @type data() :: %{
+          required(:action) => EventClass.action(),
+          required(:timestamp) => DateTime.t()
+        }
 
   @type meta() :: map()
 
@@ -58,10 +61,10 @@ defmodule FarmbotTelemetry do
   defmacro __using__(_opts) do
     quote do
       alias FarmbotTelemetry.{
-              AMQPClass,
-              DNSClass,
-              HTTPClass,
-              NetworkClass
+              AMQPEventClass,
+              DNSEventClass,
+              HTTPEventClass,
+              NetworkEventClass
             },
             warn: false
 

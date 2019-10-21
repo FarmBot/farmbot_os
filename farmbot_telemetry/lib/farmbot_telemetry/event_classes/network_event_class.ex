@@ -1,4 +1,4 @@
-defmodule FarmbotTelemetry.NetworkClass do
+defmodule FarmbotTelemetry.NetworkEventClass do
   @moduledoc """
   Classification of events pertaining to a network interface, not network
   software errors. This includes:
@@ -7,9 +7,9 @@ defmodule FarmbotTelemetry.NetworkClass do
   * ip address configuration errors
   """
 
-  @behaviour FarmbotTelemetry.Class
+  @behaviour FarmbotTelemetry.EventClass
 
-  @impl FarmbotTelemetry.Class
+  @impl FarmbotTelemetry.EventClass
   def matrix(),
     do: [
       access_point: [:disconnect, :connect, :eap_error, :assosiate_error, :assosiate_timeout],

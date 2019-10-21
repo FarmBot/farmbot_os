@@ -1,4 +1,4 @@
-defmodule FarmbotTelemetry.DNSClass do
+defmodule FarmbotTelemetry.DNSEventClass do
   @moduledoc """
   Classification of events pertaining to dns resolution accross the various
   networked systems in the application including:
@@ -9,9 +9,9 @@ defmodule FarmbotTelemetry.DNSClass do
   * Farmbot AMQP interface
   """
 
-  @behaviour FarmbotTelemetry.Class
+  @behaviour FarmbotTelemetry.EventClass
 
-  @impl FarmbotTelemetry.Class
+  @impl FarmbotTelemetry.EventClass
   def matrix(),
     do: [
       ntp: [:nxdomain],

@@ -12,7 +12,7 @@ defmodule FarmbotTelemetryTest do
   describe "network" do
     setup do
       opts = [
-        class: NetworkClass,
+        class: NetworkEventClass,
         handler_id: "#{inspect(self())}",
         handler: &TestHandler.handle_event/4,
         config: [test_pid: self()]
@@ -23,28 +23,32 @@ defmodule FarmbotTelemetryTest do
     end
 
     test "access_point.disconnect" do
-      FarmbotTelemetry.execute(NetworkClass, :access_point, :disconnect, %{ssid: "test"})
-      assert_receive {NetworkClass, :access_point, :disconnect, %{ssid: "test"}, _}
+      FarmbotTelemetry.execute(NetworkEventClass, :access_point, :disconnect, %{ssid: "test"})
+      assert_receive {NetworkEventClass, :access_point, :disconnect, %{ssid: "test"}, _}
     end
 
     test "access_point.connect" do
-      FarmbotTelemetry.execute(NetworkClass, :access_point, :connect, %{ssid: "test"})
-      assert_receive {NetworkClass, :access_point, :connect, %{ssid: "test"}, _}
+      FarmbotTelemetry.execute(NetworkEventClass, :access_point, :connect, %{ssid: "test"})
+      assert_receive {NetworkEventClass, :access_point, :connect, %{ssid: "test"}, _}
     end
 
     test "access_point.eap_error" do
-      FarmbotTelemetry.execute(NetworkClass, :access_point, :eap_error, %{ssid: "test"})
-      assert_receive {NetworkClass, :access_point, :eap_error, %{ssid: "test"}, _}
+      FarmbotTelemetry.execute(NetworkEventClass, :access_point, :eap_error, %{ssid: "test"})
+      assert_receive {NetworkEventClass, :access_point, :eap_error, %{ssid: "test"}, _}
     end
 
     test "access_point.assosiate_error" do
-      FarmbotTelemetry.execute(NetworkClass, :access_point, :assosiate_error, %{ssid: "test"})
-      assert_receive {NetworkClass, :access_point, :assosiate_error, %{ssid: "test"}, _}
+      FarmbotTelemetry.execute(NetworkEventClass, :access_point, :assosiate_error, %{ssid: "test"})
+
+      assert_receive {NetworkEventClass, :access_point, :assosiate_error, %{ssid: "test"}, _}
     end
 
     test "access_point.assosiate_timeout" do
-      FarmbotTelemetry.execute(NetworkClass, :access_point, :assosiate_timeout, %{ssid: "test"})
-      assert_receive {NetworkClass, :access_point, :assosiate_timeout, %{ssid: "test"}, _}
+      FarmbotTelemetry.execute(NetworkEventClass, :access_point, :assosiate_timeout, %{
+        ssid: "test"
+      })
+
+      assert_receive {NetworkEventClass, :access_point, :assosiate_timeout, %{ssid: "test"}, _}
     end
   end
 end
