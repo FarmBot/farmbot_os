@@ -1,4 +1,4 @@
-defmodule FarmbotTelemetry.AMQPClass do
+defmodule FarmbotTelemetry.AMQPEventClass do
   @moduledoc """
   Classification of events pertaining to amqp channels including:
 
@@ -7,9 +7,9 @@ defmodule FarmbotTelemetry.AMQPClass do
   * channel errors
   """
 
-  @behaviour FarmbotTelemetry.Class
+  @behaviour FarmbotTelemetry.EventClass
 
-  @impl FarmbotTelemetry.Class
+  @impl FarmbotTelemetry.EventClass
   def matrix() do
     channel_list = [
       :auto_sync,
