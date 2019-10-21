@@ -5,17 +5,17 @@ defmodule FarmbotTelemetry.Application do
   alias FarmbotTelemetry.LogHandler
 
   alias FarmbotTelemetry.{
-    AMQPClass,
-    DNSClass,
-    HTTPClass,
-    NetworkClass
+    AMQPEventClass,
+    DNSEventClass,
+    HTTPEventClass,
+    NetworkEventClass
   }
 
   use Application
 
   def start(_type, _args) do
     children =
-      for class <- [AMQPClass, DNSClass, HTTPClass, NetworkClass] do
+      for class <- [AMQPEventClass, DNSEventClass, HTTPEventClass, NetworkEventClass] do
         {FarmbotTelemetry,
          [
            class: class,

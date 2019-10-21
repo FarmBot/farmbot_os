@@ -1,4 +1,4 @@
-defmodule FarmbotTelemetry.HTTPClass do
+defmodule FarmbotTelemetry.HTTPEventClass do
   @moduledoc """
   Classification of events pertaining to the Farmbot REST interface including:
 
@@ -8,9 +8,9 @@ defmodule FarmbotTelemetry.HTTPClass do
   * etc
   """
 
-  @behaviour FarmbotTelemetry.Class
+  @behaviour FarmbotTelemetry.EventClass
 
-  @impl FarmbotTelemetry.Class
+  @impl FarmbotTelemetry.EventClass
   def matrix() do
     [
       farm_events: [:http_error, :http_timeout],

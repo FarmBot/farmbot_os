@@ -1,4 +1,4 @@
-defprotocol FarmbotTelemetry.Class do
+defprotocol FarmbotTelemetry.EventClass do
   @moduledoc """
   Classificaiton of a telemetry event
   """
