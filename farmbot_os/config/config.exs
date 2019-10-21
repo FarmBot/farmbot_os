@@ -58,7 +58,8 @@ config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Host.SystemT
 
 config :farmbot, FarmbotOS.Configurator,
   data_layer: FarmbotOS.Configurator.ConfigDataLayer,
-  network_layer: FarmbotOS.Configurator.FakeNetworkLayer
+  network_layer: FarmbotOS.Configurator.FakeNetworkLayer,
+  telemetry_layer: FarmbotOS.Configurator.DetsTelemetryLayer
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
