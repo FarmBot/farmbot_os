@@ -15,6 +15,7 @@ defmodule FarmbotOS.Configurator.Router do
 
   @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
   @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:network_layer]
+  @telemetry_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:telemetry_layer]
 
   # Trigger for captive portal for various operating systems
   get("/gen_204", do: redir(conn, "/"))
@@ -32,6 +33,10 @@ defmodule FarmbotOS.Configurator.Router do
 
   get "/logger" do
     render_page(conn, "logger")
+  end
+
+  get "/api/telemetry/cpu_usage" do
+    render_json(conn, cpu_usage())
   end
 
   get "/" do
@@ -279,6 +284,15 @@ defmodule FarmbotOS.Configurator.Router do
       send_resp(conn, 500, "Failed to render page: #{page} error: #{Exception.message(e)}")
   end
 
+  defp render_json(conn, data) do
+    conn = put_resp_header(conn, "content-type", "application/json")
+
+    case FarmbotCore.JSON.encode(data) do
+      {:ok, json} -> send_resp(conn, 200, json)
+      _ -> send_resp(conn, 501, FarmbotCore.JSON.encode!(%{error: "failed to render json"}))
+    end
+  end
+
   defp template_file(file) do
     "#{:code.priv_dir(:farmbot)}/static/templates/#{file}.html.eex"
   end
@@ -332,6 +346,12 @@ defmodule FarmbotOS.Configurator.Router do
 
   defp scan(interface) do
     @network_layer.scan(interface)
+  end
+
+  ## Telemetry layer calls
+
+  defp cpu_usage() do
+    @telemetry_layer.cpu_usage()
   end
 
   defp version, do: FarmbotCore.Project.version()
