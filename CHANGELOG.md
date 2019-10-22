@@ -1,5 +1,12 @@
 # Changelog
 
+# 8.1.0
+* Features
+    * PointGroups are now supported by farmbot os
+    * Sequence, FarmEvent, and Regimens can now enumerate over PointGroups
+* Bug fixes
+    * Fixed a arduino-firmware bug when sending commands that are bigger than the buffer
+
 # 8.0.4
 * Bug fixes
     * Fix the `move_absolute` step to honor speed parameter correctly
