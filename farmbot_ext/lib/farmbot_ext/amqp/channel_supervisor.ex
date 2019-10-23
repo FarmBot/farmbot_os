@@ -8,7 +8,8 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     PingPongChannel,
     BotStateChannel,
     AutoSyncChannel,
-    CeleryScriptChannel
+    CeleryScriptChannel,
+    TelemetryChannel
   }
 
   def start_link(args) do
@@ -20,6 +21,7 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     jwt = JWT.decode!(token)
 
     children = [
+      {TelemetryChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
       {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
