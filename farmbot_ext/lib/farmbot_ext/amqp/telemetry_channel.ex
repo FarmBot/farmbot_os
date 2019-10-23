@@ -68,11 +68,12 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
         {captured_at, kind, subsystem, measurement, value, meta} ->
           json =
             FarmbotCore.JSON.encode!(%{
-              measurement => value,
-              :kind => kind,
-              :subsystem => subsystem,
-              :captured_at => to_string(captured_at),
-              :meta => %{meta | function: inspect(meta.function)}
+              "telemetry.measurement" => measurement,
+              "telemetry.value" => value,
+              "telemetry.kind" => kind,
+              "telemetry.subsystem" => subsystem,
+              "telemetry.captured_at" => to_string(captured_at),
+              "telemetry.meta" => %{meta | function: inspect(meta.function)}
             })
 
           Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
