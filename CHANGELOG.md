@@ -1,5 +1,9 @@
 # Changelog
 
+# 8.2.0
+* Features
+    * Add telemetry to app. Telemetry data is now streamed to AMQP
+
 # 8.1.0
 * Bug fixes
     * Fix bug where farmbot could not execute the following commands
