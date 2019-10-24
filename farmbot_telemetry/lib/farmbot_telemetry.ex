@@ -33,7 +33,9 @@ defmodule FarmbotTelemetry do
   end
 
   @doc "Execute a telemetry event"
-  defmacro event(subsystem, measurement, value, meta \\ %{}) do
+  defmacro event(subsystem, measurement_or_event_name, value \\ nil, meta \\ %{})
+
+  defmacro event(subsystem, measurement, value, meta) do
     quote location: :keep do
       FarmbotTelemetry.bare_telemetry(
         UUID.uuid4(),
@@ -65,11 +67,13 @@ defmodule FarmbotTelemetry do
   @doc "Function responsible for firing telemetry events"
   @spec bare_telemetry(uuid, kind(), subsystem(), measurement(), value(), DateTime.t(), meta()) ::
           :ok
-  def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta) do
+  def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta)
+      when is_binary(uuid) and is_atom(kind) and is_atom(subsystem) and is_atom(measurement) and
+             is_map(meta) do
     _ =
       :telemetry.execute(
         [:farmbot_telemetry, kind, subsystem],
-        %{measurement => value, captured_at: captured_at, uuid: uuid},
+        %{measurement: measurement, value: value, captured_at: captured_at, uuid: uuid},
         meta
       )
 
