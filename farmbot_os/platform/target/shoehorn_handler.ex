@@ -1,5 +1,6 @@
 defmodule FarmbotOS.Platform.Target.ShoehornHandler do
   use Shoehorn.Handler
+  require FarmbotTelemetry
   require FarmbotCore.Logger
   require Logger
 
@@ -26,6 +27,8 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
       "Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}"
     )
 
+    FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
+
     {:continue, %{state | restart_counts: count + 1}}
   end
 
@@ -36,6 +39,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
              :farmbot
            ] do
     error_log("Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}")
+    FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
 
     with {:ok, _} <- Application.ensure_all_started(:farmbot_core),
          {:ok, _} <- Application.ensure_all_started(:farmbot_ext),
@@ -48,6 +52,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
   def application_exited(app, reason, state) do
     error_log("Application stopped: #{inspect(app)} #{inspect(reason, limit: :infinity)}")
+    FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
     # Application.ensure_all_started(app)
     {:continue, state}
   end

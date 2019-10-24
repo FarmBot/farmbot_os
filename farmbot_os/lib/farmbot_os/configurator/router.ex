@@ -1,6 +1,7 @@
 defmodule FarmbotOS.Configurator.Router do
   @moduledoc "Routes web connections for configuring farmbot os"
   require FarmbotCore.Logger
+  require FarmbotTelemetry
 
   import Phoenix.HTML
   use Plug.Router
@@ -40,6 +41,8 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   get "/" do
+    FarmbotTelemetry.event(:configurator, :configuration_start)
+
     case load_last_reset_reason() do
       reason when is_binary(reason) ->
         if String.contains?(reason, "CeleryScript request.") do

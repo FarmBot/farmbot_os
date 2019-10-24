@@ -6,6 +6,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   use GenServer
   require Logger
   require FarmbotCore.Logger
+  require FarmbotTelemetry
   alias AMQP.{Basic, Channel, Queue}
 
   alias FarmbotExt.{JWT, AMQP.ConnectionWorker}
@@ -55,10 +56,17 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
          {:ok, _} <- Basic.consume(chan, chan_name, self(), no_ack: true) do
       Process.link(conn.pid)
       Process.link(chan.pid)
+      FarmbotTelemetry.event(:amqp, :channel_open)
+      FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: chan_name, routing_key: route)
+
       %{conn: conn, chan: chan}
     else
-      nil -> %{conn: nil, chan: nil}
-      error -> error
+      nil ->
+        %{conn: nil, chan: nil}
+
+      error ->
+        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(error))
+        error
     end
   end
 
@@ -107,11 +115,13 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
     case open_connection(token, email, jwt.bot, jwt.mqtt, jwt.vhost) do
       {:ok, conn} ->
+        FarmbotTelemetry.event(:amqp, :connection_open)
         Process.monitor(conn.pid)
         {:noreply, %{state | conn: conn}}
 
       err ->
         Logger.error("Error Opening AMQP connection: #{inspect(err)}")
+        FarmbotTelemetry.event(:amqp, :connection_open_error, nil, error: inspect(err))
         Process.send_after(self(), :timeout, 5000)
         {:noreply, %{state | conn: nil}}
     end
@@ -120,6 +130,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   def handle_info({:DOWN, _ref, :process, _pid, reason}, state) do
     FarmbotCore.Logger.error(2, "AMQP Connection exit")
     _ = close_connection(state.conn)
+    FarmbotTelemetry.event(:amqp, :connection_close)
     {:stop, reason, state}
   end
 
@@ -131,6 +142,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   def handle_call(:close, _from, %{conn: _conn} = state) do
     FarmbotCore.Logger.error(2, "AMQP Connection closing")
     reply = close_connection(state.conn)
+    FarmbotTelemetry.event(:amqp, :connection_close)
     {:stop, :close, reply, %{state | conn: nil}}
   end
 
