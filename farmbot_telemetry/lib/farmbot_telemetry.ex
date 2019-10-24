@@ -6,6 +6,9 @@ defmodule FarmbotTelemetry do
   @typedoc "Type of telemetry data"
   @type kind() :: :event | :metric
 
+  @typedoc "UUID of the telemetry data"
+  @type uuid() :: String.t()
+
   @typedoc "Classifier for telemetry data"
   @type subsystem() :: atom()
 
@@ -33,6 +36,7 @@ defmodule FarmbotTelemetry do
   defmacro event(subsystem, measurement, value, meta \\ %{}) do
     quote location: :keep do
       FarmbotTelemetry.bare_telemetry(
+        UUID.uuid4(),
         :event,
         unquote(subsystem),
         unquote(measurement),
@@ -47,6 +51,7 @@ defmodule FarmbotTelemetry do
   defmacro metric(subsystem, measurement, value, meta \\ %{}) do
     quote location: :keep do
       FarmbotTelemetry.bare_telemetry(
+        UUID.uuid4(),
         :metric,
         unquote(subsystem),
         unquote(measurement),
@@ -58,16 +63,21 @@ defmodule FarmbotTelemetry do
   end
 
   @doc "Function responsible for firing telemetry events"
-  @spec bare_telemetry(kind(), subsystem(), measurement(), value(), DateTime.t(), meta()) :: :ok
-  def bare_telemetry(kind, subsystem, measurement, value, captured_at, meta) do
+  @spec bare_telemetry(uuid, kind(), subsystem(), measurement(), value(), DateTime.t(), meta()) ::
+          :ok
+  def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta) do
     _ =
       :telemetry.execute(
         [:farmbot_telemetry, kind, subsystem],
-        %{measurement => value, captured_at: captured_at},
+        %{measurement => value, captured_at: captured_at, uuid: uuid},
         meta
       )
 
-    _ = :dets.insert(:farmbot_telemetry, {captured_at, kind, subsystem, measurement, value, meta})
+    _ =
+      :dets.insert(
+        :farmbot_telemetry,
+        {uuid, captured_at, kind, subsystem, measurement, value, meta}
+      )
   end
 
   @doc "Attach a logger to a kind and subsystem"
@@ -91,7 +101,8 @@ defmodule FarmbotTelemetry do
 
   @typedoc "Function passed to `consume_telemetry/1`"
   @type consumer_fun() ::
-          ({DateTime.t(), kind(), subsystem(), measurement(), value(), meta()} -> :ok | :error)
+          ({uuid(), DateTime.t(), kind(), subsystem(), measurement(), value(), meta()} ->
+             :ok | :error)
 
   @doc "Consume telemetry events"
   def consume_telemetry(fun) do
@@ -103,9 +114,9 @@ defmodule FarmbotTelemetry do
       end)
 
     _ =
-      Enum.map(tasks, fn {created_at, task} ->
+      Enum.map(tasks, fn {uuid, task} ->
         case Task.await(task) do
-          :ok -> :dets.delete(:farmbot_telemetry, created_at)
+          :ok -> :dets.delete(:farmbot_telemetry, uuid)
           _ -> :ok
         end
       end)

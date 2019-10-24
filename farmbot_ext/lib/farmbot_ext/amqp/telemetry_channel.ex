@@ -65,9 +65,10 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   def handle_info(:consume_telemetry, state) do
     _ =
       FarmbotTelemetry.consume_telemetry(fn
-        {captured_at, kind, subsystem, measurement, value, meta} ->
+        {uuid, captured_at, kind, subsystem, measurement, value, meta} ->
           json =
             FarmbotCore.JSON.encode!(%{
+              "telemetry.uuid" => uuid,
               "telemetry.measurement" => measurement,
               "telemetry.value" => value,
               "telemetry.kind" => kind,
