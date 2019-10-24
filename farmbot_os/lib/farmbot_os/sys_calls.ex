@@ -1,5 +1,6 @@
 defmodule FarmbotOS.SysCalls do
   require FarmbotCore.Logger
+  require FarmbotTelemetry
   require Logger
 
   alias FarmbotCeleryScript.AST
@@ -264,6 +265,7 @@ defmodule FarmbotOS.SysCalls do
       :ok
     else
       error ->
+        FarmbotTelemetry.event(:asset_sync, :sync_error, nil, error: inspect(error))
         :ok = BotState.set_sync_status("sync_error")
         _ = Leds.green(:slow_blink)
         {:error, inspect(error)}

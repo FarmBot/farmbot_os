@@ -18,6 +18,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   use GenServer
   require Logger
   require FarmbotCore.Logger
+  require FarmbotTelemetry
   alias FarmbotCore.{Config, FirmwareTTYDetector}
 
   def start_link(args) do
@@ -58,6 +59,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   def new_tty(tty) do
     case FirmwareTTYDetector.tty() do
       nil ->
+        FarmbotTelemetry.event(:firmware, :tty_detected, nil, tty: tty)
         FarmbotCore.Logger.busy(1, "new firmware interfaces detected: #{tty}")
         FirmwareTTYDetector.set_tty(tty)
         Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)

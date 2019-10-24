@@ -8,6 +8,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
   alias FarmbotCore.JSON
   require FarmbotCore.Logger
+  require FarmbotTelemetry
   require Logger
 
   alias FarmbotCeleryScript.{AST, StepRunner}
@@ -50,6 +51,8 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
          :ok <- Queue.bind(chan, queue_name, @exchange, routing_key: route),
          {:ok, _tag} <- Basic.consume(chan, queue_name, self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to CeleryScript channel")
+      FarmbotTelemetry.event(:amqp, :channel_open)
+      FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: queue_name, routing_key: route)
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
@@ -58,6 +61,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
+        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
         Process.send_after(self(), :connect_amqp, 2000)
         {:noreply, %{state | conn: nil, chan: nil}}
     end

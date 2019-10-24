@@ -14,6 +14,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   require Logger
   require FarmbotCore.Logger
+  require FarmbotTelemetry
 
   # The API dispatches messages for other resources, but these
   # are the only ones that Farmbot needs to sync.
@@ -96,6 +97,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         BotState.set_sync_status("sync_error")
         _ = Leds.green(:slow_blink)
         FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
+        FarmbotTelemetry.event(:asset_sync, :preload_error, nil, error: inspect(reason))
         Process.send_after(self(), :preload, 5000)
         {:noreply, state}
     end
