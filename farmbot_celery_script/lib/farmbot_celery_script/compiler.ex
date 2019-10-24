@@ -92,10 +92,12 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   defdelegate assertion(ast, env), to: Compiler.Assertion
+  defdelegate calibrate(ast, env), to: Compiler.AxisControl
   defdelegate coordinate(ast, env), to: Compiler.DataControl
   defdelegate execute(ast, env), to: Compiler.Execute
   defdelegate execute_script(ast, env), to: Compiler.Farmware
   defdelegate find_home(ast, env), to: Compiler.AxisControl
+  defdelegate home(ast, env), to: Compiler.AxisControl
   defdelegate unquote(:_if)(ast, env), to: Compiler.If
   defdelegate install_first_party_farmware(ast, env), to: Compiler.Farmware
   defdelegate move_absolute(ast, env), to: Compiler.AxisControl
