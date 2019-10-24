@@ -1,5 +1,6 @@
 defmodule FarmbotCore.BotState.SchedulerUsageReporter do
   alias FarmbotCore.BotState
+  require FarmbotTelemetry
   use GenServer
   @default_timeout_ms 5000
 

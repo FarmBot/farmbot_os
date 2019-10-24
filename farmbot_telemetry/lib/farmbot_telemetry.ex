@@ -19,7 +19,7 @@ defmodule FarmbotTelemetry do
   @type value() :: number()
 
   @typedoc "Metadata for a telemetry event"
-  @type meta() :: map()
+  @type meta() :: Keyword.t()
 
   @doc "Merges environment data with existing metadata"
   @spec telemetry_meta(Macro.Env.t(), map()) :: meta()
@@ -33,9 +33,10 @@ defmodule FarmbotTelemetry do
   end
 
   @doc "Execute a telemetry event"
-  defmacro event(subsystem, measurement_or_event_name, value \\ nil, meta \\ %{})
+  defmacro event(subsystem, measurement_or_event_name, value \\ nil, meta \\ [])
 
-  defmacro event(subsystem, measurement, value, meta) do
+  defmacro event(subsystem, measurement, value, meta)
+           when is_atom(subsystem) and is_atom(measurement) and is_list(meta) do
     quote location: :keep do
       FarmbotTelemetry.bare_telemetry(
         UUID.uuid4(),
@@ -44,13 +45,26 @@ defmodule FarmbotTelemetry do
         unquote(measurement),
         unquote(value),
         DateTime.utc_now(),
-        FarmbotTelemetry.telemetry_meta(__ENV__, unquote(Macro.escape(meta)))
+        Keyword.merge(unquote(meta),
+          module: __ENV__.module,
+          file: __ENV__.file,
+          line: __ENV__.line,
+          function: __ENV__.function
+        )
       )
     end
   end
 
+  defmacro event(subsystem, measurement, value, meta) do
+    Mix.raise("""
+    Unknown args for telemetry event:
+    #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{inspect(meta)}
+    """)
+  end
+
   @doc "Execute a telemetry metric"
-  defmacro metric(subsystem, measurement, value, meta \\ %{}) do
+  defmacro metric(subsystem, measurement, value, meta \\ [])
+           when is_atom(subsystem) and is_atom(measurement) and is_list(meta) do
     quote location: :keep do
       FarmbotTelemetry.bare_telemetry(
         UUID.uuid4(),
@@ -59,7 +73,12 @@ defmodule FarmbotTelemetry do
         unquote(measurement),
         unquote(value),
         DateTime.utc_now(),
-        FarmbotTelemetry.telemetry_meta(__ENV__, unquote(Macro.escape(meta)))
+        Keyword.merge(unquote(meta),
+          module: __ENV__.module,
+          file: __ENV__.file,
+          line: __ENV__.line,
+          function: __ENV__.function
+        )
       )
     end
   end
@@ -69,18 +88,18 @@ defmodule FarmbotTelemetry do
           :ok
   def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta)
       when is_binary(uuid) and is_atom(kind) and is_atom(subsystem) and is_atom(measurement) and
-             is_map(meta) do
+             is_list(meta) do
     _ =
       :telemetry.execute(
         [:farmbot_telemetry, kind, subsystem],
         %{measurement: measurement, value: value, captured_at: captured_at, uuid: uuid},
-        meta
+        Map.new(meta)
       )
 
     _ =
       :dets.insert(
         :farmbot_telemetry,
-        {uuid, captured_at, kind, subsystem, measurement, value, meta}
+        {uuid, captured_at, kind, subsystem, measurement, value, Map.new(meta)}
       )
   end
 
