@@ -90,6 +90,8 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
   pool_size: 1,
   database: Path.join(data_path, "asset-prod.sqlite3")
 
+config :farmbot_telemetry, file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))
+
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.NervesHubClient,

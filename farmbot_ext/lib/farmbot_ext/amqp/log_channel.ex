@@ -9,6 +9,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
 
   alias FarmbotCore.{BotState, JSON}
   require FarmbotCore.Logger
+  require FarmbotTelemetry
 
   alias FarmbotExt.AMQP.ConnectionWorker
   require Logger
@@ -40,6 +41,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
     with %{} = conn <- ConnectionWorker.connection(),
          {:ok, chan} <- Channel.open(conn),
          :ok <- Basic.qos(chan, global: true) do
+      FarmbotTelemetry.event(:amqp, :channel_open)
       initial_bot_state = BotState.subscribe()
       {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
     else
@@ -48,6 +50,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
+        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
         {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
     end
   end

@@ -12,6 +12,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
   require Logger
   require FarmbotCore.Logger
+  require FarmbotTelemetry
   alias FarmbotCore.Leds
 
   @exchange "amq.topic"
@@ -66,6 +67,10 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
          {:ok, _} <- Queue.purge(chan, ping),
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
          {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
+      FarmbotTelemetry.event(:amqp, :channel_open)
+
+      FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: ping, routing_key: route <> ".#")
+
       FarmbotCore.Logger.debug(3, "connected to PingPong channel")
       _ = Leds.blue(:solid)
       {:noreply, %{state | conn: conn, chan: chan}}
@@ -76,6 +81,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to PingPong channel: #{inspect(err)}")
+        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
         Process.send_after(self(), :connect_amqp, 2000)
         {:noreply, %{state | conn: nil, chan: nil}}
     end
