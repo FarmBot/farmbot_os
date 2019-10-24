@@ -1,6 +1,12 @@
 # Changelog
 
 # 8.1.0
+* Bug fixes
+    * Fix bug where farmbot could not execute the following commands
+        * home
+        * calibrate
+
+# 8.1.0
 * Features
     * PointGroups are now supported by farmbot os
     * Sequence, FarmEvent, and Regimens can now enumerate over PointGroups
@@ -20,7 +26,7 @@
 
 # 8.0.2
 * Updated dependencies
-    * `nerves_hub` 
+    * `nerves_hub`
     * `nerves_runtime`
 * Updated log messages
     * Configuration changes now log human readable names
@@ -45,7 +51,7 @@
     * `farmbot_os` - `Nerves` Framework
 * Refactor global process initialization
 * Refactor networking for increased reliability
-* Refactor CeleryScript to support run-time variables 
+* Refactor CeleryScript to support run-time variables
 * Preliminary support for raspberry pi 0
 
 # 7.0.3
