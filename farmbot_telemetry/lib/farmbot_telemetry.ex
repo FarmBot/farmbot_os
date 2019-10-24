@@ -83,10 +83,20 @@ defmodule FarmbotTelemetry do
   @doc "Attach a logger to a kind and subsystem"
   def attach_logger(kind, subsystem, config \\ []) do
     :telemetry.attach(
-      "farmbot-telemetry-logger-#{kind}-#{subsystem}",
+      "farmbot-telemetry-logger-#{kind}-#{subsystem}-#{UUID.uuid4()}",
       [:farmbot_telemetry, kind, subsystem],
       &FarmbotTelemetry.log_handler/4,
       config
+    )
+  end
+
+  @doc "Attach a message sender to a kind and subsystem"
+  def attach_recv(kind, subsystem, pid) do
+    :telemetry.attach(
+      "farmbot-telemetry-recv-#{kind}-#{subsystem}-#{UUID.uuid4()}",
+      [:farmbot_telemetry, kind, subsystem],
+      &Kernel.send(pid, {&1, &2, &3, &4}),
+      pid: self()
     )
   end
 
@@ -102,9 +112,18 @@ defmodule FarmbotTelemetry do
   @typedoc "Function passed to `consume_telemetry/1`"
   @type consumer_fun() ::
           ({uuid(), DateTime.t(), kind(), subsystem(), measurement(), value(), meta()} ->
-             :ok | :error)
+             :ok | any())
 
-  @doc "Consume telemetry events"
+  @doc """
+  Syncronously consume telemetry events.
+
+  Function will be evaluated once for every telemetry event, 
+  blocking until complete. Function should complete within 
+  5 seconds per each event. Function should return `:ok` if
+  the event was successfully consumed, anything else will 
+  cause the event to be put back on the queue
+  """
+  @spec consume_telemetry(consumer_fun()) :: :ok
   def consume_telemetry(fun) do
     all_events = :dets.match_object(:farmbot_telemetry, :_)
 
