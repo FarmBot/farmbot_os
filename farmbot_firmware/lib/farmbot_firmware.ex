@@ -683,6 +683,14 @@ defmodule FarmbotFirmware do
     {:noreply, state}
   end
 
+  def handle_report({:report_axis_timeout, [axis]} = code, state) do
+    if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
+    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    side_effects(state, :handle_axis_timeout, [axis])
+    {:noreply, state}
+  end
+
   def handle_report({:report_calibration_state, calibration_state} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
