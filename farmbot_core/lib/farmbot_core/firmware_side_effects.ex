@@ -21,6 +21,12 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
+  def handle_axis_timeout(axis) do
+    FarmbotCore.Logger.error 1, "Axis #{axis} timed out waiting for movement to complete"
+    :noop
+  end
+
+  @impl FarmbotFirmware.SideEffects
   def handle_home_complete(_) do
     :noop
   end
