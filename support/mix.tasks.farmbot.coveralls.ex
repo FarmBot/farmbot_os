@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Farmbot.Coveralls do
   @projects :farmbot_ext
   @projects :farmbot_firmware
   @projects :farmbot_os
-  @projects :farmbot_telemetry
+  # @projects :farmbot_telemetry
 
   def run(args) do
     @projects
