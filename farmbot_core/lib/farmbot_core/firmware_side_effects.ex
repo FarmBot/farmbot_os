@@ -41,6 +41,9 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_encoders_scaled(x, y, z)
   end
 
+  # this is a bug in the firmware code i think
+  def handle_encoders_scaled([]), do: :noop
+  
   @impl FarmbotFirmware.SideEffects
   def handle_encoders_raw(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_raw(x, y, z)
