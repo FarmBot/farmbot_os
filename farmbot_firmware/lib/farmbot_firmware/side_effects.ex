@@ -28,6 +28,8 @@ defmodule FarmbotFirmware.SideEffects do
   @type axis_state :: :stop | :idle | :begin | :crawl | :decelerate | :accelerate
   @callback handle_axis_state([{axis(), axis_state}]) :: any()
 
+  @callback handle_axis_timeout(axis()) :: any()
+
   @type calibration_state :: :idle | :home | :end
   @callback handle_calibration_state([{axis(), calibration_state()}]) :: any()
 

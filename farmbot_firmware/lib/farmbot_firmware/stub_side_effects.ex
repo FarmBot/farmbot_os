@@ -112,6 +112,9 @@ defmodule FarmbotFirmware.StubSideEffects do
   def handle_axis_state(_), do: :noop
 
   @impl SideEffects
+  def handle_axis_timeout(_), do: :noop
+
+  @impl SideEffects
   def handle_calibration_state(_), do: :noop
 
   @impl SideEffects
