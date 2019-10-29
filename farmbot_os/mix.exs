@@ -75,7 +75,7 @@ defmodule FarmbotOS.MixProject do
 
       # Configurator stuff
       {:cors_plug, "~> 2.0"},
-      {:plug_cowboy, "~> 2.0"},
+      {:plug_cowboy, "~> 2.1"},
       {:phoenix_html, "~> 2.13"},
 
       # Nerves stuff.
@@ -89,7 +89,7 @@ defmodule FarmbotOS.MixProject do
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false},
-      {:elixir_make, "~> 0.5", runtime: false},
+      {:elixir_make, "~> 0.6", runtime: false},
 
       # Data collection
       {:nimble_csv, "~> 0.6.0", runtime: false},
