@@ -20,7 +20,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
   @impl VintageNet.Technology
   def to_raw_config(ifname, %{wifi: _} = config, opts) do
-    {:ok, normalized} = normalize(config)
+    normalized = normalize(config)
 
     ifname
     |> vintage_wifi(normalized, opts)
@@ -28,7 +28,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   end
 
   def to_raw_config(ifname, config, opts) do
-    {:ok, normalized} = normalize(config)
+    normalized = normalize(config)
 
     ifname
     |> vintage_ethernet(normalized, opts)
@@ -96,25 +96,23 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
           raw_config.cleanup_files ++ [dnsmasq_conf_path, dnsmasq_lease_file, dnsmasq_pid_file]
     }
 
-    {:ok, updated_raw_config}
+    updated_raw_config
   end
 
   defp dnsmasq(%{} = raw_config, _opts) do
     FarmbotCore.Logger.error(1, "DNSMASQ Disabled")
-    {:ok, raw_config}
+    raw_config
   end
 
   defp vintage_wifi(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.WiFi.normalize(config),
-         {:ok, raw_config} <- VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts) do
-      %{raw_config | type: VintageNet.Technology.WiFi}
-    end
+    config = VintageNet.Technology.WiFi.normalize(config)
+    raw_config = VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
+    %{raw_config | type: VintageNet.Technology.WiFi}
   end
 
   defp vintage_ethernet(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.Ethernet.normalize(config),
-         {:ok, raw_config} <- VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts) do
-      %{raw_config | type: VintageNet.Technology.Ethernet}
-    end
+    config = VintageNet.Technology.Ethernet.normalize(config)
+    raw_config = VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
+    %{raw_config | type: VintageNet.Technology.Ethernet}
   end
 end

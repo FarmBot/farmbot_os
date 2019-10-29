@@ -4,17 +4,16 @@ defmodule FarmbotOS.Platform.Target.Network.PreSetup do
   alias VintageNet.Interface.RawConfig
 
   @impl true
-  def normalize(config), do: {:ok, config}
+  def normalize(config), do: config
 
   @impl true
   def to_raw_config(ifname, config \\ %{}, _opts \\ []) do
-    {:ok,
-     %RawConfig{
-       ifname: ifname,
-       type: __MODULE__,
-       source_config: config,
-       require_interface: false
-     }}
+    %RawConfig{
+      ifname: ifname,
+      type: __MODULE__,
+      source_config: config,
+      require_interface: false
+    }
   end
 
   @impl true

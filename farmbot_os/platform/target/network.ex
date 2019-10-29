@@ -22,9 +22,13 @@ defmodule FarmbotOS.Platform.Target.Network do
     %{
       type: CaptivePortal,
       wifi: %{
-        ssid: build_hostap_ssid(),
-        mode: :host,
-        key_mgmt: :none
+        networks: [
+          %{
+            ssid: build_hostap_ssid(),
+            mode: :ap,
+            key_mgmt: :none
+          }
+        ]
       },
       ipv4: %{
         method: :static,
