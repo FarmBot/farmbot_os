@@ -24,11 +24,11 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
           regulatory_domain: _
         } = config
       ) do
-    {:ok, config}
+    config
   end
 
   def normalize(_) do
-    {:error, :incomplete_config}
+    raise "Could not normalize farmbot network config"
   end
 
   @impl VintageNet.Technology
@@ -91,8 +91,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   defp to_wifi(%{security: "NONE", ssid: ssid, regulatory_domain: reg_domain}) do
     %{
-      key_mgmt: :none,
-      ssid: ssid,
+      networks: [
+        %{
+          key_mgmt: :none,
+          ssid: ssid
+        }
+      ],
       scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
@@ -101,9 +105,13 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   defp to_wifi(%{security: "WPA-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
     %{
-      ssid: ssid,
-      key_mgmt: :wpa_psk,
-      psk: psk,
+      networks: [
+        %{
+          ssid: ssid,
+          psk: psk,
+          key_mgmt: :wpa_psk
+        }
+      ],
       scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
@@ -112,9 +120,13 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   defp to_wifi(%{security: "WPA2-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
     %{
-      ssid: ssid,
-      key_mgmt: :wpa_psk,
-      psk: psk,
+      networks: [
+        %{
+          ssid: ssid,
+          key_mgmt: :wpa_psk,
+          psk: psk
+        }
+      ],
       scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
@@ -129,10 +141,19 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
          regulatory_domain: reg_domain
        }) do
     %{
-      ssid: ssid,
-      key_mgmt: :wpa_eap,
-      identity: id,
-      password: pw,
+      networks: [
+        %{
+          ssid: ssid,
+          key_mgmt: :wpa_eap,
+          pairwise: "CCMP TKIP",
+          group: "CCMP TKIP",
+          eap: "PEAP",
+          phase1: "peapver=auto",
+          phase2: "MSCHAPV2",
+          identity: id,
+          password: pw
+        }
+      ],
       scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
@@ -140,12 +161,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   end
 
   defp vintage_ethernet(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.Ethernet.normalize(config),
-         do: VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
+    config = VintageNet.Technology.Ethernet.normalize(config)
+    VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
   end
 
   defp vintage_wifi(ifname, config, opts) do
-    with {:ok, config} <- VintageNet.Technology.WiFi.normalize(config),
-         do: VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
+    config = VintageNet.Technology.WiFi.normalize(config)
+    VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
   end
 end
