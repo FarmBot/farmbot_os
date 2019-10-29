@@ -197,6 +197,36 @@ defmodule FarmbotOS.Platform.Target.Network do
     {:noreply, state}
   end
 
+  def handle_info(
+        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :success} = eap_status,
+         _meta},
+        state
+      ) do
+    FarmbotCore.Logger.debug(3, """
+    Farmbot successfully completed EAP Authentication.
+    #{inspect(eap_status, limit: :infinity)}
+    """)
+
+    {:noreply, state}
+  end
+
+  def handle_info(
+        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :failure}, _meta},
+        state
+      ) do
+    FarmbotCore.Logger.error(1, """
+    Farmbot was unable to assosiate with the EAP network.
+    Please check the identity, password and method of connection
+    """)
+
+    FarmbotOS.System.factory_reset("""
+    Farmbot was unable to assosiate with the EAP network. 
+    Please check the identity, password and method of connection
+    """)
+
+    {:noreply, state}
+  end
+
   def handle_info({VintageNet, property, old, new, _meta}, state) do
     Logger.debug("""
     Unknown property change: #{inspect(property)}

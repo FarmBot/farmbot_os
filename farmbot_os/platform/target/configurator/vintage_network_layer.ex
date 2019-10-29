@@ -40,6 +40,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
   defp flags_to_security([:wpa_psk_ccmp | _]), do: "WPA-PSK"
   defp flags_to_security([:wpa_psk_ccmp_tkip | _]), do: "WPA-PSK"
   defp flags_to_security([:wpa2_eap_ccmp | _]), do: "WPA-EAP"
+  defp flags_to_security([:wpa_eap_ccmp_tkip | _]), do: "WPA-EAP"
   defp flags_to_security([_ | rest]), do: flags_to_security(rest)
   defp flags_to_security([]), do: "NONE"
 end
