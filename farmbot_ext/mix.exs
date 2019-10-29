@@ -38,7 +38,7 @@ defmodule FarmbotExt.MixProject do
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.15"},
       {:uuid, "~> 1.1"},
-      {:amqp, "1.1.1"},
+      {:amqp, "~> 1.3"},
       {:mox, "~> 0.5", only: :test},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
