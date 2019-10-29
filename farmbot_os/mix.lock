@@ -57,6 +57,7 @@
   "nerves_toolchain_ctng": {:hex, :nerves_toolchain_ctng, "1.6.0", "452f8589c1a58ac787477caab20a8cfc6671e345837ccc19beefe49ae35ba983", [:mix], [{:nerves, "~> 1.0", [hex: :nerves, repo: "hexpm", optional: false]}], "hexpm"},
   "nimble_csv": {:hex, :nimble_csv, "0.6.0", "a3673f26d41f986774fe6060e309615343d3cb83a6d435754d8b1fdbd5764879", [:mix], [], "hexpm"},
   "nimble_parsec": {:hex, :nimble_parsec, "0.5.0", "90e2eca3d0266e5c53f8fbe0079694740b9c91b6747f2b7e3c5d21966bba8300", [:mix], [], "hexpm"},
+  "one_dhcpd": {:hex, :one_dhcpd, "0.2.3", "753f1495a5f1b29d24b6e1f1e4e9c30c54242daae236bed6baff32027165559e", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm"},
   "pbcs": {:hex, :pbcs, "0.1.1", "199c7fd4af3351758378355909145a2d187c565555ed16bde30b5055114652ed", [:mix], [], "hexpm"},
   "phoenix_client": {:hex, :phoenix_client, "0.9.0", "973fdcadfd4e540558efa12a8dba028ba393712bece36ab523f2c218d5a1ae86", [:mix], [{:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}, {:websocket_client, "~> 1.3", [hex: :websocket_client, repo: "hexpm", optional: true]}], "hexpm"},
@@ -85,7 +86,7 @@
   "uboot_env": {:hex, :uboot_env, "0.1.1", "b01e3ec0973e99473234f27839e29e63b5b81eba6a136a18a78d049d4813d6c5", [:mix], [], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.4.1", "d869e4c68901dd9531385bb0c8c40444ebf624e60b6962d95952775cac5e90cd", [:rebar3], [], "hexpm"},
   "uuid": {:hex, :uuid, "1.1.8", "e22fc04499de0de3ed1116b770c7737779f226ceefa0badb3592e64d5cfb4eb9", [:mix], [], "hexpm"},
-  "vintage_net": {:hex, :vintage_net, "0.5.1", "dc199b0b056670380dab542c48784249bfe84b74f18cc29327c6b335e8f9467d", [:make, :mix], [{:busybox, "~> 0.1", [hex: :busybox, repo: "hexpm", optional: true]}, {:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:gen_state_machine, "~> 2.0.0", [hex: :gen_state_machine, repo: "hexpm", optional: false]}, {:muontrap, "~> 0.5.0", [hex: :muontrap, repo: "hexpm", optional: false]}], "hexpm"},
+  "vintage_net": {:hex, :vintage_net, "0.6.3", "9a9d8e788312f6af646e22316425bf40292b8b91cafec00c36a13475fc637e29", [:make, :mix], [{:busybox, "~> 0.1", [hex: :busybox, repo: "hexpm", optional: true]}, {:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:gen_state_machine, "~> 2.0.0", [hex: :gen_state_machine, repo: "hexpm", optional: false]}, {:muontrap, "~> 0.5.0", [hex: :muontrap, repo: "hexpm", optional: false]}, {:one_dhcpd, "~> 0.2.3", [hex: :one_dhcpd, repo: "hexpm", optional: false]}], "hexpm"},
   "websocket_client": {:hex, :websocket_client, "1.3.0", "2275d7daaa1cdacebf2068891c9844b15f4fdc3de3ec2602420c2fb486db59b6", [:rebar3], [], "hexpm"},
   "x509": {:hex, :x509, "0.7.0", "001b762cd99e1a33bc876bb090bd34d9cadc66eb7df3deb76d9f4d8a37b89612", [:mix], [], "hexpm"},
 }

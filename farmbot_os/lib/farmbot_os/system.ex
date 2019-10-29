@@ -83,6 +83,7 @@ defmodule FarmbotOS.System do
   end
 
   defp write_file(reason) do
+    FarmbotCore.Logger.debug(3, "power down event: #{inspect(reason)}")
     file = Path.join(@data_path, "last_shutdown_reason")
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end
