@@ -25,9 +25,12 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
 
   def compile_sequence_iterable(
         loop_parameter_appl_ast,
-        %{args: %{locals: %{body: params} = locals}} = sequence_ast,
+        %{args: %{locals: %{body: params} = locals} = sequence_args, meta: sequence_meta} =
+          sequence_ast,
         env
       ) do
+    sequence_name = sequence_meta[:sequence_name] || sequence_args[:sequence_name]
+
     # remove the iterable from the parameter applications, 
     # since it will be injected after this.
     _params =
@@ -52,34 +55,61 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
       {:error, reason} ->
         quote location: :keep, do: Macro.escape({:error, unquote(reason)})
 
-      %{} = point_group ->
+      %{name: group_name} = point_group ->
+        total = Enum.count(point_group.point_ids)
         # Map over all the points returned by `get_point_group/1`
-        Enum.map(point_group.point_ids, fn point_id ->
-          # check if it's an every_point node first, if not fall back go generic pointer
-          pointer_type = group_ast.args[:every_point_type] || "GenericPointer"
+        {body, _} =
+          Enum.reduce(point_group.point_ids, {[], 1}, fn point_id, {acc, index} ->
+            # check if it's an every_point node first, if not fall back go generic pointer
+            pointer_type = group_ast.args[:every_point_type] || "GenericPointer"
 
-          parameter_application = %FarmbotCeleryScript.AST{
-            kind: :parameter_application,
-            args: %{
-              # inject the replacement with the same label
-              label: loop_parameter_appl_ast.args.label,
-              data_value: %FarmbotCeleryScript.AST{
-                kind: :point,
-                args: %{pointer_type: pointer_type, pointer_id: point_id}
+            parameter_application = %FarmbotCeleryScript.AST{
+              kind: :parameter_application,
+              args: %{
+                # inject the replacement with the same label
+                label: loop_parameter_appl_ast.args.label,
+                data_value: %FarmbotCeleryScript.AST{
+                  kind: :point,
+                  args: %{pointer_type: pointer_type, pointer_id: point_id}
+                }
               }
             }
-          }
 
-          # compile a `sequence` ast, injecting the appropriate `point` ast with
-          # the matching `label`
-          # TODO(Connor) - the body of this ast should have the 
-          # params as sorted earlier. Figure out why this doesn't work
-          compile_sequence(
-            %{sequence_ast | args: %{locals: %{locals | body: [parameter_application]}}},
-            env
-          )
-        end)
-        |> List.flatten()
+            sequence_name =
+              case FarmbotCeleryScript.SysCalls.point(pointer_type, point_id) do
+                %{name: name, x: x, y: y, z: z} when is_binary(sequence_name) ->
+                  pos = FarmbotCeleryScript.FormatUtil.format_coord(x, y, z)
+                  sequence_name <> " [#{index} / #{total}] - #{name} #{pos}"
+
+                %{name: name, x: x, y: y, z: z} ->
+                  pos = FarmbotCeleryScript.FormatUtil.format_coord(x, y, z)
+                  "unnamed iterable sequence [#{index} / #{total}] - #{name} #{pos}"
+
+                _ ->
+                  "unknown iterable [#{index} / #{total}]"
+              end
+
+            # compile a `sequence` ast, injecting the appropriate `point` ast with
+            # the matching `label`
+            # TODO(Connor) - the body of this ast should have the 
+            # params as sorted earlier. Figure out why this doesn't work
+            body =
+              compile_sequence(
+                %{
+                  sequence_ast
+                  | meta: %{sequence_name: sequence_name},
+                    args: %{locals: %{locals | body: [parameter_application]}}
+                },
+                env
+              )
+
+            {acc ++ body, index + 1}
+          end)
+
+        add_sequence_init_and_complete_logs_ittr(
+          body,
+          sequence_name <> " - #{group_name} (#{total} items)"
+        )
     end
   end
 

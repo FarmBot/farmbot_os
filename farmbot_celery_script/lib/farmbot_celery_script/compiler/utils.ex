@@ -180,13 +180,48 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
       steps,
       quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_complete_log("#{unquote(sequence_name)} complete")
+          FarmbotCeleryScript.SysCalls.sequence_complete_log(
+            "Completed #{unquote(sequence_name)}"
+          )
         end
       end
     ])
   end
 
   def add_sequence_init_and_complete_logs(steps, _) do
+    steps
+  end
+
+  def add_sequence_init_and_complete_logs_ittr(steps, sequence_name)
+      when is_binary(sequence_name) do
+    # This looks really weird because of the logs before and
+    # after the compiled steps 
+    List.flatten([
+      quote do
+        fn _ ->
+          [
+            fn ->
+              FarmbotCeleryScript.SysCalls.sequence_init_log("Starting #{unquote(sequence_name)}")
+            end
+          ]
+        end
+      end,
+      steps,
+      quote do
+        fn _ ->
+          [
+            fn ->
+              FarmbotCeleryScript.SysCalls.sequence_complete_log(
+                "Completed #{unquote(sequence_name)}"
+              )
+            end
+          ]
+        end
+      end
+    ])
+  end
+
+  def add_sequence_init_and_complete_logs_ittr(steps, _) do
     steps
   end
 end

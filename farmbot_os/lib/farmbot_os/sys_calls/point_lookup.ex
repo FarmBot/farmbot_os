@@ -5,14 +5,14 @@ defmodule FarmbotOS.SysCalls.PointLookup do
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
-      %{x: x, y: y, z: z} -> %{x: x, y: y, z: z}
+      %{name: name, x: x, y: y, z: z} -> %{name: name, x: x, y: y, z: z}
     end
   end
 
   def get_toolslot_for_tool(id) do
     with %{id: ^id} <- Asset.get_tool(id: id),
-         %{x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
-      %{x: x, y: y, z: z}
+         %{name: name, x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
+      %{name: name, x: x, y: y, z: z}
     else
       nil -> {:error, "Could not find point for tool by id: #{id}"}
     end
