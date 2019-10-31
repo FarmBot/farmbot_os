@@ -4,7 +4,6 @@
   "api_pin_bindings": "6.4.4",
   "assertion_block": "8.0.0",
   "backscheduled_regimens": "6.4.0",
-  "boot_sequence": "8.2.0",
   "change_ownership": "6.3.0",
   "diagnostic_dumps": "6.4.4",
   "endstop_invert": "6.4.1",
