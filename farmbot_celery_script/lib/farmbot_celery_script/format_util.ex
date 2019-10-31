@@ -10,4 +10,11 @@ defmodule FarmbotCeleryScript.FormatUtil do
       _ -> :erlang.float_to_binary(value, decimals: 1)
     end
   end
+
+  def format_coord(x, y, z) do
+    x = format_float(x)
+    y = format_float(y)
+    z = format_float(z)
+    "(#{x}, #{y}, #{z})"
+  end
 end
