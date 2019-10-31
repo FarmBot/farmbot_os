@@ -13,7 +13,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   @doc "Sets debug mode for the compiler"
   def debug_mode(bool \\ true) do
-    old = Application.get_env(:farmbot_celery_script, __MODULE__)
+    old = Application.get_env(:farmbot_celery_script, __MODULE__, [])
     new = Keyword.put(old, :debug, bool)
     Application.put_env(:farmbot_celery_script, __MODULE__, new)
     bool
