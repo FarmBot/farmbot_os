@@ -26,66 +26,30 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
       else: compile_execute(ast, env)
   end
 
+  def compile_execute_iterable(loop_parameter_appl_ast, ast, env)
+
   def compile_execute_iterable(
-        loop_parameter_appl_ast,
-        %{args: %{sequence_id: id}, body: parameter_applications},
+        _loop_parameter_appl_ast,
+        %{args: %{sequence_id: sequence_id}, body: param_appls},
         env
       ) do
-    # remove the iterable from the parameter applications, 
-    # since it will be injected after this.
-    parameter_applications =
-      Enum.reduce(parameter_applications, [], fn
-        # Remove point_group from parameter appls
-        %{kind: :parameter_application, args: %{data_value: %{kind: :point_group}}}, acc -> acc
-        # Remove every_point from parameter appls
-        %{kind: :parameter_application, args: %{data_value: %{kind: :every_point}}}, acc -> acc
-        # Everything else gets added back
-        ast, acc -> acc ++ [ast]
-      end)
+    quote location: :keep do
+      case FarmbotCeleryScript.SysCalls.get_sequence(unquote(sequence_id)) do
+        %FarmbotCeleryScript.AST{kind: :sequence} = celery_ast ->
+          celery_args =
+            celery_ast.args
+            |> Map.put(:sequence_name, celery_ast.args[:name] || celery_ast.meta[:sequence_name])
+            |> Map.put(:locals, %{
+              celery_ast.args.locals
+              | body: celery_ast.args.locals.body ++ unquote(param_appls)
+            })
 
-    # will be a point_group or every_point node
-    group_ast = loop_parameter_appl_ast.args.data_value
-    # check if it's a point_group first, then fall back to every_point
-    point_group_arg =
-      group_ast.args[:point_group_id] || group_ast.args[:resource_id] ||
-        group_ast.args[:every_point_type]
+          celery_ast = %{celery_ast | args: celery_args}
+          Compiler.compile(celery_ast, unquote(env))
 
-    # lookup all point_groups related to this value
-    case FarmbotCeleryScript.SysCalls.get_point_group(point_group_arg) do
-      {:error, reason} ->
-        quote location: :keep, do: Macro.escape({:error, unquote(reason)})
-
-      %{} = point_group ->
-        # Map over all the points returned by `get_point_group/1`
-        Enum.map(point_group.point_ids, fn point_id ->
-          # check if it's an every_point node first, if not fall back go generic pointer
-          pointer_type = group_ast.args[:every_point_type] || "GenericPointer"
-          # compile a `execute` ast, injecting the appropriate `point` ast with
-          # the matching `label`
-          Compiler.compile_ast(
-            %FarmbotCeleryScript.AST{
-              kind: :execute,
-              args: %{sequence_id: id},
-              body: [
-                # this is the injection. This parameter_application was removed
-                %FarmbotCeleryScript.AST{
-                  kind: :parameter_application,
-                  args: %{
-                    # inject the replacement with the same label
-                    label: loop_parameter_appl_ast.args.label,
-                    data_value: %FarmbotCeleryScript.AST{
-                      kind: :point,
-                      args: %{pointer_type: pointer_type, pointer_id: point_id}
-                    }
-                  }
-                }
-                # add all other parmeter_applications back in the case of variables, etc
-                | parameter_applications
-              ]
-            },
-            env
-          )
-        end)
+        error ->
+          error
+      end
     end
   end
 
