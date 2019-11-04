@@ -13,6 +13,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold]
   @firmware_flash_timeout Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_timeout] || 5000
+  @disable_firmware_io_logs_timeout Application.get_env(:farmbot_core, __MODULE__)[:disable_firmware_io_logs_timeout] || 300000
   @firmware_flash_attempt_threshold || Mix.raise """
   Firmware open attempt threshold not configured:
 
@@ -39,6 +40,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     end
     state = %{
       fbos_config: fbos_config,
+      firmware_io_timer: nil,
       firmware_flash_attempts: 0,
       firmware_flash_attempt_threshold: @firmware_flash_attempt_threshold,
       firmware_flash_timeout: @firmware_flash_timeout,
@@ -90,6 +92,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     FarmbotCore.Logger.debug 3, "Got initial fbos config"
     set_config_to_state(fbos_config)
     send self(), {:maybe_flash_firmware, fbos_config}
+    send self(), {:maybe_start_io_log_timer, fbos_config}
     {:noreply, state}
   end
 
@@ -100,10 +103,45 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     {:noreply, state}
   end
 
+  def handle_info({:maybe_start_io_log_timer, old_fbos_config}, %{fbos_config: fbos_config, firmware_io_timer: nil} = state) do
+    out_logs = {old_fbos_config.firmware_output_log, fbos_config.firmware_output_log}
+    in_logs = {old_fbos_config.firmware_input_log, fbos_config.firmware_input_log}
+    # if either of the log types were enabled, start a timer
+    recently_enabled? = match?({_, true}, out_logs) || match?({_, true}, in_logs)
+    # if both of the log types are disabled, cancel the timer
+    recently_disabled? = match?({_, false}, out_logs) && match?({_, false}, in_logs)
+    cond do
+      recently_enabled? ->
+        FarmbotCore.Logger.debug 3, "Firmware logs will be disabled after 5 minutes"
+        firmware_io_timer = Process.send_after(self(), :disable_firmware_io_logs, @disable_firmware_io_logs_timeout)
+        {:noreply, %{state | firmware_io_timer: firmware_io_timer}}
+      recently_disabled? ->
+        state.firmware_io_timer && Process.cancel_timer(state.firmware_io_timer)
+        {:noreply, %{state | firmware_io_timer: nil}}
+      true ->
+        {:noreply, state}
+    end
+  end
+
+  # the timer is already started
+  def handle_info({:maybe_start_io_log_timer, _}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info(:disable_firmware_io_logs, state) do
+    new_fbos_config = FarmbotCore.Asset.update_fbos_config!(state.fbos_config, %{
+      firmware_output_log: false,
+      firmware_input_log: false
+    })
+    _ = FarmbotCore.Asset.Private.mark_dirty!(new_fbos_config)
+    {:noreply, %{state | fbos_config: new_fbos_config, firmware_io_timer: nil}}
+  end
+
   @impl GenServer
   def handle_cast({:new_data, new_fbos_config}, %{fbos_config: %FbosConfig{} = old_fbos_config} = state) do
     _ = set_config_to_state(new_fbos_config, old_fbos_config)
     send self(), {:maybe_flash_firmware, old_fbos_config}
+    send self(), {:maybe_start_io_log_timer, old_fbos_config}
     {:noreply, %{state | fbos_config: new_fbos_config}}
   end
 
