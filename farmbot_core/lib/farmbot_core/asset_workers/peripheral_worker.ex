@@ -81,6 +81,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   def peripheral_to_rpc(peripheral) do
     AST.Factory.new()
     |> AST.Factory.rpc_request(peripheral.local_id)
+    |> AST.Factory.set_pin_io_mode(peripheral.pin, "output")
     |> AST.Factory.read_pin(peripheral.pin, peripheral.mode)
   end
 end
