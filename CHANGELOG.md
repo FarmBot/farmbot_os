@@ -1,5 +1,10 @@
 # Changelog
 
+# 8.2.1
+* Features
+    * Add timer to reset `firmware_input_log` and `firmware_output_log` after 5 minutes
+    * Add a back off timer for flashing firmware
+
 # 8.2.0
 * Features
     * Add telemetry to app. Telemetry data is now streamed to AMQP
