@@ -20,12 +20,19 @@ defmodule FarmbotOS.SysCalls.PinControl do
   def toggle_pin(pin_number) when is_number(pin_number) do
     peripheral = Asset.get_peripheral_by_pin(pin_number)
 
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
-      {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
-        do_toggle_pin(peripheral || pin_number, 0)
+    with :ok <- FarmbotFirmware.command({:pin_mode_write, [p: pin_number, m: 1]}) do
+      case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
+        {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
+          do_toggle_pin(peripheral || pin_number, 0)
 
-      {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
-        do_toggle_pin(peripheral || pin_number, 1)
+        {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
+          do_toggle_pin(peripheral || pin_number, 1)
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      {:error, reason} -> {:error, reason}
     end
   end
 
