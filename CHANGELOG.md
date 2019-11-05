@@ -4,6 +4,8 @@
 * Features
     * Add timer to reset `firmware_input_log` and `firmware_output_log` after 5 minutes
     * Add a back off timer for flashing firmware
+* Bug fixes
+    * Fix issue where opencv would error. Most notibly in take-photo
 
 # 8.2.0
 * Features
