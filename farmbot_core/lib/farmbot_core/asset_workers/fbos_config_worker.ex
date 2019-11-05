@@ -112,7 +112,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     recently_disabled? = match?({_, false}, out_logs) && match?({_, false}, in_logs)
     cond do
       recently_enabled? ->
-        FarmbotCore.Logger.debug 3, "Firmware logs will be disabled after 5 minutes"
+        FarmbotCore.Logger.info 2, "Firmware logs will be disabled after 5 minutes"
         firmware_io_timer = Process.send_after(self(), :disable_firmware_io_logs, @disable_firmware_io_logs_timeout)
         {:noreply, %{state | firmware_io_timer: firmware_io_timer}}
       recently_disabled? ->
@@ -134,6 +134,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       firmware_input_log: false
     })
     _ = FarmbotCore.Asset.Private.mark_dirty!(new_fbos_config)
+    FarmbotCore.Logger.info 2, "Automatically disabling firmware IO logs (5 minutes have elapsed)"
     {:noreply, %{state | fbos_config: new_fbos_config, firmware_io_timer: nil}}
   end
 
