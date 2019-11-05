@@ -1,7 +1,7 @@
 defmodule FarmbotOS.MixProject do
   use Mix.Project
 
-  @all_targets [:rpi3, :rpi0, :rpi]
+  @all_targets [:rpi3, :rpi]
   @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD") |> elem(0) |> String.trim()
   @commit System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -105,9 +105,8 @@ defmodule FarmbotOS.MixProject do
       {:mdns_lite, "~> 0.4", targets: @all_targets},
       {:busybox, "~> 0.1", targets: @all_targets},
       {:nerves_system_br, "~> 1.9", override: true, runtime: false, targets: @all_targets},
-      {:farmbot_system_rpi3, "1.9.0-farmbot.1", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi0, "1.8.0-farmbot.0", runtime: false, targets: :rpi0},
-      {:farmbot_system_rpi, "1.8.0-farmbot.0", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi3, "1.9.1-farmbot.2", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi, "1.9.0-farmbot.1", runtime: false, targets: :rpi}
     ]
   end
 
