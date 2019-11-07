@@ -8,7 +8,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotFirmware.{UARTTransport, StubTransport}
-  alias FarmbotCore.{Asset, Config}
+  alias FarmbotCore.{Asset, Config, DepTracker}
   @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold]
   @attempt_threshold || Mix.raise """
   Firmware open attempt threshold not configured:
@@ -89,6 +89,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
           :ok ->
             Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
             timer = Process.send_after(self(), :open, 5000)
+            DepTracker.register_service(:firmware, :init)
             {:noreply, %{state | timer: timer, attempts: 0}}
           _ ->
             FarmbotCore.Logger.debug 3, "Firmware failed to open"
