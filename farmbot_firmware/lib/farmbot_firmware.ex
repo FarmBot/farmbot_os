@@ -118,6 +118,7 @@ defmodule FarmbotFirmware do
           | :emergency_lock
 
   defstruct [
+    :configured,
     :transport,
     :transport_pid,
     :transport_ref,
@@ -148,7 +149,8 @@ defmodule FarmbotFirmware do
           current: nil | GCODE.t(),
           vcr_fd: nil | File.io_device(),
           reset: module(),
-          reset_pid: nil | pid()
+          reset_pid: nil | pid(),
+          configured: boolean()
         }
 
   @doc """
@@ -259,6 +261,7 @@ defmodule FarmbotFirmware do
     transport_args = Keyword.put(args, :handle_gcode, fun)
 
     state = %State{
+      configured: false,
       transport_pid: nil,
       transport_ref: nil,
       transport: transport,
@@ -694,7 +697,10 @@ defmodule FarmbotFirmware do
   # report_parameters_complete => goto(:configuration, :idle)
   def handle_report({:report_parameters_complete, []}, %{status: status} = state)
       when status in [:begin, :configuration] do
-    {:noreply, goto(state, :idle)}
+    Logger.debug("Firmware configuration complete")
+    new_state = %{state | configured: true}
+    _ = side_effects(new_state, :handle_configuration_complete, [])
+    {:noreply, goto(new_state, :idle)}
   end
 
   def handle_report(_, %{status: :no_config} = state) do
