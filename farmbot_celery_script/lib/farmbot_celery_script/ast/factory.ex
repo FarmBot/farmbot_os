@@ -17,6 +17,11 @@ defmodule FarmbotCeleryScript.AST.Factory do
     %AST{ast | kind: :rpc_request, args: %{label: label}, body: []}
   end
 
+  def execute(%AST{} = ast, sequence_id) do
+    ast
+    |> add_body_node(new(:execute, %{sequence_id: sequence_id}))
+  end
+
   def read_pin(%AST{} = ast, pin_number, pin_mode) do
     ast
     |> add_body_node(new(:read_pin, %{pin_number: pin_number, pin_mode: pin_mode}))
