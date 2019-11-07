@@ -300,7 +300,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,
-      :update_channel
+      :update_channel,
+      :boot_sequence_id
     ]
     new_interesting_fbos_config = Map.take(new_fbos_config, interesting_params) |> MapSet.new()
     old_interesting_fbos_config = Map.take(old_fbos_config, interesting_params) |> MapSet.new()
@@ -347,6 +348,14 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
       {:sequence_init_log, bool} ->
         FarmbotCore.Logger.success 1, "Set sequence init log messages to #{bool}"
+
+      {:boot_sequence_id, id} ->
+        case Asset.get_sequence(id) do
+          %{name: name} ->
+            FarmbotCore.Logger.success 1, "Set bootup sequence to #{name}"
+          _ ->
+            FarmbotCore.Logger.success 1, "Set bootup sequence"
+        end
 
       {param, value} ->
         FarmbotCore.Logger.success 1, "Set #{param} to #{value}"
