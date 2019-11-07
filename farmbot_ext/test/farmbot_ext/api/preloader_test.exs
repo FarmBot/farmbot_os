@@ -4,7 +4,7 @@ defmodule FarmbotExt.API.PreloaderTest do
 
   alias FarmbotCore.{
     # Asset, 
-    # Asset.Query, 
+    Asset.Query,
     Asset.Sync
   }
 
@@ -16,6 +16,8 @@ defmodule FarmbotExt.API.PreloaderTest do
     expect(API, :get_changeset, fn Sync ->
       {:error, "some descriptive API error"}
     end)
+
+    expect(Query, :first_sync?, 1, fn -> false end)
 
     assert {:error, "some descriptive API error"} = Preloader.preload_all()
   end
