@@ -16,6 +16,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
     field(:controller_uuid, :string)
     field(:controller_commit, :string, default: Project.commit())
     field(:firmware_version, :string)
+    field(:firmware_configured, :boolean, default: false)
     field(:node_name, :string)
     field(:private_ip, :string)
     field(:soc_temp, :integer)
@@ -52,6 +53,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       commit: informational_settings.controller_commit,
       firmware_commit: informational_settings.firmware_commit,
       firmware_version: informational_settings.firmware_version,
+      firmware_configured: informational_settings.firmware_configured,
       node_name: informational_settings.node_name,
       private_ip: informational_settings.private_ip,
       soc_temp: informational_settings.soc_temp,
@@ -84,6 +86,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       :controller_commit,
       :firmware_commit,
       :firmware_version,
+      :firmware_configured,
       :node_name,
       :private_ip,
       :soc_temp,

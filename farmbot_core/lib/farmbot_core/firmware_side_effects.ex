@@ -3,7 +3,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @behaviour FarmbotFirmware.SideEffects
   require Logger
   require FarmbotCore.Logger
-  alias FarmbotCore.{Asset, BotState, FirmwareEstopTimer, Leds}
+  alias FarmbotCore.{Asset, BotState, DepTracker, FirmwareEstopTimer, Leds}
 
   @impl FarmbotFirmware.SideEffects
   def handle_position(x: x, y: y, z: z) do
@@ -102,6 +102,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_busy(busy) do
     :ok = BotState.set_firmware_busy(busy)
+    DepTracker.register_service(:firmware, :busy)
   end
 
   @impl FarmbotFirmware.SideEffects
@@ -109,6 +110,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(idle)
+    DepTracker.register_service(:firmware, :idle)
   end
 
   @impl FarmbotFirmware.SideEffects
@@ -116,6 +118,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     _ = FirmwareEstopTimer.start_timer()
     _ = Leds.yellow(:slow_blink)
     :ok = BotState.set_firmware_locked()
+    DepTracker.register_service(:firmware, :locked)
   end
 
   @impl FarmbotFirmware.SideEffects
@@ -151,6 +154,12 @@ defmodule FarmbotCore.FirmwareSideEffects do
   def handle_debug_message([message]) do
     should_log? = Asset.fbos_config().firmware_debug_log
     should_log? && FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
+  end
+
+  @impl FarmbotFirmware.SideEffects
+  def handle_configuration_complete() do
+    :ok = BotState.set_firmware_configured()
+    DepTracker.register_service(:firmware, :configured)
   end
 
   @impl FarmbotFirmware.SideEffects

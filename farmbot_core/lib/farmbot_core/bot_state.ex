@@ -67,6 +67,10 @@ defmodule FarmbotCore.BotState do
   def set_firmware_version(bot_state_server \\ __MODULE__, version) do
     GenServer.call(bot_state_server, {:set_firmware_version, version})
   end
+  
+  def set_firmware_configured(bot_state_server \\ __MODULE__, configured \\ true) do
+    GenServer.call(bot_state_server, {:set_firmware_configured, configured})
+  end
 
   @doc "Sets configuration.arduino_hardware"
   def set_firmware_hardware(bot_state_server \\ __MODULE__, hardware) do
@@ -290,6 +294,17 @@ defmodule FarmbotCore.BotState do
 
     {:reply, reply, state}
   end
+
+  def handle_call({:set_firmware_configured, configured}, _from, state) do
+    change = %{informational_settings: %{firmware_configured: configured}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+  
 
   def handle_call({:set_firmware_hardware, hardware}, _from, state) do
     change = %{configuration: %{firmware_hardware: hardware}}
