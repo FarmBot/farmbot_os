@@ -161,4 +161,7 @@ defmodule FarmbotFirmware.StubSideEffects do
 
   @impl SideEffects
   def handle_debug_message(_), do: :noop
+
+  @impl SideEffects
+  def handle_configuration_complete(), do: :noop
 end
