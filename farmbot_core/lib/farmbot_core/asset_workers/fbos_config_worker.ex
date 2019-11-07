@@ -286,6 +286,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       {:sequence_init_log, bool} ->
         FarmbotCore.Logger.success 1, "Set sequence init log messages to #{bool}"
 
+      {:boot_sequence_id, nil} ->
+        FarmbotCore.Logger.success 1, "Set bootup sequence to none"
+
       {:boot_sequence_id, id} ->
         case Asset.get_sequence(id) do
           %{name: name} ->
