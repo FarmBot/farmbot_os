@@ -36,6 +36,7 @@ defmodule AutoSyncChannelTest do
     test_pid = self()
 
     expect(Query, :auto_sync?, 2, fn -> false end)
+    expect(Query, :first_sync?, 2, fn -> false end)
 
     expect(API, :get_changeset, fn _module ->
       send(test_pid, :preload_all_called)
@@ -148,6 +149,8 @@ defmodule AutoSyncChannelTest do
       false
     end)
 
+    stub(Query, :first_sync?, fn -> false end)
+
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
     assert_receive :called_auto_sync?
   end
@@ -158,6 +161,7 @@ defmodule AutoSyncChannelTest do
     payload = '{"args":{"label":"foo"},"body":{}}'
     key = "bot.device_15.sync.Device.999"
     stub(Query, :auto_sync?, fn -> true end)
+    stub(Query, :first_sync?, fn -> false end)
 
     stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
@@ -175,6 +179,7 @@ defmodule AutoSyncChannelTest do
     key = "bot.device_15.sync.#{module_name}.999"
 
     stub(Query, :auto_sync?, fn -> true end)
+    stub(Query, :first_sync?, fn -> false end)
 
     stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
@@ -203,6 +208,8 @@ defmodule AutoSyncChannelTest do
       false
     end)
 
+    stub(Query, :first_sync?, fn -> false end)
+
     stub(Command, :update, fn kind, id, params ->
       send(test_pid, {:update_called, kind, id, params})
       :ok
@@ -225,6 +232,8 @@ defmodule AutoSyncChannelTest do
       false
     end)
 
+    stub(Query, :first_sync?, fn -> false end)
+
     stub(Command, :new_changeset, fn kind, id, params ->
       send(test_pid, {:new_changeset_called, kind, id, params})
       :ok
@@ -246,6 +255,7 @@ defmodule AutoSyncChannelTest do
     key = "bot.device_15.sync.#{module_name}.999"
 
     stub(Query, :auto_sync?, fn -> true end)
+    stub(Query, :first_sync?, fn -> false end)
 
     stub(Command, :update, fn x, y, z ->
       send(test_pid, {:update_called, x, y, z})
