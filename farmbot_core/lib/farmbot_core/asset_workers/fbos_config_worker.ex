@@ -14,7 +14,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold]
   @firmware_flash_timeout Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_timeout] || 5000
   @disable_firmware_io_logs_timeout Application.get_env(:farmbot_core, __MODULE__)[:disable_firmware_io_logs_timeout] || 300000
-  @retry_bootup_sequence_ms 2000
   @firmware_flash_attempt_threshold || Mix.raise """
   Firmware open attempt threshold not configured:
 
@@ -58,19 +57,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       firmware_idle: fw_idle,
       firmware_version: fw_version,
       firmware_configured: fw_configured,
-      boot_sequence_started: nil,
-      boot_sequence_completed: nil,
-      boot_sequence_ref: nil,
     }
     {:ok, state, 0}
   end
 
   @impl GenServer
   def handle_info({:step_complete, ref, :ok}, %{firmware_flash_ref: ref} = state) do
-    DepTracker.register_asset(state.fbos_config, :bootup_sequence)
+    DepTracker.register_asset(state.fbos_config, :idle)
     Config.update_config_value(:bool, "settings", "firmware_needs_flash", false)
     Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
-    send self(), :bootup_sequence
     {:noreply, %{state | firmware_flash_in_progress: false}}
   end
 
@@ -106,18 +101,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     """
     Process.send_after(self(), {:maybe_flash_firmware, fbos_config}, firmware_flash_timeout)
     {:noreply, new_state}
-  end
-
-  def handle_info({:step_complete, ref, :ok}, %{boot_sequence_ref: ref} = state) do
-    :ok = DepTracker.register_asset(state.fbos_config, :idle)
-    FarmbotCore.Logger.success 2, "Bootup sequence complete"
-    {:noreply, %{state | boot_sequence_completed: DateTime.utc_now()}}
-  end
-
-  def handle_info({:step_complete, ref, {:error, reason}}, %{boot_sequence_ref: ref} = state) do
-    :ok = DepTracker.register_asset(state.fbos_config, :idle)
-    FarmbotCore.Logger.error 2, "Bootup sequence failed: #{reason}"
-    {:noreply, %{state | boot_sequence_completed: DateTime.utc_now()}}
   end
 
   def handle_info(:timeout, %{fbos_config: %FbosConfig{} = fbos_config} = state) do
@@ -170,52 +153,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     _ = FarmbotCore.Asset.Private.mark_dirty!(new_fbos_config)
     FarmbotCore.Logger.info 2, "Automatically disabling firmware IO logs (5 minutes have elapsed)"
     {:noreply, %{state | fbos_config: new_fbos_config, firmware_io_timer: nil}}
-  end
-
-  def handle_info(:bootup_sequence, %{fbos_config: %{boot_sequence_id: nil}} = state) do
-    DepTracker.register_asset(state.fbos_config, :idle)
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{firmware_version: nil} = state) do
-    # Logger.debug("Not executing bootup sequence. Firmware not booted.")
-    Process.send_after(self(), :bootup_sequence, @retry_bootup_sequence_ms)
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{firmware_version: "none"} = state) do
-    # Logger.debug("Not executing bootup sequence. Firmware not booted.")
-    Process.send_after(self(), :bootup_sequence, @retry_bootup_sequence_ms)
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{firmware_configured: false} = state) do
-    # Logger.debug("Not executing bootup sequence. Firmware not configured.")
-    Process.send_after(self(), :bootup_sequence, @retry_bootup_sequence_ms)
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{firmware_idle: false} = state) do
-    # Logger.debug("Not executing bootup sequence. Firmware not idle.")
-    Process.send_after(self(), :bootup_sequence, @retry_bootup_sequence_ms)
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{boot_sequence_started: %DateTime{}} = state) do
-    {:noreply, state}
-  end
-
-  def handle_info(:bootup_sequence, %{fbos_config: %{boot_sequence_id: id}} = state) do
-    case Asset.get_sequence(id) do
-      nil ->
-        Process.send_after(self(), :bootup_sequence, 5000)
-        {:noreply, state}
-      _ ->
-        FarmbotCore.Logger.busy 3, "Executing bootup sequence"
-        ref = make_ref()
-        FarmbotCeleryScript.execute(execute_ast(id), ref)
-        {:noreply, %{state | boot_sequence_started: DateTime.utc_now(), boot_sequence_ref: ref}}
-    end
   end
 
   def handle_info({BotState, %{changes: %{informational_settings: %{changes: %{idle: idle}}}}}, state) do
@@ -280,8 +217,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
         ref
 
       true ->
+        DepTracker.register_asset(state.fbos_config, :idle)
         # Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
-        send self(), :bootup_sequence
         nil
     end
   end
@@ -388,11 +325,5 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     AST.Factory.new()
     |> AST.Factory.rpc_request("fbos_config.flash_firmware")
     |> AST.Factory.flash_firmware(firmware_hardware)
-  end
-
-  def execute_ast(sequence_id) do
-    AST.Factory.new()
-    |> AST.Factory.rpc_request("fbos_config.bootup_sequence")
-    |> AST.Factory.execute(sequence_id)
   end
 end

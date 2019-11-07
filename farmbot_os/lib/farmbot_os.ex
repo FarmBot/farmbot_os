@@ -10,7 +10,8 @@ defmodule FarmbotOS do
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
       {FarmbotOS.Platform.Supervisor, []},
-      {FarmbotOS.EasterEggs, []}
+      {FarmbotOS.EasterEggs, []},
+      {FarmbotOS.BootupSequenceWorker, []}
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]
