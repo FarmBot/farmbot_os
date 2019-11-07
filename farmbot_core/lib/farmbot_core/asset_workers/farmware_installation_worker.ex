@@ -2,7 +2,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   use GenServer
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{Asset.Repo, BotState, JSON}
+  alias FarmbotCore.{Asset.Repo, BotState, DepTracker, JSON}
   alias FarmbotCore.Asset.FarmwareInstallation, as: FWI
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
 
@@ -21,6 +21,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   def init(fwi) do
+    :ok = DepTracker.register_asset(fwi, :init)
     {:ok, %{fwi: fwi, backoff: 0}, 0}
   end
   
@@ -39,6 +40,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
          :ok <- install_zip(updated, zip_binary),
          :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
+      :ok = DepTracker.register_asset(fwi, :complete)
       FarmbotCore.Logger.success(1, "Installed Farmware: #{updated.manifest.package}")
       # TODO(Connor) -> No reason to keep this process alive?
       BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
@@ -80,6 +82,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
         {:noreply, %{state | fwi: updated}, 0}
 
       error ->
+        :ok = DepTracker.register_asset(fwi, :complete)
+        BotState.report_farmware_installed(fwi.manifest.package, Manifest.view(fwi.manifest))
         backoff = state.backoff + @back_off_time_ms
         timeout = @error_retry_time_ms + backoff
         error_log(fwi, "failed to check for updates. Trying again in #{timeout}ms #{inspect(error)}")
@@ -92,6 +96,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
       # Installed is newer than remote.
       :gt ->
         success_log(updated, "up to date.")
+        :ok = DepTracker.register_asset(updated, :complete)
         BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
 
         {:noreply, %{state | fwi: updated}}
@@ -99,6 +104,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
       # No difference between installed and remote.
       :eq ->
         success_log(updated, "up to date.")
+        :ok = DepTracker.register_asset(updated, :complete)
         BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
 
         {:noreply, %{state | fwi: updated}}
@@ -111,6 +117,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
              :ok <- install_zip(updated, zip_binary),
              :ok <- install_farmware_tools(updated),
              :ok <- write_manifest(updated) do
+          :ok = DepTracker.register_asset(updated, :complete)
           BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
           {:noreply, %{state | fwi: updated, backoff: 0}}
 
