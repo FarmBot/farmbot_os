@@ -16,6 +16,7 @@ defmodule FarmbotCore do
   def init([]) do
 
     children = [
+      FarmbotCore.DepTracker,
       FarmbotCore.Leds,
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
