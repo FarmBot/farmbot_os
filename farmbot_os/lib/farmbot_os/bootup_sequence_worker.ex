@@ -3,7 +3,12 @@ defmodule FarmbotOS.BootupSequenceWorker do
   require Logger
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState, DepTracker}
-  alias FarmbotCore.Asset.Peripheral
+
+  alias FarmbotCore.Asset.{
+    FarmwareInstalation,
+    Peripheral
+  }
+
   alias FarmbotCeleryScript.AST
 
   def start_link(args) do
@@ -125,13 +130,7 @@ defmodule FarmbotOS.BootupSequenceWorker do
         state
 
       %{boot_sequence_id: id} ->
-        peripherals_loaded? =
-          Enum.all?(DepTracker.get_asset(Peripheral), fn
-            {{Peripheral, _}, :complete} -> true
-            _ -> false
-          end)
-
-        peripherals_loaded? && send(self(), :start_sequence)
+        dependency_assets_loaded?() && send(self(), :start_sequence)
         %{state | sequence_id: id}
     end
   end
@@ -140,5 +139,29 @@ defmodule FarmbotOS.BootupSequenceWorker do
     AST.Factory.new()
     |> AST.Factory.rpc_request("fbos_config.bootup_sequence")
     |> AST.Factory.execute(sequence_id)
+  end
+
+  defp dependency_assets_loaded?() do
+    peripherals =
+      Enum.all?(DepTracker.get_asset(Peripheral), fn
+        {{Peripheral, _}, :complete} ->
+          true
+
+        {{kind, id}, status} ->
+          Logger.debug("bootup sequence still waiting on: #{kind}.#{id} status=#{status}")
+          false
+      end)
+
+    farmware =
+      Enum.all?(DepTracker.get_asset(FarmwareInstalation), fn
+        {{FarmwareInstalation, _}, :complete} ->
+          true
+
+        {{kind, id}, status} ->
+          Logger.debug("bootup sequence still waiting on: #{kind}.#{id} status=#{status}")
+          false
+      end)
+
+    peripherals && farmware
   end
 end
