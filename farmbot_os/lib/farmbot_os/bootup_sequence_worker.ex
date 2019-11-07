@@ -42,7 +42,12 @@ defmodule FarmbotOS.BootupSequenceWorker do
   def handle_info(:start_sequence, %{sequence_id: id} = state) do
     case Asset.get_sequence(id) do
       nil ->
-        {:stop, "could not find bootup sequence by id: #{inspect(id)}"}
+        FarmbotCore.Logger.error(1, """
+        Farmbot could not execute it's configured bootup sequence. Maybe
+        a sync is required?
+        """)
+
+        {:noreply, state}
 
       %{name: name} ->
         Logger.debug("bootup sequence start: #{inspect(state)}")
