@@ -6,6 +6,20 @@ defmodule FarmbotCore.AssetSupervisor do
   use Supervisor
   alias FarmbotCore.{Asset.Repo, AssetWorker}
 
+  def get_state(%{} = asset) do
+    case whereis_child(asset) do
+      {_id, pid, _, _} -> :sys.get_state(pid)
+      _ -> :error
+    end
+  end
+
+  def get_pid(%{} = asset) do
+    case whereis_child(asset) do
+      {_id, pid, _, _} -> pid
+      _ -> :error
+    end
+  end
+
   @doc "List all children for an asset"
   def list_children(kind) do
     name = Module.concat(__MODULE__, kind)
