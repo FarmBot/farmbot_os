@@ -39,5 +39,5 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_output_gcode(GCODE.t()) :: any()
   @callback handle_debug_message([String.t()]) :: any()
 
-  @callback handle_configuration_complete() :: any()
+  @callback handle_configuration_status(boolean()) :: any()
 end

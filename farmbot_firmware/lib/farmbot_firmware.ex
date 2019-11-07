@@ -289,6 +289,7 @@ defmodule FarmbotFirmware do
           "Firmware Transport #{state.transport} started. #{inspect(state.transport_args)}"
         )
 
+        _ = side_effects(state, :handle_configuration_status, [false])
         state = goto(%{state | transport_pid: pid, transport_ref: ref}, :boot)
         {:noreply, state}
 
@@ -318,7 +319,8 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
-    Logger.debug("Starting next configuration code: #{inspect(code)}")
+    # Logger.debug("Starting next configuration code: #{inspect(code)}")
+    _ = side_effects(state, :handle_configuration_status, [false])
 
     case GenServer.call(state.transport_pid, {state.tag, code}) do
       :ok ->
@@ -365,6 +367,7 @@ defmodule FarmbotFirmware do
   def handle_call(:close_transport, _from, %{status: s} = state) when s != :transport_boot do
     true = Process.demonitor(state.transport_ref)
     :ok = GenServer.stop(state.transport_pid, :normal)
+    _ = side_effects(state, :handle_configuration_status, [false])
 
     state =
       goto(
@@ -650,11 +653,12 @@ defmodule FarmbotFirmware do
       when status in [:begin, :configuration] do
     Logger.debug("Firmware configuration complete")
     new_state = %{state | configured: true}
-    _ = side_effects(new_state, :handle_configuration_complete, [])
+    _ = side_effects(new_state, :handle_configuration_status, [true])
     {:noreply, goto(new_state, :idle)}
   end
 
   def handle_report(_, %{status: :no_config} = state) do
+    _ = side_effects(state, :handle_configuration_status, [false])
     {:noreply, state}
   end
 

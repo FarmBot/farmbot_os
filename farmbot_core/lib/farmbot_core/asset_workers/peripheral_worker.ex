@@ -28,6 +28,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
 
   @impl true
   def init(peripheral) do
+    :ok = DepTracker.register_asset(peripheral, :init)
     %{
       informational_settings: %{
         idle: idle, 
@@ -95,6 +96,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     rpc = peripheral_to_rpc(peripheral)
     case FarmbotCeleryScript.execute(rpc, make_ref()) do
       :ok -> 
+        :ok = DepTracker.register_asset(peripheral, :complete)
         Logger.debug("Read peripheral: #{peripheral.label} ok")
         {:noreply, state}
       
