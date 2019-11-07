@@ -80,9 +80,13 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def handle_info(:preload, state) do
     _ = Leds.green(:really_fast_blink)
+    # this must be called __before__ preloading.
+    # if it's not, it will have been reset by the time the
+    # preload completes
+    first_sync? = Asset.Query.first_sync?()
 
     with :ok <- Preloader.preload_all() do
-      if Asset.Query.auto_sync?() do
+      if Asset.Query.auto_sync?() || first_sync? do
         _ = Leds.green(:solid)
         BotState.set_sync_status("synced")
       else
