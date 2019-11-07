@@ -157,8 +157,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_configuration_complete() do
-    :ok = BotState.set_firmware_configured()
+  def handle_configuration_status(status) do
+    :ok = BotState.set_firmware_configured(status)
     DepTracker.register_service(:firmware, :configured)
   end
 

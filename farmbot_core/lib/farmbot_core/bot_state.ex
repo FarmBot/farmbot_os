@@ -68,7 +68,7 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_firmware_version, version})
   end
   
-  def set_firmware_configured(bot_state_server \\ __MODULE__, configured \\ true) do
+  def set_firmware_configured(bot_state_server \\ __MODULE__, configured) do
     GenServer.call(bot_state_server, {:set_firmware_configured, configured})
   end
 
