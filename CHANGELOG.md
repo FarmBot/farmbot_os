@@ -1,5 +1,9 @@
 # Changelog
 
+# 8.3.0
+* Features
+    * Replace `home_on_boot` feature with a `sequence_on_boot`
+
 # 8.2.1
 * Features
     * Add timer to reset `firmware_input_log` and `firmware_output_log` after 5 minutes
