@@ -52,6 +52,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   @behaviour NervesHub.Client
 
   @exchange "amq.topic"
+  # one hour
+  @checkup_timeout_ms 3_600_000
 
   defstruct [
     :conn,
@@ -339,6 +341,29 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     end
   end
 
+  def handle_info(:checkup, %{is_applying_update: false, probably_connected: true} = state) do
+    if should_auto_apply_update?() && update_available?() do
+      FarmbotCore.Logger.busy(1, "Applying OTA update")
+      spawn_link(fn -> NervesHub.update() end)
+      {:noreply, %{state | is_applying_update: true}}
+    else
+      Process.send_after(self(), :checkup, @checkup_timeout_ms)
+      {:noreply, state}
+    end
+  end
+
+  def handle_info(:checkup, state) do
+    FarmbotCore.Logger.debug(3, """
+    unknown state for checkup
+    currently applying update?: #{state.is_applying_update}
+    currently connected?: #{state.probably_connected}
+    update available?: #{is_binary(state.firmware_url)}
+    """)
+
+    Process.send_after(self(), :checkup, @checkup_timeout_ms)
+    {:noreply, state}
+  end
+
   @impl GenServer
   def handle_cast({:handle_nerves_hub_error, error}, %{is_applying_update: true} = state) do
     FarmbotCore.Logger.error(1, "Error applying OTA: #{inspect(error)}")
@@ -374,7 +399,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   @impl GenServer
   def handle_call({:handle_nerves_hub_update_available, %{"firmware_url" => url}}, _from, state) do
-    case Asset.fbos_config(:os_auto_update) do
+    case should_auto_apply_update?() do
       true ->
         FarmbotCore.Logger.busy(1, "Applying OTA update")
         _ = set_update_available_in_bot_state()
@@ -386,6 +411,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         _ = set_update_available_in_bot_state()
         _ = update_device_last_ota_checkup()
         FarmbotCore.Logger.info(1, "New Farmbot OS is available!")
+        Process.send_after(self(), :checkup, @checkup_timeout_ms)
         {:reply, :ignore, %{state | firmware_url: url}}
     end
   end
@@ -412,6 +438,46 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
         spawn_link(fn -> NervesHub.update() end)
         {:reply, data, %{state | is_applying_update: true}}
+    end
+  end
+
+  def should_auto_apply_update?(now \\ nil) do
+    now = now || DateTime.utc_now()
+    auto_update = Asset.fbos_config(:os_auto_update)
+    ota_hour = Asset.device(:ota_hour)
+    timezone = Asset.device(:timezone)
+    # if ota_hour is nil, auto apply the update
+    if ota_hour && timezone do
+      # check that now.hour == device.ota_hour
+      case Timex.Timezone.convert(now, timezone) do
+        %{hour: ^ota_hour} ->
+          FarmbotCore.Logger.debug(3, "current hour: #{now.hour} == ota_hour #{ota_hour}")
+          true
+
+        _ ->
+          FarmbotCore.Logger.debug(3, "current hour: #{now.hour} != ota_hour: #{ota_hour}")
+          auto_update
+      end
+    else
+      # ota_hour or timezone are nil
+      FarmbotCore.Logger.debug(
+        3,
+        "ota_hour = #{ota_hour || "null"} timezone = #{timezone || "null"}"
+      )
+
+      true
+    end
+  end
+
+  def update_available?() do
+    _ = update_device_last_ota_checkup()
+
+    case NervesHub.HTTPClient.update() do
+      {:ok, %{"data" => %{"update_available" => false}}} ->
+        false
+
+      _data ->
+        true
     end
   end
 
