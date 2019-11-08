@@ -40,6 +40,10 @@ defmodule FarmbotCore.Asset do
     Repo.one(Device) || %Device{}
   end
 
+  def device(field) do
+    Map.fetch!(device(), field)
+  end
+
   def update_device!(params) do
     device()
     |> Device.changeset(params)
