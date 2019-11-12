@@ -80,7 +80,9 @@ defmodule FarmbotCore.FarmwareRuntime do
   @doc "Stop a farmware"
   def stop(pid) do
     Logger.info "Terminating farmware process"
-    GenServer.stop(pid, :normal)
+    if Process.alive?(pid) do
+      GenServer.stop(pid, :normal)
+    end
   end
 
   def init([manifest, env]) do

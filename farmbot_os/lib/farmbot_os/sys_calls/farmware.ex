@@ -27,48 +27,87 @@ defmodule FarmbotOS.SysCalls.Farmware do
     end
   end
 
+  # Entry point to starting a farmware
   def execute_script(farmware_name, env) do
-    with {:ok, manifest} <- lookup_manifest(farmware_name),
-         {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
-         monitor <- Process.monitor(runtime),
-         :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
-         :ok <- ImageUploader.force_checkup() do
-      :ok
-    else
-      {:error, {:already_started, pid}} ->
-        Logger.warn("Farmware #{farmware_name} is already running")
-        _ = FarmwareRuntime.stop(pid)
-        execute_script(farmware_name, env)
+    # NOTE Connor:
+    # this is a really big hammer to fix a bug i don't fully understand.
+    # for some reason even tho we call `if Process.alive?....` before every call, 
+    # there is still a possibility of the genserver being down for some reason.
+    # catching the genserver call failure "fixes" it.
+    try do
+      with {:ok, manifest} <- lookup_manifest(farmware_name),
+           {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
+           _ <- Process.flag(:trap_exit, true),
+           monitor <- Process.monitor(runtime),
+           :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
+           :ok <- ImageUploader.force_checkup(),
+           _ <- Process.flag(:trap_exit, false) do
+        :ok
+      else
+        {:error, {:already_started, pid}} ->
+          Logger.warn("Farmware #{farmware_name} is already running")
+          _ = FarmwareRuntime.stop(pid)
+          execute_script(farmware_name, env)
 
-      {:error, reason} when is_binary(reason) ->
-        _ = ImageUploader.force_checkup()
-        {:error, reason}
+        {:error, reason} when is_binary(reason) ->
+          _ = ImageUploader.force_checkup()
+          {:error, reason}
+      end
+    catch
+      {:exit, {:noproc, {GenServer, :call, _}}} ->
+        :ok
+
+      error, reason ->
+        {:error, inspect("farmware catchall #{inspect(error)}: #{inspect(reason)}")}
     end
   end
 
   defp loop(farmware_name, runtime, monitor, {ref, label}) do
     receive do
-      {:DOWN, ^monitor, :process, ^runtime, :normal} ->
+      {:EXIT, ^runtime, :normal} ->
+        Logger.debug("Farmware monitor down: :normal state: #{inspect(label)}")
         :ok
 
+      {:DOWN, ^monitor, :process, ^runtime, :normal} ->
+        Logger.debug("Farmware monitor down: :normal state: #{inspect(label)}")
+        :ok
+
+      {:EXIT, ^runtime, error} ->
+        Logger.debug("Farmware monitor down: #{inspect(error)} state: #{inspect(label)}")
+        {:error, inspect(error)}
+
       {:DOWN, ^monitor, :process, ^runtime, error} ->
+        Logger.debug("Farmware monitor down: #{inspect(error)} state: #{inspect(label)}")
         {:error, inspect(error)}
 
       {:step_complete, ^ref, :ok} ->
         Logger.debug("ok for #{label}")
         response = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
-        true = FarmwareRuntime.rpc_processed(runtime, response)
-        loop(farmware_name, runtime, monitor, {nil, nil})
+
+        if Process.alive?(runtime) do
+          true = FarmwareRuntime.rpc_processed(runtime, response)
+          loop(farmware_name, runtime, monitor, {nil, nil})
+        else
+          :ok
+        end
 
       {:step_complete, ^ref, {:error, reason}} ->
         Logger.debug("error for #{label}")
         explanation = %AST{kind: :explanation, args: %{message: reason}}
         response = %AST{kind: :rpc_error, args: %{label: label}, body: [explanation]}
-        true = FarmwareRuntime.rpc_processed(runtime, response)
-        loop(farmware_name, runtime, monitor, {nil, nil})
+
+        if Process.alive?(runtime) do
+          true = FarmwareRuntime.rpc_processed(runtime, response)
+          loop(farmware_name, runtime, monitor, {nil, nil})
+        else
+          :ok
+        end
 
       msg ->
-        _ = FarmwareRuntime.stop(runtime)
+        if Process.alive?(runtime) do
+          _ = FarmwareRuntime.stop(runtime)
+        end
+
         {:error, "unhandled message: #{inspect(msg)} in state: #{inspect({ref, label})}"}
     after
       500 ->
@@ -84,22 +123,29 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
           # No other conditions: Process stopped, but missed the message?
           true ->
-            _ = FarmwareRuntime.stop(runtime)
+            if Process.alive?(runtime) do
+              _ = FarmwareRuntime.stop(runtime)
+            end
+
             :ok
         end
     end
   end
 
   defp process(farmware_name, runtime, monitor, {ref, label}) do
-    case FarmwareRuntime.process_rpc(runtime) do
-      {:ok, %{args: %{label: label}} = rpc} ->
-        ref = make_ref()
-        Logger.debug("executing rpc: #{inspect(rpc)}")
-        FarmbotCeleryScript.execute(rpc, ref)
-        loop(farmware_name, runtime, monitor, {ref, label})
+    if Process.alive?(runtime) do
+      case FarmwareRuntime.process_rpc(runtime) do
+        {:ok, %{args: %{label: label}} = rpc} ->
+          ref = make_ref()
+          Logger.debug("executing rpc: #{inspect(rpc)}")
+          FarmbotCeleryScript.execute(rpc, ref)
+          loop(farmware_name, runtime, monitor, {ref, label})
 
-      {:error, :no_rpc} ->
-        loop(farmware_name, runtime, monitor, {ref, label})
+        {:error, :no_rpc} ->
+          loop(farmware_name, runtime, monitor, {ref, label})
+      end
+    else
+      :ok
     end
   end
 end
