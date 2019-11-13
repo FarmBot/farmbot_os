@@ -451,12 +451,24 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       # check that now.hour == device.ota_hour
       case Timex.Timezone.convert(now, timezone) do
         %{hour: ^ota_hour} ->
-          FarmbotCore.Logger.debug(3, "current hour: #{now.hour} == ota_hour #{ota_hour}")
-          true
+          FarmbotCore.Logger.debug(
+            3,
+            "current hour: #{ota_hour} (utc=#{now.hour}) == ota_hour #{ota_hour}. auto_update=#{
+              auto_update
+            }"
+          )
 
-        _ ->
-          FarmbotCore.Logger.debug(3, "current hour: #{now.hour} != ota_hour: #{ota_hour}")
           auto_update
+
+        %{hour: now_hour} ->
+          FarmbotCore.Logger.debug(
+            3,
+            "current hour: #{now_hour} (utc=#{now.hour}) != ota_hour: #{ota_hour}. auto_update=#{
+              auto_update
+            }"
+          )
+
+          false
       end
     else
       # ota_hour or timezone are nil
