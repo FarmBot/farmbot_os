@@ -1,6 +1,10 @@
 defmodule FarmbotCeleryScript.Compiler.Farmware do
   alias FarmbotCeleryScript.Compiler
 
+  def take_photo(%{body: params}, env) do
+    execute_script(%{args: %{label: "take-photo"}, body: params}, env)
+  end
+
   def execute_script(%{args: %{label: package}, body: params}, _env) do
     env =
       Enum.map(params, fn %{args: %{label: key, value: value}} ->
@@ -32,13 +36,6 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
 
     quote location: :keep do
       (unquote_splicing(kvs))
-    end
-  end
-
-  def take_photo(_, _env) do
-    # {:execute_script, [], ["take_photo", {:%{}, [], []}]}
-    quote location: :keep do
-      FarmbotCeleryScript.SysCalls.execute_script("take-photo", %{})
     end
   end
 
