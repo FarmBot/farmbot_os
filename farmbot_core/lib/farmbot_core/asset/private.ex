@@ -4,6 +4,8 @@ defmodule FarmbotCore.Asset.Private do
   Farmbot that _are not_ stored in the API, but
   _are_ stored in Farmbot's database.
   """
+  require Logger
+  require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Repo,
     Asset.Private.LocalMeta,
@@ -33,9 +35,54 @@ defmodule FarmbotCore.Asset.Private do
         from(lm in LocalMeta, where: lm.asset_local_id == ^asset.local_id and lm.table == ^table)
       ) || Ecto.build_assoc(asset, :local_meta)
 
-    local_meta
-    |> LocalMeta.changeset(Map.merge(params, %{table: table, status: "dirty"}))
-    |> Repo.insert_or_update!()
+    ## NOTE(Connor): 19/11/13
+    # the try/catch here seems unneeded here, but because of how sqlite/ecto works, it is 100% needed.
+    # Because sqlite can't test unique constraints before a transaction, if this function gets called for
+    # the same asset more than once asyncronously, the asset can be marked dirty twice at the same time
+    # causing the `unique constraint` error to happen in either `ecto` OR `sqlite`. I've
+    # caught both errors here as they are both essentially the same thing, and can be safely 
+    # discarded. Doing an `insert_or_update/1` (without the bang) can still result in the sqlite
+    # error being thrown.  
+    changeset = LocalMeta.changeset(local_meta, Map.merge(params, %{table: table, status: "dirty"}))
+    try do
+      Repo.insert_or_update!(changeset)
+    catch
+      :error,  %Sqlite.DbConnection.Error{
+        message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id", 
+        sqlite: %{code: :constraint}
+      } -> 
+        Logger.warn """
+        Caught race condition marking data as dirty (sqlite)
+        table: #{inspect(table)}
+        id: #{inspect(asset.local_id)}
+        """
+        Ecto.Changeset.apply_changes(changeset)
+      :error, %Ecto.InvalidChangesetError{
+        changeset: %{
+          action: :insert, 
+          errors: [
+            table: {"LocalMeta already exists.", [
+              validation: :unsafe_unique, 
+              fields: [:table, :asset_local_id]
+            ]}
+          ]}
+        } ->
+        Logger.warn """
+        Caught race condition marking data as dirty (ecto)
+        table: #{inspect(table)}
+        id: #{inspect(asset.local_id)}
+        """
+        Ecto.Changeset.apply_changes(changeset)
+      type, reason -> 
+        FarmbotCore.Logger.error 1, """
+        Caught unexpected error marking data as dirty
+        table: #{inspect(table)}
+        id: #{inspect(asset.local_id)}
+        error type: #{inspect(type)}
+        reason: #{inspect(reason)}
+        """
+        Ecto.Changeset.apply_changes(changeset)
+    end
   end
 
   @doc "Remove the `local_meta` record from an object."
