@@ -53,7 +53,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   @exchange "amq.topic"
   # one hour
-  @checkup_timeout_ms 3_600_000
+  @checkup_timeout_ms 600000
 
   defstruct [
     :conn,
