@@ -17,6 +17,7 @@
   "mark_as_step": "8.0.3",
   "named_pins": "6.3.0",
   "none_firmware": "8.0.0",
+  "ota_update_hour": "8.2.3",
   "rpi_led_control": "6.4.4",
   "sensors": "6.3.0",
   "use_update_channel": "6.4.12",
