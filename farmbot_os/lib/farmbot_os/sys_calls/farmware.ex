@@ -57,6 +57,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
       {:exit, {:noproc, {GenServer, :call, _}}} ->
         :ok
 
+      {:exit, {:normal, {GenServer, :call, _}}} ->
+        :ok
+
       error, reason ->
         {:error, inspect("farmware catchall #{inspect(error)}: #{inspect(reason)}")}
     end
