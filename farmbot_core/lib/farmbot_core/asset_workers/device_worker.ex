@@ -35,7 +35,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       {:ota_hour, nil} ->
         FarmbotCore.Logger.success 1, "Farmbot will apply updates as soon as possible"
       {:ota_hour, hour} ->
-        FarmbotCore.Logger.success 1, "Farmbot will apply updates at #{hour}:00"
+        FarmbotCore.Logger.success 1, "Farmbot will apply updates during the hour of #{hour}:00"
 
       {_key, _value} ->
         :noop
