@@ -67,7 +67,7 @@ defmodule FarmbotOS.MixProject do
   def application do
     [
       mod: {FarmbotOS, []},
-      extra_applications: [:logger, :runtime_tools, :eex]
+      extra_applications: [:logger, :runtime_tools, :eex, :inets]
     ]
   end
 

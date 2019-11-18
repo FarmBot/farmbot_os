@@ -16,6 +16,9 @@ defmodule FarmbotOS.BootupSequenceWorker do
   end
 
   def init(_args) do
+    # all_required_farmwares = 
+    #   FarmbotCore.Asset.Repo.all(FarmbotCore.Asset.FirstPartyFarmware) ++ 
+    #   FarmbotCore.Asset.Repo.all(FarmbotCore.Asset.FarmwareInstallation)
     %{
       informational_settings: %{
         sync_status: sync_status,
@@ -30,6 +33,7 @@ defmodule FarmbotOS.BootupSequenceWorker do
       firmware_idle: fw_idle,
       firmware_version: fw_version,
       firmware_configured: fw_configured,
+      farmwares_loaded: false,
       sequence_id: nil,
       sequence_started_at: nil,
       sequence_completed_at: nil,
@@ -41,10 +45,13 @@ defmodule FarmbotOS.BootupSequenceWorker do
   end
 
   def handle_info(:checkup, state) do
+    Logger.debug("| bootup sequence | checkup ok")
     {:noreply, maybe_start_sequence(state)}
   end
 
   def handle_info(:start_sequence, %{sequence_id: id} = state) do
+    Logger.debug("| bootup sequence | start_sequence begin")
+
     case Asset.get_sequence(id) do
       nil ->
         FarmbotCore.Logger.error(1, """
@@ -55,10 +62,12 @@ defmodule FarmbotOS.BootupSequenceWorker do
         {:noreply, state}
 
       %{name: name} ->
-        Logger.debug("bootup sequence start: #{inspect(state)}")
+        Logger.debug("| bootup sequence | start_sequence ok #{inspect(state)}")
         FarmbotCore.Logger.busy(2, "Starting bootup sequence: #{name}")
         ref = make_ref()
-        FarmbotCeleryScript.execute(execute_ast(id), ref)
+        ast = execute_ast(id)
+        worker_pid = self()
+        _pid = spawn(FarmbotCeleryScript.StepRunner, :step, [worker_pid, ref, ast])
         {:noreply, %{state | sequence_started_at: DateTime.utc_now(), sequence_ref: ref}}
     end
   end
@@ -77,6 +86,7 @@ defmodule FarmbotOS.BootupSequenceWorker do
         {BotState, %{changes: %{informational_settings: %{changes: %{idle: idle}}}}},
         state
       ) do
+    Logger.debug("| bootup sequence | idle ok")
     state = maybe_start_sequence(%{state | firmware_idle: idle})
     {:noreply, state}
   end
@@ -97,8 +107,10 @@ defmodule FarmbotOS.BootupSequenceWorker do
       ) do
     # this should really be fixed upstream not to dispatch if version is none.
     if state.firmware_version == "none" do
+      Logger.debug("| bootup sequence | firmware_configured err")
       {:noreply, state}
     else
+      Logger.debug("| bootup sequence | firmware_configured ok")
       state = maybe_start_sequence(%{state | firmware_configured: fw_configured})
       {:noreply, state}
     end
@@ -108,12 +120,14 @@ defmodule FarmbotOS.BootupSequenceWorker do
         {BotState, %{changes: %{informational_settings: %{changes: %{sync_status: "synced"}}}}},
         state
       ) do
+    Logger.debug("| bootup sequence | synced ok")
     state = maybe_start_sequence(%{state | synced: true})
     {:noreply, state}
   end
 
-  def handle_info({BotState, _}, state) do
-    state = maybe_start_sequence(%{state | synced: true})
+  # def handle_info({BotState, _}, state) do
+  def handle_info(_, state) do
+    state = maybe_start_sequence(state)
     {:noreply, state}
   end
 
@@ -124,13 +138,32 @@ defmodule FarmbotOS.BootupSequenceWorker do
   defp maybe_start_sequence(%{sequence_started_at: %DateTime{}} = state), do: state
   defp maybe_start_sequence(%{sequence_completed_at: %DateTime{}} = state), do: state
 
+  defp maybe_start_sequence(%{farmwares_loaded: false} = state) do
+    farmwares = FarmbotCore.DepTracker.get_asset(FarmbotCore.Asset.FarmwareInstallation)
+
+    loaded =
+      Enum.all?(farmwares, fn
+        {{FarmbotCore.Asset.FarmwareInstallation, _id}, :complete} -> true
+        _ -> false
+      end)
+
+    loaded && Logger.debug("| bootup sequence | farmware_loaded ok")
+
+    if loaded,
+      do: maybe_start_sequence(%{state | farmwares_loaded: true}),
+      else: state
+  end
+
   defp maybe_start_sequence(state) do
     case Asset.fbos_config() do
       %{boot_sequence_id: nil} ->
+        Logger.debug("| bootup sequnce | assets_loaded noop")
         state
 
       %{boot_sequence_id: id} ->
-        dependency_assets_loaded?() && send(self(), :start_sequence)
+        loaded? = dependency_assets_loaded?()
+        Logger.debug("| bootup sequnce | assets_loaded ok")
+        loaded? && send(self(), :start_sequence)
         %{state | sequence_id: id}
     end
   end

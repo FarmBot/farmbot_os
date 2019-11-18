@@ -92,6 +92,10 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
 
 config :farmbot_telemetry, file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))
 
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation,
+  error_retry_time_ms: 30_000,
+  install_dir: Path.join(data_path, "farmware")
+
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.NervesHubClient,

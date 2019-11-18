@@ -22,7 +22,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
 
   def init(fwi) do
     :ok = DepTracker.register_asset(fwi, :init)
-    {:ok, %{fwi: fwi, backoff: 0}, 0}
+    send self(), :timeout
+    {:ok, %{fwi: fwi, backoff: 0}}
   end
   
   def handle_cast(:update, state) do
@@ -49,8 +50,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
       error ->
         backoff = state.backoff + @back_off_time_ms
         timeout = @error_retry_time_ms + backoff
+        Process.send_after(self(), :timeout, timeout)
         error_log(fwi, "Failed to download Farmware manifest. Trying again in #{timeout}ms #{inspect(error)}")
-        {:noreply, %{state | backoff: backoff}, timeout}
+        {:noreply, %{state | backoff: backoff}}
     end
   end
 
@@ -78,16 +80,17 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
         updated =
           FWI.changeset(fwi, %{manifest: nil, updated_at: fwi.updated_at})
           |> Repo.update!()
-
-        {:noreply, %{state | fwi: updated}, 0}
+        send self(), :timeout
+        {:noreply, %{state | fwi: updated}}
 
       error ->
         :ok = DepTracker.register_asset(fwi, :complete)
         BotState.report_farmware_installed(fwi.manifest.package, Manifest.view(fwi.manifest))
         backoff = state.backoff + @back_off_time_ms
         timeout = @error_retry_time_ms + backoff
+        Process.send_after(self(), :timeout, timeout)
         error_log(fwi, "failed to check for updates. Trying again in #{timeout}ms #{inspect(error)}")
-        {:noreply, %{state | backoff: backoff}, timeout}
+        {:noreply, %{state | backoff: backoff}}
     end
   end
 
@@ -125,8 +128,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
           er ->
             backoff = state.backoff + @back_off_time_ms
             timeout = @error_retry_time_ms + backoff
+            Process.send_after(self(), :timeout, timeout)
             error_log(updated, "update failed. Trying again in #{timeout}ms #{inspect(er)}")
-            {:noreply, %{state | fwi: updated, backoff: backoff}, timeout}
+            {:noreply, %{state | fwi: updated, backoff: backoff}}
         end
     end
   end
@@ -253,7 +257,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   defp httpc_options, do: [body_format: :binary]
-  defp httpc_headers, do: [{'user-agent', 'farmbot-os'}]
+
+  case System.get_env("GITHUB_TOKEN") do
+    nil ->
+      defp httpc_headers, do: [{'user-agent', 'farmbot-farmware-installer'}]
+
+    token when is_binary(token) ->
+      @token token
+      require Logger; Logger.info "using github token: #{@token}"
+      defp httpc_headers, do: [{'user-agent', 'farmbot-farmware-installer'}, {'Authorization', 'token #{@token}'}]
+  end
 
   def install_dir(%FWI{} = fwi) do
     install_dir(fwi.manifest)
