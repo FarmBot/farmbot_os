@@ -20,6 +20,7 @@ defmodule FarmbotCore.Asset.Device do
     field(:last_ota, :utc_datetime)
     field(:last_ota_checkup, :utc_datetime)
     field(:ota_hour, :integer)
+    field(:mounted_tool_id, :integer)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -31,7 +32,8 @@ defmodule FarmbotCore.Asset.Device do
       timezone: device.timezone,
       last_ota: device.last_ota,
       last_ota_checkup: device.last_ota_checkup,
-      ota_hour: device.ota_hour
+      ota_hour: device.ota_hour,
+      mounted_tool_id: device.mounted_tool_id
     }
   end
 
@@ -43,6 +45,7 @@ defmodule FarmbotCore.Asset.Device do
       :last_ota, 
       :last_ota_checkup, 
       :ota_hour,
+      :mounted_tool_id,
       :monitor, 
       :created_at, 
       :updated_at
