@@ -149,7 +149,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   @impl FarmbotFirmware.SideEffects
   def handle_debug_message([message]) do
-    should_log? = Asset.fbos_config().firmware_debug_log
+    fbos_config = Asset.fbos_config()
+    should_log? = fbos_config.firmware_debug_log || fbos_config.arduino_debug_messages 
     should_log? && FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
   end
 

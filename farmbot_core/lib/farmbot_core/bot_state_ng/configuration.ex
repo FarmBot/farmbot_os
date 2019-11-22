@@ -14,6 +14,7 @@ defmodule FarmbotCore.BotStateNG.Configuration do
     field(:firmware_hardware, :string)
     field(:firmware_input_log, :boolean)
     field(:firmware_output_log, :boolean)
+    field(:firmware_debug_log, :boolean)
     field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
     field(:sequence_body_log, :boolean)
@@ -36,6 +37,7 @@ defmodule FarmbotCore.BotStateNG.Configuration do
       firmware_hardware: configuration.firmware_hardware,
       firmware_input_log: configuration.firmware_input_log,
       firmware_output_log: configuration.firmware_output_log,
+      firmware_debug_log: configuration.firmware_debug_log,
       network_not_found_timer: configuration.network_not_found_timer,
       os_auto_update: configuration.os_auto_update,
       sequence_body_log: configuration.sequence_body_log,
@@ -54,6 +56,7 @@ defmodule FarmbotCore.BotStateNG.Configuration do
       :firmware_hardware,
       :firmware_input_log,
       :firmware_output_log,
+      :firmware_debug_log,
       :network_not_found_timer,
       :os_auto_update,
       :sequence_body_log,
