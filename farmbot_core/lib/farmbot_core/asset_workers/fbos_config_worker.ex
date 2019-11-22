@@ -184,6 +184,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       :arduino_debug_messages,
       :firmware_input_log,
       :firmware_output_log,
+      :firmware_debug_log,
       :auto_sync,
       :beta_opt_in,
       :disable_factory_reset,
@@ -206,6 +207,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
       {:firmware_output_log, bool} ->
         FarmbotCore.Logger.success 1, "Set arduino output logs to #{bool}"
+
+      {:firmware_debug_log, bool} ->
+        FarmbotCore.Logger.success 1, "Set arduino debug messages to #{bool}"
 
       {:auto_sync, bool} ->
         FarmbotCore.Logger.success 1, "Set auto sync to #{bool}"
@@ -248,6 +252,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     :ok = BotState.set_config_value(:arduino_debug_messages, fbos_config.arduino_debug_messages)
     :ok = BotState.set_config_value(:firmware_input_log, fbos_config.firmware_input_log)
     :ok = BotState.set_config_value(:firmware_output_log, fbos_config.firmware_output_log)
+    :ok = BotState.set_config_value(:firmware_debug_log, fbos_config.firmware_debug_log)
+
     # firmware_hardware is set by FarmbotFirmware.SideEffects
 
     :ok = BotState.set_config_value(:auto_sync, fbos_config.auto_sync)
