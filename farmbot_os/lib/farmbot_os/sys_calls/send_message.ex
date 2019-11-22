@@ -23,7 +23,9 @@ defmodule FarmbotOS.SysCalls.SendMessage do
   def render(templ) do
     with {:ok, pos} <- pos(),
          {:ok, pins} <- pins(),
-         env <- Keyword.merge(pos, pins) do
+         {:ok, special} <- special(),
+         env <- Keyword.merge(pos, pins),
+         env <- Keyword.merge(env, special) do
       env = Map.new(env, fn {k, v} -> {to_string(k), to_string(v)} end)
 
       # Mini Mustache parser
@@ -61,5 +63,13 @@ defmodule FarmbotOS.SysCalls.SendMessage do
      |> Enum.map(fn {p, %{value: v}} ->
        {:"pin#{p}", FarmbotCeleryScript.FormatUtil.format_float(v)}
      end)}
+  end
+
+  def special() do
+    {:ok,
+     [
+       {:NULL, nil},
+       {:CURRENT_TIME, DateTime.utc_now()}
+     ]}
   end
 end
