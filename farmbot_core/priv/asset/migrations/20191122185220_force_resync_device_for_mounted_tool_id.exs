@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.Repo.Migrations.ForceResyncDevice do
+defmodule FarmbotCore.Asset.Repo.Migrations.ForceResyncDeviceForMountedToolId do
   use Ecto.Migration
   alias FarmbotCore.Asset.{Repo, Device}
 
