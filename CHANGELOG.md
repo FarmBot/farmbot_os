@@ -1,5 +1,10 @@
 # Changelog
 
+# 8.2.4
+* Bug fixes
+    * fix Farmware causing sequences to exit
+    * fix `arduino_debug_messages` fbos_config field being ignored
+
 # 8.2.3
 * Features
     * Farmbot will now check for an hour in which to apply over the air updates
