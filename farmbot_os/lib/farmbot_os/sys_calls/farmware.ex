@@ -78,6 +78,10 @@ defmodule FarmbotOS.SysCalls.Farmware do
         Logger.debug("Farmware monitor down: :normal state: #{inspect(label)}")
         :ok
 
+      {:DOWN, monitorx, :process, runtimex, :normal} ->
+        Logger.debug("Farmware monitor and runtime changed: monitorx #{inspect monitorx} runtimex #{inspect runtimex}")
+        :ok
+
       {:EXIT, ^runtime, error} ->
         Logger.debug("Farmware monitor down: #{inspect(error)} state: #{inspect(label)}")
         {:error, inspect(error)}
@@ -129,6 +133,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
           # No other conditions: Process stopped, but missed the message?
           true ->
+            Logger.debug("catch22 #{inspect Process.info(runtime), [depth: 6, pretty: true]}")
             if Process.alive?(runtime) do
               _ = FarmwareRuntime.stop(runtime)
             end
