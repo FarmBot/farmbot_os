@@ -48,7 +48,7 @@ defmodule FarmbotExt.API.ImageUploader do
   # TODO(Connor) the meta here is likely inaccurate.
   defp try_upload(image_filename) do
     %{x: x, y: y, z: z} = BotState.fetch().location_data.position
-    meta = %{x: x, y: y, z: z}
+    meta = %{x: x, y: y, z: z, name: Path.rootname(image_filename)}
 
     with {:ok, %{status: s, body: _body}} when s > 199 and s < 300 <-
            API.upload_image(image_filename, meta) do
