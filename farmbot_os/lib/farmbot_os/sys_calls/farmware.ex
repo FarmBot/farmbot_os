@@ -39,6 +39,8 @@ defmodule FarmbotOS.SysCalls.Farmware do
            {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
            monitor <- Process.monitor(runtime),
            :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
+           _ <- Process.demonitor(monitor),
+           _ <- empty_mailbox(),
            :ok <- ImageUploader.force_checkup() do
         :ok
       else
@@ -55,6 +57,16 @@ defmodule FarmbotOS.SysCalls.Farmware do
       error, reason ->
         Logger.debug("farmware catchall #{inspect(error)}: #{inspect(reason)}")
         :ok
+    end
+  end
+
+  defp empty_mailbox() do
+    receive do
+      msg ->
+        Logger.debug("dropping message after farmware: #{inspect(msg)}")
+        empty_mailbox()
+    after
+      100 -> :ok
     end
   end
 
