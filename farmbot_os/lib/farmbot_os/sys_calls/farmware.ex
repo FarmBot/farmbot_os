@@ -53,7 +53,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
       end
     catch
       error, reason ->
-        Logger.debug(3, "farmware catchall #{inspect(error)}: #{inspect(reason)}")
+        Logger.debug("farmware catchall #{inspect(error)}: #{inspect(reason)}")
         :ok
     end
   end
