@@ -8,7 +8,8 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R00", []), do: {:report_idle, []}
   def do_decode("R01", []), do: {:report_begin, []}
   def do_decode("R02", []), do: {:report_success, []}
-  def do_decode("R03", []), do: {:report_error, []}
+  def do_decode("R03", []), do: {:report_error, [:no_error]}
+  def do_decode("R03", error), do: {:report_error, decode_error(error)}
   def do_decode("R04", []), do: {:report_busy, []}
 
   def do_decode("R05", xyz), do: {:report_axis_state, decode_axis_state(xyz)}
@@ -81,6 +82,14 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode(kind, args) do
     {:unknown, [kind | args]}
   end
+
+  def decode_error(["V0"]), do: [:no_error]
+  def decode_error(["V1"]), do: [:emergency_lock]
+  def decode_error(["V2"]), do: [:timeout]
+  def decode_error(["V3"]), do: [:stall_detected]
+  def decode_error(["V14"]), do: [:invalid_command]
+  def decode_error(["V15"]), do: [:no_config]
+  def decode_error([unk]), do: [unknown_error: unk]
 
   defp decode_floats(list, acc \\ [])
 

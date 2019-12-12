@@ -62,6 +62,9 @@ defmodule FarmbotFirmware.Param do
   def decode(85), do: :movement_stall_sensitivity_x
   def decode(86), do: :movement_stall_sensitivity_y
   def decode(87), do: :movement_stall_sensitivity_z
+  def decode(91), do: :movement_microsteps_x
+  def decode(92), do: :movement_microsteps_y
+  def decode(93), do: :movement_microsteps_z
   def decode(101), do: :encoder_enabled_x
   def decode(102), do: :encoder_enabled_y
   def decode(103), do: :encoder_enabled_z
@@ -168,6 +171,9 @@ defmodule FarmbotFirmware.Param do
   def encode(:movement_stall_sensitivity_x), do: 85
   def encode(:movement_stall_sensitivity_y), do: 86
   def encode(:movement_stall_sensitivity_z), do: 87
+  def encode(:movement_microsteps_x), do: 91
+  def encode(:movement_microsteps_y), do: 92
+  def encode(:movement_microsteps_z), do: 93
   def encode(:encoder_enabled_x), do: 101
   def encode(:encoder_enabled_y), do: 102
   def encode(:encoder_enabled_z), do: 103
