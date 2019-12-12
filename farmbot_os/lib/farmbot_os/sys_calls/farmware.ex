@@ -37,11 +37,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
     try do
       with {:ok, manifest} <- lookup_manifest(farmware_name),
            {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
-           _ <- Process.flag(:trap_exit, true),
            monitor <- Process.monitor(runtime),
            :ok <- loop(farmware_name, runtime, monitor, {nil, nil}),
-           :ok <- ImageUploader.force_checkup(),
-           _ <- Process.flag(:trap_exit, false) do
+           :ok <- ImageUploader.force_checkup() do
         :ok
       else
         {:error, {:already_started, pid}} ->
@@ -54,17 +52,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
           {:error, reason}
       end
     catch
-      {:exit, {:noproc, {GenServer, :call, _}}} ->
-        :ok
-
-      {:exit, {:normal, {GenServer, :call, _}}} ->
-        :ok
-
-      {:normal, {GenServer, :call, _}} ->
-        :ok
-
       error, reason ->
-        {:error, inspect("farmware catchall #{inspect(error)}: #{inspect(reason)}")}
+        Logger.debug(3, "farmware catchall #{inspect(error)}: #{inspect(reason)}")
+        :ok
     end
   end
 
