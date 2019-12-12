@@ -39,8 +39,14 @@ defmodule FarmbotFirmware.GCODETest do
     end
 
     test "error" do
-      assert {nil, {:report_error, []}} = GCODE.decode("R03")
-      assert {"100", {:report_error, []}} = GCODE.decode("R03 Q100")
+      assert {nil, {:report_error, [:no_error]}} = GCODE.decode("R03")
+      assert {nil, {:report_error, [:no_error]}} = GCODE.decode("R03 V0")
+      assert {nil, {:report_error, [:emergency_lock]}} = GCODE.decode("R03 V1")
+      assert {nil, {:report_error, [:timeout]}} = GCODE.decode("R03 V2")
+      assert {nil, {:report_error, [:stall_detected]}} = GCODE.decode("R03 V3")
+      assert {nil, {:report_error, [:invalid_command]}} = GCODE.decode("R03 V14")
+      assert {nil, {:report_error, [:no_config]}} = GCODE.decode("R03 V15")
+      assert {"100", {:report_error, [:no_error]}} = GCODE.decode("R03 Q100")
 
       assert "R03" = GCODE.encode({nil, {:report_error, []}})
       assert "R03 Q100" = GCODE.encode({"100", {:report_error, []}})
