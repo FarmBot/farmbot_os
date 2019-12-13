@@ -32,10 +32,12 @@ defmodule FarmbotCore.FarmwareRuntime do
   alias __MODULE__, as: State
 
   defstruct [
+    :caller,
     :cmd,
     :mon,
     :context,
     :rpc,
+    :scheduler_ref,
     :request_pipe,
     :request_pipe_handle,
     :response_pipe,
@@ -45,36 +47,22 @@ defmodule FarmbotCore.FarmwareRuntime do
   @opaque pipe_handle :: pid()
 
   @type t :: %State{
+          caller: pid(),
           request_pipe: Path.t(),
           request_pipe_handle: pipe_handle,
           response_pipe: Path.t(),
           response_pipe_handle: pipe_handle,
+          scheduler_ref: reference() | nil,
           cmd: pid(),
           mon: pid() | nil,
           rpc: map(),
-          context: :get_header | :get_payload | :process_payload | :send_response
+          context: :get_header | :get_payload | :process_payload | :send_response | :error
         }
-
-  @doc """
-  Calls the Farmware Runtime asking for any RPCs that need to be
-  processed. If an RPC was ready, the Farmware will not process
-  any more RPCs until the current one is done.
-  """
-  def process_rpc(pid) do
-    GenServer.call(pid, :process_rpc)
-  end
-
-  @doc """
-  Calls the Farmware Runtime telling it that an RPC has been processed.
-  """
-  def rpc_processed(pid, response) do
-    GenServer.call(pid, {:rpc_processed, response})
-  end
 
   @doc "Start a Farmware"
   def start_link(%Manifest{} = manifest, env \\ %{}) do
     package = manifest.package
-    GenServer.start_link(__MODULE__, [manifest, env], name: String.to_atom(package))
+    GenServer.start_link(__MODULE__, [manifest, env, self()], name: String.to_atom(package))
   end
 
   @doc "Stop a farmware"
@@ -85,7 +73,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  def init([manifest, env]) do
+  def init([manifest, env, caller]) do
     package = manifest.package
     <<clause1 :: binary-size(8), _::binary>> = Ecto.UUID.generate()
 
@@ -125,10 +113,12 @@ defmodule FarmbotCore.FarmwareRuntime do
     {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
+      caller: caller,
       cmd: cmd,
       mon: nil,
       context: :get_header,
       rpc: nil,
+      scheduler_ref: nil,
       request_pipe: request_pipe,
       request_pipe_handle: req,
       response_pipe: response_pipe,
@@ -151,29 +141,26 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  # If we are in the `process_request` state, send the RPC out to be buffered.
-  # This moves us to the `send_response` state. (which has _no_ timeout)
-  def handle_call(:process_rpc, {pid, _} = _from, %{context: :process_request, rpc: rpc} = state) do
-    # Link the calling process
-    # so the Farmware can exit if the rpc never gets processed.
-    _ = Process.link(pid)
-    {:reply, {:ok, rpc}, %{state | rpc: nil, context: :send_response}}
+  def handle_info(msg, %{context: :error} = state) do
+    Logger.warn "unhandled message in error state: #{inspect(msg)}"
+    {:noreply, state}
   end
 
-  # If not in the `process_request` state, noop
-  def handle_call(:process_rpc, _from, state) do
-    {:reply, {:error, :no_rpc}, state}
+  def handle_info({:step_complete, ref, {:error, reason}}, %{scheduler_ref: ref} = state) do
+    send state.caller, {:error, reason}
+    {:noreply, %{state | ref: nil, context: :error}}
   end
 
-  def handle_call({:rpc_processed, result}, {pid, _} = _from, %{context: :send_response} = state) do
-    # Unlink the calling process
-    _ = Process.unlink(pid)
+  def handle_info({:step_complete, ref, :ok}, %{scheduler_ref: ref} = state) do
+    label = UUID.uuid4()
+    result = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
+
     ipc = add_header(result)
-    reply = PipeWorker.write(state.response_pipe_handle, ipc)
+    _reply = PipeWorker.write(state.response_pipe_handle, ipc)
     # Make sure to `timeout` after this one to go back to the
     # get_header context. This will cause another rpc to be processed.
     send self(), :timeout
-    {:reply, reply, %{state | rpc: nil, context: :get_header}}
+    {:noreply, %{state | rpc: nil, context: :get_header}}
   end
 
   # get_request does two reads. One to get the header,
@@ -187,13 +174,15 @@ defmodule FarmbotCore.FarmwareRuntime do
   # didn't pick up the scheduled AST in a reasonable amount of time.
   def handle_info(:timeout, %{context: :process_request} = state) do
     Logger.error("Timeout waiting for #{inspect(state.rpc)} to be processed")
-    {:stop, {:error, :rpc_timeout}, state}
+    send state.caller, {:error, :rpc_timeout}
+    {:noreply, %{state | context: :error}}
   end
 
   # farmware exit
   def handle_info({:DOWN, _ref, :process, _pid, _reason}, %{cmd: _cmd_pid} = state) do
     Logger.debug("Farmware exit")
-    {:stop, :normal, %{state | cmd: nil}}
+    send state.caller, {:error, :farmware_exit}
+    {:noreply, %{state | context: :error}}
   end
 
   # successful result of an io:read/2 in :get_header context
@@ -211,13 +200,15 @@ defmodule FarmbotCore.FarmwareRuntime do
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, {:ok, data}}, %{context: :get_header} = state) do
     Logger.error("Bad header: #{inspect(data, base: :hex, limit: :infinity)}")
-    {:stop, {:unhandled_packet, data}, state}
+    send state.caller, {:error, {:unhandled_packet, data}}
+    {:noreply, %{state | context: :error}}
   end
 
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, error}, %{context: :get_header} = state) do
     Logger.error("Bad header: #{inspect(error)}")
-    {:stop, error, state}
+    send state.caller, {:error, :bad_packet_header}
+    {:noreply, %{state | context: :error}}
   end
 
   # successful result of an io:read/2 in :get_payload context
@@ -228,7 +219,8 @@ defmodule FarmbotCore.FarmwareRuntime do
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, error}, %{context: :get_payload} = state) do
     Logger.error("Bad payload: #{inspect(error)}")
-    {:stop, error, state}
+    send state.caller, {:error, :bad_packet_payload}
+    {:noreply, %{state | context: :error}}
   end
 
   # Pipe reads are done async because reading will block the entire
@@ -251,9 +243,15 @@ defmodule FarmbotCore.FarmwareRuntime do
   def handle_packet(packet, state) do
     with {:ok, data} <- JSON.decode(packet),
          {:ok, rpc} <- decode_ast(data) do
-      {:noreply, %{state | rpc: rpc, context: :process_request}, @error_timeout_ms}
+      ref = make_ref()
+      Logger.debug("executing rpc from farmware: #{inspect(rpc)}")
+      # todo(connor) replace this with StepRunner?
+      FarmbotCeleryScript.execute(rpc, ref)
+      {:noreply, %{state | rpc: rpc, scheduler_ref: ref, context: :process_request}, @error_timeout_ms}
     else
-      error -> {:stop, error, state}
+      {:error, reason} ->
+        send state.caller, {:error, reason}
+        {:noreply, %{state | context: :error}}
     end
   end
 
