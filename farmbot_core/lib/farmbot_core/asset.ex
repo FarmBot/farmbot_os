@@ -509,7 +509,10 @@ defmodule FarmbotCore.Asset do
     regular_farmwares = Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
     Enum.find(
       first_party_farmwares ++ regular_farmwares, 
-      fn %{package: pkg} -> pkg == package end
+      fn 
+        %{package: pkg} -> pkg == package 
+        _ -> false
+      end
     )
   end
 
@@ -518,7 +521,10 @@ defmodule FarmbotCore.Asset do
     regular_farmwares = Repo.all(from(fwi in FarmwareInstallation))
     Enum.find(
       first_party_farmwares ++ regular_farmwares, 
-      fn %{manifest: %{package: pkg}} -> pkg == package end
+      fn 
+        %{manifest: %{package: pkg}} -> pkg == package 
+        _ -> false
+      end
     )
   end
 
