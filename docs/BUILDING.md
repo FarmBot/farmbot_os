@@ -11,6 +11,7 @@ or
 ```bash
 git clone https://github.com/FarmBot/farmbot_os.git
 git submodule update --init --recursive
+cd farmbot_os
 ```
 To initialize the repository.
 
@@ -26,9 +27,6 @@ If you have the above set up you will need some software dependencies:
   * Nerves Bootstrapper found [here](https://hexdocs.pm/nerves/installation.html#Linux)
 * GNU Make + GCC
 * git
-* Arduino. You can do one of:
-  * Set the `ARDUINO_INSTALL_DIR` environment variable
-  * execute `.circleci/setup_arduino.sh`
 
 ## Optional dependencies
 * python
@@ -60,25 +58,11 @@ to configure (at least) two different environment/target combos. where:
   * `host` - For development.
   * `rpi3` - Run on Farmbot's intended hardware.
 
-### Note about setup
-You will need to configure your Farmbot API, Frontend, and MQTT services for the
-below commands to work. You _can_ however use the default `my.farmbot.io` servers.
-see `config/host/auth_secret_template.exs` for more information.
-
-## Running unit tests
-Tests should be ran while developing features. You should have a *local* Farmbot
-stack up and running and configured for this to work.
-`config/host/auth_secret_template.exs` will have more full instructions.
-
-```bash
-MIX_ENV=test mix deps.get # Fetch test env specific deps.
-mix test
-```
-
 ## Feature development
 If you plan on developing features, you will probably want to develop them with
 the `dev` and `host` combo. These are both the default values, so you can simply do:
 ```bash
+export FARMBOT_EMAIL="email@server.com" FARMBOT_PASSWORD="supersecret" FARMBOT_SERVER="https://my.farm.bot" CONFIGURATOR_PORT=4000 # you should only need to do this once
 mix deps.get # You should only need to do this once.
 iex -S mix # This will start an interactive shell.
 ```
@@ -88,7 +72,6 @@ Sometimes features will need to be developed and tested on the device itself.
 This is accomplished with the `dev` and `rpi3` combo.
 It is *highly* recommended that you have an FTDI cable for this such as
 [this](https://www.digikey.com/product-detail/en/ftdi/TTL-232R-RPI/768-1204-ND) one
-
 
 ```bash
 MIX_TARGET=rpi3 mix deps.get # Get deps for the rpi3 target. You should only need to do this once.
@@ -104,7 +87,8 @@ push updates over the network to your device.
 ```bash
 # make some changes to the code...
 MIX_TARGET=rpi3 mix firmware # Build a new fw.
-MIX_TARGET=rpi3 mix firmware.push <your device ip address> # Push the new fw to the device.
+MIX_TARGET=rpi3 mix firmware.gen.script # this should onlye be ran once
+MIX_TARGET=rpi3 ./upload.sh <your device ip address> # Push the new fw to the device.
 ```
 Your device should now reboot into that new code. As long as you don't cause
 a factory reset somehow, (bad init code, typo, etc) you should be able
