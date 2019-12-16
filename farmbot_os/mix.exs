@@ -107,9 +107,8 @@ defmodule FarmbotOS.MixProject do
       {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
       {:mdns_lite, "~> 0.6.1", targets: @all_targets},
       {:busybox, "~> 0.1.4", targets: @all_targets},
-      {:nerves_system_br, "~> 1.9", override: true, runtime: false, targets: @all_targets},
-      {:farmbot_system_rpi3, "1.9.1-farmbot.4", runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi, "1.9.0-farmbot.1", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi3, "1.10.0-farmbot.1", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi, "1.10.0-farmbot.1", runtime: false, targets: :rpi}
     ]
   end
 
