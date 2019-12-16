@@ -11,6 +11,11 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
+  def handle_load(x: x, y: y, z: z) do
+    :ok = BotState.set_load(x, y, z)
+  end
+
+  @impl FarmbotFirmware.SideEffects
   def handle_position_change([{_axis, _value}]) do
     :noop
   end

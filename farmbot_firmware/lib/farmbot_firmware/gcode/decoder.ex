@@ -47,6 +47,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
 
   def do_decode("R87", []), do: {:report_emergency_lock, []}
   def do_decode("R88", []), do: {:report_no_config, []}
+  def do_decode("R89", xyz), do: {:report_load, decode_floats(xyz)}
   def do_decode("R99", debug), do: {:report_debug_message, [Enum.join(debug, " ")]}
 
   def do_decode("G00", xyzs), do: {:command_movement, decode_floats(xyzs)}

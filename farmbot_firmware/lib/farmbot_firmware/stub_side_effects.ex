@@ -106,6 +106,9 @@ defmodule FarmbotFirmware.StubSideEffects do
   def handle_position(_), do: :noop
 
   @impl SideEffects
+  def handle_load(_), do: :noop
+
+  @impl SideEffects
   def handle_position_change(_), do: :noop
 
   @impl SideEffects
