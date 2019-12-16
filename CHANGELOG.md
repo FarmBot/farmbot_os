@@ -1,5 +1,8 @@
 # Changelog
 
+# 9.0.0-rc1
+ * Run updates on Nerves systems.
+
 # 8.2.4
 * Bug fixes
     * fix Farmware causing sequences to exit
