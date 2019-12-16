@@ -12,7 +12,7 @@ Download the version of FarmBot OS that corresponds to the FarmBot kit and compu
 
 | FarmBot Kit  | Computer | Download Link |
 | --- | --- | --- |
-| Genesis v1.2, Genesis v1.3, Genesis v1.4, Genesis XL v1.4 | Raspberry Pi 3 | [Download FBOS](https://github.com/FarmBot/farmbot_os/releases/download/v8.2.3/farmbot-rpi3-8.2.3.img) |
+| Genesis v1.2, Genesis v1.3, Genesis v1.4, Genesis XL v1.4 | Raspberry Pi 3 | [Download FBOS](https://github.com/FarmBot/farmbot_os/releases/download/v8.2.4/farmbot-rpi3-8.2.4.img) |
 | Express v1.0, Express XL v1.0 | Raspberry Pi Zero W | Coming soon |
 
 ---
