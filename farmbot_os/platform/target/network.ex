@@ -21,7 +21,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   def host do
     %{
       type: CaptivePortal,
-      wifi: %{
+      vintage_net_wifi: %{
         networks: [
           %{
             ssid: build_hostap_ssid(),

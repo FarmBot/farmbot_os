@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   @moduledoc """
   Handles turning Farmbot's internal network representation into
-  either a VintageNet.Technology.Ethernet or VintageNet.Technology.WiFi
+  either a VintageNetEthernet or VintageNetWiFi
   RawConfig.
   """
   @behaviour VintageNet.Technology
@@ -41,7 +41,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   def to_wired_raw_config(ifname, config, opts) do
     config = %{
-      type: VintageNet.Technology.Ethernet,
+      type: VintageNetEthernet,
       ipv4: to_ipv4(config)
     }
 
@@ -50,9 +50,9 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   def to_wireless_raw_config(ifname, config, opts) do
     config = %{
-      type: VintageNet.Technology.WiFi,
+      type: VintageNetWiFi,
       ipv4: to_ipv4(config),
-      wifi: to_wifi(config)
+      vintage_net_wifi: to_vintage_net_wifi(config)
     }
 
     vintage_wifi(ifname, config, opts)
@@ -89,7 +89,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     %{method: :dhcp}
   end
 
-  defp to_wifi(%{security: "NONE", ssid: ssid, regulatory_domain: reg_domain}) do
+  defp to_vintage_net_wifi(%{security: "NONE", ssid: ssid, regulatory_domain: reg_domain}) do
     %{
       networks: [
         %{
@@ -103,7 +103,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     }
   end
 
-  defp to_wifi(%{security: "WPA-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
+  defp to_vintage_net_wifi(%{
+         security: "WPA-PSK",
+         ssid: ssid,
+         psk: psk,
+         regulatory_domain: reg_domain
+       }) do
     %{
       networks: [
         %{
@@ -118,7 +123,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     }
   end
 
-  defp to_wifi(%{security: "WPA2-PSK", ssid: ssid, psk: psk, regulatory_domain: reg_domain}) do
+  defp to_vintage_net_wifi(%{
+         security: "WPA2-PSK",
+         ssid: ssid,
+         psk: psk,
+         regulatory_domain: reg_domain
+       }) do
     %{
       networks: [
         %{
@@ -133,7 +143,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     }
   end
 
-  defp to_wifi(%{
+  defp to_vintage_net_wifi(%{
          security: "WPA-EAP",
          ssid: ssid,
          identity: id,
@@ -161,12 +171,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   end
 
   defp vintage_ethernet(ifname, config, opts) do
-    config = VintageNet.Technology.Ethernet.normalize(config)
-    VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
+    config = VintageNetEthernet.normalize(config)
+    VintageNetEthernet.to_raw_config(ifname, config, opts)
   end
 
   defp vintage_wifi(ifname, config, opts) do
-    config = VintageNet.Technology.WiFi.normalize(config)
-    VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
+    config = VintageNetWiFi.normalize(config)
+    VintageNetWiFi.to_raw_config(ifname, config, opts)
   end
 end
