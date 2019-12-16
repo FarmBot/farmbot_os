@@ -320,7 +320,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
       [ntp_server_1, ntp_server_2]
       |> Enum.reject(&is_nil/1)
-      |> Nerves.Time.set_ntp_servers()
+      |> NervesTime.set_ntp_servers()
     else
       Logger.info("Using default NTP servers")
       :ok
