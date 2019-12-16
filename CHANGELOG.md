@@ -1,6 +1,6 @@
 # Changelog
 
-# 9.0.0-rc1
+# 9.0.0
  * Run updates on Nerves systems.
 
 # 8.2.4
