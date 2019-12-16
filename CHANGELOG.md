@@ -4,6 +4,12 @@
 * Bug fixes
     * fix Farmware causing sequences to exit
     * fix `arduino_debug_messages` fbos_config field being ignored
+    * fix `espeak` not working
+    * add `name` paramater back to image uploads
+* Enhancements
+    * `resource_update` command can now update:
+        * device.mounted_tool_id
+        * GenericPointer.*
 
 # 8.2.3
 * Features
