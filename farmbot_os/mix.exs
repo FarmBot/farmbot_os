@@ -88,7 +88,7 @@ defmodule FarmbotOS.MixProject do
       # Host/test only dependencies.
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false},
+      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false},
       {:elixir_make, "~> 0.6", runtime: false},
 
       # Data collection
@@ -96,14 +96,14 @@ defmodule FarmbotOS.MixProject do
 
       # Target only deps
       {:nerves_runtime, "~> 0.10", targets: @all_targets},
-      {:nerves_time, "~> 0.2", targets: @all_targets},
+      {:nerves_time, "~> 0.3.2", targets: @all_targets},
       {:nerves_hub, "~> 0.7", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
-      {:circuits_gpio, "~> 0.4", targets: @all_targets},
+      {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
       {:vintage_net, "~> 0.6", targets: @all_targets},
-      {:mdns_lite, "~> 0.4", targets: @all_targets},
-      {:busybox, "~> 0.1", targets: @all_targets},
+      {:mdns_lite, "~> 0.6.1", targets: @all_targets},
+      {:busybox, "~> 0.1.4", targets: @all_targets},
       {:nerves_system_br, "~> 1.9", override: true, runtime: false, targets: @all_targets},
       {:farmbot_system_rpi3, "1.9.1-farmbot.4", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi, "1.9.0-farmbot.1", runtime: false, targets: :rpi}
