@@ -402,6 +402,15 @@ defmodule FarmbotFirmware.Param do
   def to_human(:movement_stall_sensitivity_z, value),
     do: {"stall sensitivity, z-axis", nil, format_float(value)}
 
+  def to_human(:movement_microsteps_x, value),
+    do: {"microsteps, x-axis", nil, format_float(value)}
+
+  def to_human(:movement_microsteps_y, value),
+    do: {"microsteps, y-axis", nil, format_float(value)}
+
+  def to_human(:movement_microsteps_z, value),
+    do: {"microsteps, z-axis", nil, format_float(value)}
+
   def to_human(:encoder_enabled_x, value),
     do: {"enable encoders, x-axis", nil, format_bool(value)}
 
