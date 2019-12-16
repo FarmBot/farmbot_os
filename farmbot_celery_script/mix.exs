@@ -52,7 +52,7 @@ defmodule FarmbotCeleryScript.MixProject do
       {:timex, "~> 3.4"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
+      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end
