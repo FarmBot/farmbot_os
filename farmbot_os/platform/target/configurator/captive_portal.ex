@@ -1,25 +1,25 @@
 defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   @moduledoc """
   Handles turning Farmbot's internal network representation into
-  either a VintageNet.Technology.Ethernet or VintageNet.Technology.WiFi
+  either a VintageNetEthernet or VintageNetWiFi
   RawConfig.
   """
   @behaviour VintageNet.Technology
   require FarmbotCore.Logger
 
   @impl VintageNet.Technology
-  def normalize(%{wifi: _} = config) do
-    %{config | type: VintageNet.Technology.WiFi}
-    |> VintageNet.Technology.WiFi.normalize()
+  def normalize(%{vintage_net_wifi: _} = config) do
+    %{config | type: VintageNetWiFi}
+    |> VintageNetWiFi.normalize()
   end
 
   def normalize(config) do
-    %{config | type: VintageNet.Technology.Ethernet}
-    |> VintageNet.Technology.Ethernet.normalize()
+    %{config | type: VintageNetEthernet}
+    |> VintageNetEthernet.normalize()
   end
 
   @impl VintageNet.Technology
-  def to_raw_config(ifname, %{wifi: _} = config, opts) do
+  def to_raw_config(ifname, %{vintage_net_wifi: _} = config, opts) do
     normalized = normalize(config)
 
     ifname
@@ -37,12 +37,12 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
   @impl VintageNet.Technology
   def check_system(opts) do
-    VintageNet.Technology.WiFi.check_system(opts)
+    VintageNetWiFi.check_system(opts)
   end
 
   @impl true
   def ioctl(ifname, ioctl, args) do
-    VintageNet.Technology.WiFi.ioctl(ifname, ioctl, args)
+    VintageNetWiFi.ioctl(ifname, ioctl, args)
   end
 
   defp dnsmasq(%{ifname: ifname, source_config: %{dnsmasq: config}} = raw_config, opts) do
@@ -105,14 +105,14 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   end
 
   defp vintage_wifi(ifname, config, opts) do
-    config = VintageNet.Technology.WiFi.normalize(config)
-    raw_config = VintageNet.Technology.WiFi.to_raw_config(ifname, config, opts)
-    %{raw_config | type: VintageNet.Technology.WiFi}
+    config = VintageNetWiFi.normalize(config)
+    raw_config = VintageNetWiFi.to_raw_config(ifname, config, opts)
+    %{raw_config | type: VintageNetWiFi}
   end
 
   defp vintage_ethernet(ifname, config, opts) do
-    config = VintageNet.Technology.Ethernet.normalize(config)
-    raw_config = VintageNet.Technology.Ethernet.to_raw_config(ifname, config, opts)
-    %{raw_config | type: VintageNet.Technology.Ethernet}
+    config = VintageNetEthernet.normalize(config)
+    raw_config = VintageNetEthernet.to_raw_config(ifname, config, opts)
+    %{raw_config | type: VintageNetEthernet}
   end
 end
