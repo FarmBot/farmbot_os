@@ -33,7 +33,6 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   end
 
   def init(args) do
-    Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
     http_ping_timer = Process.send_after(self(), :http_ping, 5000)
     send(self(), :connect_amqp)

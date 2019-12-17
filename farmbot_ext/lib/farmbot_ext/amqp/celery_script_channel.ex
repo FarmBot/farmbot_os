@@ -26,7 +26,6 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
-    Process.flag(:sensitive, true)
     send(self(), :connect_amqp)
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, rpc_requests: %{}}}
   end

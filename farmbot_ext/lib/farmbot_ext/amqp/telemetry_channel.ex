@@ -25,7 +25,6 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   end
 
   def init(args) do
-    Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
     send(self(), :connect_amqp)
     cache = BotState.subscribe()

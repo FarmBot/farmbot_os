@@ -27,7 +27,6 @@ defmodule FarmbotExt.AMQP.LogChannel do
 
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
-    Process.flag(:sensitive, true)
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, state_cache: nil}, 0}
   end
 

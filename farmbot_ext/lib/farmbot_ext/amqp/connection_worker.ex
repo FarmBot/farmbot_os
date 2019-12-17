@@ -92,7 +92,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
   @impl GenServer
   def init(opts) do
-    Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
     {:ok, %ConnectionWorker{conn: nil, opts: opts}, 0}
   end
