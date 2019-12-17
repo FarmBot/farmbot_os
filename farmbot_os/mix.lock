@@ -4,6 +4,7 @@
   "busybox": {:hex, :busybox, "0.1.4", "9b07860c0663e7d0ace3093100ede44860bd73c22b17c2941a4b17e25893cc36", [:make, :mix], [{:elixir_make, "~> 0.5", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "certifi": {:hex, :certifi, "2.5.1", "867ce347f7c7d78563450a18a6a28a8090331e77fa02380b4a21962a65d36ee5", [:rebar3], [{:parse_trans, "~>3.3", [hex: :parse_trans, repo: "hexpm", optional: false]}], "hexpm"},
   "circuits_gpio": {:hex, :circuits_gpio, "0.4.3", "1a53dff1eaeefb9f67f4ebc2c1852b603683eedaa6053bed51c038dd64b978bb", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+  "circuits_i2c": {:hex, :circuits_i2c, "0.3.5", "43e043d7efc3aead364061f8a7ed627f81ff7cef52bfa47cb629d8a68ca56a9f", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "circuits_uart": {:hex, :circuits_uart, "1.4.0", "799abad2d5f355bd571c46de089e62c6341e6b08f9fdf51f4d53d50f5d5bbda9", [:mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "combine": {:hex, :combine, "0.10.0", "eff8224eeb56498a2af13011d142c5e7997a80c8f5b97c499f84c841032e429f", [:mix], [], "hexpm"},
   "connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], [], "hexpm"},

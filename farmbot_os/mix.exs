@@ -100,6 +100,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_hub, "~> 0.7", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
       {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
+      {:circuits_i2c, "~> 0.3.5", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
       {:vintage_net, "~> 0.7", targets: @all_targets},
       {:vintage_net_ethernet, "~> 0.7.0", targets: @all_targets},

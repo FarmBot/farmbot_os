@@ -7,5 +7,6 @@ config :farmbot_firmware, FarmbotFirmware.UARTTransport,
 
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
+    FarmbotOS.Platform.Target.RTCWorker,
     FarmbotOS.Platform.Target.FirmwareReset.GPIO
   ]
