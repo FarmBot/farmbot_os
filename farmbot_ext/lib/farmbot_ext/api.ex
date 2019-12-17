@@ -1,6 +1,9 @@
 defmodule FarmbotExt.API do
-  alias FarmbotExt.{API, JWT}
+  @moduledoc """
+  Module where all Farmbot specific HTTP calls are done
+  """
 
+  alias FarmbotExt.{API, JWT}
   alias FarmbotCore.JSON
 
   alias FarmbotCore.Asset.{
@@ -10,10 +13,8 @@ defmodule FarmbotExt.API do
   }
 
   alias FarmbotCore.{BotState, BotState.JobProgress.Percent, Project}
-
   require FarmbotCore.Logger
   import FarmbotCore.Config, only: [get_config_value: 3]
-
   use Tesla
   alias Tesla.Multipart
 

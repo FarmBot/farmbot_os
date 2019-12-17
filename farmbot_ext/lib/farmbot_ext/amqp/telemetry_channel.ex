@@ -1,6 +1,9 @@
 defmodule FarmbotExt.AMQP.TelemetryChannel do
   @moduledoc """
+  Channel that dispatches telemetry messgaes out of the
+  DETS database.
   """
+
   use GenServer
   use AMQP
 

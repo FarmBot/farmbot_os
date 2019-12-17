@@ -1,9 +1,13 @@
 defmodule FarmbotExt.AMQP.PingPongChannel do
   @moduledoc """
-  This module provides an AMQP channel for
-  auto-sync messages from the FarmBot API.
-  SEE:
-    https://developer.farm.bot/docs/realtime-updates-auto-sync#section-example-auto-sync-subscriptions
+  AMQP channel responsible for responding to `ping` messages.
+  Simply echos the exact data received on the `ping` channel
+  onto the `pong` channel.
+
+  Also has a ~15-20 minute timer that will do an `HTTP` request
+  to `/api/device`. This refreshed the `last_seen_api` field which
+  is required for devices that have `auto_sync` enabled as with 
+  that field enabled, the device would never do an HTTP request
   """
   use GenServer
   use AMQP
