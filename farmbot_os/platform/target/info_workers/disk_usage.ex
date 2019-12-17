@@ -1,5 +1,8 @@
 defmodule FarmbotOS.Platform.Target.InfoWorker.DiskUsage do
-  @moduledoc false
+  @moduledoc """
+  Worker responsible for reporting disk usage to the 
+  bot_state server
+  """
 
   use GenServer
   @data_path FarmbotOS.FileSystem.data_path()
@@ -8,14 +11,17 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.DiskUsage do
 
   alias FarmbotCore.BotState
 
+  @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
   end
 
+  @impl GenServer
   def init([]) do
     {:ok, nil, 0}
   end
 
+  @impl GenServer
   def handle_info(:timeout, state) do
     usage = collect_report()
 
@@ -27,6 +33,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.DiskUsage do
     end
   end
 
+  @doc "Returns current disk usage as a percent"
   def collect_report do
     {usage_str, 0} = Nerves.Runtime.cmd("df", ["-h", @data_path], :return)
 

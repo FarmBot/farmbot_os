@@ -1,5 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Network do
   @moduledoc "Manages Network Connections"
+
   use GenServer, shutdown: 10_000
   require Logger
   require FarmbotCore.Logger

@@ -1,5 +1,8 @@
 defmodule FarmbotOS.Platform.Target.InfoWorker.Throttle do
-  @moduledoc false
+  @moduledoc """
+  RPI specific worker responsible for checking the `throttled` flag
+  as reported by vcgencmd
+  """
 
   use GenServer
   @default_timeout_ms 60_000
@@ -7,14 +10,17 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Throttle do
 
   alias FarmbotCore.BotState
 
+  @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
   end
 
+  @impl GenServer
   def init([]) do
     {:ok, nil, 0}
   end
 
+  @impl GenServer
   def handle_info(:timeout, state) do
     {throttled_str, 0} = Nerves.Runtime.cmd("vcgencmd", ["get_throttled"], :return)
 

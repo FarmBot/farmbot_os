@@ -1,9 +1,10 @@
 defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   @moduledoc """
-  Handles turning Farmbot's internal network representation into
-  either a VintageNetEthernet or VintageNetWiFi
-  RawConfig.
+  VintageNet.Technology that handles turning Farmbot's internal 
+  network representation into either a VintageNetEthernet 
+  or VintageNetWiFi RawConfig.
   """
+
   @behaviour VintageNet.Technology
 
   @impl VintageNet.Technology

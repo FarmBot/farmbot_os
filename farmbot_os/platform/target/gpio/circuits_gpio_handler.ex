@@ -1,5 +1,6 @@
 defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   @moduledoc "Circuits gpio handler for PinBindings"
+
   @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
   require Logger
   use GenServer

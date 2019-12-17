@@ -1,13 +1,20 @@
 defmodule FarmbotOS.Platform.Target.ShoehornHandler do
+  @moduledoc """
+  Custom shoehorn handler responsible for restarting farmbot applications
+  in the correct order
+  """
+
   use Shoehorn.Handler
   require FarmbotTelemetry
   require FarmbotCore.Logger
   require Logger
 
+  @impl true
   def init(_opts) do
     {:ok, %{restart_counts: 0}}
   end
 
+  @impl true
   def application_exited(:nerves_runtime, _, state) do
     # https://github.com/nerves-project/nerves_runtime/issues/152
     _ = System.cmd("killall", ["-9", "kmsg_tailer"], into: IO.stream(:stdio, :line))

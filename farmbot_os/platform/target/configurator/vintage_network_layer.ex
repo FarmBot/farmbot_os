@@ -1,4 +1,9 @@
 defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
+  @moduledoc """
+  Implementation of Network configuration layer using
+  VintageNet
+  """
+
   require FarmbotCore.Logger
   @behaviour FarmbotOS.Configurator.NetworkLayer
 

@@ -1,4 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Network.Utils do
+  @moduledoc "common network related utilities"
+
   import FarmbotCore.Config, only: [get_config_value: 3]
   require FarmbotCore.Logger
 
