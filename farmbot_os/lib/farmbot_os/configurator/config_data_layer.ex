@@ -1,4 +1,9 @@
 defmodule FarmbotOS.Configurator.ConfigDataLayer do
+  @moduledoc """
+  implementation of Configurator.DataLayer responsible for
+  gathering and storing data Via Ecto.
+  """
+
   @behaviour FarmbotOS.Configurator.DataLayer
   require FarmbotCore.Logger
   alias FarmbotCore.Config

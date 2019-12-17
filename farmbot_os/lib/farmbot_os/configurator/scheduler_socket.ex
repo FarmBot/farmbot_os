@@ -1,19 +1,28 @@
 defmodule FarmbotOS.Configurator.SchedulerSocket do
+  @moduledoc """
+  WebSocket handler responsible for dispatching information about
+  currently scheduled celery_script tasks
+  """
+
   require Logger
   alias FarmbotCore.{Asset, Asset.FarmEvent, Asset.Sequence}
   alias FarmbotCeleryScript.Scheduler
 
   @behaviour :cowboy_websocket
+
+  @impl :cowboy_websocket
   def init(req, state) do
     {:cowboy_websocket, req, state}
   end
 
+  @impl :cowboy_websocket
   def websocket_init(_state) do
     send(self(), :after_connect)
     Scheduler.register()
     {:ok, %{}}
   end
 
+  @impl :cowboy_websocket
   def websocket_handle({:text, message}, state) do
     case Jason.decode(message) do
       {:ok, json} ->
@@ -25,6 +34,7 @@ defmodule FarmbotOS.Configurator.SchedulerSocket do
     end
   end
 
+  @impl :cowboy_websocket
   def websocket_info({FarmbotCeleryScript, {:calendar, calendar}}, state) do
     data =
       Enum.map(calendar, fn
@@ -59,6 +69,7 @@ defmodule FarmbotOS.Configurator.SchedulerSocket do
     {:ok, state}
   end
 
+  @impl :cowboy_websocket
   def terminate(_reason, _req, _state) do
     :ok
   end

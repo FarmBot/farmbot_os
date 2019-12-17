@@ -1,14 +1,21 @@
 defmodule FarmbotOS.Lua do
+  @moduledoc """
+  Embedded scripting language for testing, 
+  assertion, and other debugging things. 
+  """
+
   @type t() :: tuple()
   @type table() :: [{any, any}]
   require FarmbotCore.Logger
 
   alias FarmbotOS.Lua.Ext.{
-    Data,
+    DataManipulation,
     Firmware,
     Info
   }
 
+  # this function is used by SysCalls, but isn't a direct requirement.
+  @doc false
   def log_assertion(passed?, type, message) do
     meta = [assertion_passed: passed?, assertion_type: type]
     FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, meta)
@@ -77,14 +84,14 @@ defmodule FarmbotOS.Lua do
     |> set_table([:current_hour], &Info.current_hour/2)
     |> set_table([:current_minute], &Info.current_minute/2)
     |> set_table([:current_second], &Info.current_second/2)
-    |> set_table([:update_device], &Data.update_device/2)
-    |> set_table([:get_device], &Data.get_device/2)
-    |> set_table([:update_fbos_config], &Data.update_fbos_config/2)
-    |> set_table([:get_fbos_config], &Data.get_fbos_config/2)
-    |> set_table([:update_firmware_config], &Data.update_firmware_config/2)
-    |> set_table([:get_firmware_config], &Data.get_firmware_config/2)
-    |> set_table([:new_farmware_env], &Data.new_farmware_env/2)
-    |> set_table([:new_sensor_reading], &Data.new_sensor_reading/2)
+    |> set_table([:update_device], &DataManipulation.update_device/2)
+    |> set_table([:get_device], &DataManipulation.get_device/2)
+    |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
+    |> set_table([:get_fbos_config], &DataManipulation.get_fbos_config/2)
+    |> set_table([:update_firmware_config], &DataManipulation.update_firmware_config/2)
+    |> set_table([:get_firmware_config], &DataManipulation.get_firmware_config/2)
+    |> set_table([:new_farmware_env], &DataManipulation.new_farmware_env/2)
+    |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
   end
 
   @spec set_table(t(), Path.t(), any()) :: t()

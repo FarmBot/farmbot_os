@@ -1,17 +1,25 @@
 defmodule FarmbotOS.Configurator.LoggerSocket do
+  @moduledoc """
+  WebSocket handler for streaming logs
+  """
+
   alias FarmbotOS.Configurator.LoggerSocket.LoggerBackend
   require Logger
 
   @behaviour :cowboy_websocket
+
+  @impl :cowboy_websocket
   def init(req, state) do
     {:cowboy_websocket, req, state}
   end
 
+  @impl :cowboy_websocket
   def websocket_init(_state) do
     send(self(), :after_connect)
     {:ok, %{}}
   end
 
+  @impl :cowboy_websocket
   def websocket_handle({:text, message}, state) do
     case Jason.decode(message) do
       {:ok, json} ->
@@ -23,6 +31,7 @@ defmodule FarmbotOS.Configurator.LoggerSocket do
     end
   end
 
+  @impl :cowboy_websocket
   def websocket_info(:after_connect, state) do
     Logger.add_backend(LoggerBackend)
     LoggerBackend.register()
@@ -70,6 +79,7 @@ defmodule FarmbotOS.Configurator.LoggerSocket do
     {:ok, state}
   end
 
+  @impl :cowboy_websocket
   def terminate(_reason, _req, _state) do
     :ok
   end

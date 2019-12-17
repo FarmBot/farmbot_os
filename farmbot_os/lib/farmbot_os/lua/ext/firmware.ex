@@ -1,4 +1,8 @@
 defmodule FarmbotOS.Lua.Ext.Firmware do
+  @moduledoc """
+  Lua extensions for interacting with the Firmware  
+  """
+
   alias FarmbotCeleryScript.SysCalls
 
   def calibrate([axis], lua) when axis in ["x", "y", "z"] do
