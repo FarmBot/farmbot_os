@@ -83,7 +83,15 @@ defmodule FarmbotTelemetry do
     end
   end
 
-  @doc "Function responsible for firing telemetry events"
+  @doc """
+  Function responsible for firing telemetry events
+  stores telemetry event in `dets` table to be cached until 
+  farmbot has a chance to dispatch them.  This is required because
+  dispatching can only be done when farmbot as an active internet
+  connection.
+
+  Dispatching is done by calling the `consume_telemetry/1` function.
+  """
   @spec bare_telemetry(uuid, kind(), subsystem(), measurement(), value(), DateTime.t(), meta()) ::
           :ok
   def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta)
