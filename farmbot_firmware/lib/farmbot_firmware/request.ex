@@ -1,5 +1,9 @@
 defmodule FarmbotFirmware.Request do
   @moduledoc false
+
+  # sister module to FarmbotFirmware.Command
+  # see docs for FarmbotFirmware.request/1
+
   alias FarmbotFirmware
   alias FarmbotFirmware.GCODE
 

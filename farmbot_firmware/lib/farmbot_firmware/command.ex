@@ -1,5 +1,8 @@
 defmodule FarmbotFirmware.Command do
   @moduledoc false
+  # sister module to FarmbotFirmware.Request
+  # see docs for FarmbotFirmware.command/1
+
   alias FarmbotFirmware
   alias FarmbotFirmware.GCODE
   require Logger
