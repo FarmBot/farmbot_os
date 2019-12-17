@@ -1,6 +1,11 @@
 defmodule FarmbotOS.Configurator.LoggerSocket.LoggerBackend do
+  @moduledoc """
+  Logger backend for LoggerSockets to subscribe too
+  """
+
   @behaviour :gen_event
 
+  @doc "register self() for logger events to be delivered"
   def register() do
     {:ok, _} = Registry.register(__MODULE__, :dispatch, self())
     :ok

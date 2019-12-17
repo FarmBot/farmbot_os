@@ -1,11 +1,17 @@
 defmodule FarmbotOS.Configurator.Supervisor do
+  @moduledoc """
+  Supervisor for the Configurator Web stack
+  """
+
   use Supervisor
   alias FarmbotOS.Configurator.{Router, LoggerSocket, SchedulerSocket}
 
+  @doc false
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  @impl Supervisor
   def init(_args) do
     :ets.new(:configurator_session, [:named_table, :public, read_concurrency: true])
 

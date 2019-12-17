@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.FlashFirmware do
+  @moduledoc false
+
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector

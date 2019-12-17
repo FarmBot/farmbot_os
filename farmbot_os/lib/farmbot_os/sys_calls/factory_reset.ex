@@ -1,4 +1,5 @@
 defmodule FarmbotOS.SysCalls.FactoryReset do
+  @moduledoc false
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState}
   alias FarmbotExt.API

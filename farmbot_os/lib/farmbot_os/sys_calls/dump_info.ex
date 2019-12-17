@@ -1,5 +1,6 @@
 defmodule FarmbotOS.SysCalls.DumpInfo do
   @moduledoc false
+
   require FarmbotCore.Logger
   require FarmbotTelemetry
   alias FarmbotCore.{Asset, Asset.DiagnosticDump, Asset.Private, Config, Project}

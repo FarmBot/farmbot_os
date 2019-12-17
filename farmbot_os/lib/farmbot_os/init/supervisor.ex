@@ -1,13 +1,14 @@
 defmodule FarmbotOS.Init.Supervisor do
   @moduledoc """
-  All the stuff that needs to start before
-  FarmBotOS gets supervised by this one.
+  Supervises processes that needs to start before
+  the rest of the FarmBotOS tree.
 
   Handles boot logic for FBOS (on host vs. RPi).
   """
 
   use Supervisor
 
+  @doc false
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end

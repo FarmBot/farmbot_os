@@ -1,4 +1,8 @@
 defmodule FarmbotOS.SysCalls do
+  @moduledoc """
+  Implementation for FarmbotCeleryScript.SysCalls
+  """
+
   require FarmbotCore.Logger
   require FarmbotTelemetry
   require Logger

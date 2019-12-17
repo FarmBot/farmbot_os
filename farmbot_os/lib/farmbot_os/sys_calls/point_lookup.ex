@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.PointLookup do
+  @moduledoc false
+
   alias FarmbotCore.Asset
   require Logger
 

@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.PinControl do
+  @moduledoc false
+
   alias FarmbotCore.{Asset, Leds}
 
   alias FarmbotCore.Asset.{
