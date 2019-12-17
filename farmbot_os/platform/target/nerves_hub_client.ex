@@ -175,7 +175,6 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     Application.ensure_all_started(:nerves_runtime)
     Application.ensure_all_started(:nerves_hub)
     write_serial(serial_number())
-    Process.flag(:sensitive, true)
     cert = load_cert()
     key = load_key()
 

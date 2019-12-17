@@ -60,7 +60,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def init(args) do
-    Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
     send(self(), :preload)
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}}

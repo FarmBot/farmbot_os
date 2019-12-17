@@ -19,7 +19,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   end
 
   def init([token]) do
-    Process.flag(:sensitive, true)
     jwt = JWT.decode!(token)
 
     children = [
