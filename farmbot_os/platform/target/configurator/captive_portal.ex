@@ -1,9 +1,9 @@
 defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   @moduledoc """
-  Handles turning Farmbot's internal network representation into
-  either a VintageNetEthernet or VintageNetWiFi
-  RawConfig.
+  VintageNet Technology that handles redirecting 
+  **all** traffic to Farmbot's configuration interface
   """
+
   @behaviour VintageNet.Technology
   require FarmbotCore.Logger
 

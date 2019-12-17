@@ -1,17 +1,25 @@
 defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
+  @moduledoc """
+  Worker process responsible for reporting current wifi
+  power levels to the bot_state server
+  """
+
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotCore.BotState
 
+  @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
   end
 
+  @impl GenServer
   def init(_args) do
     send(self(), :load_network_config)
     {:ok, %{ssid: nil}}
   end
 
+  @impl GenServer
   def handle_info(:load_network_config, state) do
     if FarmbotCore.Config.get_network_config("eth0") do
       FarmbotCore.Logger.warn(3, """

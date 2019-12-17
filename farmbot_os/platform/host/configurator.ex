@@ -1,5 +1,9 @@
 defmodule FarmbotOS.Platform.Host.Configurator do
-  @moduledoc false
+  @moduledoc """
+  Supervisor responsible for setting up epmd and ensuring
+  local environment variables are setup correctly
+  """
+
   use Supervisor
 
   @doc false

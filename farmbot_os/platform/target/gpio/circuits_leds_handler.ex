@@ -1,4 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
+  @moduledoc "Circuits gpio handler for LEDS"
+
   alias Circuits.GPIO
   use GenServer
   @behaviour FarmbotCore.Leds.Handler
@@ -8,7 +10,6 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   @fast_blink_speed 250
   @really_fast_blink_speed 100
 
-  @moduledoc false
   def red(status) do
     _ = StubHandler.red(status)
     GenServer.call(__MODULE__, {:red, status})

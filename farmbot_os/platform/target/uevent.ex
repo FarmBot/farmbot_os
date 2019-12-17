@@ -1,5 +1,8 @@
 defmodule FarmbotOS.Platform.Target.Uevent.Supervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervisor responsible for monitoring the Uevent process
+  """
+
   use Supervisor
 
   def start_link(args) do
@@ -13,7 +16,10 @@ defmodule FarmbotOS.Platform.Target.Uevent.Supervisor do
 end
 
 defmodule FarmbotOS.Platform.Target.Uevent do
-  @moduledoc false
+  @moduledoc """
+  Process responsible for monitoring uevent linux subsystem for
+  events relating to serial devices being plugged and unplugged
+  """
 
   use GenServer
   require Logger
@@ -21,10 +27,12 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   require FarmbotTelemetry
   alias FarmbotCore.{Config, FirmwareTTYDetector}
 
+  @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  @impl GenServer
   def init([]) do
     :ok = SystemRegistry.register()
     {:ok, nil}
@@ -47,6 +55,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
     {:noreply, reg}
   end
 
+  @doc false
   def maybe_new_tty("ttyUSB" <> _ = tty), do: new_tty(tty)
   def maybe_new_tty("ttyACM" <> _ = tty), do: new_tty(tty)
   def maybe_new_tty("ttyS" <> _), do: :ok
@@ -56,6 +65,8 @@ defmodule FarmbotOS.Platform.Target.Uevent do
     Logger.debug("Unknown tty: #{inspect(unknown)}")
   end
 
+  # called when a new TTY is detected
+  @doc false
   def new_tty(tty) do
     case FirmwareTTYDetector.tty() do
       nil ->
