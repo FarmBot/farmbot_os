@@ -1,5 +1,7 @@
 defmodule FarmbotExt.AMQP.Supervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervises AMQP connections
+  """
   use Supervisor
   import FarmbotCore.Config, only: [get_config_value: 3]
 

@@ -1,11 +1,16 @@
 defmodule FarmbotExt.Bootstrap.Supervisor do
+  @moduledoc """
+  Supervisor responsible for starting all 
+  the tasks and processes that require authentication.
+  """
   use Supervisor
 
-  @doc "Start Bootstraped services."
+  @doc false
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  @impl Supervisor
   def init([]) do
     children = [
       FarmbotExt.API.EagerLoader.Supervisor,
