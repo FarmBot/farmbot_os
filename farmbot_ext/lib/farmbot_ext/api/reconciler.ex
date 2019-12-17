@@ -1,7 +1,11 @@
 defmodule FarmbotExt.API.Reconciler do
   @moduledoc """
-  Handles remote additions and changes.
+  Handles additions, deletions and changes of remote API resources
+
+  Uses the `updated_at` and `created_at` common fields of api resources
+  to determine if FarmbotOS or the API's resource is more current 
   """
+
   require Logger
   alias Ecto.Changeset
   import Ecto.Query
