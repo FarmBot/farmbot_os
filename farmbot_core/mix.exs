@@ -40,7 +40,11 @@ defmodule FarmbotCore.MixProject do
         "coveralls.html": :test
       ],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io"
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ]
     ]
   end
 

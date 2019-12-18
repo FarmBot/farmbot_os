@@ -15,7 +15,7 @@ defmodule FarmbotOS.Lua do
   }
 
   # this function is used by SysCalls, but isn't a direct requirement.
-  @doc false
+  @doc "Logs an assertion based on it's result"
   def log_assertion(passed?, type, message) do
     meta = [assertion_passed: passed?, assertion_type: type]
     FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, meta)

@@ -28,6 +28,7 @@ defmodule FarmbotOS.MixProject do
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
       deps_path: "deps/#{Mix.target()}",
       build_path: "_build/#{Mix.target()}",
+      deps: deps(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_target: [run: :host, test: :host],
       preferred_cli_env: [
@@ -36,7 +37,12 @@ defmodule FarmbotOS.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
-      deps: deps()
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ]
     ]
   end
 
