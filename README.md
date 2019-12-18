@@ -49,8 +49,8 @@ _Refer to the [software documentation Configurator page](https://software.farm.b
 
 ## Problems?
 
-See the [FAQ](docs/FAQ.md)
-If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot-Labs/farmbot_os/issues/new)
+See the [FAQ](docs/target_development/target_faq.md)
+If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
 ## Security Concerns?
 
@@ -58,5 +58,5 @@ We take security seriously and value the input of independent researchers. Pleas
 
 ## Want to Help?
 
-[Low Hanging Fruit](https://github.com/FarmBot-Labs/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
+[Low Hanging Fruit](https://github.com/FarmBot/farmbot_os/search?utf8=%E2%9C%93&q=TODO)
 [Development](CONTRIBUTING.md)
