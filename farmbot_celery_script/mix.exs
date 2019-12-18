@@ -28,6 +28,12 @@ defmodule FarmbotCeleryScript.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
+      ],
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
       ]
     ]
   end

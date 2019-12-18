@@ -158,7 +158,7 @@ defmodule FarmbotFirmware do
     * `{:report_success, []}` -> `:ok`
     * `{:report_invalid, []}` -> `{:error, :invalid_command}`
     * `{:report_error, []}` -> `{:error, :firmware_error}`
-    * `{:report_emergency_lock, []}` -> {:error, :emergency_lock}`
+    * `{:report_emergency_lock, []}` -> `{:error, :emergency_lock}`
 
   If the firmware is in any of the following states:
     * `:boot`

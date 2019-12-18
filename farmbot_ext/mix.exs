@@ -11,6 +11,7 @@ defmodule FarmbotExt.MixProject do
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       start_permanent: Mix.env() == :prod,
       elixirc_paths: ["lib", "vendor"],
+      deps: deps(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -18,7 +19,12 @@ defmodule FarmbotExt.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
-      deps: deps()
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ]
     ]
   end
 

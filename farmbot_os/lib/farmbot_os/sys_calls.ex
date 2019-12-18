@@ -69,6 +69,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate eval_assertion(comment, expression), to: Lua
+
   defdelegate log_assertion(passed?, type, message), to: Lua
 
   @impl true

@@ -1,4 +1,4 @@
-.PHONY: all clean format
+.PHONY: all clean format docs deps
 .DEFAULT_GOAL: all
 
 MIX_ENV := $(MIX_ENV)
@@ -51,6 +51,12 @@ format:
 
 deps:
 	@for project in $(PROJECTS) ; do \
-		echo Fetching deps: $$project ; \
+		echo Fetching deps for $$project ; \
 		cd $$project && mix deps.get && cd .. ; \
+	done
+
+docs:
+	@for project in $(PROJECTS) ; do \
+		echo Building docs for $$project ; \
+		cd $$project && mix docs && cd .. ; \
 	done
