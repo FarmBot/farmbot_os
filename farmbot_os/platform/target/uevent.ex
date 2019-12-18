@@ -38,6 +38,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
     {:ok, nil}
   end
 
+  @impl GenServer
   def handle_info({:system_registry, :global, new_reg}, %{} = old_reg) do
     new_ttys = get_in(new_reg, [:state, "subsystems", "tty"]) || []
     old_ttys = get_in(old_reg, [:state, "subsystems", "tty"]) || []
