@@ -56,6 +56,14 @@ install_libnl: &install_libnl
       apt-get update
       apt-get install pkg-config libnl-genl-3-dev -y
 
+install_mdl: &install_mdl
+  run:
+    name: Install libnl
+    command: |
+      apt-get update
+      apt-get install ruby -y
+      gem install mdl
+
 build_firmware_steps: &build_firmware_steps
   steps:
     - checkout
@@ -376,6 +384,7 @@ jobs:
       - run: git submodule update --init --recursive
       - <<: *install_elixir
       - <<: *install_hex_archives
+      - <<: *install_mdl
       - restore_cache:
           keys:
             - v14-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
@@ -397,6 +406,10 @@ jobs:
       - restore_cache: 
           keys: 
             - v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+      - run:
+          name: Check documentation formatting
+          command: |
+            mdl docs/
       - run:
           name: Report Coverage
           working_directory: /nerves/build/
