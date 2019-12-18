@@ -5,11 +5,12 @@ Accessing an SSH console.
 ## Setup
 
 FarmBot can be configured to start an SSH server to aid in debugging and development.
-During configuration of Network, select `Advanced Settings` and paste your [ssh
-public key](https://git-scm.com/book/en/v2/Git-on-the-Server-Generating-Your-SSH-Public-Key) into the
-optional input section labeled: `id_rsa.pub`. FarmBot requires a public key and
-will not allow a username + password combination. If you followed the documentation
-described in [building target firmware](/docs/target_development/building_target_firmware.md)
+During configuration of Network, select `Advanced Settings` and paste your
+[ssh public key](https://git-scm.com/book/en/v2/Git-on-the-Server-Generating-Your-SSH-Public-Key)
+into the optional input section labeled: `id_rsa.pub`.
+FarmBot requires a public key and will not allow a username + password combination.
+If you followed the documentation described in
+[building target firmware](/docs/target_development/building_target_firmware.md)
 then your SSH key will be automatically added to the device.
 
 ## Connecting

@@ -8,7 +8,7 @@ This document will act as an index to available documentation.
 
 ## Hardware specifics
 
-Most FarmBot development/testing is done on a standard desktop PC. 
+Most FarmBot development/testing is done on a standard desktop PC.
 
 * [Developing on your local PC](/docs/host_development/host_development.md)
 * [Deploying on Raspberry Pi](/docs/target_development/building_target_firmware.md)
@@ -18,7 +18,7 @@ Most FarmBot development/testing is done on a standard desktop PC.
 
 ## CeleryScript
 
-CeleryScript is FarmBot's native scripting language. See the below 
+CeleryScript is FarmBot's native scripting language. See the below
 documentation for information about it as it relates to FarmBot OS.
 
 * [CeleryScript intro](/docs/celery_script/celery_script.md)
@@ -27,7 +27,7 @@ documentation for information about it as it relates to FarmBot OS.
 
 ## Project structure
 
-The FarmBot OS application is broken into several sub applications. 
+The FarmBot OS application is broken into several sub applications.
 
 * [Project structure overview](/docs/project/structure.md)
   * [farmbot_celery_script](/docs/project/farmbot_celery_script.md)

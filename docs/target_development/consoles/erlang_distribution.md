@@ -23,4 +23,4 @@ iex --name console --cookie democookie --remsh farmbot@farmbot-<SERIAL_NUMBER>.l
 
 ## Disconnecting
 
-Issuing a `ctrl+c` to the `host` terminal should disconnect you from the session. 
+Issuing a `ctrl+c` to the `host` terminal should disconnect you from the session.

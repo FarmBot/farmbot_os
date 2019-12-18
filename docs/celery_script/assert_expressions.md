@@ -1,12 +1,13 @@
-# CeleryScript Assert expressions.
+# CeleryScript Assert expressions
 
 The CeleryScript `if` block takes a possible left hand side value of
-`expression` which allows an arbitrary string to be evaluated. This 
-expression is evaluated against a lua 5.2 interpreter. 
+`expression` which allows an arbitrary string to be evaluated. This
+expression is evaluated against a lua 5.2 interpreter.
 
 ## Lua API
-The following functions are available for usage along with [Lua's 
-standard library](https://www.lua.org/manual/5.2/). 
+
+The following functions are available for usage along with
+[Lua's standard library](https://www.lua.org/manual/5.2/).
 
 ```lua
 -- Comments are ignored by the interpreter
@@ -139,8 +140,10 @@ update_firmware_config({encoder_enabled_z = 1.0});
 ```
 
 ## Expression contract
+
 Expressions are expected to be evaluated in a certain way. The evaluation will fail
 if this contract is not met. An expression should return one of the following values:
+
 * `true`
 * `false`
 * `("error", "string reason signaling an error happened")`
