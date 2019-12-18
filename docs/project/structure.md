@@ -1,6 +1,6 @@
-## FarmBot Source Project structure
+# FarmBot Source Project structure
 
-The FarmBot OS application is broken into several sub OTP applications. 
+The FarmBot OS application is broken into several sub OTP applications.
 
 * [farmbot_celery_script](/docs/project/farmbot_celery_script.md)
 * [farmbot_core](/docs/project/farmbot_core.md)
@@ -13,7 +13,9 @@ The FarmBot OS application is broken into several sub OTP applications.
 
 All of these folders share a common structure.
 
-<OTP APP ROOT>
+```bash
+$ tree $OTP_APP_ROOT
+$OTP_APP_ROOT
 ├── lib/
 │   ├── application.ex
 │   └── some_file.ex
@@ -29,5 +31,7 @@ All of these folders share a common structure.
 
 * The `lib` folder contains Elixir source code
 * the `test` folder contains Elixir scripts responsible for testing the `lib` code
-* the `config` folder contains Elixir scripts responsible for configuring the **current** OTP app
-* `mix.exs` and `mix.lock` files are responsible describing the OTP app, and managing external dependencies
+* the `config` folder contains Elixir scripts responsible for
+  configuring the **current** OTP app
+* `mix.exs` and `mix.lock` files are responsible describing
+  the OTP app, and managing external dependencies

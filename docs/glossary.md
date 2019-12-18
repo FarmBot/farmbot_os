@@ -19,8 +19,9 @@ This file contains a basic glossary of commonly used terms
   * [More info](https://elixir-lang.org/)
   * [Even more info](#OTP-Terms)
   * [Docs](https://www.erlang.org/docs)
-* UART - **U**niversal **A**synchronous **R**eceiver/**T**ransmitter. hardware based transport mechanism
-* SSH - **S**ecure **S**hell. 
+* UART - **U**niversal **A**synchronous **R**eceiver/**T**ransmitter.
+  hardware based transport mechanism
+* SSH - **S**ecure **S**hell.
 * MQTT/AMQP - network protocols for pub/sub data transport
 * HTTP - network protocol for accessing REST resource
 
@@ -41,8 +42,11 @@ This file contains a basic glossary of commonly used terms
   * [More info](https://erlang.org/doc/design_principles/des_princ.html)
 * Supervisor - OTP `Process` responsible for supervising `Workers`
 * Worker - OTP `Process` responsible for doing `work`. Usually `Supervised`
-* Process - OTP concept responsible for sending/receiving messages. **everything** is a process in erlang
+* Process - OTP concept responsible for sending/receiving messages.
+  **everything** is a process in erlang
 * Application - OTP concept responsible for containing many `Supervisor`s and `Worker`s
 * Distribution - OTP concept of networking multiple Beam instances together
-* ETS - **E**rlang **T**erm **S**torage. OTP application for storing data in memory
-* DETS - **D**isk **E**rlang **T**erm **S**torage. OTP application for storing data on disk
+* ETS - **E**rlang **T**erm **S**torage. OTP application for storing
+  data in memory
+* DETS - **D**isk **E**rlang **T**erm **S**torage. OTP application for
+  storing data on disk

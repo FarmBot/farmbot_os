@@ -1,54 +1,67 @@
-## Provisioning the Release System
+# Provisioning the Release System
+
 Publishing a FarmBotOS release requires coordination of a few different systems.
+
 * FarmBot Web App
 * FarmBot OS
 * NervesHub
 * CircleCI
 * GitHub branches and releases
 
-## Legacy System
+## Legacy Release System
+
 The legacy system is somewhat simpiler. It goes as follows:
 
-### Pull request into `master` branch.
-```
+### Pull request into `master` branch
+
+```bash
 git checkout master
 git merge staging
 git push origin master
 ```
+
 Obviously this will not actually work because of testing and things, but that
 is what happens behind the scenes on GitHub.
 
 ### CircleCI builds release
+
 Once merged into master CircleCI will create a `draft` release on GitHub. This
 must be QA'd and confirmed manually before publishing. Once published, FarmBot
 will check the `OS_AUTO_UPDATE_URL` in the JWT.
 
 ### Beta updates
+
 Users may opt into beta updates by settings `os_beta_updates: true` on their
 device's `FbosConfig` endpoint.
 
 Beta releases are constructed by creating a tag off of the `staging` branch.
 
 1) update `VERSION`.
-    * Should follow `X.Y.Z-rcN`
+    Should follow `X.Y.Z-rcN`
+
 2) update `CHANGELOG.md`.
-    * Topmost version should contain: `vX.Y.Z`
+    Topmost version should contain: `vX.Y.Z`
+
 3) Commit release.
-    * Message should follow format: `Release vX.Y.Z-rcN`
+    Message should follow format: `Release vX.Y.Z-rcN`
+
 4) push `staging`
-    * `git push origin staging`
+    `git push origin staging`
+
 5) tag
-    * `git tag v$(cat VERSION)`
-    * `git push origin v$(cat VERSION)`
+    `git tag v$(cat VERSION)`
+    `git push origin v$(cat VERSION)`
 
 ## NervesHub System
+
 The NervesHub system is simpiler to use, but more complex to setup.
 
 ### User registration
+
 Create a admin user. This should be the same `ADMIN_EMAIL` used in
 the WebApp configuration.
 
-```
+```bash
 mix nerves_hub.user register
 Email address: admin@farmbot.io
 Name: farmbot
@@ -56,41 +69,44 @@ NervesHub password: *super secret*
 Local password: *super duper secret*
 ```
 
-```
+```bash
 mix nerves_hub.product create
 name: farmbot
 Local password: *super duper secret*
 ```
 
-
 ### Signing keys
+
 Now a choice will need to be made.
 
 If fwup signing keys existed beforehand (they did for FarmBot Inc) do:
-```
+
+```bash
 mix nerves_hub.key import <PATH/TO/PUBLIC/KEY> <PATH/TO/PRIVATE/KEY>
 Local password: *super duper secret*
 ```
 
 If new keys are required (probably named "prod") do:
-```
+
+```bash
 mix nerves_hub.key create <NAME>
 Local password: *super duper secret*
 ```
 
 ### Exporting certs and keys
+
 The API and CI need copies of these keys and certs.
 These certs need to be updated before they expire. By default they are good for
 1 year
 
-```
+```bash
 mix nerves_hub.user cert export
 Local password: *super duper secret*
 User certs exported to: <PATH/TO/EXPORTED_CERTS.tar.gz>
 tar -xf <PATH/TO/EXPORTED_CERTS.tar.gz> -C nerves-hub/
 ```
 
-```
+```bash
 mix nerves_hub.key export prod
 Local password: *super duper secret*
 Fwup keys exported to: <PATH/TO/EXPORTED_KEYS.tar.gz>
@@ -99,18 +115,24 @@ tar -xf <PATH/TO/EXPORTED_KEYS.tar.gz> -C nerves-hub/
 
 You will also need the CA cert bundle for the WebApp:
 (this may only work for BASH)
+
 ```bash
-{ curl -s https://raw.githubusercontent.com/nerves-hub/nerves_hub_cli/master/priv/ca_certs/root-ca.pem | head -20 \
-&& curl -s https://raw.githubusercontent.com/nerves-hub/nerves_hub_cli/master/priv/ca_certs/intermediate-server-ca.pem | head -20 \
-  && curl -s https://raw.githubusercontent.com/nerves-hub/nerves_hub_cli/master/priv/ca_certs/intermediate-user-ca.pem | head -20;
+REPO_URL=https://raw.githubusercontent.com/nerves-hub/nerves_hub_cli/master/priv/master/priv/ca_certs
+{ \
+   curl -s $REPO_URL/root-ca.pem                | head -20 \
+&& curl -s $REPO_URL/intermediate-server-ca.pem | head -20 \
+&& curl -s $REPO_URL/intermediate-user-ca.pem   | head -20; \
 } > nerves-hub/nerves-hub-ca-certs.pem
 ```
 
 Now the FarmBot API needs the values of in it's environment:
 
-* `NERVES_HUB_KEY` -> `heroku config:set NERVES_HUB_KEY="$(cat nerves-hub/key.pem)" --app $APP`
-* `NERVES_HUB_CERT` -> `heroku config:set NERVES_HUB_CERT="$(cat nerves-hub/cert.pem)" --app $APP`
-* `NERVES_HUB_CA` -> `heroku config:set NERVES_HUB_CA="$(cat nerves-hub/ca.pem)" --app $APP`
+* `NERVES_HUB_KEY` ->
+    `heroku config:set NERVES_HUB_KEY="$(cat nerves-hub/key.pem)" --app $APP`
+* `NERVES_HUB_CERT` ->
+    `heroku config:set NERVES_HUB_CERT="$(cat nerves-hub/cert.pem)" --app $APP`
+* `NERVES_HUB_CA` ->
+    `heroku config:set NERVES_HUB_CA="$(cat nerves-hub/ca.pem)" --app $APP`
 
 CircleCI will need:
 
@@ -134,10 +156,12 @@ NOTE: the tags **NOT** json objects, they are simple strings
 split by a `:` character. This is done _only_ for readability.
 
 where `MIX_ENV` will be one of:
+
 * `dev`
 * `prod`
 
 and `CHANNEL` will be one of:
+
 * `beta`
 * `stable`
 
@@ -145,25 +169,25 @@ There should be at least one deployment matching the following
 tags:
 
 * `["application:dev", "channel:stable"]`
-    * a development FBOS release on the `stable` channel
+    a development FBOS release on the `stable` channel
 * `["application:prod", "channel:stable"]`
-    * a production FBOS release on the `stable` channel
+    a production FBOS release on the `stable` channel
 * `["application:dev", "channel:beta"]`
-    * a development FBOS release on the `beta` channel
+    a development FBOS release on the `beta` channel
 * `["application:prod", "channel:beta"]`
-    * a production FBOS release on the `beta` channel
+    a production FBOS release on the `beta` channel
 * `["application:dev", "channel:stable"]`
-    * a development FBOS release on the `stable` channel
+    a development FBOS release on the `stable` channel
 * `["application:prod", "channel:stable"]`
-    * a production FBOS release on the `stable` channel
+    a production FBOS release on the `stable` channel
 * `["application:dev", "channel:beta"]`
-    * a development FBOS release on the `beta` channel
+    a development FBOS release on the `beta` channel
 * `["application:prod", "channel:beta"]`
-    * a production FBOS release on the `beta` channel
-
+    a production FBOS release on the `beta` channel
 
 ### First time setup
-```
+
+```bash
 heroku config:set NERVES_HUB_CERT="$NERVES_HUB_CERT" --app=$HEROKU_APPNAME
 heroku config:set NERVES_HUB_KEY="$NERVES_HUB_KEY" --app=$HEROKU_APPNAME
 heroku config:set NERVES_HUB_CA="$NERVES_HUB_CA" --app=$HEROKU_APPNAME
