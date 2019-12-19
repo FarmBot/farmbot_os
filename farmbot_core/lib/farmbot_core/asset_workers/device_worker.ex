@@ -27,18 +27,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       |> AST.Factory.rpc_request("RESET_DEVICE_NOW")
       |> AST.Factory.factory_reset("farmbot_os")
 
-    case FarmbotCeleryScript.execute(ast, make_ref()) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        FarmbotCore.Logger.error(1, "error executing #{state.pin_binding}: #{reason}")
-    end
+    :ok = FarmbotCeleryScript.execute(ast, make_ref())
 
     {:noreply, state}
   end
 
   def handle_info(:check_factory_reset, state) do
+    {:noreply, state}
+  end
+
+  def handle_info({:step_complete, _ref, _}, state) do
     {:noreply, state}
   end
 
