@@ -101,7 +101,10 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     |> Repo.insert!()
   end
 
-  def device(params \\ %{}) do
+  @doc """
+  Instantiates, but does not create, a %Device{}
+  """
+  def device_init(params \\ %{}) do
     defaults = %{id: :rand.uniform(1_000_000), monitor: false}
     params = Map.merge(defaults, params)
 
