@@ -4,6 +4,7 @@ defmodule Avrdude do
   """
 
   @uart_speed 115_200
+  require FarmbotCore.Logger
 
   @spec flash(Path.t(), Path.t(), (() -> :ok)) :: {number, any()}
   def flash(hex_path, tty_path, reset_fun) do
@@ -28,7 +29,22 @@ defmodule Avrdude do
     ]
 
     # call the function for resetting the line before executing avrdude.
-    :ok = reset_fun.()
-    MuonTrap.cmd("avrdude", args, into: IO.stream(:stdio, :line))
+    call_reset_fun(reset_fun)
+    MuonTrap.cmd("avrdude", args, into: IO.stream(:stdio, :line), stderr_to_stdout: true)
   end
+
+  def call_reset_fun(reset_fun) do
+    try do
+      reset_fun.()
+    catch
+      error_type, error ->
+        FarmbotCore.Logger.error(1, """
+        Error calling reset function: #{inspect(reset_fun)} 
+        error type: #{error_type}
+        error: #{inspect(error)}
+        """)
+    end
+  end
+
+  :ok
 end

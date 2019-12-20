@@ -14,8 +14,9 @@ defmodule FarmbotFirmware.UARTTransport do
   def init(args) do
     device = Keyword.fetch!(args, :device)
     handle_gcode = Keyword.fetch!(args, :handle_gcode)
+    reset = Keyword.fetch!(args, :reset)
     {:ok, uart} = UART.start_link()
-    {:ok, %{uart: uart, device: device, open: false, handle_gcode: handle_gcode}, 0}
+    {:ok, %{uart: uart, device: device, open: false, handle_gcode: handle_gcode, reset: reset}, 0}
   end
 
   def terminate(_, state) do
@@ -26,7 +27,7 @@ defmodule FarmbotFirmware.UARTTransport do
     opts = [active: true, speed: 115_200, framing: {UART.Framing.Line, separator: "\r\n"}]
 
     with :ok <- open(state.uart, state.device, opts),
-         :ok <- reset(state.uart, state.device, opts) do
+         :ok <- reset(state) do
       {:noreply, %{state | open: true}}
     else
       {:error, reason} ->
@@ -51,8 +52,8 @@ defmodule FarmbotFirmware.UARTTransport do
     {:reply, r, state}
   end
 
-  def reset(_uart_pid, _device_path, _opts) do
-    if module = config()[:reset] do
+  def reset(state) do
+    if module = state[:reset] do
       module.reset()
     else
       :ok
@@ -61,9 +62,5 @@ defmodule FarmbotFirmware.UARTTransport do
 
   def open(uart_pid, device_path, opts) do
     UART.open(uart_pid, device_path, opts)
-  end
-
-  defp config do
-    Application.get_env(:farmbot_firmware, __MODULE__)
   end
 end
