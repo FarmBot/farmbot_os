@@ -285,7 +285,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   end
 
   def set_servo_angle(sys_calls \\ @sys_calls, pin_num, pin_value) do
-    number_or_error(sys_calls, :set_servo_angle, [pin_num, pin_value])
+    ok_or_error(sys_calls, :set_servo_angle, [pin_num, pin_value])
   end
 
   def set_pin_io_mode(sys_calls \\ @sys_calls, pin_number, pin_io_mode) do
