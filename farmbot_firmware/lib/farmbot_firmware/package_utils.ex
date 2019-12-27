@@ -14,6 +14,10 @@ defmodule FarmbotFirmware.PackageUtils do
     Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
   end
 
+  def find_hex_file("farmduino_k15") do
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k15.hex"]) |> assert_exists()
+  end
+
   def find_hex_file("express_k10") do
     Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"]) |> assert_exists()
   end
@@ -34,6 +38,9 @@ defmodule FarmbotFirmware.PackageUtils do
 
   def package_to_string("farmduino_k14"),
     do: "Farmduino (Genesis v1.4)"
+
+  def package_to_string("farmduino_k15"),
+    do: "Farmduino (Genesis v1.5)"
 
   def package_to_string("express_k10"),
     do: "Farmduino (Express v1.0)"
