@@ -129,7 +129,9 @@ defmodule FarmbotFirmware do
     :command_queue,
     :caller_pid,
     :current,
-    :vcr_fd
+    :vcr_fd,
+    :reset,
+    :reset_pid
   ]
 
   @type state :: %State{
@@ -144,7 +146,9 @@ defmodule FarmbotFirmware do
           command_queue: [{pid(), GCODE.t()}],
           caller_pid: nil | pid,
           current: nil | GCODE.t(),
-          vcr_fd: nil | File.io_device()
+          vcr_fd: nil | File.io_device(),
+          reset: module(),
+          reset_pid: nil | pid()
         }
 
   @doc """
@@ -200,6 +204,10 @@ defmodule FarmbotFirmware do
     GenServer.call(server, {:open_transport, module, args})
   end
 
+  def reset(server \\ __MODULE__) do
+    GenServer.call(server, :reset)
+  end
+
   @doc """
   Sets the Firmware server to record input and output GCODES
   to a pair of text files.
@@ -233,6 +241,7 @@ defmodule FarmbotFirmware do
     args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
+    reset = Keyword.fetch!(args, :reset)
 
     vcr_fd =
       case Keyword.get(args, :vcr_path) do
@@ -256,6 +265,8 @@ defmodule FarmbotFirmware do
       transport_args: transport_args,
       side_effects: side_effects,
       status: :transport_boot,
+      reset: reset,
+      reset_pid: nil,
       command_queue: [],
       configuration_queue: [],
       vcr_fd: vcr_fd
@@ -271,6 +282,19 @@ defmodule FarmbotFirmware do
     state.transport_pid &&
       Process.alive?(state.transport_pid) &&
       GenServer.stop(state.transport_pid)
+  end
+
+  def handle_info(:timeout, %{status: :transport_boot, reset_pid: nil} = state) do
+    case GenServer.start_link(state.reset, state.transport_args, name: state.reset) do
+      {:ok, pid} ->
+        Logger.debug("Firmware reset #{state.reset} started. #{inspect(state.transport_args)}")
+        {:noreply, %{state | reset_pid: pid}}
+
+      error ->
+        Logger.error("Error starting Firmware Reset: #{inspect(error)}")
+        Process.send_after(self(), :timeout, @transport_init_error_retry_ms)
+        {:noreply, state}
+    end
   end
 
   # This will be the first message received right after `init/1`
@@ -357,6 +381,11 @@ defmodule FarmbotFirmware do
     {:noreply, state}
   end
 
+  def handle_call(:reset, _from, state) do
+    r = state.reset.reset()
+    {:reply, r, state}
+  end
+
   # Closing the transport will purge the buffer of queued commands in both
   # the `configuration_queue` and in the `command_queue`.
   def handle_call(:close_transport, _from, %{status: s} = state) when s != :transport_boot do
@@ -388,7 +417,12 @@ defmodule FarmbotFirmware do
     # Add an anon function that transport implementations should call.
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
-    transport_args = Keyword.put(args, :handle_gcode, fun)
+
+    transport_args =
+      state.transport_args
+      |> Keyword.merge(args)
+      |> Keyword.merge(handle_gcode: fun)
+
     next_state = %{state | transport: module, transport_args: transport_args}
 
     send(self(), :timeout)

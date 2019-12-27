@@ -17,6 +17,25 @@ mix compile --force
 ```
 
 If you're device moves ttys, you will have to redo this step.
+Make sure the correct firmware is selected in the frontend. This
+value is completely ignored when the `none` option is selected on
+the Devices panel.
+
+To check the currently running firmware handler, from a running fbos instance
+for the correct `transport` and correct `device` in it's args:
+
+```elixir
+iex()> :sys.get_state(FarmbotFirmware)
+%FarmbotFirmware{
+  #...
+  transport: FarmbotFirmware.UARTTransport,
+  transport_args: [
+    handle_gcode: #Function<1.52136448/1 in FarmbotFirmware.handle_call/3>,
+    device: "ttyUSB0"
+  ]
+  #...
+}
+```
 
 ## Configurator
 

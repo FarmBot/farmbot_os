@@ -66,6 +66,8 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Host.Configurator
   ]
 
+config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
+
 import_config("lagger.exs")
 
 if Mix.target() == :host do
