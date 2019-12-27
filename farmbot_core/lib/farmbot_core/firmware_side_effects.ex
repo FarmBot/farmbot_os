@@ -88,6 +88,10 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "G"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+      # Farmduino V15
+      [_, _, _, "H"] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("farmduino_k15")
       # Express V10
       [_, _, _, "E"] ->
         _ = Leds.red(:solid)

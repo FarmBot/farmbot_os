@@ -69,6 +69,7 @@ defmodule FarmbotOS.SysCalls.DumpInfo do
       [_, _, _, "R"] -> "arduino"
       [_, _, _, "F"] -> "farmduino"
       [_, _, _, "G"] -> "farmduino_k14"
+      [_, _, _, "H"] -> "farmduino_k15"
       [_, _, _, "E"] -> "express_k10"
       _ -> nil
     end
