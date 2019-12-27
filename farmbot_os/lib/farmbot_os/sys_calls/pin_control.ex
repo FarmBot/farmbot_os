@@ -42,6 +42,16 @@ defmodule FarmbotOS.SysCalls.PinControl do
     {:error, "Unknown pin data: #{inspect(pin_number)}"}
   end
 
+  def set_servo_angle(pin, angle) do
+    case FarmbotFirmware.command({:servo_write, [p: pin, v: angle]}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
+  end
+
   defp do_toggle_pin(%Peripheral{pin: pin_number} = data, value) do
     with :ok <- FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: 0]}),
          value when is_number(value) <- do_read_pin(data, 0) do

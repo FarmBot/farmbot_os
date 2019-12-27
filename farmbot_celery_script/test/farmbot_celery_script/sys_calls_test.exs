@@ -133,6 +133,17 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     assert {:error, "not installed"} == SysCalls.execute_script(TestSysCalls, "take-photo", %{})
   end
 
+  test "set_servo_angle errors", %{shim: shim} do
+    :ok = shim_fun_ok(shim)
+    arg0 = [5, 40]
+    assert :ok = SysCalls.set_servo_angle(TestSysCalls, "set_servo_angle", arg0)
+    assert_receive {:set_servo_angle, arg0}
+
+    arg1 = [40, -5]
+    :ok = shim_fun_error(shim, "boom")
+    assert {:error, "boom"} == SysCalls.set_servo_angle(TestSysCalls, "set_servo_angle", arg1)
+  end
+
   test "get_sequence", %{shim: shim} do
     :ok =
       shim_fun_ok(shim, %AST{
