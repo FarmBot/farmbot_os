@@ -10,6 +10,7 @@
   "endstop_invert": "6.4.1",
   "express_k10": "8.0.0",
   "farmduino_k14": "6.4.4",
+  "farmduino_k15": "9.0.0",
   "firmware_restart": "8.0.0",
   "flash_firmware": "8.0.0",
   "groups": "8.1.0",
