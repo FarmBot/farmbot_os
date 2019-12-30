@@ -339,7 +339,7 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
-    Logger.debug("Starting next configuration code: #{inspect(code)}")
+    # Logger.debug("Starting next configuration code: #{inspect(code)}")
 
     case GenServer.call(state.transport_pid, {state.tag, code}) do
       :ok ->
