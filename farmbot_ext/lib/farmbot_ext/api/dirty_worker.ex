@@ -53,22 +53,22 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def handle_continue([dirty | rest], %{module: module} = state) do
-    Logger.info("[#{module} #{dirty.local_id} #{inspect(self())}] Handling dirty data")
+    # Logger.info("[#{module} #{dirty.local_id} #{inspect(self())}] Handling dirty data")
 
     case http_request(dirty, state) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-        Logger.debug(
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} ok"
-        )
+        # Logger.debug(
+        #   "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} ok"
+        # )
 
         dirty |> module.changeset(body) |> handle_changeset(rest, state)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
-        Logger.debug(
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error+body"
-        )
+        # Logger.debug(
+        #   "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error+body"
+        # )
 
         changeset = module.changeset(dirty)
 
@@ -79,9 +79,9 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
-        Logger.debug(
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error"
-        )
+        # Logger.debug(
+        #   "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error"
+        # )
 
         module.changeset(dirty)
         |> Map.put(:valid?, false)
@@ -101,7 +101,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # If the changeset was valid, update the record.
   def handle_changeset(%{valid?: true} = changeset, rest, state) do
-    Logger.info("Successfully synced: #{state.module}")
+    # Logger.info("Successfully synced: #{state.module}")
 
     Repo.update!(changeset)
     |> Private.mark_clean!()
@@ -125,21 +125,21 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   defp http_request(%{id: nil} = dirty, state) do
-    Logger.debug("#{state.module} clean request (post)")
+    # Logger.debug("#{state.module} clean request (post)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.post(API.client(), path, data)
   end
 
   defp http_request(dirty, %{module: module} = state) when module in @singular do
-    Logger.debug("#{state.module} dirty request (patch)")
+    # Logger.debug("#{state.module} dirty request (patch)")
     path = path = state.module.path()
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
   end
 
   defp http_request(dirty, state) do
-    Logger.debug("#{state.module} dirty request (patch)")
+    # Logger.debug("#{state.module} dirty request (patch)")
     path = Path.join(state.module.path(), to_string(dirty.id))
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
