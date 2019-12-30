@@ -120,7 +120,7 @@ defmodule FarmbotExt.API.Reconciler do
 
   # A module is passed in if there is no local copy of the data.
   defp get_changeset(module, %Item{} = sync_item, nil) when is_atom(module) do
-    Logger.info("Local data: #{module} does not exist. Using HTTP to get data.")
+    # Logger.info("Local data: #{module} does not exist. Using HTTP to get data.")
     {:ok, changeset} = API.get_changeset(module, "#{sync_item.id}")
     {:insert, changeset}
   end
