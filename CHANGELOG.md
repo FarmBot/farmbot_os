@@ -2,6 +2,8 @@
 
 # 9.0.0
  * Run updates on Nerves systems.
+ * Updates to the way `set_servo_angle` is handled.
+ * Fixes rip0 firmware flash issues.
 
 # 8.2.4
 * Bug fixes
