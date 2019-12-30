@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.PinControl do
+  @moduledoc false
+
   alias FarmbotCore.{Asset, Leds}
 
   alias FarmbotCore.Asset.{
@@ -38,6 +40,16 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   def toggle_pin(pin_number) do
     {:error, "Unknown pin data: #{inspect(pin_number)}"}
+  end
+
+  def set_servo_angle(pin, angle) do
+    case FarmbotFirmware.command({:servo_write, [p: pin, v: angle]}) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        {:error, "Firmware error: #{inspect(reason)}"}
+    end
   end
 
   defp do_toggle_pin(%Peripheral{pin: pin_number} = data, value) do

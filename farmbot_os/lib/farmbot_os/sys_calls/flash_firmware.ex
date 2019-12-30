@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.FlashFirmware do
+  @moduledoc false
+
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector
@@ -11,8 +13,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
+         _ <- FarmbotCore.Logger.debug(3, "found tty: #{tty} for firmware flash"),
          {:ok, fun} <- find_reset_fun(package),
+         _ <- FarmbotCore.Logger.debug(3, "closing firmware transport before flash"),
          :ok <- FarmbotFirmware.close_transport(),
+         _ <- FarmbotCore.Logger.debug(3, "starting firmware flash"),
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
       FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
@@ -47,11 +52,13 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   end
 
   defp find_reset_fun(_) do
-    config = Application.get_env(:farmbot_firmware, FarmbotFirmware.UARTTransport)
+    config = Application.get_env(:farmbot_firmware, FarmbotFirmware)
 
     if module = config[:reset] do
+      Logger.error("using reset function: #{inspect(config)}")
       {:ok, &module.reset/0}
     else
+      Logger.error("no reset function is going to be used #{inspect(config)}")
       {:ok, fn -> :ok end}
     end
   end

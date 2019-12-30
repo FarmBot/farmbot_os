@@ -40,7 +40,11 @@ defmodule FarmbotCore.MixProject do
         "coveralls.html": :test
       ],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io"
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ]
     ]
   end
 
@@ -65,7 +69,7 @@ defmodule FarmbotCore.MixProject do
       {:muontrap, "~> 0.5"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
+      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 

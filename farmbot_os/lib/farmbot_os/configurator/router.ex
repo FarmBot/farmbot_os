@@ -1,5 +1,6 @@
 defmodule FarmbotOS.Configurator.Router do
   @moduledoc "Routes web connections for configuring farmbot os"
+
   require FarmbotCore.Logger
   require FarmbotTelemetry
 

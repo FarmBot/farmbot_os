@@ -54,6 +54,9 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
          {:ok, _} <- maybe_purge(chan, chan_name, purge?),
          :ok <- Queue.bind(chan, chan_name, @exchange, routing_key: route),
          {:ok, _} <- Basic.consume(chan, chan_name, self(), no_ack: true) do
+      # link to the connection and channel because the 
+      # AMQP lib doesn't handle being disconnected form the 
+      # network very well and these pids will turn into zombies
       Process.link(conn.pid)
       Process.link(chan.pid)
       FarmbotTelemetry.event(:amqp, :channel_open)
@@ -92,7 +95,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
 
   @impl GenServer
   def init(opts) do
-    Process.flag(:sensitive, true)
     Process.flag(:trap_exit, true)
     {:ok, %ConnectionWorker{conn: nil, opts: opts}, 0}
   end

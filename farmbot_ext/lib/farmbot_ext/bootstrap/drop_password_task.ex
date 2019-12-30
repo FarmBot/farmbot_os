@@ -9,15 +9,18 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTask do
 
   use GenServer
 
+  @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
+  @impl GenServer
   def init(_args) do
     send(self(), :checkup)
     {:ok, %{backoff: 5000, timer: nil}}
   end
 
+  @impl GenServer
   def handle_info(:checkup, state) do
     email = get_config_value(:string, "authorization", "email")
     password = get_config_value(:string, "authorization", "password")

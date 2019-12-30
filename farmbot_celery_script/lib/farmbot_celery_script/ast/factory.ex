@@ -75,4 +75,9 @@ defmodule FarmbotCeleryScript.AST.Factory do
   def add_body_node(%AST{body: body} = ast, %AST{} = body_node) do
     %{ast | body: body ++ [body_node]}
   end
+
+  def factory_reset(%AST{} = ast, package) do
+    ast
+    |> add_body_node(new(:factory_reset, %{package: package}))
+  end
 end

@@ -28,6 +28,11 @@ defmodule FarmbotCore.BotState do
   def set_position(bot_state_server \\ __MODULE__, x, y, z) do
     GenServer.call(bot_state_server, {:set_position, x, y, z})
   end
+  
+  @doc "Sets the location_data.load"
+  def set_load(bot_state_server \\ __MODULE__, x, y, z) do
+    GenServer.call(bot_state_server, {:set_load, x, y, z})
+  end
 
   @doc "Sets the location_data.encoders_scaled"
   def set_encoders_scaled(bot_state_server \\ __MODULE__, x, y, z) do
@@ -209,6 +214,16 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_position, x, y, z}, _from, state) do
     change = %{location_data: %{position: %{x: x, y: y, z: z}}}
+
+    {reply, state} =
+      BotStateNG.changeset(state.tree, change)
+      |> dispatch_and_apply(state)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:set_load, x, y, z}, _from, state) do
+    change = %{location_data: %{load: %{x: x, y: y, z: z}}}
 
     {reply, state} =
       BotStateNG.changeset(state.tree, change)

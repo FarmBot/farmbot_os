@@ -1,5 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Network do
   @moduledoc "Manages Network Connections"
+
   use GenServer, shutdown: 10_000
   require Logger
   require FarmbotCore.Logger
@@ -21,7 +22,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   def host do
     %{
       type: CaptivePortal,
-      wifi: %{
+      vintage_net_wifi: %{
         networks: [
           %{
             ssid: build_hostap_ssid(),
@@ -320,7 +321,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
       [ntp_server_1, ntp_server_2]
       |> Enum.reject(&is_nil/1)
-      |> Nerves.Time.set_ntp_servers()
+      |> NervesTime.set_ntp_servers()
     else
       Logger.info("Using default NTP servers")
       :ok

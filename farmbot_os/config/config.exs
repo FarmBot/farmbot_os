@@ -66,6 +66,17 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Host.Configurator
   ]
 
+config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
+
+config :logger,
+  handle_sasl_reports: false,
+  handle_otp_reports: false,
+  compile_time_purge_matching: [
+    [application: :amqp],
+    [application: :amqp_client],
+    [application: :rabbit_common]
+  ]
+
 import_config("lagger.exs")
 
 if Mix.target() == :host do

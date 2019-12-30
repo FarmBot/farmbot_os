@@ -1,4 +1,11 @@
 defmodule FarmbotOS.Configurator.DetsTelemetryLayer do
+  @moduledoc """
+  Telemetry layer implementation for fetching telemetry data from
+  `farmbot_telemetry` OTP application.
+
+  Still a work in progress.
+  """
+
   @behaviour FarmbotOS.Configurator.TelemetryLayer
 
   @impl FarmbotOS.Configurator.TelemetryLayer

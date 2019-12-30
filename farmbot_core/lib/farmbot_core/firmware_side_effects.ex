@@ -11,6 +11,11 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
+  def handle_load(x: x, y: y, z: z) do
+    :ok = BotState.set_load(x, y, z)
+  end
+
+  @impl FarmbotFirmware.SideEffects
   def handle_position_change([{_axis, _value}]) do
     :noop
   end
@@ -83,6 +88,10 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "G"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+      # Farmduino V15
+      [_, _, _, "H"] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("farmduino_k15")
       # Express V10
       [_, _, _, "E"] ->
         _ = Leds.red(:solid)
@@ -176,15 +185,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
       :movement_invert_endpoints_x,
       :movement_invert_endpoints_y,
       :movement_invert_endpoints_z,
-      :movement_invert_2_endpoints_x,
-      :movement_invert_2_endpoints_y,
-      :movement_invert_2_endpoints_z,
-      :movement_motor_current_x,
-      :movement_motor_current_y,
-      :movement_motor_current_z,
-      :movement_stall_sensitivity_x,
-      :movement_stall_sensitivity_y,
-      :movement_stall_sensitivity_z,
       :movement_enable_endpoints_x,
       :movement_enable_endpoints_y,
       :movement_enable_endpoints_z,
@@ -214,6 +214,18 @@ defmodule FarmbotCore.FirmwareSideEffects do
       :movement_max_spd_x,
       :movement_max_spd_y,
       :movement_max_spd_z,
+      :movement_invert_2_endpoints_x,
+      :movement_invert_2_endpoints_y,
+      :movement_invert_2_endpoints_z,
+      :movement_motor_current_x,
+      :movement_motor_current_y,
+      :movement_motor_current_z,
+      :movement_stall_sensitivity_x,
+      :movement_stall_sensitivity_y,
+      :movement_stall_sensitivity_z,
+      :movement_microsteps_x,
+      :movement_microsteps_y,
+      :movement_microsteps_z,
       :encoder_enabled_x,
       :encoder_enabled_y,
       :encoder_enabled_z,

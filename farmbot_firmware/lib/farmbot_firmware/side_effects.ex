@@ -11,6 +11,7 @@ defmodule FarmbotFirmware.SideEffects do
   @callback load_params :: [{Param.t(), float() | nil}]
 
   @callback handle_position(x: float(), y: float(), z: float()) :: any()
+  @callback handle_load(x: float(), y: float(), z: float()) :: any()
   @callback handle_position_change([{axis(), float()}]) :: any()
   @callback handle_encoders_scaled(x: float(), y: float(), z: float()) :: any()
   @callback handle_encoders_raw(x: float(), y: float(), z: float()) :: any()

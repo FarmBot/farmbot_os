@@ -8,7 +8,8 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R00", []), do: {:report_idle, []}
   def do_decode("R01", []), do: {:report_begin, []}
   def do_decode("R02", []), do: {:report_success, []}
-  def do_decode("R03", []), do: {:report_error, []}
+  def do_decode("R03", []), do: {:report_error, [:no_error]}
+  def do_decode("R03", error), do: {:report_error, decode_error(error)}
   def do_decode("R04", []), do: {:report_busy, []}
 
   def do_decode("R05", xyz), do: {:report_axis_state, decode_axis_state(xyz)}
@@ -46,6 +47,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
 
   def do_decode("R87", []), do: {:report_emergency_lock, []}
   def do_decode("R88", []), do: {:report_no_config, []}
+  def do_decode("R89", xyz), do: {:report_load, decode_floats(xyz)}
   def do_decode("R99", debug), do: {:report_debug_message, [Enum.join(debug, " ")]}
 
   def do_decode("G00", xyzs), do: {:command_movement, decode_floats(xyzs)}
@@ -81,6 +83,14 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode(kind, args) do
     {:unknown, [kind | args]}
   end
+
+  def decode_error(["V0"]), do: [:no_error]
+  def decode_error(["V1"]), do: [:emergency_lock]
+  def decode_error(["V2"]), do: [:timeout]
+  def decode_error(["V3"]), do: [:stall_detected]
+  def decode_error(["V14"]), do: [:invalid_command]
+  def decode_error(["V15"]), do: [:no_config]
+  def decode_error([unk]), do: [unknown_error: unk]
 
   defp decode_floats(list, acc \\ [])
 
@@ -154,6 +164,8 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   end
 
   defp decode_end_stops([], acc), do: acc
+
+  defp decode_end_stops(error, _acc), do: [parse_error: error]
 
   defp decode_pv(["P" <> param_id, "V" <> value]) do
     param = Param.decode(String.to_integer(param_id))

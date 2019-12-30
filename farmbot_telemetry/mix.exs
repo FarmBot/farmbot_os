@@ -12,6 +12,7 @@ defmodule FarmbotTelemetry.MixProject do
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
+      deps: deps(),
       preferred_cli_env: [
         test: :test,
         coveralls: :test,
@@ -20,7 +21,12 @@ defmodule FarmbotTelemetry.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
-      deps: deps()
+      source_url: "https://github.com/Farmbot/farmbot_os",
+      homepage_url: "http://farmbot.io",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ]
     ]
   end
 
@@ -35,7 +41,7 @@ defmodule FarmbotTelemetry.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:telemetry, "~> 0.4.0"},
+      {:telemetry, "~> 0.4.1"},
       {:uuid, "~> 1.1"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},

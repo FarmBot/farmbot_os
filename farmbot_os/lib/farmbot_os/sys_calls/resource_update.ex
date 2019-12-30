@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.ResourceUpdate do
+  @moduledoc false
+
   require Logger
 
   alias FarmbotCore.{

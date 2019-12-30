@@ -1,6 +1,9 @@
 defmodule FarmbotExt.AMQP.TelemetryChannel do
   @moduledoc """
+  Channel that dispatches telemetry messgaes out of the
+  DETS database.
   """
+
   use GenServer
   use AMQP
 
@@ -22,7 +25,6 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   end
 
   def init(args) do
-    Process.flag(:sensitive, true)
     jwt = Keyword.fetch!(args, :jwt)
     send(self(), :connect_amqp)
     cache = BotState.subscribe()

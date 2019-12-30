@@ -1,5 +1,8 @@
 defmodule FarmbotOS.Platform.Target.Network.Supervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervises the NetworkManager
+  """
+
   use Supervisor
   alias FarmbotOS.Platform.Target.Network
 

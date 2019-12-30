@@ -1,4 +1,5 @@
 # CeleryScript
+
 CeleryScript is an AST definition of commands, rpcs, and functions that
 can all be executed by Farmbot. The basic syntax is as follows:
 
@@ -16,7 +17,9 @@ optional, `body` should be supplied when working with any and all modules
 in this project.
 
 ## kind
+
 `kind` is the identifier for a command. Examples include:
+
 * `move_absolute`
 * `sync`
 * `read_status`
@@ -26,8 +29,10 @@ Each `kind` will have it's own set of rules for execution. These rules will
 define what is required inside of both `args` and `body`.
 
 ## args
+
 `args` is arguments to be passed to `kind`. Each `kind` defines it's own
 set of optional and required `args`. Args can any of the following types:
+
 * `number`
 * `string` (with possible enum types)
 * `boolean`
@@ -35,6 +40,7 @@ set of optional and required `args`. Args can any of the following types:
 
 in the case of another AST, that AST will likely need to be evaluated before
 executing the parent AST. Examples of `args` include:
+
 * `x`
 * `y`
 * `z`
@@ -42,9 +48,11 @@ executing the parent AST. Examples of `args` include:
 * `milliseconds`
 
 ## body
+
 `body` is the only way a `list` or `array` type is aloud in CeleryScript.
 It may only contain _more CeleryScript nodes_. This is useful for
 enumeration, scripting looping etc. Here's a syntacticly correct example:
+
 ```elixir
 %{
   kind: :script,
@@ -59,6 +67,7 @@ enumeration, scripting looping etc. Here's a syntacticly correct example:
 
 Note there is nesting limit for CeleryScript body nodes, and nodes can
 even be self referential. Example:
+
 ```elixir
 %{
   kind: :self_referencing_script,

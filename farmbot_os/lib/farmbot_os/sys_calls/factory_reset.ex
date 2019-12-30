@@ -1,9 +1,11 @@
 defmodule FarmbotOS.SysCalls.FactoryReset do
+  @moduledoc false
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState}
   alias FarmbotExt.API
 
   def factory_reset("farmbot_os") do
+    _ = API.put!(API.client(), "/api/device", %{needs_reset: false})
     FarmbotOS.System.factory_reset("Factory reset requested by Sequence or frontend", true)
     :ok
   end

@@ -1,5 +1,7 @@
 defmodule FarmbotOS.Platform.Supervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervises Platform specific code as defined in `config.exs`
+  """
 
   use Supervisor
 

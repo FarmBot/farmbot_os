@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.Farmware do
+  @moduledoc false
+
   require Logger
   # alias FarmbotCeleryScript.AST
   alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}

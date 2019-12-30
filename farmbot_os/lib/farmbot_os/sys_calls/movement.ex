@@ -1,4 +1,6 @@
 defmodule FarmbotOS.SysCalls.Movement do
+  @moduledoc false
+
   require FarmbotCore.Logger
 
   def get_current_x do

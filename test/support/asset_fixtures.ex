@@ -1,6 +1,14 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
   alias FarmbotCore.Asset
-  alias FarmbotCore.Asset.{Repo, FarmEvent, FbosConfig, Regimen, Sequence}
+
+  alias FarmbotCore.Asset.{
+    Device,
+    FarmEvent,
+    FbosConfig,
+    Regimen,
+    Repo,
+    Sequence
+  }
 
   def regimen_instance(regimen_params, farm_event_params, params \\ %{}) do
     regimen = regimen(regimen_params)
@@ -91,5 +99,18 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     |> struct()
     |> FarmEvent.changeset(params)
     |> Repo.insert!()
+  end
+
+  @doc """
+  Instantiates, but does not create, a %Device{}
+  """
+  def device_init(params \\ %{}) do
+    defaults = %{id: :rand.uniform(1_000_000), monitor: false}
+    params = Map.merge(defaults, params)
+
+    Device
+    |> struct()
+    |> Device.changeset(params)
+    |> Ecto.Changeset.apply_changes()
   end
 end

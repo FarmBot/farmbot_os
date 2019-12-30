@@ -1,4 +1,8 @@
 defmodule FarmbotOS.Configurator.FakeNetworkLayer do
+  @moduledoc """
+  stub Configurator network layer
+  """
+
   @behaviour FarmbotOS.Configurator.NetworkLayer
 
   @impl FarmbotOS.Configurator.NetworkLayer

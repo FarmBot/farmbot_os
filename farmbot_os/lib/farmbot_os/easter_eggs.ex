@@ -1,5 +1,8 @@
 defmodule FarmbotOS.EasterEggs do
-  @moduledoc false
+  @moduledoc """
+  Process responsible for dispatching funny logs every once in a while
+  """
+
   use GenServer
   alias FarmbotCore.{Asset, JSON}
   require FarmbotCore.Logger

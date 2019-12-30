@@ -1,7 +1,8 @@
 defmodule FarmbotOS.Lua.Ext.Info do
   @moduledoc """
-  Lua extensions for gathering information about Farmbot
+  Lua extensions for gathering information about a running Farmbot
   """
+
   alias FarmbotCeleryScript.SysCalls
 
   @doc """

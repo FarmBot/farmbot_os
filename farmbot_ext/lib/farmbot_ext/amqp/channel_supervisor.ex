@@ -1,5 +1,7 @@
 defmodule FarmbotExt.AMQP.ChannelSupervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervises AMQP channels
+  """
   use Supervisor
   alias FarmbotExt.JWT
 
@@ -17,7 +19,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   end
 
   def init([token]) do
-    Process.flag(:sensitive, true)
     jwt = JWT.decode!(token)
 
     children = [

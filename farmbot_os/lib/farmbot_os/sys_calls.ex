@@ -1,4 +1,8 @@
 defmodule FarmbotOS.SysCalls do
+  @moduledoc """
+  Implementation for FarmbotCeleryScript.SysCalls
+  """
+
   require FarmbotCore.Logger
   require FarmbotTelemetry
   require Logger
@@ -65,6 +69,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate eval_assertion(comment, expression), to: Lua
+
   defdelegate log_assertion(passed?, type, message), to: Lua
 
   @impl true
@@ -78,6 +83,9 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate toggle_pin(number), to: PinControl
+
+  @impl true
+  defdelegate set_servo_angle(pin, angle), to: PinControl
 
   @impl true
   defdelegate resource_update(kind, id, params), to: ResourceUpdate
@@ -275,11 +283,6 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def coordinate(x, y, z) do
     %{x: x, y: y, z: z}
-  end
-
-  @impl true
-  def set_servo_angle(_pin, _angle) do
-    {:error, "set_servo_angle not yet supported"}
   end
 
   @impl true

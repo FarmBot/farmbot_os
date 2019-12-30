@@ -1,4 +1,9 @@
 defmodule FarmbotOS.Platform.Target.Network.PreSetup do
+  @moduledoc """
+  VintageNet technology responsible for doing nothing, 
+  but isn't the NULL technology
+  """
+
   @behaviour VintageNet.Technology
 
   alias VintageNet.Interface.RawConfig

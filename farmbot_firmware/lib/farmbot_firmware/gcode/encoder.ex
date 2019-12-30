@@ -46,6 +46,7 @@ defmodule FarmbotFirmware.GCODE.Encoder do
 
   def do_encode(:report_emergency_lock, []), do: "R87"
   def do_encode(:report_no_config, []), do: "R88"
+  def do_encode(:report_load, xyz), do: "R89 " <> encode_floats(xyz)
   def do_encode(:report_debug_message, [message]), do: "R99 " <> message
 
   def do_encode(:command_movement, xyzs), do: "G00 " <> encode_floats(xyzs)

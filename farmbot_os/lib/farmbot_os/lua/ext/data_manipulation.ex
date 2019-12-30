@@ -1,7 +1,8 @@
-defmodule FarmbotOS.Lua.Ext.Data do
+defmodule FarmbotOS.Lua.Ext.DataManipulation do
   @moduledoc """
   Extensions for manipulating data from Lua
   """
+
   import FarmbotOS.Lua.Util
 
   alias FarmbotCore.{
