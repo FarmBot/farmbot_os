@@ -12,6 +12,7 @@ Most FarmBot development/testing is done on a standard desktop PC.
 
 * [Developing on your local PC](/docs/host_development/host_development.md)
 * [Deploying on Raspberry Pi](/docs/target_development/building_target_firmware.md)
+  * [Provisioning OTA system](/docs/target_development/provisioning_ota_system.md)
   * [Publishing Firmware (OTAs)](/docs/target_development/releasing_target_firmware.md)
   * [Why doesn't my device boot after building firmware](docs/target_development/target_faq.md)
   * [Inspecting a running devicve](/docs/target_development/consoles/target_console.md)
