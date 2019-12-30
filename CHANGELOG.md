@@ -1,5 +1,8 @@
 # Changelog
 
+# 9.0.1
+ * Routine token updates on Circle CI.
+
 # 9.0.0
  * Run updates on Nerves systems.
  * Updates to the way `set_servo_angle` is handled.
