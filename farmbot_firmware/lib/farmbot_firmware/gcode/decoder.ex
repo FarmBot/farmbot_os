@@ -165,6 +165,8 @@ defmodule FarmbotFirmware.GCODE.Decoder do
 
   defp decode_end_stops([], acc), do: acc
 
+  defp decode_end_stops(error, _acc), do: [parse_error: error]
+
   defp decode_pv(["P" <> param_id, "V" <> value]) do
     param = Param.decode(String.to_integer(param_id))
     {value, ""} = Float.parse(value)
