@@ -30,7 +30,11 @@ defmodule Avrdude do
 
     # call the function for resetting the line before executing avrdude.
     call_reset_fun(reset_fun)
-    MuonTrap.cmd("avrdude", args, into: IO.stream(:stdio, :line), stderr_to_stdout: true)
+
+    Avrdude.MuonTrapAdapter.cmd("avrdude", args,
+      into: IO.stream(:stdio, :line),
+      stderr_to_stdout: true
+    )
   end
 
   def call_reset_fun(reset_fun) do
@@ -39,7 +43,7 @@ defmodule Avrdude do
     catch
       error_type, error ->
         FarmbotCore.Logger.error(1, """
-        Error calling reset function: #{inspect(reset_fun)} 
+        Error calling reset function: #{inspect(reset_fun)}
         error type: #{error_type}
         error: #{inspect(error)}
         """)

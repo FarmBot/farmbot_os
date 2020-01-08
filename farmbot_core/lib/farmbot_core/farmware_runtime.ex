@@ -3,11 +3,12 @@ defmodule FarmbotCore.FarmwareRuntime do
   Handles execution of Farmware plugins.
   """
 
+  alias Avrdude.MuonTrapAdapter
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
+  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
   alias FarmbotCore.BotState.FileSystem
+  alias FarmbotCore.FarmwareRuntime.PipeWorker
   alias FarmbotCore.Project
   import FarmwareInstallation, only: [install_dir: 1]
 
@@ -67,7 +68,8 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   @doc "Stop a farmware"
   def stop(pid) do
-    Logger.info "Terminating farmware process"
+    Logger.info("Terminating farmware process")
+
     if Process.alive?(pid) do
       GenServer.stop(pid, :normal)
     end
@@ -75,7 +77,7 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   def init([manifest, env, caller]) do
     package = manifest.package
-    <<clause1 :: binary-size(8), _::binary>> = Ecto.UUID.generate()
+    <<clause1::binary-size(8), _::binary>> = Ecto.UUID.generate()
 
     request_pipe =
       Path.join([
@@ -109,8 +111,10 @@ defmodule FarmbotCore.FarmwareRuntime do
       )
 
     # Start the plugin.
-    Logger.debug "spawning farmware: #{exec} #{manifest.args}"
-    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
+    Logger.debug("spawning farmware: #{exec} #{manifest.args}")
+
+    {cmd, _} =
+      spawn_monitor(MuonTrapAdapter, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
       caller: caller,
@@ -125,7 +129,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       response_pipe_handle: resp
     }
 
-    send self(), :timeout
+    send(self(), :timeout)
     {:ok, state}
   end
 
@@ -142,12 +146,12 @@ defmodule FarmbotCore.FarmwareRuntime do
   end
 
   def handle_info(msg, %{context: :error} = state) do
-    Logger.warn "unhandled message in error state: #{inspect(msg)}"
+    Logger.warn("unhandled message in error state: #{inspect(msg)}")
     {:noreply, state}
   end
 
   def handle_info({:step_complete, ref, {:error, reason}}, %{scheduler_ref: ref} = state) do
-    send state.caller, {:error, reason}
+    send(state.caller, {:error, reason})
     {:noreply, %{state | ref: nil, context: :error}}
   end
 
@@ -159,7 +163,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     _reply = PipeWorker.write(state.response_pipe_handle, ipc)
     # Make sure to `timeout` after this one to go back to the
     # get_header context. This will cause another rpc to be processed.
-    send self(), :timeout
+    send(self(), :timeout)
     {:noreply, %{state | rpc: nil, context: :get_header}}
   end
 
@@ -174,14 +178,14 @@ defmodule FarmbotCore.FarmwareRuntime do
   # didn't pick up the scheduled AST in a reasonable amount of time.
   def handle_info(:timeout, %{context: :process_request} = state) do
     Logger.error("Timeout waiting for #{inspect(state.rpc)} to be processed")
-    send state.caller, {:error, :rpc_timeout}
+    send(state.caller, {:error, :rpc_timeout})
     {:noreply, %{state | context: :error}}
   end
 
   # farmware exit
   def handle_info({:DOWN, _ref, :process, _pid, _reason}, %{cmd: _cmd_pid} = state) do
     Logger.debug("Farmware exit")
-    send state.caller, {:error, :farmware_exit}
+    send(state.caller, {:error, :farmware_exit})
     {:noreply, %{state | context: :error}}
   end
 
@@ -200,14 +204,14 @@ defmodule FarmbotCore.FarmwareRuntime do
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, {:ok, data}}, %{context: :get_header} = state) do
     Logger.error("Bad header: #{inspect(data, base: :hex, limit: :infinity)}")
-    send state.caller, {:error, {:unhandled_packet, data}}
+    send(state.caller, {:error, {:unhandled_packet, data}})
     {:noreply, %{state | context: :error}}
   end
 
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, error}, %{context: :get_header} = state) do
     Logger.error("Bad header: #{inspect(error)}")
-    send state.caller, {:error, :bad_packet_header}
+    send(state.caller, {:error, :bad_packet_header})
     {:noreply, %{state | context: :error}}
   end
 
@@ -219,7 +223,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   # error result of an io:read/2 in :get_header context
   def handle_info({PipeWorker, _ref, error}, %{context: :get_payload} = state) do
     Logger.error("Bad payload: #{inspect(error)}")
-    send state.caller, {:error, :bad_packet_payload}
+    send(state.caller, {:error, :bad_packet_payload})
     {:noreply, %{state | context: :error}}
   end
 
@@ -247,10 +251,12 @@ defmodule FarmbotCore.FarmwareRuntime do
       Logger.debug("executing rpc from farmware: #{inspect(rpc)}")
       # todo(connor) replace this with StepRunner?
       FarmbotCeleryScript.execute(rpc, ref)
-      {:noreply, %{state | rpc: rpc, scheduler_ref: ref, context: :process_request}, @error_timeout_ms}
+
+      {:noreply, %{state | rpc: rpc, scheduler_ref: ref, context: :process_request},
+       @error_timeout_ms}
     else
       {:error, reason} ->
-        send state.caller, {:error, reason}
+        send(state.caller, {:error, reason})
         {:noreply, %{state | context: :error}}
     end
   end
@@ -300,6 +306,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     header =
       <<@packet_header_token::size(16)>> <>
         :binary.copy(<<0x00>>, 4) <> <<byte_size(payload)::big-size(32)>>
+
     header <> payload
   end
 end
