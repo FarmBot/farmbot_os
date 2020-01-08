@@ -241,7 +241,7 @@ defmodule FarmbotFirmware do
     args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
-    reset = Keyword.fetch!(args, :reset)
+    reset = Keyword.get(args, :reset) || __MODULE__
 
     vcr_fd =
       case Keyword.get(args, :vcr_path) do
