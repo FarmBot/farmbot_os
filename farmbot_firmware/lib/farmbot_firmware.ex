@@ -290,6 +290,11 @@ defmodule FarmbotFirmware do
         Logger.debug("Firmware reset #{state.reset} started. #{inspect(state.transport_args)}")
         {:noreply, %{state | reset_pid: pid}}
 
+      # TODO(Rick): I have no idea what's going on here.
+      {:error, {:already_started, pid}} ->
+        Logger.debug("Firmware reset complete. #{inspect(state.transport_args)}")
+        {:noreply, %{state | reset_pid: pid}}
+
       error ->
         Logger.error("Error starting Firmware Reset: #{inspect(error)}")
         Process.send_after(self(), :timeout, @transport_init_error_retry_ms)
