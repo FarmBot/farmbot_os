@@ -10,7 +10,7 @@ Publishing a FarmBotOS release requires coordination of a few different systems.
 
 ## Legacy Release System
 
-The legacy system is somewhat simpiler. It goes as follows:
+The legacy system is somewhat simpler. It goes as follows:
 
 ### Pull request into `master` branch
 
@@ -54,7 +54,7 @@ Beta releases are constructed by creating a tag off of the `staging` branch.
 
 ## NervesHub System
 
-The NervesHub system is simpiler to use, but more complex to setup.
+The NervesHub system is simpler to use, but more complex to setup.
 
 ### User registration
 

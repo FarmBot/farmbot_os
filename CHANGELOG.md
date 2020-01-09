@@ -2,6 +2,7 @@
 
 # 9.0.1
  * Routine token updates on Circle CI.
+ * Fix bugs that were causing devices to erroneously factory reset under some circumstances.
 
 # 9.0.0
  * Run updates on Nerves systems.
