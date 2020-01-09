@@ -1,5 +1,8 @@
 # Changelog
 
+# 9.0.2
+ * See notes for 9.0.1.
+
 # 9.0.1
  * Routine token updates on Circle CI.
  * Fix bugs that were causing devices to erroneously factory reset under some circumstances.
