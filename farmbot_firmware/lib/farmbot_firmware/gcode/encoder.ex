@@ -8,7 +8,10 @@ defmodule FarmbotFirmware.GCODE.Encoder do
   def do_encode(:report_idle, []), do: "R00"
   def do_encode(:report_begin, []), do: "R01"
   def do_encode(:report_success, []), do: "R02"
-  def do_encode(:report_error, []), do: "R03"
+  # TODO(Rick): Why are some `:report_error`s sending
+  # tuples instead of lists??
+  # https://github.com/FarmBot/farmbot_os/issues/1105#issuecomment-572381069
+  def do_encode(:report_error, _), do: "R03"
   def do_encode(:report_busy, []), do: "R04"
 
   def do_encode(:report_axis_state, xyz), do: "R05 " <> encode_axis_state(xyz)
@@ -84,6 +87,7 @@ defmodule FarmbotFirmware.GCODE.Encoder do
 
   def do_encode(:command_emergency_unlock, _), do: "F09"
   def do_encode(:command_emergency_lock, _), do: "E"
+  def do_encode(), do: "R03"
 
   @spec encode_floats([{Param.t(), float()}]) :: binary()
   defp encode_floats(args) do

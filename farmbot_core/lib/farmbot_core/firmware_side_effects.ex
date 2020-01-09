@@ -27,7 +27,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   @impl FarmbotFirmware.SideEffects
   def handle_axis_timeout(axis) do
-    FarmbotCore.Logger.error 1, "Axis #{axis} timed out waiting for movement to complete"
+    FarmbotCore.Logger.error(1, "Axis #{axis} timed out waiting for movement to complete")
     :noop
   end
 
@@ -48,7 +48,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   # this is a bug in the firmware code i think
   def handle_encoders_scaled([]), do: :noop
-  
+
   @impl FarmbotFirmware.SideEffects
   def handle_encoders_raw(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_raw(x, y, z)
@@ -64,6 +64,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     %{param => value}
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
+
     :ok
   end
 
@@ -75,27 +76,33 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_software_version([version]) do
     :ok = BotState.set_firmware_version(version)
+
     case String.split(version, ".") do
       # Ramps
       [_, _, _, "R"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("arduino")
+
       # Farmduino
       [_, _, _, "F"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino")
+
       # Farmduino V14
       [_, _, _, "G"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+
       # Farmduino V15
       [_, _, _, "H"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k15")
+
       # Express V10
       [_, _, _, "E"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("express_k10")
+
       [_, _, _, "S"] ->
         _ = Leds.red(:slow_blink)
         :ok = BotState.set_firmware_version("none")
@@ -159,7 +166,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_debug_message([message]) do
     fbos_config = Asset.fbos_config()
-    should_log? = fbos_config.firmware_debug_log || fbos_config.arduino_debug_messages 
+    should_log? = fbos_config.firmware_debug_log || fbos_config.arduino_debug_messages
     should_log? && FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
   end
 

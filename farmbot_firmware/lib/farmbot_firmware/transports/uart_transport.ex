@@ -14,7 +14,7 @@ defmodule FarmbotFirmware.UARTTransport do
   def init(args) do
     device = Keyword.fetch!(args, :device)
     handle_gcode = Keyword.fetch!(args, :handle_gcode)
-    reset = Keyword.fetch!(args, :reset)
+    reset = Keyword.get(args, :reset)
     {:ok, uart} = UART.start_link()
     {:ok, %{uart: uart, device: device, open: false, handle_gcode: handle_gcode, reset: reset}, 0}
   end

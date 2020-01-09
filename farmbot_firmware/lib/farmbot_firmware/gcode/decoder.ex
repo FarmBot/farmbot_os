@@ -91,6 +91,10 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def decode_error(["V14"]), do: [:invalid_command]
   def decode_error(["V15"]), do: [:no_config]
   def decode_error([unk]), do: [unknown_error: unk]
+  # TODO(Rick): This is a guess. Can be removed if
+  # better solution is found.
+  # FarmBot/farmbot_os/issues/1105#issuecomment-572381069
+  def decode_error(unk), do: [unknown_error: [unk]]
 
   defp decode_floats(list, acc \\ [])
 
