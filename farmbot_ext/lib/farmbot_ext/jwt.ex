@@ -37,7 +37,7 @@ defmodule FarmbotExt.JWT do
       {:ok, jwt}
     else
       :error -> {:error, "base64_decode_fail"}
-      {:error, _resson} -> {:error, "json_decode_error"}
+      {:error, _reason} -> {:error, "json_decode_error"}
     end
   end
 

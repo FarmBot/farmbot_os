@@ -65,7 +65,7 @@ defmodule FarmbotFirmware.Request do
           do: {:ok, {tag, result}},
           else: wait_for_request_result(tag, code, result)
 
-      {_, {:report_error, []}} ->
+      {_, {:report_error, _}} ->
         {:error, :firmware_error}
 
       {_, {:report_invalid, []}} ->

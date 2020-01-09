@@ -241,7 +241,7 @@ defmodule FarmbotFirmware do
     args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
-    reset = Keyword.fetch!(args, :reset)
+    reset = Keyword.get(args, :reset) || __MODULE__
 
     vcr_fd =
       case Keyword.get(args, :vcr_path) do
@@ -288,6 +288,11 @@ defmodule FarmbotFirmware do
     case GenServer.start_link(state.reset, state.transport_args, name: state.reset) do
       {:ok, pid} ->
         Logger.debug("Firmware reset #{state.reset} started. #{inspect(state.transport_args)}")
+        {:noreply, %{state | reset_pid: pid}}
+
+      # TODO(Rick): I have no idea what's going on here.
+      {:error, {:already_started, pid}} ->
+        Logger.debug("Firmware reset complete. #{inspect(state.transport_args)}")
         {:noreply, %{state | reset_pid: pid}}
 
       error ->
@@ -631,7 +636,7 @@ defmodule FarmbotFirmware do
     {:noreply, goto(state, :busy)}
   end
 
-  def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
+  def handle_report({:report_error, _} = code, %{status: :configuration} = state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
 
@@ -639,7 +644,7 @@ defmodule FarmbotFirmware do
     {:stop, {:error, state.current}, state}
   end
 
-  def handle_report({:report_error, []} = code, state) do
+  def handle_report({:report_error, _} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
 
