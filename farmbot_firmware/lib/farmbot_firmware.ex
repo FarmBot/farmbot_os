@@ -636,7 +636,7 @@ defmodule FarmbotFirmware do
     {:noreply, goto(state, :busy)}
   end
 
-  def handle_report({:report_error, []} = code, %{status: :configuration} = state) do
+  def handle_report({:report_error, _} = code, %{status: :configuration} = state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
 
@@ -644,7 +644,7 @@ defmodule FarmbotFirmware do
     {:stop, {:error, state.current}, state}
   end
 
-  def handle_report({:report_error, []} = code, state) do
+  def handle_report({:report_error, _} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
 
