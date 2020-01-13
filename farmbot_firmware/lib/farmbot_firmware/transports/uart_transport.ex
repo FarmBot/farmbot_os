@@ -18,8 +18,8 @@ defmodule FarmbotFirmware.UARTTransport do
     {:ok, %{uart: uart, device: device, open: false, handle_gcode: handle_gcode, reset: reset}, 0}
   end
 
-  def terminate(_, state) do
-    uart_adapter().stop(state.uart)
+  def terminate(_, %{uart: uart}) do
+    uart_adapter().stop(uart)
   end
 
   def handle_info(:timeout, %{open: false} = state) do
