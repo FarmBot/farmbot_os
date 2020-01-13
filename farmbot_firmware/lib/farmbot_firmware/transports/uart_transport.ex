@@ -14,16 +14,16 @@ defmodule FarmbotFirmware.UARTTransport do
     device = Keyword.fetch!(args, :device)
     handle_gcode = Keyword.fetch!(args, :handle_gcode)
     reset = Keyword.get(args, :reset)
-    {:ok, uart} = UartDefaultAdapter.start_link()
+    {:ok, uart} = uart_adapter().start_link()
     {:ok, %{uart: uart, device: device, open: false, handle_gcode: handle_gcode, reset: reset}, 0}
   end
 
   def terminate(_, state) do
-    UartDefaultAdapter.stop(state.uart)
+    uart_adapter().stop(state.uart)
   end
 
   def handle_info(:timeout, %{open: false} = state) do
-    opts = UartDefaultAdapter.generate_opts()
+    opts = uart_adapter().generate_opts()
 
     with :ok <- open(state.uart, state.device, opts),
          :ok <- reset(state) do
@@ -47,7 +47,7 @@ defmodule FarmbotFirmware.UARTTransport do
 
   def handle_call(code, _from, state) do
     str = GCODE.encode(code)
-    r = UartDefaultAdapter.write(state.uart, str)
+    r = uart_adapter().write(state.uart, str)
     {:reply, r, state}
   end
 
@@ -60,6 +60,10 @@ defmodule FarmbotFirmware.UARTTransport do
   end
 
   def open(uart_pid, device_path, opts) do
-    UartDefaultAdapter.open(uart_pid, device_path, opts)
+    uart_adapter().open(uart_pid, device_path, opts)
+  end
+
+  def uart_adapter() do
+    Application.get_env(:farmbot_firmware, :uart_adapter, UartDefaultAdapter)
   end
 end

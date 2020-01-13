@@ -1,22 +1,17 @@
 defmodule FarmbotFirmware.UartAdapter do
-  @type gcode :: String.t()
-  @type device_path :: String.t()
-  @type uart_pid :: pid()
+  alias Circuits.UART
+
+  @type uart_pid :: GenServer.server()
+  @type device_path :: binary()
+  @type gcode :: iodata()
   @type not_known :: any()
-  @type uart_opts :: any()
+  @type uart_opts :: [UART.uart_option()]
+  @type uart_op_result :: :ok | {:error, term()}
+  @type uart_start_link_result :: {:ok, pid()} | {:error, term()}
 
-  @callback start_link() :: not_known
-  @callback open(uart_pid, device_path, uart_opts) :: not_known
-  @callback stop(uart_pid) :: not_known
-  @callback write(uart_pid, gcode) :: not_known
   @callback generate_opts() :: not_known
-
-  def adapter do
-    raise("FIX THIS")
-    # Application.get_env(:farmbot, :muon_trap_adapter, Avrdude.MuonTrapDefaultAdapter)
-  end
-
-  def cmd(exe, args, options) do
-    adapter().cmd(exe, args, options)
-  end
+  @callback open(uart_pid, device_path, uart_opts) :: uart_op_result
+  @callback start_link() :: uart_start_link_result
+  @callback stop(uart_pid) :: :ok
+  @callback write(uart_pid, gcode) :: uart_op_result
 end
