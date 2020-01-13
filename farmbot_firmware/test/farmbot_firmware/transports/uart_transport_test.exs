@@ -32,6 +32,27 @@ defmodule FarmbotFirmware.UARTTransportTest do
     FarmbotFirmware.UARTTransport.terminate(nil, state)
   end
 
+  test "FarmbotFirmware.UARTTransport resets UART on timeout" do
+    state = %{uart: :FAKE_UART, device: :FAKE_DEVICE, open: false}
+
+    fake_opts = [fake_opts: true]
+
+    expect(FarmbotFirmware.UartTestAdapter, :generate_opts, fn ->
+      fake_opts
+    end)
+
+    expect(FarmbotFirmware.UartTestAdapter, :open, fn uart, dev, opts ->
+      assert uart == state.uart
+      assert dev == state.device
+      assert fake_opts == opts
+      :ok
+    end)
+
+    {:noreply, state2} = FarmbotFirmware.UARTTransport.handle_info(:timeout, state)
+    # Expect the `open` state to toggle back to "true" from "false":
+    refute state.open == state2.open
+  end
+
   test "FarmbotFirmware.UARTTransport.reset/2" do
     empty_state = %{reset: nil}
     ok_state = %{reset: %{reset: :fake_reset}}
