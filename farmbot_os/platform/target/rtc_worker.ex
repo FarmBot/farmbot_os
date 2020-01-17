@@ -68,12 +68,17 @@ defmodule FarmbotOS.Platform.Target.RTCWorker do
   end
 
   @doc "Gets a NaiveDateTime from the rtc"
-  @spec get_time_from_rtc(I2C.bus()) :: {:ok, NaiveDateTime.t()} | {:error, term()}
+  @spec get_time_from_rtc(I2C.bus()) ::
+          {:ok, NaiveDateTime.t()} | {:error, term()}
   def get_time_from_rtc(i2c) do
-    with {:ok, <<_vl::bits-1, second::bits-7>>} <- I2C.write_read(i2c, 0x51, <<0x02>>, 1),
-         {:ok, <<_::bits-1, minute::bits-7>>} <- I2C.write_read(i2c, 0x51, <<0x03>>, 1),
-         {:ok, <<_::bits-2, hour::bits-6>>} <- I2C.write_read(i2c, 0x51, <<0x04>>, 1),
-         {:ok, <<_::bits-2, day::bits-6>>} <- I2C.write_read(i2c, 0x51, <<0x05>>, 1),
+    with {:ok, <<_vl::bits-1, second::bits-7>>} <-
+           I2C.write_read(i2c, 0x51, <<0x02>>, 1),
+         {:ok, <<_::bits-1, minute::bits-7>>} <-
+           I2C.write_read(i2c, 0x51, <<0x03>>, 1),
+         {:ok, <<_::bits-2, hour::bits-6>>} <-
+           I2C.write_read(i2c, 0x51, <<0x04>>, 1),
+         {:ok, <<_::bits-2, day::bits-6>>} <-
+           I2C.write_read(i2c, 0x51, <<0x05>>, 1),
          {:ok, <<_c::bits-1, _::bits-2, month::bits-5>>} <-
            I2C.write_read(i2c, 0x51, <<0x07>>, 1),
          # implied 20XX
@@ -178,7 +183,9 @@ defmodule FarmbotOS.Platform.Target.RTCWorker do
         Logger.error("Not setting system time from RTC. VL bit is unset")
 
       error ->
-        Logger.error("failed to get time from rtc or set system time: #{inspect(error)}")
+        Logger.error(
+          "failed to get time from rtc or set system time: #{inspect(error)}"
+        )
     end
 
     Process.send_after(self(), :set_rtc_from_ntp, @eleven_minutes)

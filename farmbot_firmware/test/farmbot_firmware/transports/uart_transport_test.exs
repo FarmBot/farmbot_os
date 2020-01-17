@@ -67,7 +67,9 @@ defmodule FarmbotFirmware.UARTTransportTest do
       {:error, "Simulated UART failure. This is OK"}
     end)
 
-    {:noreply, state2, retry_timeout} = UARTTransport.handle_info(:timeout, state)
+    {:noreply, state2, retry_timeout} =
+      UARTTransport.handle_info(:timeout, state)
+
     assert retry_timeout == 5000
     assert state.open == state2.open
   end
@@ -77,7 +79,9 @@ defmodule FarmbotFirmware.UARTTransportTest do
     provided_reason = "Simulated failure (circuits UART)"
     info = {:circuits_uart, nil, {:error, provided_reason}}
 
-    {:stop, {:uart_error, reason}, state2} = UARTTransport.handle_info(info, state)
+    {:stop, {:uart_error, reason}, state2} =
+      UARTTransport.handle_info(info, state)
+
     assert reason == provided_reason
     assert state == state2
   end

@@ -19,12 +19,16 @@ defmodule FarmbotCeleryScript.AST.Factory do
 
   def read_pin(%AST{} = ast, pin_number, pin_mode) do
     ast
-    |> add_body_node(new(:read_pin, %{pin_number: pin_number, pin_mode: pin_mode}))
+    |> add_body_node(
+      new(:read_pin, %{pin_number: pin_number, pin_mode: pin_mode})
+    )
   end
 
   def set_pin_io_mode(%AST{} = ast, pin_number, pin_io_mode) do
     ast
-    |> add_body_node(new(:set_pin_io_mode, %{pin_number: pin_number, pin_io_mode: pin_io_mode}))
+    |> add_body_node(
+      new(:set_pin_io_mode, %{pin_number: pin_number, pin_io_mode: pin_io_mode})
+    )
   end
 
   def dump_info(%AST{} = ast) do

@@ -83,8 +83,11 @@ defmodule FarmbotCeleryScriptTest do
         :read_pin, _ -> {:error, "failed to read pin!"}
       end)
 
-    assert {:error, "failed to read pin!"} = FarmbotCeleryScript.execute(execute_ast, execute_ast)
-    assert_receive {:step_complete, ^execute_ast, {:error, "failed to read pin!"}}
+    assert {:error, "failed to read pin!"} =
+             FarmbotCeleryScript.execute(execute_ast, execute_ast)
+
+    assert_receive {:step_complete, ^execute_ast,
+                    {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
@@ -103,7 +106,9 @@ defmodule FarmbotCeleryScriptTest do
         :read_pin, _ -> raise("big oops")
       end)
 
-    assert {:error, "big oops"} == FarmbotCeleryScript.execute(execute_ast, execute_ast)
+    assert {:error, "big oops"} ==
+             FarmbotCeleryScript.execute(execute_ast, execute_ast)
+
     assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
   end
 end

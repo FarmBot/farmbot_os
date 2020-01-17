@@ -2,7 +2,10 @@ defmodule FarmbotCeleryScript.Compiler.VariableDeclaration do
   alias FarmbotCeleryScript.{Compiler, Compiler.IdentifierSanitizer}
 
   @doc "Compiles a variable asignment"
-  def variable_declaration(%{args: %{label: var_name, data_value: data_value_ast}}, env) do
+  def variable_declaration(
+        %{args: %{label: var_name, data_value: data_value_ast}},
+        env
+      ) do
     # Compiles the `data_value`
     # and assigns the result to a variable named `label`
     # Example:
@@ -26,7 +29,8 @@ defmodule FarmbotCeleryScript.Compiler.VariableDeclaration do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
     quote location: :keep do
-      unquote({var_name, [], nil}) = unquote(Compiler.compile_ast(data_value_ast, env))
+      unquote({var_name, [], nil}) =
+        unquote(Compiler.compile_ast(data_value_ast, env))
     end
   end
 end

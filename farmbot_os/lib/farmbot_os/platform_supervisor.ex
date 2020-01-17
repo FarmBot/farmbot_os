@@ -10,7 +10,9 @@ defmodule FarmbotOS.Platform.Supervisor do
   end
 
   def init([]) do
-    platform_children = Application.get_env(:farmbot, __MODULE__)[:platform_children]
+    platform_children =
+      Application.get_env(:farmbot, __MODULE__)[:platform_children]
+
     Supervisor.init(platform_children, strategy: :one_for_all)
   end
 end

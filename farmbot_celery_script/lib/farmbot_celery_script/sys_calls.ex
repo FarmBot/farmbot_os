@@ -21,7 +21,11 @@ defmodule FarmbotCeleryScript.SysCalls do
   @type resource_id :: integer()
 
   @callback calibrate(axis) :: ok_or_error
-  @callback change_ownership(email :: String.t(), secret :: binary(), server :: String.t()) ::
+  @callback change_ownership(
+              email :: String.t(),
+              secret :: binary(),
+              server :: String.t()
+            ) ::
               ok_or_error
   @callback check_update() :: ok_or_error
   @callback coordinate(x :: number, y :: number, z :: number) ::
@@ -48,26 +52,39 @@ defmodule FarmbotCeleryScript.SysCalls do
               %{x: number(), y: number(), z: number()} | error()
   @callback home(axis, speed :: number()) :: ok_or_error
   @callback install_first_party_farmware() :: ok_or_error
-  @callback move_absolute(x :: number(), y :: number(), z :: number(), speed :: number()) ::
+  @callback move_absolute(
+              x :: number(),
+              y :: number(),
+              z :: number(),
+              speed :: number()
+            ) ::
               ok_or_error
   # ?
-  @callback named_pin(named_pin_type :: String.t(), resource_id) :: map() | integer | error()
+  @callback named_pin(named_pin_type :: String.t(), resource_id) ::
+              map() | integer | error()
   @callback nothing() :: any()
   @callback point(point_type :: String.t(), resource_id) :: number() | error()
   @callback power_off() :: ok_or_error
-  @callback read_pin(pin_num :: number(), pin_mode :: number()) :: number | error()
+  @callback read_pin(pin_num :: number(), pin_mode :: number()) ::
+              number | error()
   @callback read_cached_pin(pin_num :: number()) :: number | error()
   @callback toggle_pin(pin_num :: number()) :: ok_or_error
   @callback read_status() :: ok_or_error
   @callback reboot() :: ok_or_error
   @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
-  @callback send_message(type :: String.t(), message :: String.t(), [atom]) :: ok_or_error
+  @callback send_message(type :: String.t(), message :: String.t(), [atom]) ::
+              ok_or_error
   @callback set_servo_angle(pin :: number(), value :: number()) :: ok_or_error
   @callback set_pin_io_mode(pin :: number(), mode :: number()) :: ok_or_error
-  @callback set_user_env(env_name :: String.t(), env_value :: String.t()) :: ok_or_error
+  @callback set_user_env(env_name :: String.t(), env_value :: String.t()) ::
+              ok_or_error
   @callback sync() :: ok_or_error
   @callback wait(millis :: number()) :: ok_or_error
-  @callback write_pin(pin_num :: number(), pin_mode :: number(), pin_value :: number) ::
+  @callback write_pin(
+              pin_num :: number(),
+              pin_mode :: number(),
+              pin_value :: number
+            ) ::
               ok_or_error
   @callback zero(axis) :: ok_or_error
 
@@ -77,7 +94,9 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
               true | false | error()
 
-  @callback get_point_group(String.t() | resource_id) :: %{required(:point_ids) => [resource_id]}
+  @callback get_point_group(String.t() | resource_id) :: %{
+              required(:point_ids) => [resource_id]
+            }
 
   def get_point_group(sys_calls \\ @sys_calls, point_group_id) do
     point_group_or_error(sys_calls, :get_point_group, [point_group_id])
@@ -90,14 +109,18 @@ defmodule FarmbotCeleryScript.SysCalls do
   def format_lhs(_sys_calls, "z"), do: "current z position"
   def format_lhs(_sys_calls, "pin" <> num), do: "Pin #{num} value"
 
-  def format_lhs(sys_calls, %{kind: :named_pin, args: %{pin_type: type, pin_id: pin_id}}) do
+  def format_lhs(sys_calls, %{
+        kind: :named_pin,
+        args: %{pin_type: type, pin_id: pin_id}
+      }) do
     case named_pin(sys_calls, type, pin_id) do
       %{label: label} -> label
       {:error, _reason} -> "unknown left hand side"
     end
   end
 
-  def eval_assertion(sys_calls \\ @sys_calls, comment, expression) when is_binary(expression) do
+  def eval_assertion(sys_calls \\ @sys_calls, comment, expression)
+      when is_binary(expression) do
     case sys_calls.eval_assertion(comment, expression) do
       true ->
         true
@@ -121,11 +144,13 @@ defmodule FarmbotCeleryScript.SysCalls do
     apply(@sys_calls, :log, [message, force?])
   end
 
-  def sequence_init_log(sys_calls \\ @sys_calls, message) when is_binary(message) do
+  def sequence_init_log(sys_calls \\ @sys_calls, message)
+      when is_binary(message) do
     apply(sys_calls, :sequence_init_log, [message])
   end
 
-  def sequence_complete_log(sys_calls \\ @sys_calls, message) when is_binary(message) do
+  def sequence_complete_log(sys_calls \\ @sys_calls, message)
+      when is_binary(message) do
     apply(sys_calls, :sequence_complete_log, [message])
   end
 
@@ -160,11 +185,13 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :emergency_unlock, [])
   end
 
-  def execute_script(sys_calls \\ @sys_calls, package, %{} = env) when is_binary(package) do
+  def execute_script(sys_calls \\ @sys_calls, package, %{} = env)
+      when is_binary(package) do
     ok_or_error(sys_calls, :execute_script, [package, env])
   end
 
-  def update_farmware(sys_calls \\ @sys_calls, package) when is_binary(package) do
+  def update_farmware(sys_calls \\ @sys_calls, package)
+      when is_binary(package) do
     ok_or_error(sys_calls, :update_farmware, [package])
   end
 
@@ -336,8 +363,14 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   defp coord_or_error(sys_calls, fun, args) do
     case apply(sys_calls, fun, args) do
-      %{x: x, y: y, z: z} = coord when is_number(x) when is_number(y) when is_number(z) -> coord
-      error -> or_error(sys_calls, fun, args, error)
+      %{x: x, y: y, z: z} = coord
+      when is_number(x)
+      when is_number(y)
+      when is_number(z) ->
+        coord
+
+      error ->
+        or_error(sys_calls, fun, args, error)
     end
   end
 
@@ -348,7 +381,8 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
-  defp or_error(_sys_calls, _fun, _args, {:error, reason}) when is_binary(reason) do
+  defp or_error(_sys_calls, _fun, _args, {:error, reason})
+       when is_binary(reason) do
     {:error, reason}
   end
 

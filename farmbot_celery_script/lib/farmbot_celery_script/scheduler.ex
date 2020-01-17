@@ -67,7 +67,12 @@ defmodule FarmbotCeleryScript.Scheduler do
   Calls are executed in a first in first out buffer, with things being added
   by `execute/2` taking priority.
   """
-  @spec schedule(GenServer.server(), AST.t() | [Compiler.compiled()], DateTime.t(), map()) ::
+  @spec schedule(
+          GenServer.server(),
+          AST.t() | [Compiler.compiled()],
+          DateTime.t(),
+          map()
+        ) ::
           {:ok, reference()}
   def schedule(scheduler_pid \\ __MODULE__, celery_script, at, data)
 
@@ -171,7 +176,9 @@ defmodule FarmbotCeleryScript.Scheduler do
 
       # now is late, but less than the grace period late
       diff_ms when diff_ms >= 0 when diff_ms <= @grace_period_ms ->
-        Logger.info("Next execution is ready for execution: #{Timex.from_now(at)}")
+        Logger.info(
+          "Next execution is ready for execution: #{Timex.from_now(at)}"
+        )
 
         state
         |> execute_next()
@@ -179,8 +186,15 @@ defmodule FarmbotCeleryScript.Scheduler do
     end
   end
 
-  def handle_info({:step_complete, {scheduled_at, executed_at, pid}, result}, state) do
-    send(pid, {FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}})
+  def handle_info(
+        {:step_complete, {scheduled_at, executed_at, pid}, result},
+        state
+      ) do
+    send(
+      pid,
+      {FarmbotCeleryScript,
+       {:scheduled_execution, scheduled_at, executed_at, result}}
+    )
 
     state
     |> pop_next()
@@ -194,7 +208,9 @@ defmodule FarmbotCeleryScript.Scheduler do
     scheduler_pid = self()
 
     scheduled_pid =
-      spawn(fn -> StepRunner.step(scheduler_pid, {at, DateTime.utc_now(), pid}, compiled) end)
+      spawn(fn ->
+        StepRunner.step(scheduler_pid, {at, DateTime.utc_now(), pid}, compiled)
+      end)
 
     %{state | scheduled_pid: scheduled_pid}
   end
@@ -291,7 +307,8 @@ defmodule FarmbotCeleryScript.Scheduler do
     %{state | monitors: monitors}
   end
 
-  @spec add(state(), compiled_ast(), DateTime.t(), data :: map(), pid()) :: state()
+  @spec add(state(), compiled_ast(), DateTime.t(), data :: map(), pid()) ::
+          state()
   defp add(state, compiled, at, data, pid) do
     %{state | compiled: [{compiled, at, data, pid} | state.compiled]}
     |> index_next()

@@ -155,14 +155,20 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  def send_message(%{args: %{message: msg, message_type: type}, body: channels}, env) do
+  def send_message(
+        %{args: %{message: msg, message_type: type}, body: channels},
+        env
+      ) do
     # body gets turned into a list of atoms.
     # Example:
     #   [{kind: "channel", args: {channel_name: "email"}}]
     # is turned into:
     #   [:email]
     channels =
-      Enum.map(channels, fn %{kind: :channel, args: %{channel_name: channel_name}} ->
+      Enum.map(channels, fn %{
+                              kind: :channel,
+                              args: %{channel_name: channel_name}
+                            } ->
         String.to_atom(channel_name)
       end)
 
@@ -218,7 +224,9 @@ defmodule FarmbotCeleryScript.Compiler do
 
   def flash_firmware(%{args: %{package: package_name}}, env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.flash_firmware(unquote(compile_ast(package_name, env)))
+      FarmbotCeleryScript.SysCalls.flash_firmware(
+        unquote(compile_ast(package_name, env))
+      )
     end
   end
 
@@ -242,7 +250,9 @@ defmodule FarmbotCeleryScript.Compiler do
 
   def factory_reset(%{args: %{package: package}}, env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.factory_reset(unquote(compile_ast(package, env)))
+      FarmbotCeleryScript.SysCalls.factory_reset(
+        unquote(compile_ast(package, env))
+      )
     end
   end
 

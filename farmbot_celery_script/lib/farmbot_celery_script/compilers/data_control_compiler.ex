@@ -42,7 +42,15 @@ defmodule FarmbotCeleryScript.Compiler.DataControl do
   end
 
   def resource_update(
-        %{args: %{resource_type: kind, resource_id: id, label: label, value: value}, body: body},
+        %{
+          args: %{
+            resource_type: kind,
+            resource_id: id,
+            label: label,
+            value: value
+          },
+          body: body
+        },
         env
       ) do
     initial = %{label => value}

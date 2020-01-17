@@ -20,7 +20,9 @@ defmodule Mix.Tasks.Farmbot.Firmware.Sign do
 
   @dialyzer {[:no_return], [error: 0]}
   defp error do
-    Mix.raise("Usage: mix farmbot.firmware.sign /path/to/private/key [input.fw] [output.fw]")
+    Mix.raise(
+      "Usage: mix farmbot.firmware.sign /path/to/private/key [input.fw] [output.fw]"
+    )
   end
 
   defp do_run(private_key_file, input_fw_file, output_fw_file) do
@@ -37,6 +39,14 @@ defmodule Mix.Tasks.Farmbot.Firmware.Sign do
       "Signing: #{input_fw_file} with: #{private_key_file} to: #{output_fw_file}"
     ])
 
-    System.cmd("fwup", ["-S", "-s", private_key_file, "-i", input_fw_file, "-o", output_fw_file])
+    System.cmd("fwup", [
+      "-S",
+      "-s",
+      private_key_file,
+      "-i",
+      input_fw_file,
+      "-o",
+      output_fw_file
+    ])
   end
 end

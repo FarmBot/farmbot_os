@@ -257,7 +257,9 @@ defmodule FarmbotFirmware do
           nil
 
         tape_path ->
-          {:ok, vcr_fd} = File.open(tape_path, [:binary, :append, :exclusive, :write])
+          {:ok, vcr_fd} =
+            File.open(tape_path, [:binary, :append, :exclusive, :write])
+
           vcr_fd
       end
 
@@ -293,14 +295,24 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{status: :transport_boot, reset_pid: nil} = state) do
-    case GenServer.start_link(state.reset, state.transport_args, name: state.reset) do
+    case GenServer.start_link(state.reset, state.transport_args,
+           name: state.reset
+         ) do
       {:ok, pid} ->
-        Logger.debug("Firmware reset #{state.reset} started. #{inspect(state.transport_args)}")
+        Logger.debug(
+          "Firmware reset #{state.reset} started. #{
+            inspect(state.transport_args)
+          }"
+        )
+
         {:noreply, %{state | reset_pid: pid}}
 
       # TODO(Rick): I have no idea what's going on here.
       {:error, {:already_started, pid}} ->
-        Logger.debug("Firmware reset complete. #{inspect(state.transport_args)}")
+        Logger.debug(
+          "Firmware reset complete. #{inspect(state.transport_args)}"
+        )
+
         {:noreply, %{state | reset_pid: pid}}
 
       error ->
@@ -320,7 +332,9 @@ defmodule FarmbotFirmware do
         ref = Process.monitor(pid)
 
         Logger.debug(
-          "Firmware Transport #{state.transport} started. #{inspect(state.transport_args)}"
+          "Firmware Transport #{state.transport} started. #{
+            inspect(state.transport_args)
+          }"
         )
 
         state = goto(%{state | transport_pid: pid, transport_ref: ref}, :boot)
@@ -336,11 +350,22 @@ defmodule FarmbotFirmware do
   # @spec handle_info(:timeout, state) :: {:noreply, state}
   def handle_info(
         :timeout,
-        %{command_queue: [{pid, {tag, {:command_emergency_lock, []} = code}} | _]} = state
+        %{
+          command_queue: [
+            {pid, {tag, {:command_emergency_lock, []} = code}} | _
+          ]
+        } = state
       ) do
     case GenServer.call(state.transport_pid, {tag, code}) do
       :ok ->
-        new_state = %{state | tag: tag, current: code, command_queue: [], caller_pid: pid}
+        new_state = %{
+          state
+          | tag: tag,
+            current: code,
+            command_queue: [],
+            caller_pid: pid
+        }
+
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
         _ = vcr_write(state, :out, {state.tag, code})
 
@@ -367,18 +392,33 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{current: c} = state) when is_tuple(c) do
-    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_busy, []}})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+    if state.caller_pid,
+      do: send(state.caller_pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
+
     # Logger.debug "Got checkup message when current command still executing"
     {:noreply, state}
   end
 
-  def handle_info(:timeout, %{command_queue: [{pid, {tag, code}} | rest]} = state) do
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+  def handle_info(
+        :timeout,
+        %{command_queue: [{pid, {tag, code}} | rest]} = state
+      ) do
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     case GenServer.call(state.transport_pid, {tag, code}) do
       :ok ->
-        new_state = %{state | tag: tag, current: code, command_queue: rest, caller_pid: pid}
+        new_state = %{
+          state
+          | tag: tag,
+            current: code,
+            command_queue: rest,
+            caller_pid: pid
+        }
+
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
         _ = vcr_write(state, :out, {state.tag, code})
         for {pid, _code} <- rest, do: send(pid, {state.tag, {:report_busy, []}})
@@ -401,7 +441,8 @@ defmodule FarmbotFirmware do
 
   # Closing the transport will purge the buffer of queued commands in both
   # the `configuration_queue` and in the `command_queue`.
-  def handle_call(:close_transport, _from, %{status: s} = state) when s != :transport_boot do
+  def handle_call(:close_transport, _from, %{status: s} = state)
+      when s != :transport_boot do
     true = Process.demonitor(state.transport_ref)
     :ok = GenServer.stop(state.transport_pid, :normal)
 
@@ -442,12 +483,17 @@ defmodule FarmbotFirmware do
     {:reply, :ok, next_state}
   end
 
-  def handle_call({:open_transport, _module, _args}, _from, %{status: s} = state) do
+  def handle_call(
+        {:open_transport, _module, _args},
+        _from,
+        %{status: s} = state
+      ) do
     {:reply, {:error, s}, state}
   end
 
   def handle_call({:enter_vcr_mode, tape_path}, _from, state) do
-    with {:ok, vcr_fd} <- File.open(tape_path, [:binary, :append, :exclusive, :write]) do
+    with {:ok, vcr_fd} <-
+           File.open(tape_path, [:binary, :append, :exclusive, :write]) do
       {:reply, :ok, %{state | vcr_fd: vcr_fd}}
     else
       error ->
@@ -460,23 +506,37 @@ defmodule FarmbotFirmware do
   end
 
   @doc false
-  @spec handle_command(GCODE.t(), GenServer.from(), state()) :: {:reply, term(), state()}
+  @spec handle_command(GCODE.t(), GenServer.from(), state()) ::
+          {:reply, term(), state()}
 
   # EmergencyLock should be ran immediately
-  def handle_command({tag, {:command_emergency_lock, []}} = code, {pid, _ref}, state) do
-    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_emergency_lock, []}})
+  def handle_command(
+        {tag, {:command_emergency_lock, []}} = code,
+        {pid, _ref},
+        state
+      ) do
+    if state.caller_pid,
+      do: send(state.caller_pid, {state.tag, {:report_emergency_lock, []}})
 
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_emergency_lock, []}})
 
     send(self(), :timeout)
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
+
+    {:reply, {:ok, tag},
+     %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # EmergencyUnLock should be ran immediately
-  def handle_command({tag, {:command_emergency_unlock, []}} = code, {pid, _ref}, state) do
+  def handle_command(
+        {tag, {:command_emergency_unlock, []}} = code,
+        {pid, _ref},
+        state
+      ) do
     send(self(), :timeout)
-    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
+
+    {:reply, {:ok, tag},
+     %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # If not in an acceptable state, return an error immediately.
@@ -518,7 +578,8 @@ defmodule FarmbotFirmware do
   end
 
   @doc false
-  @spec handle_report({GCODE.report_kind(), GCODE.args()}, state) :: {:noreply, state()}
+  @spec handle_report({GCODE.report_kind(), GCODE.args()}, state) ::
+          {:noreply, state()}
   def handle_report({:report_emergency_lock, []} = code, state) do
     Logger.info("Emergency lock")
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
@@ -588,7 +649,9 @@ defmodule FarmbotFirmware do
         else: to_process
 
     send(self(), :timeout)
-    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
+
+    {:noreply,
+     goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
   end
 
   def handle_report({:report_debug_message, msg}, state) do
@@ -603,15 +666,21 @@ defmodule FarmbotFirmware do
 
   # an idle report while there is a current command running
   # should not count.
-  def handle_report({:report_idle, []}, %{current: c} = state) when is_tuple(c) do
-    if state.caller_pid, do: send(state.caller_pid, {state.tag, {:report_busy, []}})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+  def handle_report({:report_idle, []}, %{current: c} = state)
+      when is_tuple(c) do
+    if state.caller_pid,
+      do: send(state.caller_pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
+
     {:noreply, state}
   end
 
   # report_idle => goto(_, :idle)
   def handle_report({:report_idle, []}, %{status: _} = state) do
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [false])
     side_effects(state, :handle_idle, [true])
@@ -621,14 +690,18 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_begin, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     {:noreply, goto(state, :begin)}
   end
 
   def handle_report({:report_success, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     new_state = %{state | current: nil, caller_pid: nil}
     side_effects(state, :handle_busy, [false])
@@ -638,15 +711,22 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_busy, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [true])
     {:noreply, goto(state, :busy)}
   end
 
-  def handle_report({:report_error, _} = code, %{status: :configuration} = state) do
+  def handle_report(
+        {:report_error, _} = code,
+        %{status: :configuration} = state
+      ) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [false])
     {:stop, {:error, state.current}, state}
@@ -654,43 +734,59 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_error, _} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [false])
     send(self(), :timeout)
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
-  def handle_report({:report_invalid, []} = code, %{status: :configuration} = state) do
+  def handle_report(
+        {:report_invalid, []} = code,
+        %{status: :configuration} = state
+      ) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     {:stop, {:error, state.current}, state}
   end
 
   def handle_report({:report_invalid, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     send(self(), :timeout)
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
-  def handle_report({:report_retry, []} = code, %{status: :configuration} = state) do
+  def handle_report(
+        {:report_retry, []} = code,
+        %{status: :configuration} = state
+      ) do
     Logger.warn("Retrying configuration command: #{inspect(code)}")
     {:noreply, state}
   end
 
   def handle_report({:report_retry, []} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     {:noreply, state}
   end
 
   def handle_report({:report_parameter_value, param} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_parameter_value, [param])
     {:noreply, state}
@@ -701,11 +797,19 @@ defmodule FarmbotFirmware do
     side_effects(state, :handle_parameter_value, [param])
     side_effects(state, :handle_parameter_calibration_value, [param])
     send(self(), :timeout)
-    {:noreply, goto(%{state | tag: state.tag, configuration_queue: to_process}, :configuration)}
+
+    {:noreply,
+     goto(
+       %{state | tag: state.tag, configuration_queue: to_process},
+       :configuration
+     )}
   end
 
   # report_parameters_complete => goto(:configuration, :idle)
-  def handle_report({:report_parameters_complete, []}, %{status: status} = state)
+  def handle_report(
+        {:report_parameters_complete, []},
+        %{status: status} = state
+      )
       when status in [:begin, :configuration] do
     {:noreply, goto(state, :idle)}
   end
@@ -716,7 +820,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_position, position} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_position, [position])
     {:noreply, state}
@@ -724,7 +830,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_load, load} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_load, [load])
     {:noreply, state}
@@ -732,7 +840,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_axis_state, axis_state} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_axis_state, [axis_state])
     {:noreply, state}
@@ -740,15 +850,22 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_axis_timeout, [axis]} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_axis_timeout, [axis])
     {:noreply, state}
   end
 
-  def handle_report({:report_calibration_state, calibration_state} = code, state) do
+  def handle_report(
+        {:report_calibration_state, calibration_state} = code,
+        state
+      ) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_calibration_state, [calibration_state])
     {:noreply, state}
@@ -756,7 +873,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_home_complete, axis} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_home_complete, axis)
     {:noreply, state}
@@ -764,7 +883,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_position_change, position} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_position_change, [position])
     {:noreply, state}
@@ -772,7 +893,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_encoders_scaled, encoders} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_encoders_scaled, [encoders])
     {:noreply, state}
@@ -780,7 +903,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_encoders_raw, encoders} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_encoders_raw, [encoders])
     {:noreply, state}
@@ -788,7 +913,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_end_stops, end_stops} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_end_stops, [end_stops])
     {:noreply, state}
@@ -796,7 +923,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_pin_value, value} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_pin_value, [value])
     {:noreply, state}
@@ -804,7 +933,9 @@ defmodule FarmbotFirmware do
 
   def handle_report({:report_software_version, version} = code, state) do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
-    for {pid, _code} <- state.command_queue, do: send(pid, {state.tag, {:report_busy, []}})
+
+    for {pid, _code} <- state.command_queue,
+        do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_software_version, [version])
     {:noreply, state}
@@ -861,7 +992,9 @@ defmodule FarmbotFirmware do
 
   @spec side_effects(state, atom, GCODE.args()) :: any()
   defp side_effects(%{side_effects: nil}, _function, _args), do: nil
-  defp side_effects(%{side_effects: m}, function, args), do: apply(m, function, args)
+
+  defp side_effects(%{side_effects: m}, function, args),
+    do: apply(m, function, args)
 
   @spec vcr_write(state, :in | :out, GCODE.t()) :: :ok
   defp vcr_write(%{vcr_fd: nil}, _direction, _code), do: :ok
@@ -881,7 +1014,12 @@ defmodule FarmbotFirmware do
         "nil"
       end
 
-    state_data = "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
-    IO.write(state.vcr_fd, direction <> " #{time} " <> data <> " state=" <> state_data <> "\n")
+    state_data =
+      "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
+
+    IO.write(
+      state.vcr_fd,
+      direction <> " #{time} " <> data <> " state=" <> state_data <> "\n"
+    )
   end
 end

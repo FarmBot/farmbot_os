@@ -40,8 +40,12 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
       _ = Private.mark_dirty!(point)
       :ok
     else
-      nil -> {:error, "#{type}.#{id} is not currently synced, so it could not be updated"}
-      {:error, _changeset} -> {:error, "Failed to update #{type}.#{id}"}
+      nil ->
+        {:error,
+         "#{type}.#{id} is not currently synced, so it could not be updated"}
+
+      {:error, _changeset} ->
+        {:error, "Failed to update #{type}.#{id}"}
     end
   end
 
@@ -54,7 +58,10 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
             {key, rendered}
 
           _ ->
-            Logger.warn("failed to render #{key} => #{value} for resource_update")
+            Logger.warn(
+              "failed to render #{key} => #{value} for resource_update"
+            )
+
             {key, value}
         end
 

@@ -7,7 +7,10 @@ defmodule FarmbotOS.Configurator.FakeNetworkLayer do
 
   @impl FarmbotOS.Configurator.NetworkLayer
   def list_interfaces() do
-    [{"eth0", %{mac_address: "not real lol"}}, {"wlan0", %{mac_address: "even more not real"}}]
+    [
+      {"eth0", %{mac_address: "not real lol"}},
+      {"wlan0", %{mac_address: "even more not real"}}
+    ]
   end
 
   @impl FarmbotOS.Configurator.NetworkLayer

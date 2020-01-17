@@ -17,7 +17,14 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_encoders_raw(x: float(), y: float(), z: float()) :: any()
   @callback handle_parameter_value([{Param.t(), float()}]) :: any()
   @callback handle_parameter_calibration_value([{Param.t(), float()}]) :: any()
-  @callback handle_end_stops(xa: 0 | 1, xb: 0 | 1, ya: 0 | 1, yb: 0 | 1, za: 0 | 1, zb: 0 | 1) ::
+  @callback handle_end_stops(
+              xa: 0 | 1,
+              xb: 0 | 1,
+              ya: 0 | 1,
+              yb: 0 | 1,
+              za: 0 | 1,
+              zb: 0 | 1
+            ) ::
               any()
   @callback handle_emergency_lock() :: any()
   @callback handle_emergency_unlock() :: any()
@@ -26,7 +33,8 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_busy(boolean()) :: any()
   @callback handle_idle(boolean()) :: any()
 
-  @type axis_state :: :stop | :idle | :begin | :crawl | :decelerate | :accelerate
+  @type axis_state ::
+          :stop | :idle | :begin | :crawl | :decelerate | :accelerate
   @callback handle_axis_state([{axis(), axis_state}]) :: any()
 
   @callback handle_axis_timeout(axis()) :: any()

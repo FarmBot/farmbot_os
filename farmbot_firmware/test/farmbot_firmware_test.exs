@@ -6,7 +6,8 @@ defmodule FarmbotFirmwareTest do
     pid =
       start_supervised!({
         FarmbotFirmware,
-        transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects
+        transport: FarmbotFirmware.StubTransport,
+        side_effects: FarmbotCore.FirmwareSideEffects
       })
 
     # WIP

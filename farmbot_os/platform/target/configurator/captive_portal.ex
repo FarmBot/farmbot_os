@@ -45,7 +45,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
     VintageNetWiFi.ioctl(ifname, ioctl, args)
   end
 
-  defp dnsmasq(%{ifname: ifname, source_config: %{dnsmasq: config}} = raw_config, opts) do
+  defp dnsmasq(
+         %{ifname: ifname, source_config: %{dnsmasq: config}} = raw_config,
+         opts
+       ) do
     tmpdir = Keyword.fetch!(opts, :tmpdir)
     killall = Keyword.fetch!(opts, :bin_killall)
     dnsmasq = System.find_executable("dnsmasq")
@@ -93,7 +96,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
         up_cmds: raw_config.up_cmds ++ up_cmds,
         down_cmds: raw_config.down_cmds ++ down_cmds,
         cleanup_files:
-          raw_config.cleanup_files ++ [dnsmasq_conf_path, dnsmasq_lease_file, dnsmasq_pid_file]
+          raw_config.cleanup_files ++
+            [dnsmasq_conf_path, dnsmasq_lease_file, dnsmasq_pid_file]
     }
 
     updated_raw_config

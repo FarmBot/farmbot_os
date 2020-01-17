@@ -55,9 +55,29 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
     _ = Config.input_network_config!(network_params)
 
     # Runtime network configuration
-    _ = Config.update_config_value(:string, "settings", "default_ntp_server_1", net_config_ntp1)
-    _ = Config.update_config_value(:string, "settings", "default_ntp_server_2", net_config_ntp2)
-    _ = Config.update_config_value(:string, "settings", "default_dns_name", net_config_dns_name)
+    _ =
+      Config.update_config_value(
+        :string,
+        "settings",
+        "default_ntp_server_1",
+        net_config_ntp1
+      )
+
+    _ =
+      Config.update_config_value(
+        :string,
+        "settings",
+        "default_ntp_server_2",
+        net_config_ntp2
+      )
+
+    _ =
+      Config.update_config_value(
+        :string,
+        "settings",
+        "default_dns_name",
+        net_config_dns_name
+      )
 
     if net_config_ssh_key do
       Asset.new_public_key!(%{
@@ -68,9 +88,31 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
 
     # Farmbot specific auth data
     _ = Config.update_config_value(:string, "authorization", "secret", nil)
-    _ = Config.update_config_value(:string, "authorization", "email", auth_config_email)
-    _ = Config.update_config_value(:string, "authorization", "password", auth_config_password)
-    _ = Config.update_config_value(:string, "authorization", "server", auth_config_server)
+
+    _ =
+      Config.update_config_value(
+        :string,
+        "authorization",
+        "email",
+        auth_config_email
+      )
+
+    _ =
+      Config.update_config_value(
+        :string,
+        "authorization",
+        "password",
+        auth_config_password
+      )
+
+    _ =
+      Config.update_config_value(
+        :string,
+        "authorization",
+        "server",
+        auth_config_server
+      )
+
     :ok
   end
 

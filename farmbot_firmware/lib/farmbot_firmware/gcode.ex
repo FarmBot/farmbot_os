@@ -62,7 +62,8 @@ defmodule FarmbotFirmware.GCODE do
           | :software_version_read
           | :position_write_zero
 
-  @type emergency_commands :: :command_emergency_lock | :command_emergency_unlock
+  @type emergency_commands ::
+          :command_emergency_lock | :command_emergency_unlock
 
   @typedoc "Kind is an atom of the \"name\" of a command. Example: `:write_parameter`"
   @type kind() :: report_kind | command_kind | read_write_kind | :unknown

@@ -22,7 +22,8 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Throttle do
 
   @impl GenServer
   def handle_info(:timeout, state) do
-    {throttled_str, 0} = Nerves.Runtime.cmd("vcgencmd", ["get_throttled"], :return)
+    {throttled_str, 0} =
+      Nerves.Runtime.cmd("vcgencmd", ["get_throttled"], :return)
 
     throttled =
       throttled_str
