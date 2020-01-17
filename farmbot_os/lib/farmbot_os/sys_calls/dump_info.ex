@@ -3,7 +3,14 @@ defmodule FarmbotOS.SysCalls.DumpInfo do
 
   require FarmbotCore.Logger
   require FarmbotTelemetry
-  alias FarmbotCore.{Asset, Asset.DiagnosticDump, Asset.Private, Config, Project}
+
+  alias FarmbotCore.{
+    Asset,
+    Asset.DiagnosticDump,
+    Asset.Private,
+    Config,
+    Project
+  }
 
   def dump_info do
     FarmbotCore.Logger.busy(1, "Recording diagnostic dump.")
@@ -38,7 +45,10 @@ defmodule FarmbotOS.SysCalls.DumpInfo do
         :ok
 
       {:error, changeset} ->
-        FarmbotTelemetry.event(:diagnostic_dump, :record_error, nil, error: inspect(changeset))
+        FarmbotTelemetry.event(:diagnostic_dump, :record_error, nil,
+          error: inspect(changeset)
+        )
+
         {:error, "error creating diagnostic dump: #{inspect(changeset)}"}
     end
   end

@@ -4,13 +4,20 @@ defmodule FarmbotCore.BotState.FileSystemTest do
 
   describe "serializer" do
     test "arrays not aloud" do
-      assert_raise RuntimeError, "Arrays can not be serialized to filesystem nodes", fn ->
-        FileSystem.serialize_state(%{key: [:value, :nope]}, "/")
-      end
+      assert_raise RuntimeError,
+                   "Arrays can not be serialized to filesystem nodes",
+                   fn ->
+                     FileSystem.serialize_state(%{key: [:value, :nope]}, "/")
+                   end
     end
 
     test "serializes a map to the filesystem" do
-      root_dir = Path.join([System.tmp_dir!(), Ecto.UUID.generate(), "-farmbot-map-serializer"])
+      root_dir =
+        Path.join([
+          System.tmp_dir!(),
+          Ecto.UUID.generate(),
+          "-farmbot-map-serializer"
+        ])
 
       fixture = %{
         a_string: "hello",
@@ -54,11 +61,21 @@ defmodule FarmbotCore.BotState.FileSystemTest do
 
   describe "server" do
     test "serializes state to fs" do
-      root_dir = Path.join([System.tmp_dir!(), Ecto.UUID.generate(), "-farmbot-bot-state"])
+      root_dir =
+        Path.join([
+          System.tmp_dir!(),
+          Ecto.UUID.generate(),
+          "-farmbot-bot-state"
+        ])
+
       {:ok, bot_state_pid} = BotState.start_link([], [])
 
       {:ok, _pid} =
-        FileSystem.start_link(root_dir: root_dir, bot_state: bot_state_pid, sleep_time: 0)
+        FileSystem.start_link(
+          root_dir: root_dir,
+          bot_state: bot_state_pid,
+          sleep_time: 0
+        )
 
       _ = BotState.subscribe(bot_state_pid)
       :ok = BotState.set_pin_value(bot_state_pid, 1, 1)

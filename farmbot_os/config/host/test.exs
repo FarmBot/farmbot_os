@@ -22,7 +22,11 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
 config :farmbot,
-  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo],
+  ecto_repos: [
+    FarmbotCore.Config.Repo,
+    FarmbotCore.Logger.Repo,
+    FarmbotCore.Asset.Repo
+  ],
   platform_children: [
     {Farmbot.Platform.Host.Configurator, []}
   ]

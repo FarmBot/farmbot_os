@@ -13,7 +13,11 @@ defmodule FarmbotOS.Configurator.Supervisor do
 
   @impl Supervisor
   def init(_args) do
-    :ets.new(:configurator_session, [:named_table, :public, read_concurrency: true])
+    :ets.new(:configurator_session, [
+      :named_table,
+      :public,
+      read_concurrency: true
+    ])
 
     transport_opts = [
       num_acceptors: 1

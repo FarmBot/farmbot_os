@@ -17,7 +17,6 @@ defmodule FarmbotFirmware.UartDefaultAdapter do
 
   @impl FarmbotFirmware.UartAdapter
   def stop(uart_pid) do
-    IO.puts("Hello?")
     UART.stop(uart_pid)
   end
 

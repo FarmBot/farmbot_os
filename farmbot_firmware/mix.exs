@@ -1,7 +1,12 @@
 defmodule FarmbotFirmware.MixProject do
   use Mix.Project
-  @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
+
+  @version Path.join([__DIR__, "..", "VERSION"])
+           |> File.read!()
+           |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   defp arduino_commit do
     opts = [cd: Path.join("c_src", "farmbot-arduino-firmware")]
@@ -51,7 +56,8 @@ defmodule FarmbotFirmware.MixProject do
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:circuits_uart, "~> 1.4.0"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3",
+       only: [:dev], targets: [:host], runtime: false},
       {:mox, "~> 0.5.1", only: :test},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
     ]

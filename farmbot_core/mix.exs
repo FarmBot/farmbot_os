@@ -1,9 +1,15 @@
 defmodule FarmbotCore.MixProject do
   use Mix.Project
   @target System.get_env("MIX_TARGET") || "host"
-  @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
-  @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD") |> elem(0) |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
+  @version Path.join([__DIR__, "..", "VERSION"])
+           |> File.read!()
+           |> String.trim()
+  @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD")
+          |> elem(0)
+          |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -59,7 +65,8 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:farmbot_celery_script, path: "../farmbot_celery_script", env: Mix.env()},
+      {:farmbot_celery_script,
+       path: "../farmbot_celery_script", env: Mix.env()},
       {:farmbot_firmware, path: "../farmbot_firmware", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:elixir_make, "~> 0.6", runtime: false},
@@ -68,7 +75,8 @@ defmodule FarmbotCore.MixProject do
       {:jason, "~> 1.1"},
       {:muontrap, "~> 0.5"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3",
+       only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end

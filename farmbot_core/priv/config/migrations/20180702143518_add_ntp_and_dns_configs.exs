@@ -2,12 +2,14 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddNtpAndDnsConfigs do
   use Ecto.Migration
   import FarmbotCore.Config.MigrationHelpers
 
-  @default_ntp_server_1 Application.get_env(:farmbot_core, FarmbotCore.EctoMigrator)[
-                          :default_ntp_server_1
-                        ]
-  @default_ntp_server_2 Application.get_env(:farmbot_core, FarmbotCore.EctoMigrator)[
-                          :default_ntp_server_2
-                        ]
+  @default_ntp_server_1 Application.get_env(
+                          :farmbot_core,
+                          FarmbotCore.EctoMigrator
+                        )[:default_ntp_server_1]
+  @default_ntp_server_2 Application.get_env(
+                          :farmbot_core,
+                          FarmbotCore.EctoMigrator
+                        )[:default_ntp_server_2]
   @default_dns_name Application.get_env(:farmbot_core, FarmbotCore.EctoMigrator)[
                       :default_dns_name
                     ]
@@ -30,8 +32,18 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddNtpAndDnsConfigs do
     do: raise(@config_error)
 
   def change do
-    create_settings_config("default_ntp_server_1", :string, @default_ntp_server_1)
-    create_settings_config("default_ntp_server_2", :string, @default_ntp_server_2)
+    create_settings_config(
+      "default_ntp_server_1",
+      :string,
+      @default_ntp_server_1
+    )
+
+    create_settings_config(
+      "default_ntp_server_2",
+      :string,
+      @default_ntp_server_2
+    )
+
     create_settings_config("default_dns_name", :string, @default_dns_name)
   end
 end

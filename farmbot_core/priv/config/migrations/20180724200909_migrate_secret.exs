@@ -5,7 +5,9 @@ defmodule FarmbotCore.Config.Repo.Migrations.MigrateSecret do
   def change do
     group =
       FarmbotCore.Config.Repo.one!(
-        from(g in FarmbotCore.Config.Group, where: g.group_name == "authorization")
+        from(g in FarmbotCore.Config.Group,
+          where: g.group_name == "authorization"
+        )
       )
 
     pass_ref =
@@ -17,17 +19,23 @@ defmodule FarmbotCore.Config.Repo.Migrations.MigrateSecret do
 
     sec_ref =
       FarmbotCore.Config.Repo.one!(
-        from(c in FarmbotCore.Config.Config, where: c.key == "secret" and c.group_id == ^group.id)
+        from(c in FarmbotCore.Config.Config,
+          where: c.key == "secret" and c.group_id == ^group.id
+        )
       )
 
     pass =
       FarmbotCore.Config.Repo.one!(
-        from(s in FarmbotCore.Config.StringValue, where: s.id == ^pass_ref.string_value_id)
+        from(s in FarmbotCore.Config.StringValue,
+          where: s.id == ^pass_ref.string_value_id
+        )
       )
 
     sec =
       FarmbotCore.Config.Repo.one!(
-        from(s in FarmbotCore.Config.StringValue, where: s.id == ^sec_ref.string_value_id)
+        from(s in FarmbotCore.Config.StringValue,
+          where: s.id == ^sec_ref.string_value_id
+        )
       )
 
     if pass.value do

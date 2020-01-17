@@ -12,12 +12,21 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
 
     case Authorization.authorize_with_secret(email, secret, server) do
       {:ok, _token} ->
-        FarmbotCore.Logger.warn(1, "Farmbot is changing ownership to #{email} - #{server}")
+        FarmbotCore.Logger.warn(
+          1,
+          "Farmbot is changing ownership to #{email} - #{server}"
+        )
+
         :ok = replace_credentials(email, secret, server)
         _ = clean_assets()
         _ = clean_farmwares()
         FarmbotCore.Logger.warn(1, "Going down for reboot")
-        Supervisor.start_child(:elixir_sup, {Task, &FarmbotOS.System.soft_restart/0})
+
+        Supervisor.start_child(
+          :elixir_sup,
+          {Task, &FarmbotOS.System.soft_restart/0}
+        )
+
         :ok
 
       {:error, _} ->

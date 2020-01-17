@@ -18,14 +18,18 @@ defmodule FarmbotCeleryScript.Corpus do
   @corpus_tag tag
 
   # Load and decode each arg in the json into an Arg struct
-  @args Enum.map(args, fn %{"name" => name, "allowed_values" => allowed_values} = a ->
+  @args Enum.map(args, fn %{"name" => name, "allowed_values" => allowed_values} =
+                            a ->
           %Arg{name: name, allowed_values: allowed_values, doc: a["doc"]}
         end)
 
   # Load and decode each node in the json into a Node struct.
   # This also expands the `allowed_args` into their respective Arg relationship.
-  @nodes Enum.map(@nodes, fn %{"name" => name, "allowed_args" => aa, "allowed_body_types" => abt} =
-                               n ->
+  @nodes Enum.map(@nodes, fn %{
+                               "name" => name,
+                               "allowed_args" => aa,
+                               "allowed_body_types" => abt
+                             } = n ->
            allowed_args =
              Enum.map(aa, fn arg_name ->
                Enum.find(@args, fn
@@ -34,7 +38,12 @@ defmodule FarmbotCeleryScript.Corpus do
                end) || Mix.raise("Unknown CeleryScript argument: #{arg_name}")
              end)
 
-           %Node{name: name, allowed_args: allowed_args, allowed_body_types: abt, doc: n["doc"]}
+           %Node{
+             name: name,
+             allowed_args: allowed_args,
+             allowed_body_types: abt,
+             doc: n["doc"]
+           }
          end)
 
   # Struct should never be created manually.

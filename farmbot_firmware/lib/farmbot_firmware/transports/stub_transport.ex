@@ -30,7 +30,10 @@ defmodule FarmbotFirmware.StubTransport do
   end
 
   def handle_info(:timeout, %{status: :boot} = state) do
-    state.handle_gcode.(GCODE.new(:report_debug_message, ["ARDUINO STARTUP COMPLETE"]))
+    state.handle_gcode.(
+      GCODE.new(:report_debug_message, ["ARDUINO STARTUP COMPLETE"])
+    )
+
     {:noreply, goto(state, :no_config), 0}
   end
 
@@ -79,7 +82,8 @@ defmodule FarmbotFirmware.StubTransport do
   end
 
   def handle_call(
-        {tag, {:parameter_write, [{:param_config_ok = param, 1.0 = value}]}} = code,
+        {tag, {:parameter_write, [{:param_config_ok = param, 1.0 = value}]}} =
+          code,
         _from,
         state
       ) do
@@ -94,7 +98,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, goto(new_state, :idle), {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:parameter_write, [{param, value}]}} = code, _from, state) do
+  def handle_call(
+        {tag, {:parameter_write, [{param, value}]}} = code,
+        _from,
+        state
+      ) do
     new_state = %{state | params: Keyword.put(state.params, param, value)}
 
     resp_codes = [
@@ -132,7 +140,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:position_write_zero, [:x, :y, :z]}} = code, _from, state) do
+  def handle_call(
+        {tag, {:position_write_zero, [:x, :y, :z]}} = code,
+        _from,
+        state
+      ) do
     position = [
       x: 0.0,
       y: 0.0,
@@ -166,7 +178,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:command_movement_calibrate, [axis]}} = code, _from, state) do
+  def handle_call(
+        {tag, {:command_movement_calibrate, [axis]}} = code,
+        _from,
+        state
+      ) do
     position = [x: 0.0, y: 0.0, z: 0.0]
     state = %{state | position: position}
     param_nr_steps = :"movement_axis_nr_steps_#{axis}"
@@ -182,8 +198,12 @@ defmodule FarmbotFirmware.StubTransport do
       GCODE.new(:report_calibration_state, [:idle]),
       GCODE.new(:report_calibration_state, [:home]),
       GCODE.new(:report_calibration_state, [:end]),
-      GCODE.new(:report_calibration_parameter_value, [{param_nr_steps, param_nr_steps_val}]),
-      GCODE.new(:report_calibration_parameter_value, [{param_endpoints, param_endpoints_val}]),
+      GCODE.new(:report_calibration_parameter_value, [
+        {param_nr_steps, param_nr_steps_val}
+      ]),
+      GCODE.new(:report_calibration_parameter_value, [
+        {param_endpoints, param_endpoints_val}
+      ]),
       GCODE.new(:report_position, state.position),
       GCODE.new(:report_success, [], tag)
     ]
@@ -203,7 +223,11 @@ defmodule FarmbotFirmware.StubTransport do
   end
 
   # Everything under this clause should be blocked if emergency_locked
-  def handle_call({_tag, {_, _}} = code, _from, %{status: :emergency_lock} = state) do
+  def handle_call(
+        {_tag, {_, _}} = code,
+        _from,
+        %{status: :emergency_lock} = state
+      ) do
     Logger.error("Stub Transport emergency lock")
 
     resp_codes = [
@@ -291,7 +315,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:command_movement_home, [:x, :y, :z]}} = code, _from, state) do
+  def handle_call(
+        {tag, {:command_movement_home, [:x, :y, :z]}} = code,
+        _from,
+        state
+      ) do
     position = [
       x: 0.0,
       y: 0.0,
@@ -326,7 +354,11 @@ defmodule FarmbotFirmware.StubTransport do
     {:reply, :ok, state, {:continue, resp_codes}}
   end
 
-  def handle_call({tag, {:command_movement_find_home, [axis]}} = code, _from, state) do
+  def handle_call(
+        {tag, {:command_movement_find_home, [axis]}} = code,
+        _from,
+        state
+      ) do
     position = Keyword.put(state.position, axis, 0.0) |> ensure_order()
     state = %{state | position: position}
 
@@ -342,7 +374,9 @@ defmodule FarmbotFirmware.StubTransport do
   end
 
   def handle_call({tag, {_, _}} = code, _from, state) do
-    Logger.error("STUB HANDLER: unknown code: #{inspect(code)} for state: #{state.status}")
+    Logger.error(
+      "STUB HANDLER: unknown code: #{inspect(code)} for state: #{state.status}"
+    )
 
     resp_codes = [
       GCODE.new(:report_echo, [GCODE.encode(code)]),

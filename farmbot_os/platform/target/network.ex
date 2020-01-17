@@ -110,9 +110,15 @@ defmodule FarmbotOS.Platform.Target.Network do
     end
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "type"], _old, type, _meta}, state)
+  def handle_info(
+        {VintageNet, ["interface", ifname, "type"], _old, type, _meta},
+        state
+      )
       when type in [PreSetup, VintageNet.Technology.Null] do
-    FarmbotCore.Logger.debug(1, "Network interface needs configuration: #{ifname}")
+    FarmbotCore.Logger.debug(
+      1,
+      "Network interface needs configuration: #{ifname}"
+    )
 
     case Config.get_network_config(ifname) do
       %Config.NetworkInterface{} = config ->
@@ -129,10 +135,17 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
-        FarmbotTelemetry.event(:network, :interface_configure, nil, interface: ifname)
+
+        FarmbotTelemetry.event(:network, :interface_configure, nil,
+          interface: ifname
+        )
+
         configure_result = VintageNet.configure(config.name, vintage_net_config)
 
-        FarmbotCore.Logger.success(3, "#{config.name} setup: #{inspect(configure_result)}")
+        FarmbotCore.Logger.success(
+          3,
+          "#{config.name} setup: #{inspect(configure_result)}"
+        )
 
         state = start_network_not_found_timer(state)
         {:noreply, state}
@@ -142,14 +155,27 @@ defmodule FarmbotOS.Platform.Target.Network do
     end
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, false, _meta}, state) do
-    FarmbotCore.Logger.error(1, "Interface #{ifname} disconnected from access point")
-    FarmbotTelemetry.event(:network, :interface_disconnect, nil, interface: ifname)
+  def handle_info(
+        {VintageNet, ["interface", ifname, "lower_up"], _old, false, _meta},
+        state
+      ) do
+    FarmbotCore.Logger.error(
+      1,
+      "Interface #{ifname} disconnected from access point"
+    )
+
+    FarmbotTelemetry.event(:network, :interface_disconnect, nil,
+      interface: ifname
+    )
+
     state = start_network_not_found_timer(state)
     {:noreply, state}
   end
 
-  def handle_info({VintageNet, ["interface", ifname, "lower_up"], _old, true, _meta}, state) do
+  def handle_info(
+        {VintageNet, ["interface", ifname, "lower_up"], _old, true, _meta},
+        state
+      ) do
     FarmbotCore.Logger.success(1, "Interface #{ifname} connected access point")
     FarmbotTelemetry.event(:network, :interface_connect, nil, interface: ifname)
     state = cancel_network_not_found_timer(state)
@@ -157,16 +183,22 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan, _meta},
+        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan,
+         _meta},
         state
       ) do
-    FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to local area network")
+    FarmbotCore.Logger.warn(
+      1,
+      "Interface #{ifname} connected to local area network"
+    )
+
     FarmbotTelemetry.event(:network, :lan_connect, nil, interface: ifname)
     {:noreply, state}
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :lan, :internet, _meta},
+        {VintageNet, ["interface", ifname, "connection"], :lan, :internet,
+         _meta},
         state
       ) do
     FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
@@ -176,10 +208,15 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :internet, ifstate, _meta},
+        {VintageNet, ["interface", ifname, "connection"], :internet, ifstate,
+         _meta},
         state
       ) do
-    FarmbotCore.Logger.warn(1, "Interface #{ifname} disconnected from the internet: #{ifstate}")
+    FarmbotCore.Logger.warn(
+      1,
+      "Interface #{ifname} disconnected from the internet: #{ifstate}"
+    )
+
     FarmbotExt.AMQP.ConnectionWorker.close()
     FarmbotTelemetry.event(:network, :wan_disconnect, nil, interface: ifname)
 
@@ -192,15 +229,16 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", _, "wifi", "access_points"], _old, _new, _meta},
+        {VintageNet, ["interface", _, "wifi", "access_points"], _old, _new,
+         _meta},
         state
       ) do
     {:noreply, state}
   end
 
   def handle_info(
-        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :success} = eap_status,
-         _meta},
+        {VintageNet, ["interface", _ifname, "eap_status"], _old,
+         %{status: :success} = eap_status, _meta},
         state
       ) do
     FarmbotCore.Logger.debug(3, """
@@ -212,7 +250,8 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :failure}, _meta},
+        {VintageNet, ["interface", _ifname, "eap_status"], _old,
+         %{status: :failure}, _meta},
         state
       ) do
     FarmbotCore.Logger.error(1, """
@@ -292,7 +331,9 @@ defmodule FarmbotOS.Platform.Target.Network do
     # Stored in minutes
     minutes = network_not_found_timer_minutes(state)
     millis = minutes * 60000
-    new_timer = Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
+
+    new_timer =
+      Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
 
     FarmbotCore.Logger.warn(
       1,
@@ -308,13 +349,18 @@ defmodule FarmbotOS.Platform.Target.Network do
   defp network_not_found_timer_minutes(%{first_connect?: true}), do: 1
 
   defp network_not_found_timer_minutes(_state) do
-    Asset.fbos_config(:network_not_found_timer) || @default_network_not_found_timer_minutes
+    Asset.fbos_config(:network_not_found_timer) ||
+      @default_network_not_found_timer_minutes
   end
 
   def reset_ntp do
     FarmbotTelemetry.event(:ntp, :reset)
-    ntp_server_1 = Config.get_config_value(:string, "settings", "default_ntp_server_1")
-    ntp_server_2 = Config.get_config_value(:string, "settings", "default_ntp_server_2")
+
+    ntp_server_1 =
+      Config.get_config_value(:string, "settings", "default_ntp_server_1")
+
+    ntp_server_2 =
+      Config.get_config_value(:string, "settings", "default_ntp_server_2")
 
     if ntp_server_1 || ntp_server_2 do
       Logger.info("Setting NTP servers: [#{ntp_server_1}, #{ntp_server_2}]")

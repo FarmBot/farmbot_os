@@ -34,7 +34,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
     # The compiler expects the `env` argument to be already sanatized.
     # When supplying the env for this test, we need to make sure the
     # `provided_by_caller` variable name is sanatized
-    sanatized_env = [{IdentifierSanitizer.to_variable("provided_by_caller"), 900}]
+    sanatized_env = [
+      {IdentifierSanitizer.to_variable("provided_by_caller"), 900}
+    ]
+
     [body_item] = Compiler.compile(sequence, sanatized_env)
     assert body_item.() == 900
 
@@ -48,7 +51,9 @@ defmodule FarmbotCeleryScript.CompilerTest do
       }
     ]
 
-    compiled_celery_env = Compiler.Utils.compile_params_to_function_args(celery_env, [])
+    compiled_celery_env =
+      Compiler.Utils.compile_params_to_function_args(celery_env, [])
+
     [body_item] = Compiler.compile(sequence, compiled_celery_env)
     assert body_item.() == 600
   end
@@ -79,7 +84,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
     identifier_ast = AST.Factory.new("identifier", label: label)
 
     parameter_application_ast =
-      AST.Factory.new("parameter_application", label: label, data_value: value_ast)
+      AST.Factory.new("parameter_application",
+        label: label,
+        data_value: value_ast
+      )
 
     celery_ast = %AST{
       kind: :sequence,

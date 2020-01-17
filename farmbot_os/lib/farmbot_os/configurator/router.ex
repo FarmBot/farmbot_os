@@ -10,14 +10,24 @@ defmodule FarmbotOS.Configurator.Router do
   plug(Plug.Logger)
   plug(Plug.Static, from: {:farmbot, "priv/static"}, at: "/")
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart])
-  plug(Plug.Session, store: :ets, key: "_farmbot_session", table: :configurator_session)
+
+  plug(Plug.Session,
+    store: :ets,
+    key: "_farmbot_session",
+    table: :configurator_session
+  )
+
   plug(:fetch_session)
   plug(:match)
   plug(:dispatch)
 
   @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
-  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:network_layer]
-  @telemetry_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:telemetry_layer]
+  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
+                   :network_layer
+                 ]
+  @telemetry_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
+                     :telemetry_layer
+                   ]
 
   # Trigger for captive portal for various operating systems
   get("/gen_204", do: redir(conn, "/"))
@@ -49,7 +59,10 @@ defmodule FarmbotOS.Configurator.Router do
         if String.contains?(reason, "CeleryScript request.") do
           redir(conn, "/network")
         else
-          render_page(conn, "index", version: version(), last_reset_reason: reason)
+          render_page(conn, "index",
+            version: version(),
+            last_reset_reason: reason
+          )
         end
 
       nil ->
@@ -246,7 +259,10 @@ defmodule FarmbotOS.Configurator.Router do
 
       _ ->
         conn
-        |> put_session("__error", "Email, Server, or Password are missing or invalid")
+        |> put_session(
+          "__error",
+          "Email, Server, or Password are missing or invalid"
+        )
         |> redir("/credentials")
     end
   end
@@ -280,20 +296,34 @@ defmodule FarmbotOS.Configurator.Router do
   defp render_page(conn, page, info \\ []) do
     page
     |> template_file()
-    |> EEx.eval_file(Keyword.merge([version: version()], info), engine: Phoenix.HTML.Engine)
+    |> EEx.eval_file(Keyword.merge([version: version()], info),
+      engine: Phoenix.HTML.Engine
+    )
     |> (fn {:safe, contents} -> send_resp(conn, 200, contents) end).()
   rescue
     e ->
       IO.warn("render error", __STACKTRACE__)
-      send_resp(conn, 500, "Failed to render page: #{page} error: #{Exception.message(e)}")
+
+      send_resp(
+        conn,
+        500,
+        "Failed to render page: #{page} error: #{Exception.message(e)}"
+      )
   end
 
   defp render_json(conn, data) do
     conn = put_resp_header(conn, "content-type", "application/json")
 
     case FarmbotCore.JSON.encode(data) do
-      {:ok, json} -> send_resp(conn, 200, json)
-      _ -> send_resp(conn, 501, FarmbotCore.JSON.encode!(%{error: "failed to render json"}))
+      {:ok, json} ->
+        send_resp(conn, 200, json)
+
+      _ ->
+        send_resp(
+          conn,
+          501,
+          FarmbotCore.JSON.encode!(%{error: "failed to render json"})
+        )
     end
   end
 

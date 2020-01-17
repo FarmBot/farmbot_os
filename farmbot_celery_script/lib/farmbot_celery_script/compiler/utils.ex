@@ -80,7 +80,8 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
 
     var =
       quote location: :keep do
-        {unquote(next_scope_var_name), unquote(Compiler.compile_ast(data_value, env))}
+        {unquote(next_scope_var_name),
+         unquote(Compiler.compile_ast(data_value, env))}
       end
 
     compile_params_to_function_args(rest, env, [var | acc])
@@ -117,12 +118,19 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
 
       parent = Keyword.get(params, :parent, %{x: 100, y: 200, z: 300})
   """
-  def compile_param_declaration(%{args: %{label: var_name, default_value: default}}, env) do
+  def compile_param_declaration(
+        %{args: %{label: var_name, default_value: default}},
+        env
+      ) do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
     quote location: :keep do
       unquote({var_name, env, __MODULE__}) =
-        Keyword.get(params, unquote(var_name), unquote(Compiler.compile_ast(default, env)))
+        Keyword.get(
+          params,
+          unquote(var_name),
+          unquote(Compiler.compile_ast(default, env))
+        )
     end
   end
 
@@ -152,11 +160,15 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
         ]
       }
   """
-  def compile_param_application(%{args: %{label: var_name, data_value: value}}, env) do
+  def compile_param_application(
+        %{args: %{label: var_name, data_value: value}},
+        env
+      ) do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
     quote location: :keep do
-      unquote({var_name, [], __MODULE__}) = unquote(Compiler.compile_ast(value, env))
+      unquote({var_name, [], __MODULE__}) =
+        unquote(Compiler.compile_ast(value, env))
     end
   end
 
@@ -168,13 +180,16 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
     end)
   end
 
-  def add_sequence_init_and_complete_logs(steps, sequence_name) when is_binary(sequence_name) do
+  def add_sequence_init_and_complete_logs(steps, sequence_name)
+      when is_binary(sequence_name) do
     # This looks really weird because of the logs before and
     # after the compiled steps 
     List.flatten([
       quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_init_log("Starting #{unquote(sequence_name)}")
+          FarmbotCeleryScript.SysCalls.sequence_init_log(
+            "Starting #{unquote(sequence_name)}"
+          )
         end
       end,
       steps,
@@ -201,7 +216,9 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
         fn _ ->
           [
             fn ->
-              FarmbotCeleryScript.SysCalls.sequence_init_log("Starting #{unquote(sequence_name)}")
+              FarmbotCeleryScript.SysCalls.sequence_init_log(
+                "Starting #{unquote(sequence_name)}"
+              )
             end
           ]
         end

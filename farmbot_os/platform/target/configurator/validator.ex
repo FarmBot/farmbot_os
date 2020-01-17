@@ -90,7 +90,11 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
     %{method: :dhcp}
   end
 
-  defp to_vintage_net_wifi(%{security: "NONE", ssid: ssid, regulatory_domain: reg_domain}) do
+  defp to_vintage_net_wifi(%{
+         security: "NONE",
+         ssid: ssid,
+         regulatory_domain: reg_domain
+       }) do
     %{
       networks: [
         %{

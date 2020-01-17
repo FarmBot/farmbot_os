@@ -2,12 +2,21 @@ defmodule FarmbotOS.MixProject do
   use Mix.Project
 
   @all_targets [:rpi3, :rpi]
-  @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
-  @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD") |> elem(0) |> String.trim()
-  @commit System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
+  @version Path.join([__DIR__, "..", "VERSION"])
+           |> File.read!()
+           |> String.trim()
+  @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD")
+          |> elem(0)
+          |> String.trim()
+  @commit System.cmd("git", ~w"rev-parse --verify HEAD")
+          |> elem(0)
+          |> String.trim()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
   System.put_env("NERVES_FW_MISC", @branch)
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
+
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @commit)
 
@@ -93,7 +102,8 @@ defmodule FarmbotOS.MixProject do
 
       # Host/test only dependencies.
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3",
+       only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false},
       {:elixir_make, "~> 0.6", runtime: false},
 
@@ -114,7 +124,8 @@ defmodule FarmbotOS.MixProject do
       {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
       {:mdns_lite, "~> 0.6.1", targets: @all_targets},
       {:busybox, "~> 0.1.4", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.10.0-farmbot.1", runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi3, "1.10.0-farmbot.1",
+       runtime: false, targets: :rpi3},
       {:farmbot_system_rpi, "1.10.0-farmbot.1", runtime: false, targets: :rpi}
     ]
   end

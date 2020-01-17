@@ -3,23 +3,28 @@ defmodule FarmbotFirmware.PackageUtils do
   def find_hex_file(package)
 
   def find_hex_file("arduino") do
-    Application.app_dir(:farmbot_firmware, ["priv", "arduino_firmware.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "arduino_firmware.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file("farmduino") do
-    Application.app_dir(:farmbot_firmware, ["priv", "farmduino.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file("farmduino_k14") do
-    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k14.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file("farmduino_k15") do
-    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k15.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "farmduino_k15.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file("express_k10") do
-    Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"]) |> assert_exists()
+    Application.app_dir(:farmbot_firmware, ["priv", "express_k10.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file(hardware) when is_binary(hardware),

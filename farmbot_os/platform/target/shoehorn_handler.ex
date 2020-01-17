@@ -17,7 +17,11 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
   @impl true
   def application_exited(:nerves_runtime, _, state) do
     # https://github.com/nerves-project/nerves_runtime/issues/152
-    _ = System.cmd("killall", ["-9", "kmsg_tailer"], into: IO.stream(:stdio, :line))
+    _ =
+      System.cmd("killall", ["-9", "kmsg_tailer"],
+        into: IO.stream(:stdio, :line)
+      )
+
     {:continue, state}
   end
 
@@ -28,7 +32,10 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
                :farmbot_ext,
                :farmbot
              ] do
-    error_log("Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}")
+    error_log(
+      "Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}"
+    )
+
     # Force a factory reset.
     FarmbotOS.System.factory_reset(
       "Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}"
@@ -45,7 +52,10 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
              :farmbot_ext,
              :farmbot
            ] do
-    error_log("Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}")
+    error_log(
+      "Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}"
+    )
+
     FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
 
     with {:ok, _} <- Application.ensure_all_started(:farmbot_core),
@@ -58,7 +68,10 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
   end
 
   def application_exited(app, reason, state) do
-    error_log("Application stopped: #{inspect(app)} #{inspect(reason, limit: :infinity)}")
+    error_log(
+      "Application stopped: #{inspect(app)} #{inspect(reason, limit: :infinity)}"
+    )
+
     FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
     # Application.ensure_all_started(app)
     {:continue, state}

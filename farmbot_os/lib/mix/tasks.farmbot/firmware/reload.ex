@@ -17,7 +17,8 @@ defmodule Mix.Tasks.Farmbot.Firmware.Reload do
     true = Node.connect(farmbot_node)
 
     for module <- mods do
-      {:ok, [{^farmbot_node, :loaded, ^module}]} = IEx.Helpers.nl([farmbot_node], module)
+      {:ok, [{^farmbot_node, :loaded, ^module}]} =
+        IEx.Helpers.nl([farmbot_node], module)
     end
   end
 

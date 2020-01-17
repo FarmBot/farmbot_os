@@ -2,7 +2,11 @@ use Mix.Config
 config :ecto, json_library: FarmbotCore.JSON
 
 config :farmbot_core,
-  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
+  ecto_repos: [
+    FarmbotCore.Config.Repo,
+    FarmbotCore.Logger.Repo,
+    FarmbotCore.Asset.Repo
+  ]
 
 config :farmbot_core, FarmbotCore.Config.Repo,
   adapter: Sqlite.Ecto2,

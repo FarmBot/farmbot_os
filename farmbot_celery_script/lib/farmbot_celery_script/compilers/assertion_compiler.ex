@@ -4,7 +4,11 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
   @doc "`Assert` is a internal node useful for self testing."
   def assertion(
         %{
-          args: %{lua: expression, assertion_type: assertion_type, _then: then_ast},
+          args: %{
+            lua: expression,
+            assertion_type: assertion_type,
+            _then: then_ast
+          },
           comment: comment
         },
         env
@@ -80,7 +84,10 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           then_block ++
             [
-              FarmbotCeleryScript.Compiler.compile(%AST{kind: :abort, args: %{}}, [])
+              FarmbotCeleryScript.Compiler.compile(
+                %AST{kind: :abort, args: %{}},
+                []
+              )
             ]
       end
     end

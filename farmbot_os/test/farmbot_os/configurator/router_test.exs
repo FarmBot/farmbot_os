@@ -141,7 +141,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert redirected_to(conn) == "/config_wireless"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "NONE"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "NONE"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -149,7 +152,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA-PSK"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA-PSK"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -157,7 +163,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA2-PSK"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA2-PSK"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -165,7 +174,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA-EAP"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA-EAP"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -227,10 +239,18 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "net_config_ssid") == "Test Network"
     assert get_session(conn, "net_config_security") == "WPA-PSK"
     assert get_session(conn, "net_config_psk") == "ABCDEF"
-    assert get_session(conn, "net_config_identity") == "NOT TECHNICALLY POSSIBLE"
-    assert get_session(conn, "net_config_password") == "NOT TECHNICALLY POSSIBLE"
+
+    assert get_session(conn, "net_config_identity") ==
+             "NOT TECHNICALLY POSSIBLE"
+
+    assert get_session(conn, "net_config_password") ==
+             "NOT TECHNICALLY POSSIBLE"
+
     assert get_session(conn, "net_config_domain") == "farmbot.org"
-    assert get_session(conn, "net_config_name_servers") == "192.168.1.1, 192.168.1.2"
+
+    assert get_session(conn, "net_config_name_servers") ==
+             "192.168.1.1, 192.168.1.2"
+
     assert get_session(conn, "net_config_ipv4_method") == "static"
     assert get_session(conn, "net_config_ipv4_address") == "192.168.1.100"
     assert get_session(conn, "net_config_ipv4_gateway") == "192.168.1.1"
@@ -268,7 +288,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "auth_config_server") == "https://my.farm.bot"
 
     conn =
-      conn(:post, "/configure_credentials", %{params | "server" => "whoops/i/made/a/type"})
+      conn(:post, "/configure_credentials", %{
+        params
+        | "server" => "whoops/i/made/a/type"
+      })
       |> Router.call(@opts)
 
     assert redirected_to(conn) == "/credentials"

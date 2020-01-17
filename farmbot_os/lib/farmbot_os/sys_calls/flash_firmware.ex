@@ -4,18 +4,29 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotCore.{Asset, Asset.Private}
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector
-  import FarmbotFirmware.PackageUtils, only: [find_hex_file: 1, package_to_string: 1]
+
+  import FarmbotFirmware.PackageUtils,
+    only: [find_hex_file: 1, package_to_string: 1]
+
   require FarmbotCore.Logger
   require Logger
 
   def flash_firmware(package) do
-    FarmbotCore.Logger.busy(2, "Flashing #{package_to_string(package)} firmware")
+    FarmbotCore.Logger.busy(
+      2,
+      "Flashing #{package_to_string(package)} firmware"
+    )
 
     with {:ok, hex_file} <- find_hex_file(package),
          {:ok, tty} <- find_tty(),
-         _ <- FarmbotCore.Logger.debug(3, "found tty: #{tty} for firmware flash"),
+         _ <-
+           FarmbotCore.Logger.debug(3, "found tty: #{tty} for firmware flash"),
          {:ok, fun} <- find_reset_fun(package),
-         _ <- FarmbotCore.Logger.debug(3, "closing firmware transport before flash"),
+         _ <-
+           FarmbotCore.Logger.debug(
+             3,
+             "closing firmware transport before flash"
+           ),
          :ok <- FarmbotFirmware.close_transport(),
          _ <- FarmbotCore.Logger.debug(3, "starting firmware flash"),
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do

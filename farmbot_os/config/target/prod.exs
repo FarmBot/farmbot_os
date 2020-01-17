@@ -51,7 +51,13 @@ config :mdns_lite,
   ]
 
 config :shoehorn,
-  init: [:nerves_runtime, :vintage_net, :nerves_firmware_ssh, :farmbot_core, :farmbot_ext],
+  init: [
+    :nerves_runtime,
+    :vintage_net,
+    :nerves_firmware_ssh,
+    :farmbot_core,
+    :farmbot_ext
+  ],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
 
@@ -90,7 +96,8 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
   pool_size: 1,
   database: Path.join(data_path, "asset-#{Mix.env()}.sqlite3")
 
-config :farmbot_telemetry, file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))
+config :farmbot_telemetry,
+  file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
@@ -104,7 +111,8 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
 config :farmbot, FarmbotOS.Configurator,
   network_layer: FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer
 
-config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.SystemTasks
+config :farmbot, FarmbotOS.System,
+  system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
 config :nerves_hub,
   client: FarmbotOS.Platform.Target.NervesHubClient,

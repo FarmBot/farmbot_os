@@ -27,7 +27,10 @@ defmodule FarmbotOS.Configurator.LoggerSocket.LoggerBackend do
   end
 
   @impl :gen_event
-  def handle_event({_level, _pid, {Logger, _msg, _timestamp, _meta}} = log, state) do
+  def handle_event(
+        {_level, _pid, {Logger, _msg, _timestamp, _meta}} = log,
+        state
+      ) do
     Registry.dispatch(__MODULE__, :dispatch, fn entries ->
       for {pid, _} <- entries do
         send(pid, log)

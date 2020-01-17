@@ -1,7 +1,12 @@
 defmodule FarmbotCeleryScript.MixProject do
   use Mix.Project
-  @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
+
+  @version Path.join([__DIR__, "..", "VERSION"])
+           |> File.read!()
+           |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   def project do
     [
@@ -39,7 +44,11 @@ defmodule FarmbotCeleryScript.MixProject do
   end
 
   def elixirc_paths(:test),
-    do: ["lib", Path.expand("./test/support"), Path.expand("../test/support/celery_script")]
+    do: [
+      "lib",
+      Path.expand("./test/support"),
+      Path.expand("../test/support/celery_script")
+    ]
 
   def elixirc_paths(_), do: ["lib"]
 
@@ -57,7 +66,8 @@ defmodule FarmbotCeleryScript.MixProject do
       {:jason, "~> 1.1"},
       {:timex, "~> 3.4"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3",
+       only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end

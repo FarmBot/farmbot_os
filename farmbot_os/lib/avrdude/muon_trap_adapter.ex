@@ -8,7 +8,11 @@ defmodule Avrdude.MuonTrapAdapter do
 
   @doc false
   def adapter do
-    Application.get_env(:farmbot, :muon_trap_adapter, Avrdude.MuonTrapDefaultAdapter)
+    Application.get_env(
+      :farmbot,
+      :muon_trap_adapter,
+      Avrdude.MuonTrapDefaultAdapter
+    )
   end
 
   def cmd(exe, args, options) do

@@ -47,13 +47,17 @@ defmodule FarmbotCore.BotStateNGTest do
       assert orig.informational_settings.update_available == false
 
       mut1 =
-        BotStateNG.changeset(orig, %{informational_settings: %{update_available: true}})
+        BotStateNG.changeset(orig, %{
+          informational_settings: %{update_available: true}
+        })
         |> Ecto.Changeset.apply_changes()
 
       assert mut1.informational_settings.update_available == true
 
       mut2 =
-        BotStateNG.changeset(orig, %{informational_settings: %{update_available: false}})
+        BotStateNG.changeset(orig, %{
+          informational_settings: %{update_available: false}
+        })
         |> Ecto.Changeset.apply_changes()
 
       assert mut2.informational_settings.update_available == false
@@ -83,7 +87,9 @@ defmodule FarmbotCore.BotStateNGTest do
       orig = BotStateNG.new()
 
       mut =
-        BotStateNG.changeset(orig, %{informational_settings: %{memory_usage: 512}})
+        BotStateNG.changeset(orig, %{
+          informational_settings: %{memory_usage: 512}
+        })
         |> Ecto.Changeset.apply_changes()
 
       assert mut.informational_settings.memory_usage == 512
@@ -93,7 +99,9 @@ defmodule FarmbotCore.BotStateNGTest do
       orig = BotStateNG.new()
 
       mut =
-        BotStateNG.changeset(orig, %{informational_settings: %{scheduler_usage: 10}})
+        BotStateNG.changeset(orig, %{
+          informational_settings: %{scheduler_usage: 10}
+        })
         |> Ecto.Changeset.apply_changes()
 
       assert mut.informational_settings.scheduler_usage == 10

@@ -30,7 +30,11 @@ config :farmbot, FarmbotOS.Init.Supervisor,
   ]
 
 config :farmbot,
-  ecto_repos: [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
+  ecto_repos: [
+    FarmbotCore.Config.Repo,
+    FarmbotCore.Logger.Repo,
+    FarmbotCore.Asset.Repo
+  ]
 
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
   expected_names: [
