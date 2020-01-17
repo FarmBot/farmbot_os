@@ -72,6 +72,45 @@ defmodule FarmbotFirmware.UARTTransportTest do
     assert state.open == state2.open
   end
 
+  test "UARTTransport handles `Circuits-UART` speecific errors" do
+    state = %{uart: :FAKE_UART, device: :FAKE_DEVICE, open: false}
+    provided_reason = "Simulated failure (circuits UART)"
+    info = {:circuits_uart, nil, {:error, provided_reason}}
+
+    {:stop, {:uart_error, reason}, state2} = UARTTransport.handle_info(info, state)
+    assert reason == provided_reason
+    assert state == state2
+  end
+
+  test "UARTTransport handling inbound `Circuits-UART` data" do
+    state = %{
+      uart: :FAKE_UART,
+      device: :FAKE_DEVICE,
+      open: false,
+      handle_gcode: fn gcode ->
+        assert gcode == {nil, {:command_movement, []}}
+      end
+    }
+
+    provided_data = "G00"
+    info = {:circuits_uart, nil, provided_data}
+    {:noreply, state2} = UARTTransport.handle_info(info, state)
+    assert state2 == state
+  end
+
+  test "writing to UART" do
+    code = {nil, {:command_movement, []}}
+    state = %{uart: :FAKE_UART, device: :FAKE_DEVICE, open: false}
+
+    expect(UartTestAdapter, :write, fn _pid, code ->
+      assert "G00 " == code
+      :whatever
+    end)
+
+    {:reply, :whatever, state2} = UARTTransport.handle_call(code, nil, state)
+    assert state2 == state
+  end
+
   test "UARTTransport.reset/2" do
     empty_state = %{reset: nil}
     ok_state = %{reset: %{reset: :fake_reset}}

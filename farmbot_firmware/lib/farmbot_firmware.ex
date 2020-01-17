@@ -241,7 +241,15 @@ defmodule FarmbotFirmware do
     args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
-    reset = Keyword.get(args, :reset) || __MODULE__
+    # This is probably the cause of
+    # https://github.com/FarmBot/farmbot_os/issues/1111
+    # FarmbotFirmware.NullReset (RPi3? Safe default?)
+    #  -OR-
+    # FarmbotOS.Platform.Target.FirmwareReset.GPIO (RPi0, RPi)
+    #  -OR-
+    # Use Application.get_env to find target?
+    # probably?
+    reset = Keyword.get(args, :reset) || FarmbotFirmware.NullReset
 
     vcr_fd =
       case Keyword.get(args, :vcr_path) do

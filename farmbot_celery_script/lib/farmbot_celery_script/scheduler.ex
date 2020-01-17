@@ -147,12 +147,12 @@ defmodule FarmbotCeleryScript.Scheduler do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
       diff_ms when diff_ms < 0 ->
-        from_now =
-          DateTime.utc_now()
-          |> DateTime.add(abs(diff_ms), :millisecond)
-          |> Timex.from_now()
-
-        Logger.info("Next execution is still #{diff_ms}ms too early (#{from_now})")
+        # from_now =
+        #   DateTime.utc_now()
+        #   |> DateTime.add(abs(diff_ms), :millisecond)
+        #   |> Timex.from_now()
+        # msg = "Next execution is still #{diff_ms}ms too early (#{from_now})"
+        # Logger.info(msg)
 
         state
         |> schedule_next_checkup(abs(diff_ms))
@@ -160,8 +160,8 @@ defmodule FarmbotCeleryScript.Scheduler do
 
       # now is more than the grace period past schedule time
       diff_ms when diff_ms > @grace_period_ms ->
-        from_now = Timex.from_now(at)
-        Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
+        # from_now = Timex.from_now(at)
+        # Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
 
         state
         |> pop_next()
