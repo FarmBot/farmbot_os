@@ -11,7 +11,8 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   test "point", %{shim: shim} do
     :ok = simulate_syscall(shim, %{x: 100, y: 200, z: 300})
 
-    assert %{x: 100, y: 200, z: 300} = SysCalls.point(TestSysCalls, "Peripheral", 1)
+    assert %{x: 100, y: 200, z: 300} =
+             SysCalls.point(TestSysCalls, "Peripheral", 1)
 
     assert_receive {:point, ["Peripheral", 1]}
 
@@ -66,9 +67,11 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     :ok = simulate_syscall(shim)
     assert :ok = SysCalls.write_pin(TestSysCalls, 1, 0, 1)
 
-    assert :ok = SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 4}, 0, 1)
+    assert :ok =
+             SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 4}, 0, 1)
 
-    assert :ok = SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 3}, 1, 123)
+    assert :ok =
+             SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 3}, 1, 123)
 
     assert_receive {:write_pin, [1, 0, 1]}
     assert_receive {:write_pin, [%{type: "boxled", id: 4}, 0, 1]}

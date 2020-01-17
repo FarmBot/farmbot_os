@@ -51,8 +51,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
       }
     ]
 
-    compiled_celery_env =
-      Compiler.Utils.compile_params_to_function_args(celery_env, [])
+    compiled_celery_env = Compiler.Utils.compile_params_to_function_args(celery_env, [])
 
     [body_item] = Compiler.compile(sequence, compiled_celery_env)
     assert body_item.() == 600
