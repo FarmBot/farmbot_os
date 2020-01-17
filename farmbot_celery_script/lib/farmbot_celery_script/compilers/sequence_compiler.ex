@@ -4,10 +4,10 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   @iterables [:point_group, :every_point]
 
   def sequence(%{args: %{locals: %{body: params_or_iterables}}} = ast, env) do
-    # if there is an iterable AST here, 
+    # if there is an iterable AST here,
     # we need to compile _many_ sequences, not just one.
 
-    loop_parameter_appl_ast =
+    iterable_ast =
       Enum.find_value(params_or_iterables, fn
         # check if this parameter_application is a iterable type
         %{kind: :parameter_application, args: %{data_value: %{kind: kind}}} =
@@ -19,15 +19,23 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
           false
       end)
 
-    if loop_parameter_appl_ast,
-      do: compile_sequence_iterable(loop_parameter_appl_ast, ast, env),
-      else: compile_sequence(ast, env)
+    if iterable_ast do
+      compile_sequence_iterable(iterable_ast, ast, env)
+    else
+      compile_sequence(ast, env)
+    end
   end
 
   def compile_sequence_iterable(
-        loop_parameter_appl_ast,
+        iterable_ast,
         %{
-          args: %{locals: %{body: params} = locals} = sequence_args,
+          args:
+            %{
+              locals:
+                %{
+                  body: params
+                } = locals
+            } = sequence_args,
           meta: sequence_meta
         } = sequence_ast,
         env
@@ -35,7 +43,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     sequence_name =
       sequence_meta[:sequence_name] || sequence_args[:sequence_name]
 
-    # remove the iterable from the parameter applications, 
+    # remove the iterable from the parameter applications,
     # since it will be injected after this.
     _params =
       Enum.reduce(params, [], fn
@@ -61,7 +69,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
       end)
 
     # will be a point_group or every_point node
-    group_ast = loop_parameter_appl_ast.args.data_value
+    group_ast = iterable_ast.args.data_value
     # check if it's a point_group first, then fall back to every_point
     point_group_arg =
       group_ast.args[:point_group_id] || group_ast.args[:resource_id] ||
@@ -85,7 +93,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
               kind: :parameter_application,
               args: %{
                 # inject the replacement with the same label
-                label: loop_parameter_appl_ast.args.label,
+                label: iterable_ast.args.label,
                 data_value: %FarmbotCeleryScript.AST{
                   kind: :point,
                   args: %{pointer_type: pointer_type, pointer_id: point_id}
@@ -112,7 +120,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
 
             # compile a `sequence` ast, injecting the appropriate `point` ast with
             # the matching `label`
-            # TODO(Connor) - the body of this ast should have the 
+            # TODO(Connor) - the body of this ast should have the
             # params as sorted earlier. Figure out why this doesn't work
             body =
               compile_sequence(
