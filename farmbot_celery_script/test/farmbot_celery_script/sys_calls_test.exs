@@ -22,18 +22,10 @@ defmodule FarmbotCeleryScript.SysCallsTest do
              SysCalls.point(TestSysCalls, "Peripheral", 1)
   end
 
-  test "point groups", %{shim: shim} do
-    :ok = simulate_syscall(shim, %{x: 100, y: 200, z: 300})
-
-    assert %{x: 100, y: 200, z: 300} =
-             SysCalls.point(TestSysCalls, "Peripheral", 1)
-
-    assert_receive {:point, ["Peripheral", 1]}
-
-    :ok = simulate_syscall_error(shim, "point error")
-
-    assert {:error, "point error"} ==
-             SysCalls.point(TestSysCalls, "Peripheral", 1)
+  test "point groups failure", %{shim: shim} do
+    :ok = simulate_syscall(shim, :no!)
+    boom = fn -> SysCalls.get_point_group(TestSysCalls, :something_else) end
+    assert_raise FarmbotCeleryScript.RuntimeError, boom
   end
 
   test "move_absolute", %{shim: shim} do
