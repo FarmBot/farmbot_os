@@ -4,6 +4,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false
   alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
+  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
   test "compiles a sequence with unbound variables" do
     sequence = %AST{
@@ -406,7 +407,15 @@ defmodule FarmbotCeleryScript.CompilerTest do
       meta: %{sequence_name: "Pogo"}
     }
 
-    # {:ok, _shim} = Farmbot.TestSupport.CeleryScript.TestSysCalls.checkout()
+    pid = self()
+    {:ok, shim} = TestSysCalls.checkout()
+
+    :ok =
+      TestSysCalls.handle(shim, fn :get_point_group = kind, args ->
+        send(pid, {kind, args})
+        %{point_ids: []}
+      end)
+
     result = FarmbotCeleryScript.Compiler.Sequence.sequence(main, [])
     assert :ok == result
   end
