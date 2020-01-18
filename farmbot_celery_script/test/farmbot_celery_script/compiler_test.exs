@@ -51,8 +51,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
       }
     ]
 
-    compiled_celery_env =
-      Compiler.Utils.compile_params_to_function_args(celery_env, [])
+    compiled_celery_env = Compiler.Utils.compile_params_to_function_args(celery_env, [])
 
     [body_item] = Compiler.compile(sequence, compiled_celery_env)
     assert body_item.() == 600
@@ -356,23 +355,6 @@ defmodule FarmbotCeleryScript.CompilerTest do
   end
 
   test "wow" do
-    param_appl = %FarmbotCeleryScript.AST{
-      args: %{
-        data_value: %FarmbotCeleryScript.AST{
-          args: %{point_group_id: 34},
-          body: [],
-          comment: nil,
-          kind: :point_group,
-          meta: nil
-        },
-        label: "parent"
-      },
-      body: [],
-      comment: nil,
-      kind: :parameter_application,
-      meta: nil
-    }
-
     main = %FarmbotCeleryScript.AST{
       args: %{
         locals: %FarmbotCeleryScript.AST{
@@ -418,43 +400,14 @@ defmodule FarmbotCeleryScript.CompilerTest do
         sequence_name: "Pogo",
         version: 20_180_209
       },
-      body: [
-        %FarmbotCeleryScript.AST{
-          args: %{
-            location: %FarmbotCeleryScript.AST{
-              args: %{label: "parent"},
-              body: [],
-              comment: nil,
-              kind: :identifier,
-              meta: nil
-            },
-            offset: %FarmbotCeleryScript.AST{
-              args: %{x: 0, y: 0, z: 0},
-              body: [],
-              comment: nil,
-              kind: :coordinate,
-              meta: nil
-            },
-            speed: 100
-          },
-          body: [],
-          comment: nil,
-          kind: :move_absolute,
-          meta: nil
-        }
-      ],
+      body: [],
       comment: nil,
       kind: :sequence,
       meta: %{sequence_name: "Pogo"}
     }
 
-    result =
-      FarmbotCeleryScript.Compiler.Sequence.compile_sequence_iterable(
-        param_appl,
-        main,
-        []
-      )
-
+    # {:ok, _shim} = Farmbot.TestSupport.CeleryScript.TestSysCalls.checkout()
+    result = FarmbotCeleryScript.Compiler.Sequence.sequence(main, [])
     assert :ok == result
   end
 
