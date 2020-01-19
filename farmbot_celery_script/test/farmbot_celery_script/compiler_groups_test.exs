@@ -2,6 +2,7 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
   use ExUnit.Case, async: true
   alias FarmbotCeleryScript.AST
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
+  alias FarmbotCeleryScript.Compiler.Sequence
   # alias FarmbotCeleryScript.Compiler
   # # Only required to compile
   # alias FarmbotCeleryScript.SysCalls, warn: false
@@ -14,7 +15,57 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
   end
 
   test "compilation of point_group in parameter application", %{shim: shim} do
-    main = %AST{
+    pid = self()
+    fake_point_ids = [4, 5, 6, 7]
+
+    :ok =
+      TestSysCalls.handle(shim, fn kind, args ->
+        case kind do
+          :get_point_group ->
+            send(pid, {kind, args})
+            %{name: "woosh", point_ids: fake_point_ids}
+
+          :point ->
+            # EDGE CASE: Handle malformed stuff by ensuring that 50% of
+            #            points have no name.
+            [_type, id] = args
+
+            if rem(id, 2) == 0 do
+              %{name: "from the test suite %%", x: 6, y: 7, z: 8}
+            else
+              %{x: 6, y: 7, z: 8}
+            end
+        end
+      end)
+
+    result = Sequence.sequence(fake_ast(), [])
+    assert length(result) === 2 + length(fake_point_ids)
+    # ============================================
+    # ABOUT THIS (brittle) TEST:
+    # You should not write  tests like this and
+    # there is a high liklihood that the code below
+    # will break in the future.
+    # This is especially true if you intend to change
+    # the behavior of Sequence.sequence/2.
+    # If you WERE NOT EXPECTING to change the behavior
+    # of Sequence.sequence/2 and this test fails,
+    # you should consider it a true failure that
+    # requires investigation.
+    # IT IS OK TO REPLACE THIS TEST WITH BETTER
+    # TESTS.
+    # ============================================
+    canary_actual = :crypto.hash(:sha, Macro.to_string(result))
+
+    canary_expected =
+      <<157, 69, 5, 38, 188, 78, 10, 183, 154, 99, 151, 193, 214, 208, 187, 130,
+        183, 73, 13, 48>>
+
+    # READ THE NOTE ABOVE IF THIS TEST FAILS!!!
+    assert canary_expected == canary_actual
+  end
+
+  defp fake_ast() do
+    %AST{
       args: %{
         locals: %AST{
           args: %{},
@@ -59,32 +110,23 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
         sequence_name: "Pogo",
         version: 20_180_209
       },
-      body: [],
+      body: [
+        %AST{
+          kind: :move_absolute,
+          args: %{
+            speed: 100,
+            location: %AST{kind: :identifier, args: %{label: "parent"}},
+            offset: %AST{
+              kind: :coordinate,
+              args: %{x: -20, y: -20, z: -20}
+            }
+          },
+          body: []
+        }
+      ],
       comment: nil,
       kind: :sequence,
       meta: %{sequence_name: "Pogo"}
     }
-
-    pid = self()
-    fake_point_ids = [4, 5, 6, 7]
-
-    :ok =
-      TestSysCalls.handle(shim, fn kind, args ->
-        case kind do
-          :get_point_group ->
-            send(pid, {kind, args})
-            %{name: "woosh", point_ids: fake_point_ids}
-
-          :step_complete ->
-            send(pid, {kind, args})
-            {:NOOO}
-
-          :point ->
-            %{name: "from the test suite %%", x: 6, y: 7, z: 8}
-        end
-      end)
-
-    result = FarmbotCeleryScript.Compiler.Sequence.sequence(main, [])
-    assert length(result) === 2 + length(fake_point_ids)
   end
 end
