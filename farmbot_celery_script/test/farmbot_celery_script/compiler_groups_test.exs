@@ -3,10 +3,6 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
   alias FarmbotCeleryScript.AST
   alias Farmbot.TestSupport.CeleryScript.TestSysCalls
   alias FarmbotCeleryScript.Compiler.Sequence
-  # alias FarmbotCeleryScript.Compiler
-  # # Only required to compile
-  # alias FarmbotCeleryScript.SysCalls, warn: false
-  # alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
 
   setup do
     {:ok, shim} = TestSysCalls.checkout()
