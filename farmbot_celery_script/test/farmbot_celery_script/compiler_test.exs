@@ -4,7 +4,6 @@ defmodule FarmbotCeleryScript.CompilerTest do
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false
   alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
   test "compiles a sequence with unbound variables" do
     sequence = %AST{
@@ -52,7 +51,8 @@ defmodule FarmbotCeleryScript.CompilerTest do
       }
     ]
 
-    compiled_celery_env = Compiler.Utils.compile_params_to_function_args(celery_env, [])
+    compiled_celery_env =
+      Compiler.Utils.compile_params_to_function_args(celery_env, [])
 
     [body_item] = Compiler.compile(sequence, compiled_celery_env)
     assert body_item.() == 600
@@ -353,71 +353,6 @@ defmodule FarmbotCeleryScript.CompilerTest do
              FarmbotCeleryScript.SysCalls.log("Setting pin mode: \#{pin}: \#{mode}")
              FarmbotCeleryScript.SysCalls.set_pin_io_mode(pin, mode)
              """)
-  end
-
-  test "wow" do
-    main = %FarmbotCeleryScript.AST{
-      args: %{
-        locals: %FarmbotCeleryScript.AST{
-          args: %{},
-          body: [
-            %FarmbotCeleryScript.AST{
-              args: %{
-                default_value: %FarmbotCeleryScript.AST{
-                  args: %{pointer_id: 1670, pointer_type: "Plant"},
-                  body: [],
-                  comment: nil,
-                  kind: :point,
-                  meta: nil
-                },
-                label: "parent"
-              },
-              body: [],
-              comment: nil,
-              kind: :parameter_declaration,
-              meta: nil
-            },
-            %FarmbotCeleryScript.AST{
-              args: %{
-                data_value: %FarmbotCeleryScript.AST{
-                  args: %{point_group_id: 34},
-                  body: [],
-                  comment: nil,
-                  kind: :point_group,
-                  meta: nil
-                },
-                label: "parent"
-              },
-              body: [],
-              comment: nil,
-              kind: :parameter_application,
-              meta: nil
-            }
-          ],
-          comment: nil,
-          kind: :scope_declaration,
-          meta: nil
-        },
-        sequence_name: "Pogo",
-        version: 20_180_209
-      },
-      body: [],
-      comment: nil,
-      kind: :sequence,
-      meta: %{sequence_name: "Pogo"}
-    }
-
-    pid = self()
-    {:ok, shim} = TestSysCalls.checkout()
-
-    :ok =
-      TestSysCalls.handle(shim, fn :get_point_group = kind, args ->
-        send(pid, {kind, args})
-        %{point_ids: []}
-      end)
-
-    result = FarmbotCeleryScript.Compiler.Sequence.sequence(main, [])
-    assert :ok == result
   end
 
   defp compile(ast) do
