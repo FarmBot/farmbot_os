@@ -66,27 +66,25 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
     }
 
     pid = self()
+    fake_point_ids = [4, 5, 6, 7]
 
     :ok =
       TestSysCalls.handle(shim, fn kind, args ->
         case kind do
           :get_point_group ->
             send(pid, {kind, args})
-            %{name: "woosh", point_ids: [4, 5, 6]}
+            %{name: "woosh", point_ids: fake_point_ids}
 
           :step_complete ->
             send(pid, {kind, args})
             {:NOOO}
 
           :point ->
-            IO.puts("============== NoOoOoOooooo: " <> inspect(kind))
-            %{hmm: args}
+            %{name: "from the test suite %%", x: 6, y: 7, z: 8}
         end
       end)
 
     result = FarmbotCeleryScript.Compiler.Sequence.sequence(main, [])
-    IO.inspect(result)
-    IO.puts("Now what!?")
-    assert result
+    assert length(result) === 2 + length(fake_point_ids)
   end
 end
