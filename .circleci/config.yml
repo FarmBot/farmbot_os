@@ -1,7 +1,5 @@
 version: 2.0
 defaults: &defaults
-  environment:
-    CODECOV_TOKEN: "1b0f65ce-930d-4656-87d9-870c33221227"
   working_directory: /nerves/build
   docker:
     - image: nervesproject/nerves_system_br:latest
