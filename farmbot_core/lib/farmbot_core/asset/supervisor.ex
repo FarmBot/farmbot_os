@@ -36,7 +36,7 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: FirstPartyFarmware},
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
-      AssetMonitor,
+      AssetMonitor
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

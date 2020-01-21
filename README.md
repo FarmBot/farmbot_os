@@ -21,7 +21,7 @@ Download the version of FarmBot OS that corresponds to the FarmBot kit and compu
 Installation should be fairly straight forward, you will need a computer for this step.
 (everything after this can be set up on a mobile device.)
 
-### Windows users
+### Windows Users
 
  1. download and install [Etcher](https://etcher.io/).
  0. download the [latest release](#floppy_disk-latest-os-image-downloads).
