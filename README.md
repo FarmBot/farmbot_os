@@ -1,9 +1,3 @@
-# Build status
-| Master Build Status  | Staging Build Status |
-| :---: | :---: |
-| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) |
----
-
 <!-- DON'T CHANGE THE TEXT BELOW. It is used in documentation links. -->
 # :floppy_disk: Latest OS Image Downloads
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
@@ -14,6 +8,13 @@ Download the version of FarmBot OS that corresponds to the FarmBot kit and compu
 | --- | --- | --- |
 | Genesis v1.2, Genesis v1.3, Genesis v1.4, Genesis XL v1.4 | Raspberry Pi 3 | [Download FBOS](https://github.com/FarmBot/farmbot_os/releases/download/v9.0.2/farmbot-rpi3-9.0.2.img) |
 | Express v1.0, Express XL v1.0 | Raspberry Pi Zero W | Coming soon |
+
+---
+
+## Build status
+| Master Build Status  | Staging Build Status |
+| :---: | :---: |
+| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) |
 
 ---
 
@@ -34,6 +35,8 @@ Installation should be fairly straight forward, you will need a computer for thi
 
  1. download the [latest release file, available for download here](#floppy_disk-latest-os-image-downloads).
  0. ```dd if=</path/to/file> of=/dev/<sddevice> bs=4``` or use [Etcher](https://etcher.io/).
+
+---
 
 ## Running
 _Refer to the [software documentation Configurator page](https://software.farm.bot/docs/configurator) for more detailed instructions._
