@@ -15,6 +15,7 @@ defmodule FarmbotExt.API.Reconciler do
 
   alias FarmbotCore.Asset.{Command, Repo, Sync, Sync.Item}
   import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
+  @behaviour FarmbotExt.API.ReconcilerAdapter
 
   @doc """
   Reconcile remote updates. The following steps are wrapped in a tranaction
