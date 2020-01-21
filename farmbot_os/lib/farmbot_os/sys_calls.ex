@@ -33,7 +33,7 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotOS.Lua
 
   alias FarmbotCore.{Asset, Asset.Private, Asset.Sync, BotState, Leds}
-  alias FarmbotExt.{API, API.Reconciler, API.SyncGroup}
+  alias FarmbotExt.{API, API.SyncGroup}
 
   @behaviour FarmbotCeleryScript.SysCalls
 
@@ -263,15 +263,15 @@ defmodule FarmbotOS.SysCalls do
          :ok <- BotState.set_sync_status("syncing"),
          _ <- Leds.green(:really_fast_blink),
          sync_changeset <-
-           Reconciler.sync_group(sync_changeset, SyncGroup.group_0()),
+           reconciler().sync_group(sync_changeset, SyncGroup.group_0()),
          sync_changeset <-
-           Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
+           reconciler().sync_group(sync_changeset, SyncGroup.group_1()),
          sync_changeset <-
-           Reconciler.sync_group(sync_changeset, SyncGroup.group_2()),
+           reconciler().sync_group(sync_changeset, SyncGroup.group_2()),
          sync_changeset <-
-           Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
+           reconciler().sync_group(sync_changeset, SyncGroup.group_3()),
          _sync_changeset <-
-           Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
+           reconciler().sync_group(sync_changeset, SyncGroup.group_4()) do
       FarmbotCore.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
       _ = Leds.green(:solid)
@@ -300,4 +300,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def nothing(), do: nil
+
+  defp reconciler do
+    FarmbotExt.API.Reconciler
+  end
 end
