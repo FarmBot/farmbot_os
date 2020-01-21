@@ -302,6 +302,6 @@ defmodule FarmbotOS.SysCalls do
   def nothing(), do: nil
 
   defp reconciler do
-    FarmbotExt.API.Reconciler
+    Application.get_env(:farmbot_os, :reconciler, FarmbotExt.API.Reconciler)
   end
 end

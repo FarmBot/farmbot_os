@@ -1,3 +1,7 @@
+Mox.defmock(FarmbotExt.API.TestReconciler,
+  for: FarmbotExt.API.ReconcilerAdapter
+)
+
 defmodule FarmbotOS.SysCallsTest do
   use ExUnit.Case, async: true
   import Mox
@@ -11,6 +15,16 @@ defmodule FarmbotOS.SysCallsTest do
   }
 
   setup :verify_on_exit!
+
+  test "sync() success" do
+    # Expect 5 calls and an :ok response.
+    expect(FarmbotExt.API.TestReconciler, :sync_group, 5, fn changeset,
+                                                             _group ->
+      changeset
+    end)
+
+    assert :ok == SysCalls.sync()
+  end
 
   test "get_sequence(id)" do
     _ = Repo.delete_all(Sequence)

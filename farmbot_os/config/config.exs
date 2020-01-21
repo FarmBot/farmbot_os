@@ -107,3 +107,9 @@ else
     import_config("target/#{Mix.target()}.exs")
   end
 end
+
+if Mix.env() == :test do
+  config :farmbot_os,
+         :reconciler,
+         FarmbotExt.API.TestReconciler
+end
