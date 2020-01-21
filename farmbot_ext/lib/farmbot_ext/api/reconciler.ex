@@ -3,7 +3,7 @@ defmodule FarmbotExt.API.Reconciler do
   Handles additions, deletions and changes of remote API resources
 
   Uses the `updated_at` and `created_at` common fields of api resources
-  to determine if FarmbotOS or the API's resource is more current 
+  to determine if FarmbotOS or the API's resource is more current
   """
 
   require Logger
@@ -55,6 +55,7 @@ defmodule FarmbotExt.API.Reconciler do
   * applies changeset if there was any changes from cache or http
 
   """
+  @impl FarmbotExt.API.ReconcilerAdapter
   def sync_group(%Changeset{} = sync_changeset, [module | rest]) do
     with sync_changeset <- do_sync_group(sync_changeset, module) do
       sync_group(sync_changeset, rest)
