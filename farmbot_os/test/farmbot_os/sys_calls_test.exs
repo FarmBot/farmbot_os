@@ -18,7 +18,8 @@ defmodule FarmbotOS.SysCallsTest do
 
   test "sync() success" do
     # Expect 5 calls and an :ok response.
-    expect(FarmbotExt.API.TestReconciler, :sync_group, 5, fn changeset, _group ->
+    expect(FarmbotExt.API.TestReconciler, :sync_group, 5, fn changeset,
+                                                             _group ->
       changeset
     end)
 
