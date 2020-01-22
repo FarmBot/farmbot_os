@@ -1,29 +1,54 @@
-Mox.defmock(FarmbotExt.API.TestReconciler,
-  for: FarmbotExt.API.ReconcilerAdapter
-)
-
 defmodule FarmbotOS.SysCallsTest do
   use ExUnit.Case, async: true
-  import Mox
   alias FarmbotOS.SysCalls
-  # alias FarmbotCore.Asset
+  alias FarmbotCore.Asset
 
   alias FarmbotCore.Asset.{
     Command,
     Repo,
-    Sequence
+    Sequence,
+    BoxLed
   }
 
-  setup :verify_on_exit!
+  use Mimic
+
+  test "named_pin()" do
+    result1 = SysCalls.named_pin("x", 1)
+    assert result1 == {:error, "unknown pin kind: x of id: 1"}
+
+    result2 = SysCalls.named_pin("BoxLed23", 45)
+    assert %BoxLed{id: 23} == result2
+
+    expect(Asset, :get_sensor, fn id ->
+      if id == 67 do
+        %{id: id, is_mock: :yep}
+      else
+        nil
+      end
+    end)
+
+    result3 = SysCalls.named_pin("Sensor", 67)
+    assert %{id: 67, is_mock: :yep} == result3
+    result4 = SysCalls.named_pin("Sensor", 89)
+    assert {:error, "Could not find peripheral by id: 89"} == result4
+  end
 
   test "sync() success" do
     # Expect 5 calls and an :ok response.
-    expect(FarmbotExt.API.TestReconciler, :sync_group, 5, fn changeset,
-                                                             _group ->
+    expect(FarmbotExt.API.Reconciler, :sync_group, 5, fn changeset, _group ->
       changeset
     end)
 
     assert :ok == SysCalls.sync()
+  end
+
+  test "sync() failure" do
+    # Expect 5 calls and an :ok response.
+    expect(FarmbotExt.API, :get_changeset, fn FarmbotCore.Asset.Sync ->
+      "this is a test"
+    end)
+
+    assert {:error, "\"this is a test\""} == SysCalls.sync()
   end
 
   test "get_sequence(id)" do
