@@ -12,6 +12,22 @@ defmodule FarmbotOS.SysCallsTest do
 
   use Mimic
 
+  test "emergency_unlock" do
+    expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->
+      :qqq
+    end)
+
+    assert :ok == SysCalls.emergency_unlock()
+  end
+
+  test "emergency_lock" do
+    expect(FarmbotFirmware, :command, fn {:command_emergency_lock, []} ->
+      :qqq
+    end)
+
+    assert :ok == SysCalls.emergency_lock()
+  end
+
   test "wait()" do
     now = :os.system_time(:millisecond)
     SysCalls.wait(100)
