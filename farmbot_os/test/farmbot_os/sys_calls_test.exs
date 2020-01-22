@@ -29,8 +29,23 @@ defmodule FarmbotOS.SysCallsTest do
 
     result3 = SysCalls.named_pin("Sensor", 67)
     assert %{id: 67, is_mock: :yep} == result3
+
     result4 = SysCalls.named_pin("Sensor", 89)
     assert {:error, "Could not find peripheral by id: 89"} == result4
+
+    expect(Asset, :get_peripheral, fn [id: id] ->
+      if id == 10 do
+        %{id: id, is_mock: :yep}
+      else
+        nil
+      end
+    end)
+
+    result5 = SysCalls.named_pin("Peripheral", 10)
+    assert %{id: 10, is_mock: :yep} == result5
+
+    result6 = SysCalls.named_pin("Peripheral", 11)
+    assert {:error, "Could not find peripheral by id: 11"} == result6
   end
 
   test "sync() success" do
