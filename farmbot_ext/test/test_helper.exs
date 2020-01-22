@@ -1,10 +1,3 @@
-# Mocking for FarmbotCore
-Mox.defmock(FarmbotCore.Asset.Query, for: FarmbotCore.Asset.Query)
-Mox.defmock(FarmbotCore.Asset.Command, for: FarmbotCore.Asset.Command)
-
-# Mocking for FarmbotExt
-Mox.defmock(FarmbotExt.API, for: FarmbotExt.API)
-Mox.defmock(FarmbotExt.AMQP.ConnectionWorker, for: FarmbotExt.AMQP.ConnectionWorker)
 timeout = System.get_env("EXUNIT_TIMEOUT")
 
 if timeout do
@@ -12,3 +5,7 @@ if timeout do
 else
   ExUnit.start()
 end
+
+Mimic.copy(FarmbotCore.Asset.Query)
+Mimic.copy(FarmbotExt.API)
+Mimic.copy(FarmbotExt.AMQP.ConnectionWorker)

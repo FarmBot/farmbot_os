@@ -1,9 +1,7 @@
-Mox.defmock(Avrdude.MuonTrapAdapter, for: Avrdude.MuonTrapAdapter)
-
 defmodule FarmbotOs.AvrdudeTest do
   use ExUnit.Case
 
-  import Mox
+  use Mimic
 
   setup [:verify_on_exit!]
 

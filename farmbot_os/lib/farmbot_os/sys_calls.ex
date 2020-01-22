@@ -33,7 +33,7 @@ defmodule FarmbotOS.SysCalls do
   alias FarmbotOS.Lua
 
   alias FarmbotCore.{Asset, Asset.Private, Asset.Sync, BotState, Leds}
-  alias FarmbotExt.{API, API.SyncGroup}
+  alias FarmbotExt.{API, API.SyncGroup, API.Reconciler}
 
   @behaviour FarmbotCeleryScript.SysCalls
 
@@ -263,24 +263,22 @@ defmodule FarmbotOS.SysCalls do
          :ok <- BotState.set_sync_status("syncing"),
          _ <- Leds.green(:really_fast_blink),
          sync_changeset <-
-           reconciler().sync_group(sync_changeset, SyncGroup.group_0()),
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_0()),
          sync_changeset <-
-           reconciler().sync_group(sync_changeset, SyncGroup.group_1()),
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
          sync_changeset <-
-           reconciler().sync_group(sync_changeset, SyncGroup.group_2()),
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_2()),
          sync_changeset <-
-           reconciler().sync_group(sync_changeset, SyncGroup.group_3()),
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
          _sync_changeset <-
-           reconciler().sync_group(sync_changeset, SyncGroup.group_4()) do
+           Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
       FarmbotCore.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
       _ = Leds.green(:solid)
       :ok
     else
       error ->
-        FarmbotTelemetry.event(:asset_sync, :sync_error, nil,
-          error: inspect(error)
-        )
+        FarmbotTelemetry.event(:asset_sync, :sync_error, nil, error: inspect(error))
 
         :ok = BotState.set_sync_status("sync_error")
         _ = Leds.green(:slow_blink)
@@ -300,8 +298,4 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def nothing(), do: nil
-
-  defp reconciler do
-    Application.get_env(:farmbot_os, :reconciler, FarmbotExt.API.Reconciler)
-  end
 end

@@ -4,8 +4,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   use Plug.Test
 
   alias FarmbotTest.Configurator.{MockDataLayer, MockNetworkLayer}
-  import Mox
-  setup :verify_on_exit!
+  use Mimic
 
   @opts Router.init([])
 
