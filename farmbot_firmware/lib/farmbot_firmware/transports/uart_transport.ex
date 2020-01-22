@@ -72,6 +72,6 @@ defmodule FarmbotFirmware.UARTTransport do
   end
 
   def uart_adapter() do
-    Application.get_env(:farmbot_firmware, :uart_adapter, UartDefaultAdapter)
+    UartDefaultAdapter
   end
 end

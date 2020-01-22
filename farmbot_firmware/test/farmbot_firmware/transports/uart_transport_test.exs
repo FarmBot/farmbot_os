@@ -4,10 +4,10 @@ defmodule FarmbotFirmware.UARTTransportTest do
 
   setup [:verify_on_exit!]
   doctest FarmbotFirmware.UARTTransport
-  alias FarmbotFirmware.{UartTestAdapter, UARTTransport}
+  alias FarmbotFirmware.{UartDefaultAdapter, UARTTransport}
 
   test "UARTTransport.init/1" do
-    expect(UartTestAdapter, :start_link, fn ->
+    expect(UartDefaultAdapter, :start_link, fn ->
       {:ok, :FAKE_UART}
     end)
 
@@ -24,7 +24,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
   end
 
   test "UARTTransport.terminate/2" do
-    expect(UartTestAdapter, :stop, fn uart ->
+    expect(UartDefaultAdapter, :stop, fn uart ->
       assert uart == :whatever
     end)
 
@@ -37,11 +37,11 @@ defmodule FarmbotFirmware.UARTTransportTest do
 
     fake_opts = [fake_opts: true]
 
-    expect(UartTestAdapter, :generate_opts, fn ->
+    expect(UartDefaultAdapter, :generate_opts, fn ->
       fake_opts
     end)
 
-    expect(UartTestAdapter, :open, fn uart, dev, opts ->
+    expect(UartDefaultAdapter, :open, fn uart, dev, opts ->
       assert uart == state.uart
       assert dev == state.device
       assert fake_opts == opts
@@ -58,11 +58,11 @@ defmodule FarmbotFirmware.UARTTransportTest do
 
     fake_opts = [fake_opts: true]
 
-    expect(UartTestAdapter, :generate_opts, fn ->
+    expect(UartDefaultAdapter, :generate_opts, fn ->
       fake_opts
     end)
 
-    expect(UartTestAdapter, :open, fn _, _, _ ->
+    expect(UartDefaultAdapter, :open, fn _, _, _ ->
       {:error, "Simulated UART failure. This is OK"}
     end)
 
@@ -105,7 +105,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
     code = {nil, {:command_movement, []}}
     state = %{uart: :FAKE_UART, device: :FAKE_DEVICE, open: false}
 
-    expect(UartTestAdapter, :write, fn _pid, code ->
+    expect(UartDefaultAdapter, :write, fn _pid, code ->
       assert "G00 " == code
       :whatever
     end)
@@ -124,7 +124,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
   test "UARTTransport.open/2" do
     me = self()
 
-    expect(UartTestAdapter, :open, fn pid, path, opts ->
+    expect(UartDefaultAdapter, :open, fn pid, path, opts ->
       assert pid == me
       assert path == "/dev/null"
       assert opts == [a: :b]
