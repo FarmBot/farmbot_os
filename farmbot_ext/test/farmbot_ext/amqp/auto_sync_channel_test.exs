@@ -71,14 +71,14 @@ defmodule AutoSyncChannelTest do
     pretend_network_returned(%{conn: fake_con, chan: fake_chan})
   end
 
-  test "network returns `nil`" do
-    results = pretend_network_returned(nil)
-    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
+  # test "network returns `nil`" do
+  #   results = pretend_network_returned(nil)
+  #   %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
 
-    assert has_chan == nil
-    assert has_conn == nil
-    assert is_preloaded
-  end
+  #   assert has_chan == nil
+  #   assert has_conn == nil
+  #   assert is_preloaded
+  # end
 
   # test "network returns unexpected object (probably an error)" do
   #   results = pretend_network_returned({:something, :else})

@@ -31,10 +31,6 @@ config :farmbot,
     {Farmbot.Platform.Host.Configurator, []}
   ]
 
-config :farmbot, FarmbotOS.Configurator,
-  data_layer: FarmbotTest.Configurator.MockDataLayer,
-  network_layer: FarmbotTest.Configurator.MockNetworkLayer
-
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 0

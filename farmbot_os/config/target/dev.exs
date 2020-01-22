@@ -108,11 +108,7 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
 
-config :farmbot, FarmbotOS.Configurator,
-  network_layer: FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer
-
-config :farmbot, FarmbotOS.System,
-  system_tasks: FarmbotOS.Platform.Target.SystemTasks
+config :farmbot, FarmbotOS.System, system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
 config :nerves_hub,
   client: FarmbotOS.Platform.Target.NervesHubClient,
