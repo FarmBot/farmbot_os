@@ -12,6 +12,13 @@ defmodule FarmbotOS.SysCallsTest do
 
   use Mimic
 
+  test "wait()" do
+    now = :os.system_time(:millisecond)
+    SysCalls.wait(100)
+    later = :os.system_time(:millisecond)
+    assert later >= now + 100
+  end
+
   test "named_pin()" do
     result1 = SysCalls.named_pin("x", 1)
     assert result1 == {:error, "unknown pin kind: x of id: 1"}
