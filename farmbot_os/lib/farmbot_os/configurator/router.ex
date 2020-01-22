@@ -21,10 +21,13 @@ defmodule FarmbotOS.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  @data_layer FarmbotOS.Configurator.ConfigDataLayer
-  # WE REALLY NEED FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer
-  @network_layer FarmbotOS.Configurator.FakeNetworkLayer
-  @telemetry_layer FarmbotOS.Configurator.DetsTelemetryLayer
+  @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
+  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
+                   :network_layer
+                 ]
+  @telemetry_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
+                     :telemetry_layer
+                   ]
 
   # Trigger for captive portal for various operating systems
   get("/gen_204", do: redir(conn, "/"))

@@ -31,6 +31,10 @@ config :farmbot,
     {Farmbot.Platform.Host.Configurator, []}
   ]
 
+config :farmbot, FarmbotOS.Configurator,
+  data_layer: FarmbotOS.Configurator.ConfigDataLayer,
+  network_layer: FarmbotOS.Configurator.FakeNetworkLayer
+
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 0

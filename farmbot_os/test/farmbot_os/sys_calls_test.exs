@@ -4,7 +4,6 @@ defmodule FarmbotOS.SysCallsTest do
   alias FarmbotCore.Asset
 
   alias FarmbotCore.Asset.{
-    Command,
     Repo,
     Sequence,
     BoxLed
