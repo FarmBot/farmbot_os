@@ -22,19 +22,36 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "point groups failure" do
+    expect(Stubs, :get_point_group, 1, fn _id ->
+      :whatever
+    end)
+
     boom = fn -> SysCalls.get_point_group(Stubs, :something_else) end
     assert_raise FarmbotCeleryScript.RuntimeError, boom
   end
 
   test "point groups success" do
+    expect(Stubs, :get_point_group, 1, fn _id ->
+      %{point_ids: [1, 2, 3]}
+    end)
+
     pg = %{point_ids: [1, 2, 3]}
-    result = SysCalls.get_point_group(Stubs, :whatever)
+    result = SysCalls.get_point_group(Stubs, 456)
     assert result == pg
   end
 
-  test "move_absolute" do
+  test "move_absolute, OK" do
+    expect(Stubs, :move_absolute, 1, fn 1, 2, 3, 4 ->
+      :ok
+    end)
+
     assert :ok = SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
-    assert_receive {:move_absolute, [1, 2, 3, 4]}
+  end
+
+  test "move_absolute, NO" do
+    expect(Stubs, :move_absolute, 1, fn 1, 2, 3, 4 ->
+      :ko
+    end)
 
     assert {:error, "move failed!"} ==
              SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
