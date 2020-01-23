@@ -77,26 +77,33 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "write_pin" do
+    err = {:error, "firmware error?"}
+
+    expect(Stubs, :write_pin, 4, fn pin_num, _, _ ->
+      if pin_num == 66 do
+        err
+      else
+        :ok
+      end
+    end)
+
     assert :ok = SysCalls.write_pin(Stubs, 1, 0, 1)
-
     assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 4}, 0, 1)
-
     assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 3}, 1, 123)
-
-    assert_receive {:write_pin, [1, 0, 1]}
-    assert_receive {:write_pin, [%{type: "boxled", id: 4}, 0, 1]}
-    assert_receive {:write_pin, [%{type: "boxled", id: 3}, 1, 123]}
-
-    assert {:error, "firmware error"} ==
-             SysCalls.write_pin(Stubs, 1, 0, 1)
+    assert err == SysCalls.write_pin(Stubs, 66, 0, 1)
   end
 
   test "read_pin" do
-    assert 1 == SysCalls.read_pin(Stubs, 10, 0)
-    assert 1 == SysCalls.read_pin(Stubs, 77, nil)
-    assert_receive {:read_pin, [10, 0]}
-    assert_receive {:read_pin, [77, nil]}
+    expect(Stubs, :read_pin, 3, fn num, _mode ->
+      if num == 1 do
+        {:error, "firmware error"}
+      else
+        num * 2
+      end
+    end)
 
+    assert 20 == SysCalls.read_pin(Stubs, 10, 0)
+    assert 30 == SysCalls.read_pin(Stubs, 15, nil)
     assert {:error, "firmware error"} == SysCalls.read_pin(Stubs, 1, 0)
   end
 
