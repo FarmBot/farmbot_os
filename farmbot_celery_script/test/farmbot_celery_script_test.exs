@@ -49,12 +49,16 @@ defmodule FarmbotCeleryScriptTest do
 
     me = self()
 
-    expect(Stubs, :coordinate, fn x, y, z ->
+    expect(Stubs, :coordinate, 2, fn x, y, z ->
       %{x: x, y: y, z: z}
     end)
 
+    expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
+      :ok
+    end)
+
     result = FarmbotCeleryScript.execute(sequence_ast, me)
-    assert result == :ok
+    assert :ok == result
   end
 
   test "syscall errors" do
@@ -68,12 +72,11 @@ defmodule FarmbotCeleryScriptTest do
       }
       |> AST.decode()
 
-    expect(Stubs, :read_pin, fn _, _ -> {:error, "failed to read pin!"} end)
+    expect(Stubs, :read_pin, 1, fn _, _ -> {:error, "failed to read pin!"} end)
     result = FarmbotCeleryScript.execute(execute_ast, execute_ast)
     assert {:error, "failed to read pin!"} = result
 
-    assert_receive {:step_complete, ^execute_ast,
-                    {:error, "failed to read pin!"}}
+    assert_receive {:step_complete, ^execute_ast, {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
