@@ -17,18 +17,16 @@ defmodule FarmbotCore.DeviceWorkerTest do
     dev
   end
 
-  describe "devices" do
-    test "triggering of factory reset during init" do
-      expect(Stubs, :factory_reset, fn "farmbot_os" ->
-        :ok
-      end)
+  test "triggering of factory reset during init" do
+    expect(Stubs, :factory_reset, fn _ ->
+      :ok
+    end)
 
-      dev = fresh_device()
-      {:ok, _pid} = AssetWorker.start_link(dev, [])
+    dev = fresh_device()
+    {:ok, _pid} = AssetWorker.start_link(dev, [])
 
-      # Hmmm
-      Process.sleep(20)
-    end
+    # Hmmm
+    Process.sleep(300)
   end
 
   test "DO trigger factory reset during update" do
@@ -40,7 +38,7 @@ defmodule FarmbotCore.DeviceWorkerTest do
     end)
 
     GenServer.cast(pid, {:new_data, %{dev | needs_reset: true}})
-    Process.sleep(20)
+    Process.sleep(300)
   end
 
   test "DO NOT trigger factory reset during update" do
@@ -53,6 +51,6 @@ defmodule FarmbotCore.DeviceWorkerTest do
       raise nooo
     end)
 
-    Process.sleep(20)
+    Process.sleep(300)
   end
 end
