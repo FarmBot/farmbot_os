@@ -1,8 +1,15 @@
+IO.puts("==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--")
+
 defmodule FarmbotCore.DeviceWorkerTest do
   use ExUnit.Case, async: false
+  use Mimic
+
   alias Farmbot.TestSupport.AssetFixtures
+  alias FarmbotCeleryScript.SysCalls.Stubs
   alias FarmbotCore.Asset.Device
   alias FarmbotCore.AssetWorker
+
+  setup :set_mimic_global
 
   def fresh_device(needs_reset \\ true) do
     params = %{needs_reset: needs_reset}
@@ -12,36 +19,40 @@ defmodule FarmbotCore.DeviceWorkerTest do
 
   describe "devices" do
     test "triggering of factory reset during init" do
-      test_pid = self()
+      expect(Stubs, :factory_reset, fn "farmbot_os" ->
+        :ok
+      end)
+
       dev = fresh_device()
-
-      # :ok =
-      #   Stubs.handle(Stubs, fn
-      #     kind, args ->
-      #       send(test_pid, {kind, args})
-      #       :ok
-      #   end)
-
       {:ok, _pid} = AssetWorker.start_link(dev, [])
-      assert_receive {:factory_reset, ["farmbot_os"]}
+
+      # Hmmm
+      Process.sleep(20)
     end
   end
 
-  test "triggering of factory reset during update" do
-    test_pid = self()
+  test "DO trigger factory reset during update" do
     dev = fresh_device(false)
-
-    # :ok =
-    #   Stubs.handle(Stubs, fn
-    #     kind, args ->
-    #       send(test_pid, {kind, args})
-    #       :ok
-    #   end)
-
     {:ok, pid} = AssetWorker.start_link(dev, [])
-    refute_receive {:factory_reset, ["farmbot_os"]}
+
+    expect(Stubs, :factory_reset, 1, fn _pkg ->
+      :ok
+    end)
 
     GenServer.cast(pid, {:new_data, %{dev | needs_reset: true}})
-    assert_receive {:factory_reset, ["farmbot_os"]}
+    Process.sleep(20)
+  end
+
+  test "DO NOT trigger factory reset during update" do
+    dev = fresh_device(false)
+    {:ok, _} = AssetWorker.start_link(dev, [])
+
+    stub(Stubs, :factory_reset, fn _pkg ->
+      nooo = "SHOULD NOT HAPPEN!"
+      flunk(nooo)
+      raise nooo
+    end)
+
+    Process.sleep(20)
   end
 end
