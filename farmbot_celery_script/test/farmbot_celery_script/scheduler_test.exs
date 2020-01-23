@@ -11,7 +11,8 @@ defmodule FarmbotCeleryScript.SchedulerTest do
       23
     end)
 
-    {:ok, sch} = Scheduler.start_link([registry_name: :"#{:random.uniform()}"], [])
+    {:ok, sch} =
+      Scheduler.start_link([registry_name: :"#{:random.uniform()}"], [])
 
     ast =
       AST.Factory.new()

@@ -76,7 +76,8 @@ defmodule FarmbotCeleryScriptTest do
     result = FarmbotCeleryScript.execute(execute_ast, execute_ast)
     assert {:error, "failed to read pin!"} = result
 
-    assert_receive {:step_complete, ^execute_ast, {:error, "failed to read pin!"}}
+    assert_receive {:step_complete, ^execute_ast,
+                    {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
