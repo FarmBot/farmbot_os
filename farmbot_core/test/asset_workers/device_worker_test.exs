@@ -3,7 +3,6 @@ defmodule FarmbotCore.DeviceWorkerTest do
   alias Farmbot.TestSupport.AssetFixtures
   alias FarmbotCore.Asset.Device
   alias FarmbotCore.AssetWorker
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
 
   def fresh_device(needs_reset \\ true) do
     params = %{needs_reset: needs_reset}
@@ -13,16 +12,15 @@ defmodule FarmbotCore.DeviceWorkerTest do
 
   describe "devices" do
     test "triggering of factory reset during init" do
-      {:ok, _} = TestSysCalls.checkout()
       test_pid = self()
       dev = fresh_device()
 
-      :ok =
-        TestSysCalls.handle(TestSysCalls, fn
-          kind, args ->
-            send(test_pid, {kind, args})
-            :ok
-        end)
+      # :ok =
+      #   Stubs.handle(Stubs, fn
+      #     kind, args ->
+      #       send(test_pid, {kind, args})
+      #       :ok
+      #   end)
 
       {:ok, _pid} = AssetWorker.start_link(dev, [])
       assert_receive {:factory_reset, ["farmbot_os"]}
@@ -30,16 +28,15 @@ defmodule FarmbotCore.DeviceWorkerTest do
   end
 
   test "triggering of factory reset during update" do
-    {:ok, _} = TestSysCalls.checkout()
     test_pid = self()
     dev = fresh_device(false)
 
-    :ok =
-      TestSysCalls.handle(TestSysCalls, fn
-        kind, args ->
-          send(test_pid, {kind, args})
-          :ok
-      end)
+    # :ok =
+    #   Stubs.handle(Stubs, fn
+    #     kind, args ->
+    #       send(test_pid, {kind, args})
+    #       :ok
+    #   end)
 
     {:ok, pid} = AssetWorker.start_link(dev, [])
     refute_receive {:factory_reset, ["farmbot_os"]}
