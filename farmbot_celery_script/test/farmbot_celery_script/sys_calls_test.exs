@@ -1,16 +1,24 @@
 defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
+  use Mimic
+  alias FarmbotCeleryScript.{SysCalls, SysCalls.Stubs}
 
-  alias Farmbot.TestSupport.CeleryScript.Stubs
-  alias FarmbotCeleryScript.{AST, SysCalls}
+  test "point, OK" do
+    expect(Stubs, :point, 1, fn _kind, 1 ->
+      %{x: 100, y: 200, z: 300}
+    end)
 
-  test "point" do
-    assert %{x: 100, y: 200, z: 300} = SysCalls.point(Stubs, "Peripheral", 1)
+    result1 = SysCalls.point(Stubs, "Peripheral", 1)
+    assert %{x: 100, y: 200, z: 300} == result1
+  end
 
-    assert_receive {:point, ["Peripheral", 1]}
+  test "point, NO" do
+    expect(Stubs, :point, 1, fn _kind, 0 ->
+      :whatever
+    end)
 
-    assert {:error, "point error"} ==
-             SysCalls.point(Stubs, "Peripheral", 1)
+    boom = fn -> SysCalls.point(Stubs, "Peripheral", 0) end
+    assert_raise FarmbotCeleryScript.RuntimeError, boom
   end
 
   test "point groups failure" do
