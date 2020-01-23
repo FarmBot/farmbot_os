@@ -50,25 +50,30 @@ defmodule FarmbotCeleryScript.SysCallsTest do
 
   test "move_absolute, NO" do
     expect(Stubs, :move_absolute, 1, fn 1, 2, 3, 4 ->
-      :ko
+      {:error, "move failed!"}
     end)
 
     assert {:error, "move failed!"} ==
              SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
   end
 
-  test "get current positions" do
+  test "get positions, OK" do
+    expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
+    expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
+    expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
     assert 100.00 = SysCalls.get_current_x(Stubs)
-    assert 100.00 = SysCalls.get_current_y(Stubs)
-    assert 100.00 = SysCalls.get_current_z(Stubs)
+    assert 200.00 = SysCalls.get_current_y(Stubs)
+    assert 300.00 = SysCalls.get_current_z(Stubs)
+  end
 
-    assert_receive {:get_current_x, []}
-    assert_receive {:get_current_y, []}
-    assert_receive {:get_current_z, []}
+  test "get positions, KO" do
+    expect(Stubs, :get_current_x, 1, fn -> {:error, "L"} end)
+    expect(Stubs, :get_current_y, 1, fn -> {:error, "O"} end)
+    expect(Stubs, :get_current_z, 1, fn -> {:error, "L"} end)
 
-    assert {:error, "firmware error"} == SysCalls.get_current_x(Stubs)
-    assert {:error, "firmware error"} == SysCalls.get_current_y(Stubs)
-    assert {:error, "firmware error"} == SysCalls.get_current_z(Stubs)
+    assert {:error, "L"} == SysCalls.get_current_x(Stubs)
+    assert {:error, "O"} == SysCalls.get_current_y(Stubs)
+    assert {:error, "L"} == SysCalls.get_current_z(Stubs)
   end
 
   test "write_pin" do
