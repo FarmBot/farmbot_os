@@ -1,216 +1,150 @@
 defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
+
+  alias Farmbot.TestSupport.CeleryScript.Stubs
   alias FarmbotCeleryScript.{AST, SysCalls}
 
-  setup do
-    {:ok, shim} = TestSysCalls.checkout()
-    [shim: shim]
-  end
-
-  test "point", %{shim: shim} do
-    :ok = simulate_syscall(shim, %{x: 100, y: 200, z: 300})
-
-    assert %{x: 100, y: 200, z: 300} =
-             SysCalls.point(TestSysCalls, "Peripheral", 1)
+  test "point" do
+    assert %{x: 100, y: 200, z: 300} = SysCalls.point(Stubs, "Peripheral", 1)
 
     assert_receive {:point, ["Peripheral", 1]}
 
-    :ok = simulate_syscall_error(shim, "point error")
-
     assert {:error, "point error"} ==
-             SysCalls.point(TestSysCalls, "Peripheral", 1)
+             SysCalls.point(Stubs, "Peripheral", 1)
   end
 
-  test "point groups failure", %{shim: shim} do
-    :ok = simulate_syscall(shim, :no!)
-    boom = fn -> SysCalls.get_point_group(TestSysCalls, :something_else) end
+  test "point groups failure" do
+    boom = fn -> SysCalls.get_point_group(Stubs, :something_else) end
     assert_raise FarmbotCeleryScript.RuntimeError, boom
   end
 
-  test "point groups success", %{shim: shim} do
+  test "point groups success" do
     pg = %{point_ids: [1, 2, 3]}
-    :ok = simulate_syscall(shim, pg)
-    result = SysCalls.get_point_group(TestSysCalls, :whatever)
+    result = SysCalls.get_point_group(Stubs, :whatever)
     assert result == pg
   end
 
-  test "move_absolute", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-    assert :ok = SysCalls.move_absolute(TestSysCalls, 1, 2, 3, 4)
+  test "move_absolute" do
+    assert :ok = SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
     assert_receive {:move_absolute, [1, 2, 3, 4]}
 
-    :ok = simulate_syscall_error(shim, "move failed!")
-
     assert {:error, "move failed!"} ==
-             SysCalls.move_absolute(TestSysCalls, 1, 2, 3, 4)
+             SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
   end
 
-  test "get current positions", %{shim: shim} do
-    :ok = simulate_syscall(shim, 100.00)
-    assert 100.00 = SysCalls.get_current_x(TestSysCalls)
-    assert 100.00 = SysCalls.get_current_y(TestSysCalls)
-    assert 100.00 = SysCalls.get_current_z(TestSysCalls)
+  test "get current positions" do
+    assert 100.00 = SysCalls.get_current_x(Stubs)
+    assert 100.00 = SysCalls.get_current_y(Stubs)
+    assert 100.00 = SysCalls.get_current_z(Stubs)
 
     assert_receive {:get_current_x, []}
     assert_receive {:get_current_y, []}
     assert_receive {:get_current_z, []}
 
-    :ok = simulate_syscall_error(shim, "firmware error")
-
-    assert {:error, "firmware error"} == SysCalls.get_current_x(TestSysCalls)
-    assert {:error, "firmware error"} == SysCalls.get_current_y(TestSysCalls)
-    assert {:error, "firmware error"} == SysCalls.get_current_z(TestSysCalls)
+    assert {:error, "firmware error"} == SysCalls.get_current_x(Stubs)
+    assert {:error, "firmware error"} == SysCalls.get_current_y(Stubs)
+    assert {:error, "firmware error"} == SysCalls.get_current_z(Stubs)
   end
 
-  test "write_pin", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-    assert :ok = SysCalls.write_pin(TestSysCalls, 1, 0, 1)
+  test "write_pin" do
+    assert :ok = SysCalls.write_pin(Stubs, 1, 0, 1)
 
-    assert :ok =
-             SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 4}, 0, 1)
+    assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 4}, 0, 1)
 
-    assert :ok =
-             SysCalls.write_pin(TestSysCalls, %{type: "boxled", id: 3}, 1, 123)
+    assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 3}, 1, 123)
 
     assert_receive {:write_pin, [1, 0, 1]}
     assert_receive {:write_pin, [%{type: "boxled", id: 4}, 0, 1]}
     assert_receive {:write_pin, [%{type: "boxled", id: 3}, 1, 123]}
 
-    :ok = simulate_syscall_error(shim, "firmware error")
-
     assert {:error, "firmware error"} ==
-             SysCalls.write_pin(TestSysCalls, 1, 0, 1)
+             SysCalls.write_pin(Stubs, 1, 0, 1)
   end
 
-  test "read_pin", %{shim: shim} do
-    :ok = simulate_syscall(shim, 1)
-    assert 1 == SysCalls.read_pin(TestSysCalls, 10, 0)
-    assert 1 == SysCalls.read_pin(TestSysCalls, 77, nil)
+  test "read_pin" do
+    assert 1 == SysCalls.read_pin(Stubs, 10, 0)
+    assert 1 == SysCalls.read_pin(Stubs, 77, nil)
     assert_receive {:read_pin, [10, 0]}
     assert_receive {:read_pin, [77, nil]}
 
-    :ok = simulate_syscall_error(shim, "firmware error")
-
-    assert {:error, "firmware error"} == SysCalls.read_pin(TestSysCalls, 1, 0)
+    assert {:error, "firmware error"} == SysCalls.read_pin(Stubs, 1, 0)
   end
 
-  test "wait", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-    assert :ok = SysCalls.wait(TestSysCalls, 1000)
+  test "wait" do
+    assert :ok = SysCalls.wait(Stubs, 1000)
     assert_receive {:wait, [1000]}
   end
 
-  test "named_pin", %{shim: shim} do
+  test "named_pin" do
     # Peripheral and Sensor are on the Arduino
-    :ok = simulate_syscall(shim, 44)
-    assert 44 == SysCalls.named_pin(TestSysCalls, "Peripheral", 5)
-    assert 44 == SysCalls.named_pin(TestSysCalls, "Sensor", 1999)
+    assert 44 == SysCalls.named_pin(Stubs, "Peripheral", 5)
+    assert 44 == SysCalls.named_pin(Stubs, "Sensor", 1999)
 
     # BoxLed is on the GPIO
-    :ok = simulate_syscall(shim, %{type: "BoxLed", id: 3})
 
     assert %{type: "BoxLed", id: 3} ==
-             SysCalls.named_pin(TestSysCalls, "BoxLed", 3)
-
-    :ok = simulate_syscall(shim, %{type: "BoxLed", id: 4})
+             SysCalls.named_pin(Stubs, "BoxLed", 3)
 
     assert %{type: "BoxLed", id: 4} ==
-             SysCalls.named_pin(TestSysCalls, "BoxLed", 4)
+             SysCalls.named_pin(Stubs, "BoxLed", 4)
 
     assert_receive {:named_pin, ["Peripheral", 5]}
     assert_receive {:named_pin, ["Sensor", 1999]}
     assert_receive {:named_pin, ["BoxLed", 3]}
     assert_receive {:named_pin, ["BoxLed", 4]}
 
-    :ok = simulate_syscall_error(shim, "error finding resource")
-
     assert {:error, "error finding resource"} ==
-             SysCalls.named_pin(TestSysCalls, "Peripheral", 888)
+             SysCalls.named_pin(Stubs, "Peripheral", 888)
   end
 
-  test "send_message", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-
+  test "send_message" do
     assert :ok =
-             SysCalls.send_message(TestSysCalls, "success", "hello world", [
+             SysCalls.send_message(Stubs, "success", "hello world", [
                "email"
              ])
 
     assert_receive {:send_message, ["success", "hello world", ["email"]]}
 
-    :ok = simulate_syscall_error(shim, "email machine broke")
-
     assert {:error, "email machine broke"} ==
-             SysCalls.send_message(TestSysCalls, "error", "goodbye world", [
+             SysCalls.send_message(Stubs, "error", "goodbye world", [
                "email"
              ])
   end
 
-  test "find_home", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-    assert :ok = SysCalls.find_home(TestSysCalls, "x")
+  test "find_home" do
+    assert :ok = SysCalls.find_home(Stubs, "x")
     assert_receive {:find_home, ["x"]}
 
-    :ok = simulate_syscall_error(shim, "home lost")
-
-    assert {:error, "home lost"} == SysCalls.find_home(TestSysCalls, "x")
+    assert {:error, "home lost"} == SysCalls.find_home(Stubs, "x")
   end
 
-  test "execute_script", %{shim: shim} do
-    :ok = simulate_syscall(shim)
-    assert :ok = SysCalls.execute_script(TestSysCalls, "take-photo", %{})
+  test "execute_script" do
+    assert :ok = SysCalls.execute_script(Stubs, "take-photo", %{})
     assert_receive {:execute_script, ["take-photo", %{}]}
 
-    :ok = simulate_syscall_error(shim, "not installed")
-
     assert {:error, "not installed"} ==
-             SysCalls.execute_script(TestSysCalls, "take-photo", %{})
+             SysCalls.execute_script(Stubs, "take-photo", %{})
   end
 
-  test "set_servo_angle errors", %{shim: shim} do
-    :ok = simulate_syscall(shim)
+  test "set_servo_angle errors" do
     arg0 = [5, 40]
-    assert :ok = SysCalls.set_servo_angle(TestSysCalls, "set_servo_angle", arg0)
+    assert :ok = SysCalls.set_servo_angle(Stubs, "set_servo_angle", arg0)
     assert_receive {:set_servo_angle, arg0}
 
     arg1 = [40, -5]
-    :ok = simulate_syscall_error(shim, "boom")
 
     assert {:error, "boom"} ==
-             SysCalls.set_servo_angle(TestSysCalls, "set_servo_angle", arg1)
+             SysCalls.set_servo_angle(Stubs, "set_servo_angle", arg1)
   end
 
-  test "get_sequence", %{shim: shim} do
-    :ok =
-      simulate_syscall(shim, %AST{
-        kind: :sequence,
-        args: %{locals: %AST{kind: :scope_declaration, args: %{}}}
-      })
-
-    assert %{} = SysCalls.get_sequence(TestSysCalls, 123)
+  test "get_sequence" do
+    #   kind: :sequence,
+    #   args: %{locals: %AST{kind: :scope_declaration, args: %{}}}
+    # })
+    assert %{} = SysCalls.get_sequence(Stubs, 123)
     assert_receive {:get_sequence, [123]}
 
-    :ok = simulate_syscall_error(shim, "sequence not found")
-
     assert {:error, "sequence not found"} ==
-             SysCalls.get_sequence(TestSysCalls, 123)
-  end
-
-  def simulate_syscall(shim, val \\ :ok) do
-    pid = self()
-
-    :ok =
-      TestSysCalls.handle(shim, fn kind, args ->
-        send(pid, {kind, args})
-        val
-      end)
-  end
-
-  def simulate_syscall_error(shim, val) when is_binary(val) do
-    :ok =
-      TestSysCalls.handle(shim, fn _kind, _args ->
-        {:error, val}
-      end)
+             SysCalls.get_sequence(Stubs, 123)
   end
 end

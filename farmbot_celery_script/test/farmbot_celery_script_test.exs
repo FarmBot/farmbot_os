@@ -54,7 +54,7 @@ defmodule FarmbotCeleryScriptTest do
     end)
 
     result = FarmbotCeleryScript.execute(sequence_ast, me)
-    assert result = :ok
+    assert result == :ok
   end
 
   test "syscall errors" do
