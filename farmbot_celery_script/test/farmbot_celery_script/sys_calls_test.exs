@@ -166,11 +166,20 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "execute_script" do
+    err = {:error, "not installed"}
+
+    expect(Stubs, :execute_script, 2, fn "take-photo", env ->
+      if Map.get(env, :error) do
+        err
+      else
+        :ok
+      end
+    end)
+
     assert :ok = SysCalls.execute_script(Stubs, "take-photo", %{})
     assert_receive {:execute_script, ["take-photo", %{}]}
 
-    assert {:error, "not installed"} ==
-             SysCalls.execute_script(Stubs, "take-photo", %{})
+    assert err == SysCalls.execute_script(Stubs, "take-photo", %{error: true})
   end
 
   test "set_servo_angle errors" do
