@@ -1,7 +1,12 @@
 defmodule FarmbotCeleryScript.SysCallsTest do
   use ExUnit.Case, async: false
   use Mimic
-  alias FarmbotCeleryScript.{SysCalls, SysCalls.Stubs}
+
+  alias FarmbotCeleryScript.{
+    SysCalls,
+    SysCalls.Stubs,
+    AST
+  }
 
   test "point, OK" do
     expect(Stubs, :point, 1, fn _kind, 1 ->
@@ -108,8 +113,13 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "wait" do
+    expect(Stubs, :wait, fn ms ->
+      if ms == 1000 do
+        :ok
+      end
+    end)
+
     assert :ok = SysCalls.wait(Stubs, 1000)
-    assert_receive {:wait, [1000]}
   end
 
   test "named_pin" do
@@ -164,24 +174,38 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "set_servo_angle errors" do
-    arg0 = [5, 40]
-    assert :ok = SysCalls.set_servo_angle(Stubs, "set_servo_angle", arg0)
-    assert_receive {:set_servo_angle, arg0}
+    error = {:error, "boom"}
 
-    arg1 = [40, -5]
+    expect(Stubs, :set_servo_angle, 2, fn num, _val ->
+      if num == 5 do
+        :ok
+      else
+        error
+      end
+    end)
 
-    assert {:error, "boom"} ==
-             SysCalls.set_servo_angle(Stubs, "set_servo_angle", arg1)
+    assert error == SysCalls.set_servo_angle(Stubs, 40, -5)
+    assert :ok == SysCalls.set_servo_angle(Stubs, 5, 40)
   end
 
   test "get_sequence" do
-    #   kind: :sequence,
-    #   args: %{locals: %AST{kind: :scope_declaration, args: %{}}}
-    # })
-    assert %{} = SysCalls.get_sequence(Stubs, 123)
-    assert_receive {:get_sequence, [123]}
+    nothing = %AST{
+      kind: "nothing",
+      args: {},
+      body: []
+    }
 
-    assert {:error, "sequence not found"} ==
-             SysCalls.get_sequence(Stubs, 123)
+    err = {:error, "sequence not found"}
+
+    expect(Stubs, :get_sequence, 2, fn sequence_id ->
+      if sequence_id == 321 do
+        err
+      else
+        nothing
+      end
+    end)
+
+    assert nothing == SysCalls.get_sequence(Stubs, 123)
+    assert err == SysCalls.get_sequence(Stubs, 321)
   end
 end
