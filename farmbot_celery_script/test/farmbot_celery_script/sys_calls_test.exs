@@ -123,9 +123,23 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "named_pin" do
+    err = {:error, "error finding resource"}
+
+    expect(Stubs, :named_pin, 5, fn kind, num ->
+      hmm = {kind, num}
+
+      case hmm do
+        {"Peripheral", 5} -> 44
+        {"Sensor", 1999} -> 55
+        {"BoxLed", 3} -> %{type: "BoxLed", id: 3}
+        {"BoxLed", 4} -> %{type: "BoxLed", id: 4}
+        {"Peripheral", 888} -> err
+      end
+    end)
+
     # Peripheral and Sensor are on the Arduino
     assert 44 == SysCalls.named_pin(Stubs, "Peripheral", 5)
-    assert 44 == SysCalls.named_pin(Stubs, "Sensor", 1999)
+    assert 55 == SysCalls.named_pin(Stubs, "Sensor", 1999)
 
     # BoxLed is on the GPIO
 
@@ -135,34 +149,40 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     assert %{type: "BoxLed", id: 4} ==
              SysCalls.named_pin(Stubs, "BoxLed", 4)
 
-    assert_receive {:named_pin, ["Peripheral", 5]}
-    assert_receive {:named_pin, ["Sensor", 1999]}
-    assert_receive {:named_pin, ["BoxLed", 3]}
-    assert_receive {:named_pin, ["BoxLed", 4]}
-
-    assert {:error, "error finding resource"} ==
-             SysCalls.named_pin(Stubs, "Peripheral", 888)
+    assert err == SysCalls.named_pin(Stubs, "Peripheral", 888)
   end
 
   test "send_message" do
+    err = {:error, "email machine broke"}
+
+    expect(Stubs, :send_message, 2, fn type, _msg, _chans ->
+      if type == "error" do
+        err
+      else
+        :ok
+      end
+    end)
+
     assert :ok =
-             SysCalls.send_message(Stubs, "success", "hello world", [
-               "email"
-             ])
+             SysCalls.send_message(Stubs, "success", "hello world", ["email"])
 
-    assert_receive {:send_message, ["success", "hello world", ["email"]]}
-
-    assert {:error, "email machine broke"} ==
-             SysCalls.send_message(Stubs, "error", "goodbye world", [
-               "email"
-             ])
+    assert err ==
+             SysCalls.send_message(Stubs, "error", "goodbye world", ["email"])
   end
 
   test "find_home" do
-    assert :ok = SysCalls.find_home(Stubs, "x")
-    assert_receive {:find_home, ["x"]}
+    err = {:error, "home lost"}
 
-    assert {:error, "home lost"} == SysCalls.find_home(Stubs, "x")
+    expect(Stubs, :find_home, 2, fn axis ->
+      if axis == "x" do
+        :ok
+      else
+        err
+      end
+    end)
+
+    assert :ok = SysCalls.find_home(Stubs, "x")
+    assert err == SysCalls.find_home(Stubs, "z")
   end
 
   test "execute_script" do
@@ -177,8 +197,6 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     end)
 
     assert :ok = SysCalls.execute_script(Stubs, "take-photo", %{})
-    assert_receive {:execute_script, ["take-photo", %{}]}
-
     assert err == SysCalls.execute_script(Stubs, "take-photo", %{error: true})
   end
 
