@@ -1,44 +1,37 @@
 defmodule FarmbotCeleryScript.CompilerGroupsTest do
   use ExUnit.Case, async: true
+  use Mimic
+
   alias FarmbotCeleryScript.AST
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
+  alias FarmbotCeleryScript.SysCalls.Stubs
   alias FarmbotCeleryScript.Compiler.Sequence
 
-  setup do
-    {:ok, shim} = TestSysCalls.checkout()
-
-    [shim: shim]
-  end
-
-  test "compilation of point_group in parameter application", %{shim: shim} do
-    pid = self()
+  test "compilation of point_group in parameter application" do
     fake_point_ids = [4, 5, 6, 7]
 
-    :ok =
-      TestSysCalls.handle(shim, fn kind, args ->
-        case kind do
-          :get_point_group ->
-            send(pid, {kind, args})
-            %{name: "woosh", point_ids: fake_point_ids}
+    expect(Stubs, :get_point_group, fn _ ->
+      %{name: "woosh", point_ids: fake_point_ids}
+    end)
 
-          :point ->
-            # EDGE CASE: Handle malformed stuff by ensuring that 50% of
-            #            points have no name.
-            [_type, id] = args
+    expect(Stubs, :point, 4, fn _kind, id ->
+      # EDGE CASE: Handle malformed stuff by ensuring that 50% of
+      #            points have no name.
 
-            if rem(id, 2) == 0 do
-              %{name: "from the test suite %%", x: 6, y: 7, z: 8}
-            else
-              %{x: 6, y: 7, z: 8}
-            end
-        end
-      end)
+      if rem(id, 2) == 0 do
+        %{name: "from the test suite %%", x: 6, y: 7, z: 8}
+      else
+        %{x: 6, y: 7, z: 8}
+      end
+    end)
 
     result = Sequence.sequence(fake_ast(), [])
-    assert length(result) === 2 + length(fake_point_ids)
+
+    length1 = 2 + length(fake_point_ids)
+    length2 = length(result)
+    assert length2 === length1
     # ============================================
     # ABOUT THIS (brittle) TEST:
-    # You should not write  tests like this and
+    # You should not write tests like this and
     # there is a high liklihood that the code below
     # will break in the future.
     # This is especially true if you intend to change

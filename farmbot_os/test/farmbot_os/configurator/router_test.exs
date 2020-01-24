@@ -3,14 +3,12 @@ defmodule FarmbotOS.Configurator.RouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias FarmbotTest.Configurator.{MockDataLayer, MockNetworkLayer}
-  import Mox
-  setup :verify_on_exit!
+  use Mimic
 
   @opts Router.init([])
 
   test "index after reset" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
 
     conn = conn(:get, "/")
@@ -21,7 +19,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "redirect to index" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
 
     conn = conn(:get, "/setup")
@@ -36,7 +34,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "celeryscript requests don't get listed as last reset reason" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "CeleryScript request." end)
 
     conn = conn(:get, "/")
@@ -45,7 +43,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "no reset reason" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
 
     conn = conn(:get, "/")
@@ -64,7 +62,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "network index" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:list_interfaces, fn ->
       [
         {"eth0", %{mac_address: "aa:bb:cc:dd:ee"}},
@@ -103,7 +101,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "config wireless SSID list" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
       [
         %{
@@ -260,7 +258,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "credentials index" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_email, fn -> "test@test.org" end)
     |> expect(:load_password, fn -> "password123" end)
     |> expect(:load_server, fn -> "https://my.farm.bot" end)
@@ -320,7 +318,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "500" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
       [
         %{

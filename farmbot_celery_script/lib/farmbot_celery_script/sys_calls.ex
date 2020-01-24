@@ -15,7 +15,6 @@ defmodule FarmbotCeleryScript.SysCalls do
   @type error :: {:error, String.t()}
   @type ok_or_error :: :ok | error
 
-  # "x", "y", or "z"
   @type axis :: String.t()
   @type package :: String.t()
   @type resource_id :: integer()

@@ -32,8 +32,8 @@ config :farmbot,
   ]
 
 config :farmbot, FarmbotOS.Configurator,
-  data_layer: FarmbotTest.Configurator.MockDataLayer,
-  network_layer: FarmbotTest.Configurator.MockNetworkLayer
+  data_layer: FarmbotOS.Configurator.ConfigDataLayer,
+  network_layer: FarmbotOS.Configurator.FakeNetworkLayer
 
 config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
 

@@ -1,16 +1,14 @@
 defmodule FarmbotExt.API.PreloaderTest do
   use ExUnit.Case
-  import Mox
+  use Mimic
 
   alias FarmbotCore.{
-    # Asset, 
-    # Asset.Query, 
+    # Asset,
+    # Asset.Query,
     Asset.Sync
   }
 
   alias FarmbotExt.{API, API.Preloader}
-
-  setup :verify_on_exit!
 
   test "get sync error" do
     expect(API, :get_changeset, fn Sync ->

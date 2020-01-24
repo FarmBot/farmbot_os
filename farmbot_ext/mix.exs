@@ -45,7 +45,7 @@ defmodule FarmbotExt.MixProject do
       {:hackney, "~> 1.15"},
       {:uuid, "~> 1.1"},
       {:amqp, "~> 1.4.0"},
-      {:mox, "~> 0.5.1", only: :test},
+      {:mimic, "~> 1.1", only: :test},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
