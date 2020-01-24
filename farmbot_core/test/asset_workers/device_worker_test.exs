@@ -1,5 +1,3 @@
-IO.puts("==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--")
-
 defmodule FarmbotCore.DeviceWorkerTest do
   use ExUnit.Case, async: false
   use Mimic
