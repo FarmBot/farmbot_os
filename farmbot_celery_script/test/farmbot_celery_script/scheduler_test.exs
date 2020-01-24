@@ -25,6 +25,6 @@ defmodule FarmbotCeleryScript.SchedulerTest do
     # Hack to force the scheduler to checkup instead of waiting the normal 15 seconds
     send(sch, :checkup)
     # Sorry.
-    Process.sleep(200)
+    Process.sleep(1100)
   end
 end
