@@ -5,6 +5,8 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.AST
   alias FarmbotCeleryScript.SysCalls.Stubs
 
+  setup :verify_on_exit!
+
   test "uses default values when no parameter is found" do
     sequence_ast =
       %{

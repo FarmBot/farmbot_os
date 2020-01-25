@@ -2,7 +2,7 @@ defmodule FarmbotFirmware.UARTDefaultAdapterTest do
   use ExUnit.Case
   use Mimic
 
-  setup [:verify_on_exit!]
+  setup :verify_on_exit!
   alias FarmbotFirmware.{UartDefaultAdapter}
 
   test "delegates" do
@@ -33,8 +33,5 @@ defmodule FarmbotFirmware.UARTDefaultAdapterTest do
     UartDefaultAdapter.open(pid, path, opts1)
     UartDefaultAdapter.stop(pid)
     UartDefaultAdapter.write(pid, str)
-  end
-
-  test "configuration" do
   end
 end

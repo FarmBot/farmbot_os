@@ -5,6 +5,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
   alias FarmbotCeleryScript.SysCalls.Stubs
 
   setup :set_mimic_global
+  setup :verify_on_exit!
 
   test "schedules a sequence to run in the future" do
     expect(Stubs, :read_pin, 1, fn _num, _mode ->

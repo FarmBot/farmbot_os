@@ -1,5 +1,5 @@
 defmodule FarmbotCore.DeviceWorkerTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
 
   alias Farmbot.TestSupport.AssetFixtures
@@ -7,7 +7,10 @@ defmodule FarmbotCore.DeviceWorkerTest do
   alias FarmbotCore.Asset.Device
   alias FarmbotCore.AssetWorker
 
+  @im_so_sorry 300
+
   setup :set_mimic_global
+  setup :verify_on_exit!
 
   def fresh_device(needs_reset \\ true) do
     params = %{needs_reset: needs_reset}
@@ -22,9 +25,7 @@ defmodule FarmbotCore.DeviceWorkerTest do
 
     dev = fresh_device()
     {:ok, _pid} = AssetWorker.start_link(dev, [])
-
-    # Hmmm
-    Process.sleep(300)
+    Process.sleep(@im_so_sorry)
   end
 
   test "DO trigger factory reset during update" do
@@ -36,7 +37,7 @@ defmodule FarmbotCore.DeviceWorkerTest do
     end)
 
     GenServer.cast(pid, {:new_data, %{dev | needs_reset: true}})
-    Process.sleep(300)
+    Process.sleep(@im_so_sorry)
   end
 
   test "DO NOT trigger factory reset during update" do
@@ -48,7 +49,5 @@ defmodule FarmbotCore.DeviceWorkerTest do
       flunk(nooo)
       raise nooo
     end)
-
-    Process.sleep(300)
   end
 end

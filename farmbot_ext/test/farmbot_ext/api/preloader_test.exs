@@ -9,6 +9,7 @@ defmodule FarmbotExt.API.PreloaderTest do
   }
 
   alias FarmbotExt.{API, API.Preloader}
+  setup :verify_on_exit!
 
   test "get sync error" do
     expect(API, :get_changeset, fn Sync ->

@@ -5,6 +5,7 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
   alias FarmbotCeleryScript.AST
   alias FarmbotCeleryScript.SysCalls.Stubs
   alias FarmbotCeleryScript.Compiler.Sequence
+  setup :verify_on_exit!
 
   test "compilation of point_group in parameter application" do
     fake_point_ids = [4, 5, 6, 7]
