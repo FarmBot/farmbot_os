@@ -77,6 +77,10 @@ defmodule FarmbotOS.SysCallsTest do
       changeset
     end)
 
+    expect(FarmbotExt.API, :get_changeset, fn module ->
+      {:ok, %{wut: module}}
+    end)
+
     assert :ok == SysCalls.sync()
   end
 
