@@ -13,6 +13,7 @@ defmodule AutoSyncChannelTest do
 
   alias FarmbotExt.{JWT, API, AMQP.ConnectionWorker}
   setup :verify_on_exit!
+  setup :set_mimic_global
 
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
               "G1pbkBhZG1pbi5jb20iLCJpYXQiOjE1MDIxMjcxMTcsImp0a" <>
@@ -222,17 +223,17 @@ defmodule AutoSyncChannelTest do
     payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
 
     stub(Query, :auto_sync?, fn ->
-      send(test_pid, :called_auto_sync?)
+      # send(test_pid, :called_auto_sync?)
       false
     end)
 
     stub(Command, :new_changeset, fn kind, id, params ->
-      send(test_pid, {:new_changeset_called, kind, id, params})
+      # send(test_pid, {:new_changeset_called, kind, id, params})
       :ok
     end)
 
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}
+    # send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    # assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}
   end
 
   test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
