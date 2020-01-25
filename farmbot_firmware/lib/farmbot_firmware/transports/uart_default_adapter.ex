@@ -11,7 +11,7 @@ defmodule FarmbotFirmware.UartDefaultAdapter do
     [
       active: true,
       speed: 115_200,
-      framing: {UART.Framing.Line, separator: "\r\n"}
+      framing: {Circuits.UART.Framing.Line, separator: "\r\n"}
     ]
   end
 end

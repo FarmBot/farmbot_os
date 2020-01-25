@@ -98,7 +98,8 @@ defmodule AutoSyncChannelTest do
     fake_response = %{conn: fake_con, chan: fake_chan}
 
     results = pretend_network_returned(fake_response)
-
+    IO.puts("=====================")
+    IO.inspect(results)
     %{conn: real_conn, chan: real_chan, preloaded: is_preloaded, pid: pid} = results
 
     assert real_chan == fake_chan
