@@ -9,8 +9,7 @@ defmodule FarmbotFirmware.Request do
 
   @spec request(GenServer.server(), GCODE.t()) ::
           {:ok, GCODE.t()}
-          | {:error,
-             :invalid_command | :firmware_error | FarmbotFirmware.status()}
+          | {:error, :invalid_command | :firmware_error | FarmbotFirmware.status()}
   def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
@@ -24,6 +23,8 @@ defmodule FarmbotFirmware.Request do
        ] do
       raise ArgumentError, "#{kind} is not a valid request."
     end
+
+    IO.puts("=++=++=++=++==++++=+==++ #{inspect(firmware_server)}")
 
     case GenServer.call(firmware_server, code, :infinity) do
       {:ok, tag} ->

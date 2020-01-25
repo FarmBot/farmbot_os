@@ -11,7 +11,7 @@ defmodule FarmbotOS.SysCalls.SetPinIOMode do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("set_pin_io_mode", reason)
     end
   end
 

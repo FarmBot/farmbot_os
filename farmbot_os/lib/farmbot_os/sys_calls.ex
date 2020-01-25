@@ -278,9 +278,7 @@ defmodule FarmbotOS.SysCalls do
       :ok
     else
       error ->
-        FarmbotTelemetry.event(:asset_sync, :sync_error, nil,
-          error: inspect(error)
-        )
+        FarmbotTelemetry.event(:asset_sync, :sync_error, nil, error: inspect(error))
 
         :ok = BotState.set_sync_status("sync_error")
         _ = Leds.green(:slow_blink)
@@ -300,4 +298,10 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def nothing(), do: nil
+
+  def give_firmware_reason(where, reason) do
+    w = inspect(where)
+    r = inspect(reason)
+    {:error, "Firmware error @ #{w}: #{r}"}
+  end
 end
