@@ -4,7 +4,8 @@ defmodule AutoSyncChannelTest do
   use ExUnit.Case
   use Mimic
 
-  # alias FarmbotCore.JSON
+  alias FarmbotCore.JSON
+
   alias FarmbotCore.Asset.{
     Query,
     Command,
@@ -216,24 +217,15 @@ defmodule AutoSyncChannelTest do
   end
 
   test "auto_sync disabled, resource not in @cache_kinds" do
-    test_pid = self()
-    %{pid: pid} = under_normal_conditions()
-
-    key = "bot.device_15.sync.Point.999"
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
+    under_normal_conditions()
 
     stub(Query, :auto_sync?, fn ->
-      # send(test_pid, :called_auto_sync?)
       false
     end)
 
-    stub(Command, :new_changeset, fn kind, id, params ->
-      # send(test_pid, {:new_changeset_called, kind, id, params})
+    stub(Command, :new_changeset, fn _kind, _id, _params ->
       :ok
     end)
-
-    # send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    # assert_receive {:new_changeset_called, "Point", 999, %{"foo" => "bar"}}
   end
 
   test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
