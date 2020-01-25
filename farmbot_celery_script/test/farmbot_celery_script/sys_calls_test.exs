@@ -8,6 +8,8 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     AST
   }
 
+  setup :verify_on_exit!
+
   test "point, OK" do
     expect(Stubs, :point, 1, fn _kind, 1 ->
       %{x: 100, y: 200, z: 300}

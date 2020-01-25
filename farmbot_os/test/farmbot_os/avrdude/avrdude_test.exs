@@ -3,7 +3,7 @@ defmodule FarmbotOs.AvrdudeTest do
 
   use Mimic
 
-  setup [:verify_on_exit!]
+  setup :verify_on_exit!
 
   test "works" do
     File.touch("/tmp/wow")

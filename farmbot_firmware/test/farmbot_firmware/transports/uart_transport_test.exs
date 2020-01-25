@@ -1,10 +1,9 @@
 defmodule FarmbotFirmware.UARTTransportTest do
   use ExUnit.Case
   use Mimic
-
-  setup [:verify_on_exit!]
   doctest FarmbotFirmware.UARTTransport
   alias FarmbotFirmware.{UartDefaultAdapter, UARTTransport}
+  setup :verify_on_exit!
 
   test "UARTTransport.init/1" do
     expect(UartDefaultAdapter, :start_link, fn ->

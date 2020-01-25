@@ -4,6 +4,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   use Plug.Test
 
   use Mimic
+  setup :verify_on_exit!
 
   @opts Router.init([])
 

@@ -10,6 +10,7 @@ defmodule FarmbotOS.SysCallsTest do
   }
 
   use Mimic
+  setup :verify_on_exit!
 
   test "emergency_unlock" do
     expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->
@@ -74,6 +75,10 @@ defmodule FarmbotOS.SysCallsTest do
     # Expect 5 calls and an :ok response.
     expect(FarmbotExt.API.Reconciler, :sync_group, 5, fn changeset, _group ->
       changeset
+    end)
+
+    expect(FarmbotExt.API, :get_changeset, fn module ->
+      {:ok, %{wut: module}}
     end)
 
     assert :ok == SysCalls.sync()

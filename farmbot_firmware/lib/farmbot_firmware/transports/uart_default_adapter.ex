@@ -2,35 +2,16 @@ defmodule FarmbotFirmware.UartDefaultAdapter do
   @moduledoc """
   A thin wrapper of Circuits.UART to simplify testing.
   """
-  alias Circuits.UART
-  @behaviour FarmbotFirmware.UartAdapter
+  defdelegate start_link, to: Circuits.UART, as: :start_link
+  defdelegate open(uart_pid, device_path, opts), to: Circuits.UART, as: :open
+  defdelegate stop(uart_pid), to: Circuits.UART, as: :stop
+  defdelegate write(uart_pid, str), to: Circuits.UART, as: :write
 
-  @impl FarmbotFirmware.UartAdapter
-  def start_link do
-    UART.start_link()
-  end
-
-  @impl FarmbotFirmware.UartAdapter
-  def open(uart_pid, device_path, opts) do
-    UART.open(uart_pid, device_path, opts)
-  end
-
-  @impl FarmbotFirmware.UartAdapter
-  def stop(uart_pid) do
-    UART.stop(uart_pid)
-  end
-
-  @impl FarmbotFirmware.UartAdapter
-  def write(uart_pid, str) do
-    UART.write(uart_pid, str)
-  end
-
-  @impl FarmbotFirmware.UartAdapter
   def generate_opts do
     [
       active: true,
       speed: 115_200,
-      framing: {UART.Framing.Line, separator: "\r\n"}
+      framing: {Circuits.UART.Framing.Line, separator: "\r\n"}
     ]
   end
 end
