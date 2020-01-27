@@ -300,4 +300,10 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def nothing(), do: nil
+
+  def give_firmware_reason(where, reason) do
+    w = inspect(where)
+    r = inspect(reason)
+    {:error, "Firmware error @ #{w}: #{r}"}
+  end
 end

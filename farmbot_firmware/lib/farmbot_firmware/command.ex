@@ -23,7 +23,7 @@ defmodule FarmbotFirmware.Command do
     end
   end
 
-  def command(firmware_server, {_, _} = code) do
+  def command(firmware_server, {_a, _b} = code) do
     command(firmware_server, {to_string(:rand.uniform(100)), code})
   end
 

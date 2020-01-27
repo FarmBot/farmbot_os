@@ -49,7 +49,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("set_servo_angle", reason)
     end
   end
 
@@ -62,7 +62,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
       :ok
     else
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason(
+          "do_toggle_pin:Peripheral",
+          reason
+        )
     end
   end
 
@@ -75,7 +78,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
       :ok
     else
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("do_toggle_pin:int", reason)
     end
   end
 
@@ -157,7 +160,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         value
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("do_read_pin", reason)
     end
   end
 
@@ -175,7 +178,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
         value
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason(
+          "do_read_pin:Peripheral",
+          reason
+        )
     end
   end
 
@@ -199,7 +205,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         )
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("do_read_pin(%Sensor)", reason)
     end
   end
 
@@ -217,7 +223,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         value
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("do_read_pin(%Sensor)", reason)
     end
   end
 
@@ -243,7 +249,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
         value
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason(
+          "do_read_pin(pin_number, 0)",
+          reason
+        )
     end
   end
 
@@ -255,7 +264,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
         value
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason(
+          "do_read_pin(pin_number, 1)",
+          reason
+        )
     end
   end
 
@@ -326,7 +338,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("do_write_pin/3", reason)
     end
   end
 end
