@@ -13,7 +13,8 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
     loop_parameter_appl_ast =
       Enum.find_value(parameter_applications, fn
         # check if this parameter_application is a iterable type
-        %{kind: :parameter_application, args: %{data_value: %{kind: kind}}} = iterable
+        %{kind: :parameter_application, args: %{data_value: %{kind: kind}}} =
+            iterable
         when kind in @iterables ->
           iterable
 
@@ -38,7 +39,10 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
         %FarmbotCeleryScript.AST{kind: :sequence} = celery_ast ->
           celery_args =
             celery_ast.args
-            |> Map.put(:sequence_name, celery_ast.args[:name] || celery_ast.meta[:sequence_name])
+            |> Map.put(
+              :sequence_name,
+              celery_ast.args[:name] || celery_ast.meta[:sequence_name]
+            )
             |> Map.put(:locals, %{
               celery_ast.args.locals
               | body: celery_ast.args.locals.body ++ unquote(param_appls)
@@ -53,13 +57,20 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
     end
   end
 
-  def compile_execute(%{args: %{sequence_id: id}, body: parameter_applications}, env) do
+  def compile_execute(
+        %{args: %{sequence_id: id}, body: parameter_applications},
+        env
+      ) do
     quote location: :keep do
       # We have to lookup the sequence by it's id.
       case FarmbotCeleryScript.SysCalls.get_sequence(unquote(id)) do
         %FarmbotCeleryScript.AST{} = ast ->
           # compile the ast
-          env = unquote(compile_params_to_function_args(parameter_applications, env))
+          env =
+            unquote(
+              compile_params_to_function_args(parameter_applications, env)
+            )
+
           FarmbotCeleryScript.Compiler.compile(ast, env)
 
         error ->

@@ -77,25 +77,29 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def get_sequence(resource_id), do: error(:get_sequence, [resource_id])
 
   @impl true
-  def get_toolslot_for_tool(resource_id), do: error(:get_toolslot_for_tool, [resource_id])
+  def get_toolslot_for_tool(resource_id),
+    do: error(:get_toolslot_for_tool, [resource_id])
 
   @impl true
   def home(axis, speed), do: error(:home, [axis, speed])
 
   @impl true
-  def install_first_party_farmware(), do: error(:install_first_party_farmware, [])
+  def install_first_party_farmware(),
+    do: error(:install_first_party_farmware, [])
 
   @impl true
   def move_absolute(x, y, z, speed), do: error(:move_absolute, [x, y, z, speed])
 
   @impl true
-  def named_pin(named_pin_type, resource_id), do: error(:named_pin, [named_pin_type, resource_id])
+  def named_pin(named_pin_type, resource_id),
+    do: error(:named_pin, [named_pin_type, resource_id])
 
   @impl true
   def nothing(), do: error(:nothing, [])
 
   @impl true
-  def point(point_type, resource_id), do: error(:point, [point_type, resource_id])
+  def point(point_type, resource_id),
+    do: error(:point, [point_type, resource_id])
 
   @impl true
   def get_point_group(id_or_type), do: error(:get_point_group, [id_or_type])
@@ -123,7 +127,8 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
     do: error(:resource_update, [kind, resource_id, data])
 
   @impl true
-  def send_message(type, message, channels), do: error(:send_message, [type, message, channels])
+  def send_message(type, message, channels),
+    do: error(:send_message, [type, message, channels])
 
   @impl true
   def set_servo_angle(pin, value), do: error(:set_servo_angle, [pin, value])
@@ -132,7 +137,8 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def set_pin_io_mode(pin, mode), do: error(:set_pin_io_mode, [pin, mode])
 
   @impl true
-  def set_user_env(env_name, env_value), do: error(:set_user_env, [env_name, env_value])
+  def set_user_env(env_name, env_value),
+    do: error(:set_user_env, [env_name, env_value])
 
   @impl true
   def sync(), do: error(:sync, [])
@@ -148,7 +154,8 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def zero(axis), do: error(:zero, [axis])
 
   @impl true
-  def eval_assertion(comment, expression), do: error(:eval_assertion, [comment, expression])
+  def eval_assertion(comment, expression),
+    do: error(:eval_assertion, [comment, expression])
 
   defp error(fun, _args) do
     msg = """

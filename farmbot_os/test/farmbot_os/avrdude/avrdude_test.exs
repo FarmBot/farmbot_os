@@ -1,11 +1,9 @@
-Mox.defmock(Avrdude.MuonTrapAdapter, for: Avrdude.MuonTrapAdapter)
-
 defmodule FarmbotOs.AvrdudeTest do
   use ExUnit.Case
 
-  import Mox
+  use Mimic
 
-  setup [:verify_on_exit!]
+  setup :verify_on_exit!
 
   test "works" do
     File.touch("/tmp/wow")

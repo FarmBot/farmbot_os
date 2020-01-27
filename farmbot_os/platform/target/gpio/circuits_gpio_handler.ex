@@ -13,7 +13,9 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   end
 
   def terminate(reason, state) do
-    Logger.warn("CircuitsGPIOHandler #{state.pin_number} crash: #{inspect(reason)}")
+    Logger.warn(
+      "CircuitsGPIOHandler #{state.pin_number} crash: #{inspect(reason)}"
+    )
   end
 
   def init([pin_number, fun]) do
@@ -31,7 +33,10 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     {:noreply, %{state | debounce: nil}}
   end
 
-  def handle_info({:circuits_gpio, pin, _timestamp, _}, %{debounce: timer} = state)
+  def handle_info(
+        {:circuits_gpio, pin, _timestamp, _},
+        %{debounce: timer} = state
+      )
       when is_reference(timer) do
     left = Process.read_timer(timer)
     Logger.info("CircuitsGPIOHandler #{pin} still debounced for #{left} ms")
@@ -46,5 +51,6 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
 
   def name(pin_number), do: :"#{__MODULE__}.#{pin_number}"
 
-  defp debounce_timer, do: Process.send_after(self(), :timeout, @debounce_timeout_ms)
+  defp debounce_timer,
+    do: Process.send_after(self(), :timeout, @debounce_timeout_ms)
 end

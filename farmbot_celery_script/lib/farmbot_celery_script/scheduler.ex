@@ -67,7 +67,12 @@ defmodule FarmbotCeleryScript.Scheduler do
   Calls are executed in a first in first out buffer, with things being added
   by `execute/2` taking priority.
   """
-  @spec schedule(GenServer.server(), AST.t() | [Compiler.compiled()], DateTime.t(), map()) ::
+  @spec schedule(
+          GenServer.server(),
+          AST.t() | [Compiler.compiled()],
+          DateTime.t(),
+          map()
+        ) ::
           {:ok, reference()}
   def schedule(scheduler_pid \\ __MODULE__, celery_script, at, data)
 
@@ -147,12 +152,12 @@ defmodule FarmbotCeleryScript.Scheduler do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
       diff_ms when diff_ms < 0 ->
-        from_now =
-          DateTime.utc_now()
-          |> DateTime.add(abs(diff_ms), :millisecond)
-          |> Timex.from_now()
-
-        Logger.info("Next execution is still #{diff_ms}ms too early (#{from_now})")
+        # from_now =
+        #   DateTime.utc_now()
+        #   |> DateTime.add(abs(diff_ms), :millisecond)
+        #   |> Timex.from_now()
+        # msg = "Next execution is still #{diff_ms}ms too early (#{from_now})"
+        # Logger.info(msg)
 
         state
         |> schedule_next_checkup(abs(diff_ms))
@@ -160,8 +165,8 @@ defmodule FarmbotCeleryScript.Scheduler do
 
       # now is more than the grace period past schedule time
       diff_ms when diff_ms > @grace_period_ms ->
-        from_now = Timex.from_now(at)
-        Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
+        # from_now = Timex.from_now(at)
+        # Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
 
         state
         |> pop_next()
@@ -171,7 +176,9 @@ defmodule FarmbotCeleryScript.Scheduler do
 
       # now is late, but less than the grace period late
       diff_ms when diff_ms >= 0 when diff_ms <= @grace_period_ms ->
-        Logger.info("Next execution is ready for execution: #{Timex.from_now(at)}")
+        Logger.info(
+          "Next execution is ready for execution: #{Timex.from_now(at)}"
+        )
 
         state
         |> execute_next()
@@ -179,8 +186,15 @@ defmodule FarmbotCeleryScript.Scheduler do
     end
   end
 
-  def handle_info({:step_complete, {scheduled_at, executed_at, pid}, result}, state) do
-    send(pid, {FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}})
+  def handle_info(
+        {:step_complete, {scheduled_at, executed_at, pid}, result},
+        state
+      ) do
+    send(
+      pid,
+      {FarmbotCeleryScript,
+       {:scheduled_execution, scheduled_at, executed_at, result}}
+    )
 
     state
     |> pop_next()
@@ -194,7 +208,9 @@ defmodule FarmbotCeleryScript.Scheduler do
     scheduler_pid = self()
 
     scheduled_pid =
-      spawn(fn -> StepRunner.step(scheduler_pid, {at, DateTime.utc_now(), pid}, compiled) end)
+      spawn(fn ->
+        StepRunner.step(scheduler_pid, {at, DateTime.utc_now(), pid}, compiled)
+      end)
 
     %{state | scheduled_pid: scheduled_pid}
   end
@@ -291,7 +307,8 @@ defmodule FarmbotCeleryScript.Scheduler do
     %{state | monitors: monitors}
   end
 
-  @spec add(state(), compiled_ast(), DateTime.t(), data :: map(), pid()) :: state()
+  @spec add(state(), compiled_ast(), DateTime.t(), data :: map(), pid()) ::
+          state()
   defp add(state, compiled, at, data, pid) do
     %{state | compiled: [{compiled, at, data, pid} | state.compiled]}
     |> index_next()

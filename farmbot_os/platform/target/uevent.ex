@@ -74,8 +74,20 @@ defmodule FarmbotOS.Platform.Target.Uevent do
         FarmbotTelemetry.event(:firmware, :tty_detected, nil, tty: tty)
         FarmbotCore.Logger.busy(1, "new firmware interfaces detected: #{tty}")
         FirmwareTTYDetector.set_tty(tty)
-        Config.update_config_value(:bool, "settings", "firmware_needs_flash", true)
-        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+
+        Config.update_config_value(
+          :bool,
+          "settings",
+          "firmware_needs_flash",
+          true
+        )
+
+        Config.update_config_value(
+          :bool,
+          "settings",
+          "firmware_needs_open",
+          false
+        )
 
       tty ->
         Logger.debug("firmware interface already detected: #{tty}")

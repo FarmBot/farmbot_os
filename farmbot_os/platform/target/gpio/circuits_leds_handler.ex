@@ -60,7 +60,17 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   end
 
   def init([]) do
-    leds = [:red, :blue, :green, :yellow, :white1, :white2, :white3, :white4, :white5]
+    leds = [
+      :red,
+      :blue,
+      :green,
+      :yellow,
+      :white1,
+      :white2,
+      :white3,
+      :white4,
+      :white5
+    ]
 
     state =
       Map.new(leds, fn color ->
@@ -78,7 +88,12 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     :ok = cancel_timer(state[color].blink_timer)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | state: 0, blink_timer: nil, status: :off})}
+     update_color(state, color, %{
+       state[color]
+       | state: 0,
+         blink_timer: nil,
+         status: :off
+     })}
   end
 
   def handle_call({color, :solid}, _from, state) do
@@ -86,28 +101,46 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     :ok = cancel_timer(state[color].blink_timer)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | state: 1, blink_timer: nil, status: :off})}
+     update_color(state, color, %{
+       state[color]
+       | state: 1,
+         blink_timer: nil,
+         status: :off
+     })}
   end
 
   def handle_call({color, :slow_blink}, _from, state) do
     timer = restart_timer(state[color].blink_timer, color, @slow_blink_speed)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | blink_timer: timer, status: :slow_blink})}
+     update_color(state, color, %{
+       state[color]
+       | blink_timer: timer,
+         status: :slow_blink
+     })}
   end
 
   def handle_call({color, :fast_blink}, _from, state) do
     timer = restart_timer(state[color].blink_timer, color, @fast_blink_speed)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | blink_timer: timer, status: :fast_blink})}
+     update_color(state, color, %{
+       state[color]
+       | blink_timer: timer,
+         status: :fast_blink
+     })}
   end
 
   def handle_call({color, :really_fast_blink}, _from, state) do
-    timer = restart_timer(state[color].blink_timer, color, @really_fast_blink_speed)
+    timer =
+      restart_timer(state[color].blink_timer, color, @really_fast_blink_speed)
 
     {:reply, :ok,
-     update_color(state, color, %{state[color] | blink_timer: timer, status: :really_fast_blink})}
+     update_color(state, color, %{
+       state[color]
+       | blink_timer: timer,
+         status: :really_fast_blink
+     })}
   end
 
   def handle_info({:blink_timer, color}, state) do
@@ -116,21 +149,45 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
         %{status: :slow_blink} ->
           new_led_state = invert(state[color].state)
           :ok = GPIO.write(state[color].ref, new_led_state)
-          timer = restart_timer(state[color].blink_timer, color, @slow_blink_speed)
-          n = %{state[color] | state: new_led_state, blink_timer: timer, status: :slow_blink}
+
+          timer =
+            restart_timer(state[color].blink_timer, color, @slow_blink_speed)
+
+          n = %{
+            state[color]
+            | state: new_led_state,
+              blink_timer: timer,
+              status: :slow_blink
+          }
+
           update_color(state, color, n)
 
         %{status: :fast_blink} ->
           new_led_state = invert(state[color].state)
           :ok = GPIO.write(state[color].ref, new_led_state)
-          timer = restart_timer(state[color].blink_timer, color, @fast_blink_speed)
-          n = %{state[color] | state: new_led_state, blink_timer: timer, status: :fast_blink}
+
+          timer =
+            restart_timer(state[color].blink_timer, color, @fast_blink_speed)
+
+          n = %{
+            state[color]
+            | state: new_led_state,
+              blink_timer: timer,
+              status: :fast_blink
+          }
+
           update_color(state, color, n)
 
         %{status: :really_fast_blink} ->
           new_led_state = invert(state[color].state)
           :ok = GPIO.write(state[color].ref, new_led_state)
-          timer = restart_timer(state[color].blink_timer, color, @really_fast_blink_speed)
+
+          timer =
+            restart_timer(
+              state[color].blink_timer,
+              color,
+              @really_fast_blink_speed
+            )
 
           n = %{
             state[color]

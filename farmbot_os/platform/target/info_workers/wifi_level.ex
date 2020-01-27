@@ -44,7 +44,8 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   end
 
   def handle_info(
-        {VintageNet, ["interface", _, "addresses"], _old, [%{address: address} | _], _meta},
+        {VintageNet, ["interface", _, "addresses"], _old,
+         [%{address: address} | _], _meta},
         state
       ) do
     FarmbotCore.BotState.set_private_ip(to_string(:inet.ntoa(address)))
@@ -52,7 +53,8 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   end
 
   def handle_info(
-        {VintageNet, ["interface", "wlan0", "wifi", "access_points"], _, new, _meta},
+        {VintageNet, ["interface", "wlan0", "wifi", "access_points"], _, new,
+         _meta},
         %{ssid: ssid} = state
       )
       when is_binary(ssid) do

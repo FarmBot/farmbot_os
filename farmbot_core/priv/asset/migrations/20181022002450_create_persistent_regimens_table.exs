@@ -8,13 +8,29 @@ defmodule FarmbotCore.Asset.Repo.Migrations.CreateRegimenInstancesTable do
       add(:epoch, :utc_datetime)
       add(:next, :utc_datetime)
       add(:next_sequence_id, :id)
-      add(:regimen_id, references("regimens", type: :binary_id, column: :local_id))
-      add(:farm_event_id, references("farm_events", type: :binary_id, column: :local_id))
+
+      add(
+        :regimen_id,
+        references("regimens", type: :binary_id, column: :local_id)
+      )
+
+      add(
+        :farm_event_id,
+        references("farm_events", type: :binary_id, column: :local_id)
+      )
+
       add(:monitor, :boolean, default: true)
       timestamps(inserted_at: :created_at, type: :utc_datetime)
     end
 
-    create(unique_index("persistent_regimens", [:local_id, :regimen_id, :farm_event_id]))
+    create(
+      unique_index("persistent_regimens", [
+        :local_id,
+        :regimen_id,
+        :farm_event_id
+      ])
+    )
+
     create(unique_index("persistent_regimens", :started_at))
     create(unique_index("persistent_regimens", :epoch))
   end

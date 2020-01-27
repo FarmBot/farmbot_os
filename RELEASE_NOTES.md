@@ -24,3 +24,7 @@ This release uses an improved Farmware API:
 * If you are a Farmware developer using Farmware Tools (`import farmware_tools`), the reinstalled Farmware should continue working as before. If you have authored a Farmware that does not use the package, you will need to replace any FarmBot device communication in your Farmware to use the `farmware_tools` package.
 
 * See the [Farmware developer documentation](https://developer.farm.bot/docs/farmware) for more information.
+
+# v9
+
+FarmBot OS v8+ uses an improved Farmware API. See the [Farmware developer documentation](https://developer.farm.bot/docs/farmware) for more information.

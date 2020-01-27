@@ -30,7 +30,10 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
     kvs =
       Enum.map(pairs, fn %{kind: :pair, args: %{label: key, value: value}} ->
         quote location: :keep do
-          FarmbotCeleryScript.SysCalls.set_user_env(unquote(key), unquote(value))
+          FarmbotCeleryScript.SysCalls.set_user_env(
+            unquote(key),
+            unquote(value)
+          )
         end
       end)
 

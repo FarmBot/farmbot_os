@@ -3,14 +3,13 @@ defmodule FarmbotOS.Configurator.RouterTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  alias FarmbotTest.Configurator.{MockDataLayer, MockNetworkLayer}
-  import Mox
+  use Mimic
   setup :verify_on_exit!
 
   @opts Router.init([])
 
   test "index after reset" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
 
     conn = conn(:get, "/")
@@ -21,7 +20,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "redirect to index" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
 
     conn = conn(:get, "/setup")
@@ -36,7 +35,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "celeryscript requests don't get listed as last reset reason" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "CeleryScript request." end)
 
     conn = conn(:get, "/")
@@ -45,7 +44,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "no reset reason" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
 
     conn = conn(:get, "/")
@@ -64,7 +63,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "network index" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:list_interfaces, fn ->
       [
         {"eth0", %{mac_address: "aa:bb:cc:dd:ee"}},
@@ -103,7 +102,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "config wireless SSID list" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
       [
         %{
@@ -141,7 +140,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert redirected_to(conn) == "/config_wireless"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "NONE"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "NONE"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -149,7 +151,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA-PSK"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA-PSK"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -157,7 +162,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA2-PSK"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA2-PSK"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -165,7 +173,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
 
     conn =
-      conn(:post, "/config_wireless_step_1", %{"ssid" => "Test Network", "security" => "WPA-EAP"})
+      conn(:post, "/config_wireless_step_1", %{
+        "ssid" => "Test Network",
+        "security" => "WPA-EAP"
+      })
       |> init_test_session(%{"ifname" => "wlan0"})
       |> Router.call(@opts)
 
@@ -227,10 +238,18 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "net_config_ssid") == "Test Network"
     assert get_session(conn, "net_config_security") == "WPA-PSK"
     assert get_session(conn, "net_config_psk") == "ABCDEF"
-    assert get_session(conn, "net_config_identity") == "NOT TECHNICALLY POSSIBLE"
-    assert get_session(conn, "net_config_password") == "NOT TECHNICALLY POSSIBLE"
+
+    assert get_session(conn, "net_config_identity") ==
+             "NOT TECHNICALLY POSSIBLE"
+
+    assert get_session(conn, "net_config_password") ==
+             "NOT TECHNICALLY POSSIBLE"
+
     assert get_session(conn, "net_config_domain") == "farmbot.org"
-    assert get_session(conn, "net_config_name_servers") == "192.168.1.1, 192.168.1.2"
+
+    assert get_session(conn, "net_config_name_servers") ==
+             "192.168.1.1, 192.168.1.2"
+
     assert get_session(conn, "net_config_ipv4_method") == "static"
     assert get_session(conn, "net_config_ipv4_address") == "192.168.1.100"
     assert get_session(conn, "net_config_ipv4_gateway") == "192.168.1.1"
@@ -240,7 +259,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "credentials index" do
-    MockDataLayer
+    FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_email, fn -> "test@test.org" end)
     |> expect(:load_password, fn -> "password123" end)
     |> expect(:load_server, fn -> "https://my.farm.bot" end)
@@ -268,7 +287,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "auth_config_server") == "https://my.farm.bot"
 
     conn =
-      conn(:post, "/configure_credentials", %{params | "server" => "whoops/i/made/a/type"})
+      conn(:post, "/configure_credentials", %{
+        params
+        | "server" => "whoops/i/made/a/type"
+      })
       |> Router.call(@opts)
 
     assert redirected_to(conn) == "/credentials"
@@ -297,7 +319,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "500" do
-    MockNetworkLayer
+    FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
       [
         %{

@@ -56,7 +56,10 @@ defmodule FarmbotOS.Lua do
           channels: [:toast]
         )
 
-        {:error, "failed to parse expression (line:#{line}): #{IO.iodata_to_binary(parse_error)}"}
+        {:error,
+         "failed to parse expression (line:#{line}): #{
+           IO.iodata_to_binary(parse_error)
+         }"}
 
       error ->
         error
@@ -88,8 +91,14 @@ defmodule FarmbotOS.Lua do
     |> set_table([:get_device], &DataManipulation.get_device/2)
     |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
     |> set_table([:get_fbos_config], &DataManipulation.get_fbos_config/2)
-    |> set_table([:update_firmware_config], &DataManipulation.update_firmware_config/2)
-    |> set_table([:get_firmware_config], &DataManipulation.get_firmware_config/2)
+    |> set_table(
+      [:update_firmware_config],
+      &DataManipulation.update_firmware_config/2
+    )
+    |> set_table(
+      [:get_firmware_config],
+      &DataManipulation.get_firmware_config/2
+    )
     |> set_table([:new_farmware_env], &DataManipulation.new_farmware_env/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
   end

@@ -58,7 +58,9 @@ defmodule FarmbotTelemetry do
   defmacro event(subsystem, measurement, value, meta) do
     Mix.raise("""
     Unknown args for telemetry event:
-    #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{inspect(meta)}
+    #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{
+      inspect(meta)
+    }
     """)
   end
 
@@ -92,15 +94,37 @@ defmodule FarmbotTelemetry do
 
   Dispatching is done by calling the `consume_telemetry/1` function.
   """
-  @spec bare_telemetry(uuid, kind(), subsystem(), measurement(), value(), DateTime.t(), meta()) ::
+  @spec bare_telemetry(
+          uuid,
+          kind(),
+          subsystem(),
+          measurement(),
+          value(),
+          DateTime.t(),
+          meta()
+        ) ::
           :ok
-  def bare_telemetry(uuid, kind, subsystem, measurement, value, captured_at, meta)
-      when is_binary(uuid) and is_atom(kind) and is_atom(subsystem) and is_atom(measurement) and
+  def bare_telemetry(
+        uuid,
+        kind,
+        subsystem,
+        measurement,
+        value,
+        captured_at,
+        meta
+      )
+      when is_binary(uuid) and is_atom(kind) and is_atom(subsystem) and
+             is_atom(measurement) and
              is_list(meta) do
     _ =
       :telemetry.execute(
         [:farmbot_telemetry, kind, subsystem],
-        %{measurement: measurement, value: value, captured_at: captured_at, uuid: uuid},
+        %{
+          measurement: measurement,
+          value: value,
+          captured_at: captured_at,
+          uuid: uuid
+        },
         Map.new(meta)
       )
 
@@ -142,7 +166,8 @@ defmodule FarmbotTelemetry do
 
   @typedoc "Function passed to `consume_telemetry/1`"
   @type consumer_fun() ::
-          ({uuid(), DateTime.t(), kind(), subsystem(), measurement(), value(), meta()} ->
+          ({uuid(), DateTime.t(), kind(), subsystem(), measurement(), value(),
+            meta()} ->
              :ok | any())
 
   @doc """

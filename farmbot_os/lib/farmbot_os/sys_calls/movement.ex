@@ -35,7 +35,7 @@ defmodule FarmbotOS.SysCalls.Movement do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("zero()", reason)
     end
   end
 
@@ -45,7 +45,7 @@ defmodule FarmbotOS.SysCalls.Movement do
         params
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("get_position", reason)
     end
   end
 
@@ -74,6 +74,7 @@ defmodule FarmbotOS.SysCalls.Movement do
 
   defp do_move_absolute(x, y, z, speed, retries, errors \\ [])
 
+  # This is the final attempt before movement is aborted.
   defp do_move_absolute(x, y, z, speed, 0, errors) do
     with {:ok, speed_x} <- param_read(:movement_max_spd_x),
          {:ok, speed_y} <- param_read(:movement_max_spd_y),
@@ -119,7 +120,11 @@ defmodule FarmbotOS.SysCalls.Movement do
         {:error, "emergency_lock"}
 
       {:error, reason} ->
-        FarmbotCore.Logger.error(1, "Movement failed. Retrying up to #{retries} more time(s)")
+        FarmbotCore.Logger.error(
+          1,
+          "Movement failed. Retrying up to #{retries} more time(s)"
+        )
+
         do_move_absolute(x, y, z, speed, retries - 1, [reason | errors])
     end
   end
@@ -132,7 +137,7 @@ defmodule FarmbotOS.SysCalls.Movement do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("calibrate()", reason)
     end
   end
 
@@ -144,7 +149,7 @@ defmodule FarmbotOS.SysCalls.Movement do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("find_home", reason)
     end
   end
 
@@ -157,7 +162,7 @@ defmodule FarmbotOS.SysCalls.Movement do
         :ok
 
       {:error, reason} ->
-        {:error, "Firmware error: #{inspect(reason)}"}
+        FarmbotOS.SysCalls.give_firmware_reason("home", reason)
     end
   end
 

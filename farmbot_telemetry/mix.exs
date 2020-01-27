@@ -1,7 +1,12 @@
 defmodule FarmbotTelemetry.MixProject do
   use Mix.Project
-  @version Path.join([__DIR__, "..", "VERSION"]) |> File.read!() |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"]) |> File.read!() |> String.trim()
+
+  @version Path.join([__DIR__, "..", "VERSION"])
+           |> File.read!()
+           |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   def project do
     [
@@ -44,7 +49,8 @@ defmodule FarmbotTelemetry.MixProject do
       {:telemetry, "~> 0.4.1"},
       {:uuid, "~> 1.1"},
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3",
+       only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
     ]
   end

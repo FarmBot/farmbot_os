@@ -13,10 +13,15 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R04", []), do: {:report_busy, []}
 
   def do_decode("R05", xyz), do: {:report_axis_state, decode_axis_state(xyz)}
-  def do_decode("R06", xyz), do: {:report_calibration_state, decode_calibration_state(xyz)}
+
+  def do_decode("R06", xyz),
+    do: {:report_calibration_state, decode_calibration_state(xyz)}
 
   def do_decode("R07", []), do: {:report_retry, []}
-  def do_decode("R08", args), do: {:report_echo, decode_echo(Enum.join(args, " "))}
+
+  def do_decode("R08", args),
+    do: {:report_echo, decode_echo(Enum.join(args, " "))}
+
   def do_decode("R09", []), do: {:report_invalid, []}
 
   def do_decode("R11", []), do: {:report_home_complete, [:x]}
@@ -30,14 +35,19 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R20", []), do: {:report_parameters_complete, []}
 
   def do_decode("R21", pv), do: {:report_parameter_value, decode_pv(pv)}
-  def do_decode("R23", pv), do: {:report_calibration_parameter_value, decode_pv(pv)}
+
+  def do_decode("R23", pv),
+    do: {:report_calibration_parameter_value, decode_pv(pv)}
+
   def do_decode("R41", pv), do: {:report_pin_value, decode_ints(pv)}
 
   def do_decode("R71", []), do: {:report_axis_timeout, [:x]}
   def do_decode("R72", []), do: {:report_axis_timeout, [:y]}
   def do_decode("R73", []), do: {:report_axis_timeout, [:z]}
 
-  def do_decode("R81", xxyyzz), do: {:report_end_stops, decode_end_stops(xxyyzz)}
+  def do_decode("R81", xxyyzz),
+    do: {:report_end_stops, decode_end_stops(xxyyzz)}
+
   def do_decode("R82", xyzs), do: {:report_position, decode_floats(xyzs)}
 
   def do_decode("R83", [version]), do: {:report_software_version, [version]}
@@ -48,7 +58,9 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R87", []), do: {:report_emergency_lock, []}
   def do_decode("R88", []), do: {:report_no_config, []}
   def do_decode("R89", xyz), do: {:report_load, decode_floats(xyz)}
-  def do_decode("R99", debug), do: {:report_debug_message, [Enum.join(debug, " ")]}
+
+  def do_decode("R99", debug),
+    do: {:report_debug_message, [Enum.join(debug, " ")]}
 
   def do_decode("G00", xyzs), do: {:command_movement, decode_floats(xyzs)}
   def do_decode("G28", []), do: {:comand_movement_home, [:x, :y, :z]}
@@ -62,7 +74,10 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("F16", []), do: {:command_movement_calibrate, [:z]}
 
   def do_decode("F20", []), do: {:parameter_read_all, []}
-  def do_decode("F21", [param_id]), do: {:parameter_read, [Param.decode(param_id)]}
+
+  def do_decode("F21", [param_id]),
+    do: {:parameter_read, [Param.decode(param_id)]}
+
   def do_decode("F22", pv), do: {:parameter_write, decode_pv(pv)}
   def do_decode("F23", pv), do: {:calibration_parameter_write, decode_pv(pv)}
 
@@ -152,7 +167,10 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   defp decode_end_stops(list, acc \\ [])
 
   defp decode_end_stops(
-         [<<arg::binary-1, "A", val0::binary>>, <<arg::binary-1, "B", val1::binary>> | rest],
+         [
+           <<arg::binary-1, "A", val0::binary>>,
+           <<arg::binary-1, "B", val1::binary>> | rest
+         ],
          acc
        ) do
     dc = String.downcase(arg)

@@ -38,18 +38,25 @@ defmodule FarmbotOS.Configurator.SchedulerSocket do
   def websocket_info({FarmbotCeleryScript, {:calendar, calendar}}, state) do
     data =
       Enum.map(calendar, fn
-        %Scheduler.Dispatch{data: %FarmEvent{} = farm_event, scheduled_at: datetime} ->
+        %Scheduler.Dispatch{
+          data: %FarmEvent{} = farm_event,
+          scheduled_at: datetime
+        } ->
           json =
             Jason.encode!(%{
               id: farm_event.local_id,
               type: "FarmEvent",
-              data: Sequence.render(Asset.get_sequence(farm_event.executable_id)),
+              data:
+                Sequence.render(Asset.get_sequence(farm_event.executable_id)),
               at: datetime
             })
 
           {:text, json}
 
-        %Scheduler.Dispatch{data: %Sequence{} = sequence, scheduled_at: datetime} ->
+        %Scheduler.Dispatch{
+          data: %Sequence{} = sequence,
+          scheduled_at: datetime
+        } ->
           json =
             Jason.encode!(%{
               id: sequence.local_id,

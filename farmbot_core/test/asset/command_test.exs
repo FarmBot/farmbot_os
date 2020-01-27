@@ -31,8 +31,16 @@ defmodule FarmbotCore.Asset.CommandTest do
   test "update farm_event" do
     id = id()
     regimen_id = id()
-    :ok = Command.update("FarmEvent", id, %{id: id, executable_type: "Sequence", monitor: false})
-    :ok = Command.update("Regimen", regimen_id, %{id: regimen_id, monitor: false})
+
+    :ok =
+      Command.update("FarmEvent", id, %{
+        id: id,
+        executable_type: "Sequence",
+        monitor: false
+      })
+
+    :ok =
+      Command.update("Regimen", regimen_id, %{id: regimen_id, monitor: false})
 
     :ok =
       Command.update("FarmEvent", id, %{
@@ -49,7 +57,12 @@ defmodule FarmbotCore.Asset.CommandTest do
     id = id()
 
     :ok =
-      Command.update("FarmEvent", id, %{id: id, executable_id: id(), name: "abc", monitor: false})
+      Command.update("FarmEvent", id, %{
+        id: id,
+        executable_id: id(),
+        name: "abc",
+        monitor: false
+      })
 
     :ok = Command.update("FarmEvent", id, nil)
     refute Asset.get_farm_event(id)

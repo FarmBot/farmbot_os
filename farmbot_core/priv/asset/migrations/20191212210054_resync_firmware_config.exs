@@ -9,6 +9,8 @@ defmodule FarmbotCore.Asset.Repo.Migrations.ResyncFirmwareConfig do
     end
 
     # will resync the firmware params
-    execute("UPDATE firmware_configs SET updated_at = \"1970-11-07 16:52:31.618000\"")
+    execute(
+      "UPDATE firmware_configs SET updated_at = \"1970-11-07 16:52:31.618000\""
+    )
   end
 end

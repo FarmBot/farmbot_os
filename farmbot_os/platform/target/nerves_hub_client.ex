@@ -94,10 +94,12 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def uuid, do: Nerves.Runtime.KV.get_active("nerves_fw_uuid")
 
   @doc "Loads the cert from storage"
-  def load_cert, do: Nerves.Runtime.KV.get_active("nerves_hub_cert") |> filter_parens()
+  def load_cert,
+    do: Nerves.Runtime.KV.get_active("nerves_hub_cert") |> filter_parens()
 
   @doc "Loads the key from storage"
-  def load_key, do: Nerves.Runtime.KV.get_active("nerves_hub_key") |> filter_parens()
+  def load_key,
+    do: Nerves.Runtime.KV.get_active("nerves_hub_key") |> filter_parens()
 
   @doc false
   def write_serial(serial_number) do
@@ -143,8 +145,14 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     try do
       # NervesHub replaces it's own env on startup. Reset it.
       # Stop Nerves Hub if it is running.
-      _ = Supervisor.terminate_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
-      _ = Supervisor.delete_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
+      _ =
+        Supervisor.terminate_child(
+          FarmbotOS.Init.Supervisor,
+          NervesHub.Supervisor
+        )
+
+      _ =
+        Supervisor.delete_child(FarmbotOS.Init.Supervisor, NervesHub.Supervisor)
 
       cert = load_cert()
       key = load_key()
@@ -162,8 +170,15 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       end
     catch
       kind, err ->
-        IO.warn("NervesHub error: #{inspect(kind)} #{inspect(err)}", __STACKTRACE__)
-        FarmbotCore.Logger.error(1, "OTA service error: #{kind} #{inspect(err)}")
+        IO.warn(
+          "NervesHub error: #{inspect(kind)} #{inspect(err)}",
+          __STACKTRACE__
+        )
+
+        FarmbotCore.Logger.error(
+          1,
+          "OTA service error: #{kind} #{inspect(err)}"
+        )
     end
 
     # Start the connection again.
@@ -200,7 +215,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   @impl GenServer
   def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from NervesHub AMQP channel: #{inspect(reason)}")
+    FarmbotCore.Logger.error(
+      1,
+      "Disconnected from NervesHub AMQP channel: #{inspect(reason)}"
+    )
+
     # If a channel was still open, close it.
     if state.chan, do: AMQP.Channel.close(state.chan)
   end
@@ -215,7 +234,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
          {:ok, chan} <- Channel.open(conn),
          :ok <- Basic.qos(chan, global: true),
          {:ok, _} <-
-           Queue.declare(chan, "#{jwt.bot}_nerves_hub", auto_delete: false, durable: true),
+           Queue.declare(chan, "#{jwt.bot}_nerves_hub",
+             auto_delete: false,
+             durable: true
+           ),
          :ok <-
            Queue.bind(chan, "#{jwt.bot}_nerves_hub", @exchange,
              routing_key: "bot.#{jwt.bot}.nerves_hub"
@@ -226,7 +248,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     else
       # happens when no token is configured.
       {nil, nil} ->
-        FarmbotCore.Logger.debug(3, "No credentials yet. Can't connect to OTA Server.")
+        FarmbotCore.Logger.debug(
+          3,
+          "No credentials yet. Can't connect to OTA Server."
+        )
+
         Process.send_after(self(), :connect_amqp, 15_000)
         {:noreply, %{state | conn: nil, chan: nil, jwt: nil}}
 
@@ -242,7 +268,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   def handle_info(:after_connect_amqp, %{key: nil, cert: nil} = state) do
-    FarmbotCore.Logger.debug(3, "Connected to NervesHub AMQP channel. Fetching certs.")
+    FarmbotCore.Logger.debug(
+      3,
+      "Connected to NervesHub AMQP channel. Fetching certs."
+    )
+
     old_device_cert = Asset.get_device_cert(serial_number: serial_number())
 
     tags = detect_deployment_tags()
@@ -263,24 +293,41 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         # DO NOT DO THIS. The api will do it behind the scenes
         # Asset.update_device!(%{update_channel: detect_update_channel()})
         FarmbotCore.Logger.debug(3, "DeviceCert created")
-        FarmbotCore.Logger.debug(3, "Waiting for cert and key data from AMQP from farmbot api...")
+
+        FarmbotCore.Logger.debug(
+          3,
+          "Waiting for cert and key data from AMQP from farmbot api..."
+        )
+
         {:noreply, state}
 
       {:error, reason} ->
-        FarmbotCore.Logger.error(1, "Failed to create device cert: #{inspect(reason)}")
+        FarmbotCore.Logger.error(
+          1,
+          "Failed to create device cert: #{inspect(reason)}"
+        )
+
         Process.send_after(self(), :after_connect_amqp, 5000)
         {:noreply, state}
     end
   end
 
   def handle_info(:after_connect_amqp, %{key: _key, cert: _cert} = state) do
-    FarmbotCore.Logger.debug(3, "Connected to NervesHub AMQP channel. Certs already loaded")
+    FarmbotCore.Logger.debug(
+      3,
+      "Connected to NervesHub AMQP channel. Certs already loaded"
+    )
+
     send(self(), :connect_nerves_hub)
     {:noreply, state}
   end
 
   def handle_info(:connect_nerves_hub, %{key: nil, cert: nil} = state) do
-    FarmbotCore.Logger.debug(3, "Can't connect to OTA Service. Certs not loaded")
+    FarmbotCore.Logger.debug(
+      3,
+      "Can't connect to OTA Service. Certs not loaded"
+    )
+
     send(self(), :connect_amqp)
     {:noreply, state}
   end
@@ -322,7 +369,8 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     device = state.jwt.bot
     ["bot", ^device, "nerves_hub"] = String.split(key, ".")
 
-    with {:ok, %{"cert" => base64_cert, "key" => base64_key}} <- JSON.decode(payload),
+    with {:ok, %{"cert" => base64_cert, "key" => base64_key}} <-
+           JSON.decode(payload),
          {:ok, cert} <- Base.decode64(base64_cert),
          {:ok, key} <- Base.decode64(base64_key),
          :ok <- write_cert(cert),
@@ -331,7 +379,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       {:noreply, %{state | cert: cert, key: key}}
     else
       {:error, reason} ->
-        FarmbotCore.Logger.error(1, "OTA Service failed to configure. #{inspect(reason)}")
+        FarmbotCore.Logger.error(
+          1,
+          "OTA Service failed to configure. #{inspect(reason)}"
+        )
+
         {:stop, reason, state}
 
       :error ->
@@ -340,7 +392,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     end
   end
 
-  def handle_info(:checkup, %{is_applying_update: false, probably_connected: true} = state) do
+  def handle_info(
+        :checkup,
+        %{is_applying_update: false, probably_connected: true} = state
+      ) do
     if should_auto_apply_update?() && update_available?() do
       FarmbotCore.Logger.busy(1, "Applying OTA update")
       spawn_link(fn -> NervesHub.update() end)
@@ -364,7 +419,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   @impl GenServer
-  def handle_cast({:handle_nerves_hub_error, error}, %{is_applying_update: true} = state) do
+  def handle_cast(
+        {:handle_nerves_hub_error, error},
+        %{is_applying_update: true} = state
+      ) do
     FarmbotCore.Logger.error(1, "Error applying OTA: #{inspect(error)}")
     {:noreply, state}
   end
@@ -374,7 +432,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     {:noreply, state}
   end
 
-  def handle_cast({:handle_nerves_hub_fwup_message, {:progress, percent}}, state) do
+  def handle_cast(
+        {:handle_nerves_hub_fwup_message, {:progress, percent}},
+        state
+      ) do
     _ = set_ota_progress(percent)
     {:noreply, state}
   end
@@ -397,7 +458,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   @impl GenServer
-  def handle_call({:handle_nerves_hub_update_available, %{"firmware_url" => url}}, _from, state) do
+  def handle_call(
+        {:handle_nerves_hub_update_available, %{"firmware_url" => url}},
+        _from,
+        state
+      ) do
     case should_auto_apply_update?() do
       true ->
         FarmbotCore.Logger.busy(1, "Applying OTA update")
@@ -462,9 +527,9 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         %{hour: now_hour} ->
           FarmbotCore.Logger.debug(
             3,
-            "current hour: #{now_hour} (utc=#{now.hour}) != ota_hour: #{ota_hour}. auto_update=#{
-              auto_update
-            }"
+            "current hour: #{now_hour} (utc=#{now.hour}) != ota_hour: #{
+              ota_hour
+            }. auto_update=#{auto_update}"
           )
 
           false
@@ -538,7 +603,13 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   end
 
   defp open_connection(email, token, jwt) do
-    case ConnectionWorker.open_connection(token, email, jwt.bot, jwt.mqtt, jwt.vhost) do
+    case ConnectionWorker.open_connection(
+           token,
+           email,
+           jwt.bot,
+           jwt.mqtt,
+           jwt.vhost
+         ) do
       {:ok, conn} ->
         Process.link(conn.pid)
         Process.monitor(conn.pid)
@@ -550,7 +621,11 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         err
 
       err ->
-        FarmbotCore.Logger.error(1, "Error opening AMQP connection for OTA certs #{inspect(err)}")
+        FarmbotCore.Logger.error(
+          1,
+          "Error opening AMQP connection for OTA certs #{inspect(err)}"
+        )
+
         err
     end
   end

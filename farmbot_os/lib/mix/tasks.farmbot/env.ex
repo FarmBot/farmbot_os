@@ -88,6 +88,7 @@ defmodule Mix.Tasks.Farmbot.Env do
 
   @doc false
   def slack_token do
-    System.get_env("SLACK_TOKEN") || Mix.raise("No $SLACK_TOKEN environment variable.")
+    System.get_env("SLACK_TOKEN") ||
+      Mix.raise("No $SLACK_TOKEN environment variable.")
   end
 end

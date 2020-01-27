@@ -1,9 +1,16 @@
 defmodule FarmbotCore.DeviceWorkerTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
+  use Mimic
+
   alias Farmbot.TestSupport.AssetFixtures
+  alias FarmbotCeleryScript.SysCalls.Stubs
   alias FarmbotCore.Asset.Device
   alias FarmbotCore.AssetWorker
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
+
+  @im_so_sorry 300
+
+  setup :set_mimic_global
+  setup :verify_on_exit!
 
   def fresh_device(needs_reset \\ true) do
     params = %{needs_reset: needs_reset}
@@ -11,40 +18,36 @@ defmodule FarmbotCore.DeviceWorkerTest do
     dev
   end
 
-  describe "devices" do
-    test "triggering of factory reset during init" do
-      {:ok, _} = TestSysCalls.checkout()
-      test_pid = self()
-      dev = fresh_device()
+  test "triggering of factory reset during init" do
+    expect(Stubs, :factory_reset, fn _ ->
+      :ok
+    end)
 
-      :ok =
-        TestSysCalls.handle(TestSysCalls, fn
-          kind, args ->
-            send(test_pid, {kind, args})
-            :ok
-        end)
-
-      {:ok, _pid} = AssetWorker.start_link(dev, [])
-      assert_receive {:factory_reset, ["farmbot_os"]}
-    end
+    dev = fresh_device()
+    {:ok, _pid} = AssetWorker.start_link(dev, [])
+    Process.sleep(@im_so_sorry)
   end
 
-  test "triggering of factory reset during update" do
-    {:ok, _} = TestSysCalls.checkout()
-    test_pid = self()
+  test "DO trigger factory reset during update" do
     dev = fresh_device(false)
-
-    :ok =
-      TestSysCalls.handle(TestSysCalls, fn
-        kind, args ->
-          send(test_pid, {kind, args})
-          :ok
-      end)
-
     {:ok, pid} = AssetWorker.start_link(dev, [])
-    refute_receive {:factory_reset, ["farmbot_os"]}
+
+    expect(Stubs, :factory_reset, 1, fn _pkg ->
+      :ok
+    end)
 
     GenServer.cast(pid, {:new_data, %{dev | needs_reset: true}})
-    assert_receive {:factory_reset, ["farmbot_os"]}
+    Process.sleep(@im_so_sorry)
+  end
+
+  test "DO NOT trigger factory reset during update" do
+    dev = fresh_device(false)
+    {:ok, _} = AssetWorker.start_link(dev, [])
+
+    stub(Stubs, :factory_reset, fn _pkg ->
+      nooo = "SHOULD NOT HAPPEN!"
+      flunk(nooo)
+      raise nooo
+    end)
   end
 end

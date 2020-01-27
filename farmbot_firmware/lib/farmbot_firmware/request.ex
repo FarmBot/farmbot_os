@@ -9,7 +9,8 @@ defmodule FarmbotFirmware.Request do
 
   @spec request(GenServer.server(), GCODE.t()) ::
           {:ok, GCODE.t()}
-          | {:error, :invalid_command | :firmware_error | FarmbotFirmware.status()}
+          | {:error,
+             :invalid_command | :firmware_error | FarmbotFirmware.status()}
   def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do

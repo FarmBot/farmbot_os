@@ -4,7 +4,15 @@ defmodule FarmbotCeleryScript.Compiler.If do
 
   # Compiles an if statement.
   def unquote(:_if)(
-        %{args: %{_then: then_ast, _else: else_ast, lhs: lhs_ast, op: op, rhs: rhs}},
+        %{
+          args: %{
+            _then: then_ast,
+            _else: else_ast,
+            lhs: lhs_ast,
+            op: op,
+            rhs: rhs
+          }
+        },
         env
       ) do
     rhs = Compiler.compile_ast(rhs, env)
@@ -30,7 +38,10 @@ defmodule FarmbotCeleryScript.Compiler.If do
 
         "pin" <> pin ->
           quote [location: :keep],
-            do: FarmbotCeleryScript.SysCalls.read_cached_pin(unquote(String.to_integer(pin)))
+            do:
+              FarmbotCeleryScript.SysCalls.read_cached_pin(
+                unquote(String.to_integer(pin))
+              )
 
         # Named pin has two intents here
         # in this case we want to read the named pin.

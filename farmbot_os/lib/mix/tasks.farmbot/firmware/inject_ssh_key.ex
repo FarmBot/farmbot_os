@@ -21,7 +21,11 @@ defmodule Mix.Tasks.Farmbot.InjectSshKey do
         [key]
       ])
 
-    {:ok, _} = :rpc.call(farmbot_node, Application, :ensure_all_started, [:nerves_firmware_ssh])
+    {:ok, _} =
+      :rpc.call(farmbot_node, Application, :ensure_all_started, [
+        :nerves_firmware_ssh
+      ])
+
     :ok = :rpc.call(farmbot_node, GenServer, :stop, [Farmbot.Target.SSHConsole])
   end
 end

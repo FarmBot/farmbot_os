@@ -1,12 +1,11 @@
 defmodule FarmbotCeleryScriptTest do
   use ExUnit.Case, async: true
-  alias FarmbotCeleryScript.AST
-  alias Farmbot.TestSupport.CeleryScript.TestSysCalls
+  use Mimic
 
-  setup do
-    {:ok, _shim} = TestSysCalls.checkout()
-    :ok
-  end
+  alias FarmbotCeleryScript.AST
+  alias FarmbotCeleryScript.SysCalls.Stubs
+
+  setup :verify_on_exit!
 
   test "uses default values when no parameter is found" do
     sequence_ast =
@@ -24,7 +23,7 @@ defmodule FarmbotCeleryScriptTest do
                   label: "foo",
                   default_value: %{
                     kind: :coordinate,
-                    args: %{x: 129, y: 129, z: 129}
+                    args: %{x: 12, y: 11, z: 10}
                   }
                 }
               }
@@ -52,19 +51,16 @@ defmodule FarmbotCeleryScriptTest do
 
     me = self()
 
-    :ok =
-      TestSysCalls.handle(TestSysCalls, fn
-        :move_absolute, args ->
-          send(me, {:move_absolute, args})
-          :ok
+    expect(Stubs, :coordinate, 2, fn x, y, z ->
+      %{x: x, y: y, z: z}
+    end)
 
-        :coordinate, [x, y, z] ->
-          %{x: x, y: y, z: z}
-      end)
+    expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
+      :ok
+    end)
 
-    _ = FarmbotCeleryScript.execute(sequence_ast, me)
-    assert_receive {:step_complete, ^me, :ok}
-    assert_receive {:move_absolute, [129, 129, 129, 921]}
+    result = FarmbotCeleryScript.execute(sequence_ast, me)
+    assert :ok == result
   end
 
   test "syscall errors" do
@@ -78,13 +74,12 @@ defmodule FarmbotCeleryScriptTest do
       }
       |> AST.decode()
 
-    :ok =
-      TestSysCalls.handle(TestSysCalls, fn
-        :read_pin, _ -> {:error, "failed to read pin!"}
-      end)
+    expect(Stubs, :read_pin, 1, fn _, _ -> {:error, "failed to read pin!"} end)
+    result = FarmbotCeleryScript.execute(execute_ast, execute_ast)
+    assert {:error, "failed to read pin!"} = result
 
-    assert {:error, "failed to read pin!"} = FarmbotCeleryScript.execute(execute_ast, execute_ast)
-    assert_receive {:step_complete, ^execute_ast, {:error, "failed to read pin!"}}
+    assert_receive {:step_complete, ^execute_ast,
+                    {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
@@ -98,12 +93,11 @@ defmodule FarmbotCeleryScriptTest do
       }
       |> AST.decode()
 
-    :ok =
-      TestSysCalls.handle(TestSysCalls, fn
-        :read_pin, _ -> raise("big oops")
-      end)
+    expect(Stubs, :read_pin, fn _, _ -> raise("big oops") end)
 
-    assert {:error, "big oops"} == FarmbotCeleryScript.execute(execute_ast, execute_ast)
+    assert {:error, "big oops"} ==
+             FarmbotCeleryScript.execute(execute_ast, execute_ast)
+
     assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
   end
 end

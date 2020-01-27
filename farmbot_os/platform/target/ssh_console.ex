@@ -55,7 +55,10 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     end
   end
 
-  def handle_cast({:add_key, %PublicKey{public_key: authorized_key}}, %{ssh: ssh} = state) do
+  def handle_cast(
+        {:add_key, %PublicKey{public_key: authorized_key}},
+        %{ssh: ssh} = state
+      ) do
     _ = stop_ssh(ssh)
     decoded_authorized_key = do_decode(authorized_key)
 
@@ -65,7 +68,9 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
          %{
            state
            | ssh: ssh,
-             public_keys: [List.first(decoded_authorized_key) | state.public_keys]
+             public_keys: [
+               List.first(decoded_authorized_key) | state.public_keys
+             ]
          }}
 
       error ->
@@ -78,11 +83,13 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     ssh && :ssh.stop_daemon(ssh)
   end
 
-  defp start_ssh(port, decoded_authorized_keys) when is_list(decoded_authorized_keys) do
+  defp start_ssh(port, decoded_authorized_keys)
+       when is_list(decoded_authorized_keys) do
     # Reuse keys from `nerves_firmware_ssh` so that the user only needs one
     # config.exs entry.
     nerves_keys =
-      Application.get_env(:nerves_firmware_ssh, :authorized_keys, []) |> Enum.join("\n")
+      Application.get_env(:nerves_firmware_ssh, :authorized_keys, [])
+      |> Enum.join("\n")
 
     decoded_nerves_keys = do_decode(nerves_keys)
 

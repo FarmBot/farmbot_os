@@ -204,7 +204,7 @@ jobs:
           paths:
             - farmbot_celery_script/_build/test
             - farmbot_celery_script/deps
-      - save_cache: 
+      - save_cache:
           key: v14-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_celery_script/cover
@@ -238,7 +238,7 @@ jobs:
           paths:
             - farmbot_firmware/_build/test
             - farmbot_firmware/deps
-      - save_cache: 
+      - save_cache:
           key: v14-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_firmware/cover
@@ -283,7 +283,7 @@ jobs:
             - farmbot_core/_build/test
             - farmbot_core/deps
             - farmbot_core/arduino
-      - save_cache: 
+      - save_cache:
           key: v14-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_core/cover
@@ -330,7 +330,7 @@ jobs:
           paths:
             - farmbot_ext/_build/test
             - farmbot_ext/deps
-      - save_cache: 
+      - save_cache:
           key: v14-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_ext/cover
@@ -348,7 +348,7 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - restore_cache:
-          keys: 
+          keys:
             - v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
@@ -365,13 +365,13 @@ jobs:
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
-      - save_cache: 
+      - save_cache:
           key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - farmbot_os/cover
       - store_artifacts:
           path: farmbot_os/cover
-    
+
   report_coverage:
     <<: *defaults
     environment:
@@ -388,23 +388,23 @@ jobs:
       - restore_cache:
           keys:
             - v14-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache: 
-          keys: 
+      - restore_cache:
+          keys:
             - v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Check documentation formatting
