@@ -1,10 +1,10 @@
 defmodule FarmbotOS.SysCalls.Farmware do
   @moduledoc false
 
-  require Logger
-  # alias FarmbotCeleryScript.AST
+  require FarmbotCore.Logger
   alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}
   alias FarmbotExt.API.ImageUploader
+  @farmware_timeout 30_000
 
   def update_farmware(farmware_name) do
     with {:ok, installation} <- lookup_installation(farmware_name) do
@@ -48,16 +48,20 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
   def loop(farmware_runtime) do
     receive do
-      {:error, :farmware_exit} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, inspect(reason)}
+      {:error, :farmware_exit} -> :ok
+      {:error, reason} -> {:error, inspect(reason)}
     after
-      30_000 ->
-        Logger.debug("Force stopping farmware: #{inspect(farmware_runtime)}")
-        FarmwareRuntime.stop(farmware_runtime)
-        :ok
+      @farmware_timeout -> farmware_timeout(farmware_runtime)
     end
+  end
+
+  def farmware_timeout(farmware_runtime) do
+    time = @farmware_timeout / 1_000
+    runtime = inspect(farmware_runtime)
+    msg = "Farmware did not exit after #{time} seconds. Terminating #{runtime}"
+
+    FarmbotCore.Logger.info(2, msg)
+    FarmwareRuntime.stop(farmware_runtime)
+    :ok
   end
 end
