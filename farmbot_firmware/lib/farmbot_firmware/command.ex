@@ -73,9 +73,7 @@ defmodule FarmbotFirmware.Command do
         wait_for_command_result(tag, code, retries, err)
     after
       30_000 ->
-        raise(
-          "Firmware command: #{GCODE.encode(code)} failed to respond within 30 seconds"
-        )
+        raise("Firmware command: #{GCODE.encode(code)} failed to respond within 30 seconds")
     end
   end
 
