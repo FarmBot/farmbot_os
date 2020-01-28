@@ -9,33 +9,38 @@ defmodule FarmbotFirmware.Request do
 
   @spec request(GenServer.server(), GCODE.t()) ::
           {:ok, GCODE.t()}
-          | {:error,
-             :invalid_command | :firmware_error | FarmbotFirmware.status()}
+          | {:error, :invalid_command | :firmware_error | FarmbotFirmware.status()}
+  @whitelist [
+    :parameter_read,
+    :status_read,
+    :pin_read,
+    :end_stops_read,
+    :position_read,
+    :software_version_read
+  ]
   def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
-    if kind not in [
-         :parameter_read,
-         :status_read,
-         :pin_read,
-         :end_stops_read,
-         :position_read,
-         :software_version_read
-       ] do
+    if kind not in @whitelist do
       raise ArgumentError, "#{kind} is not a valid request."
     end
 
     case GenServer.call(firmware_server, code, :infinity) do
-      {:ok, tag} ->
-        wait_for_request_result(tag, code)
-
-      {:error, status} ->
-        {:error, status}
+      {:ok, tag} -> wait_for_request_result(tag, code)
+      {:error, status} -> {:error, status}
     end
   end
 
   def request(firmware_server, {_, _} = code) do
     request(firmware_server, {to_string(:rand.uniform(100)), code})
+  end
+
+  def request_timeout(tag, code, result \\ nil) do
+    if result do
+      {:ok, {tag, result}}
+    else
+      {:error, "timeout waiting for request to complete: #{inspect(code)}"}
+    end
   end
 
   # This is a bit weird but let me explain:
@@ -44,10 +49,12 @@ defmodule FarmbotFirmware.Request do
   #   * report_invalid
   #   * report_emergency_lock
   # it needs to return an error.
+  #
   # If this function `receive`s
   #   * report_success
   # when no valid data has been collected from `wait_for_request_result_process`
   # it needs to return an error.
+  #
   # If this function `receive`s
   #   * report_success
   # when valid data has been collected from `wait_for_request_result_process`
@@ -81,10 +88,7 @@ defmodule FarmbotFirmware.Request do
       {tag, report} ->
         wait_for_request_result_process(report, tag, code, result)
     after
-      10_000 ->
-        if result,
-          do: {:ok, {tag, result}},
-          else: {:error, "timeout waiting for request to complete"}
+      10_000 -> request_timeout(tag, code, result)
     end
   end
 

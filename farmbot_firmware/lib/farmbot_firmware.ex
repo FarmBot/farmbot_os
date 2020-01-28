@@ -257,8 +257,7 @@ defmodule FarmbotFirmware do
           nil
 
         tape_path ->
-          {:ok, vcr_fd} =
-            File.open(tape_path, [:binary, :append, :exclusive, :write])
+          {:ok, vcr_fd} = File.open(tape_path, [:binary, :append, :exclusive, :write])
 
           vcr_fd
       end
@@ -295,23 +294,15 @@ defmodule FarmbotFirmware do
   end
 
   def handle_info(:timeout, %{status: :transport_boot, reset_pid: nil} = state) do
-    case GenServer.start_link(state.reset, state.transport_args,
-           name: state.reset
-         ) do
+    case GenServer.start_link(state.reset, state.transport_args, name: state.reset) do
       {:ok, pid} ->
-        Logger.debug(
-          "Firmware reset #{state.reset} started. #{
-            inspect(state.transport_args)
-          }"
-        )
+        Logger.debug("Firmware reset #{state.reset} started. #{inspect(state.transport_args)}")
 
         {:noreply, %{state | reset_pid: pid}}
 
       # TODO(Rick): I have no idea what's going on here.
       {:error, {:already_started, pid}} ->
-        Logger.debug(
-          "Firmware reset complete. #{inspect(state.transport_args)}"
-        )
+        Logger.debug("Firmware reset complete. #{inspect(state.transport_args)}")
 
         {:noreply, %{state | reset_pid: pid}}
 
@@ -332,9 +323,7 @@ defmodule FarmbotFirmware do
         ref = Process.monitor(pid)
 
         Logger.debug(
-          "Firmware Transport #{state.transport} started. #{
-            inspect(state.transport_args)
-          }"
+          "Firmware Transport #{state.transport} started. #{inspect(state.transport_args)}"
         )
 
         state = goto(%{state | transport_pid: pid, transport_ref: ref}, :boot)
@@ -446,7 +435,7 @@ defmodule FarmbotFirmware do
     true = Process.demonitor(state.transport_ref)
     :ok = GenServer.stop(state.transport_pid, :normal)
 
-    state =
+    next_state =
       goto(
         %{
           state
@@ -459,7 +448,7 @@ defmodule FarmbotFirmware do
         :transport_boot
       )
 
-    {:reply, :ok, state}
+    {:reply, :ok, next_state}
   end
 
   def handle_call(:close_transport, _, %{status: s} = state) do
@@ -523,8 +512,7 @@ defmodule FarmbotFirmware do
 
     send(self(), :timeout)
 
-    {:reply, {:ok, tag},
-     %{state | command_queue: [{pid, code}], configuration_queue: []}}
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # EmergencyUnLock should be ran immediately
@@ -535,8 +523,7 @@ defmodule FarmbotFirmware do
       ) do
     send(self(), :timeout)
 
-    {:reply, {:ok, tag},
-     %{state | command_queue: [{pid, code}], configuration_queue: []}}
+    {:reply, {:ok, tag}, %{state | command_queue: [{pid, code}], configuration_queue: []}}
   end
 
   # If not in an acceptable state, return an error immediately.
@@ -650,8 +637,7 @@ defmodule FarmbotFirmware do
 
     send(self(), :timeout)
 
-    {:noreply,
-     goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
+    {:noreply, goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
   end
 
   def handle_report({:report_debug_message, msg}, state) do
@@ -1014,8 +1000,7 @@ defmodule FarmbotFirmware do
         "nil"
       end
 
-    state_data =
-      "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
+    state_data = "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
 
     IO.write(
       state.vcr_fd,
