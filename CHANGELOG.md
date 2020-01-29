@@ -1,9 +1,5 @@
 # Changelog
 
-# 9.1.0
-
- * Arduino firmware updates for new stepper drivers in Express boards.
-
 # 9.0.3
 
  * Dependency updates

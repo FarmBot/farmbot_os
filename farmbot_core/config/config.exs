@@ -35,7 +35,7 @@ config :farmbot_core, FarmbotCore.BotState.FileSystem,
   sleep_time: 200
 
 config :farmbot_core, FarmbotCore.EctoMigrator,
-  expected_fw_versions: ["6.5.0.F", "6.5.0.R", "6.5.0.G", "6.5.0.E", "6.5.0.H"],
+  expected_fw_versions: ["6.4.2.F", "6.4.2.R", "6.4.2.G"],
   default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
   default_dns_name: "my.farm.bot",
