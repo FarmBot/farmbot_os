@@ -16,6 +16,15 @@ defmodule FarmbotFirmware.CommandTest do
     @subject.command(pid, cmd)
   end
 
+  test "direct call (delete this later)" do
+    pid = firmware_server()
+
+    {:error, result} =
+      GenServer.call(pid, {:command_emergency_lock, []}, :infinity)
+
+    assert result == :transport_boot
+  end
+
   @tag :skip
   test "various command()s" do
     assert {:ok, nil} == try_command({:command_emergency_lock, []})
@@ -68,14 +77,17 @@ defmodule FarmbotFirmware.CommandTest do
              )
   end
 
+  @tag :skip
   test "command(), error with tag" do
     assert {:error, _} = @subject.command(firmware_server(), {:x, {:y, :z}})
   end
 
+  @tag :skip
   test "command(), error no tag" do
     assert {:error, _} = @subject.command(firmware_server(), {:x, :z})
   end
 
+  @tag :skip
   test "enable_debug_logs" do
     Application.put_env(:farmbot_firmware, @subject, foo: :bar, debug_log: false)
 
