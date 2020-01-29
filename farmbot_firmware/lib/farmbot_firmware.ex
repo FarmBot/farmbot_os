@@ -257,7 +257,8 @@ defmodule FarmbotFirmware do
           nil
 
         tape_path ->
-          {:ok, vcr_fd} = File.open(tape_path, [:binary, :append, :exclusive, :write])
+          {:ok, vcr_fd} =
+            File.open(tape_path, [:binary, :append, :exclusive, :write])
 
           vcr_fd
       end
@@ -1013,7 +1014,8 @@ defmodule FarmbotFirmware do
         "nil"
       end
 
-    state_data = "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
+    state_data =
+      "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
 
     IO.write(
       state.vcr_fd,
