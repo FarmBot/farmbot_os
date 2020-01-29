@@ -542,7 +542,7 @@ defmodule FarmbotFirmware do
   # If not in an acceptable state, return an error immediately.
   def handle_command(_, _, %{status: s} = state)
       when s in [:transport_boot, :boot, :no_config, :configuration] do
-    {:reply, {:error, s}, state}
+    {:reply, {:error, "Can't send command when in #{inspect(s)} state"}, state}
   end
 
   def handle_command({tag, {_, _}} = code, {pid, _ref}, state) do

@@ -77,17 +77,14 @@ defmodule FarmbotFirmware.CommandTest do
              )
   end
 
-  @tag :skip
   test "command(), error with tag" do
     assert {:error, _} = @subject.command(firmware_server(), {:x, {:y, :z}})
   end
 
-  @tag :skip
   test "command(), error no tag" do
     assert {:error, _} = @subject.command(firmware_server(), {:x, :z})
   end
 
-  @tag :skip
   test "enable_debug_logs" do
     Application.put_env(:farmbot_firmware, @subject, foo: :bar, debug_log: false)
 
