@@ -2,12 +2,9 @@
 # :floppy_disk: Latest OS Image Downloads
 <!-- DON'T CHANGE THE TEXT ABOVE. It is used in documentation links. -->
 
-Download the version of FarmBot OS that corresponds to the FarmBot kit and computer you have:
+The FarmBot OS release page has moved to [my.farm.bot/os](https://my.farm.bot/os)
 
-| FarmBot Kit  | Computer | Download Link |
-| --- | --- | --- |
-| Genesis v1.2, Genesis v1.3, Genesis v1.4, Genesis XL v1.4 | Raspberry Pi 3 | [Download FBOS](https://github.com/FarmBot/farmbot_os/releases/download/v9.0.2/farmbot-rpi3-9.0.2.img) |
-| Express v1.0, Express XL v1.0 | Raspberry Pi Zero W | Coming soon |
+Old versions of FarmBot OS can be found [here](https://github.com/FarmBot/farmbot_os/releases). Please note that [FarmBot does not provide support for old versions of FBOS](https://software.farm.bot/docs/support-policy).
 
 ---
 
