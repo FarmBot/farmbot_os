@@ -93,9 +93,9 @@ defmodule FarmbotFirmware.Command do
     Application.put_env(:farmbot_firmware, __MODULE__, new)
   end
 
-  defp debug?() do
+  def debug?() do
     Application.get_env(:farmbot_firmware, __MODULE__)[:debug_log] || false
   end
 
-  defp debug_log(msg), do: if(debug?(), do: Logger.debug(msg), else: :ok)
+  def debug_log(msg), do: if(debug?(), do: Logger.debug(msg), else: :ok)
 end
