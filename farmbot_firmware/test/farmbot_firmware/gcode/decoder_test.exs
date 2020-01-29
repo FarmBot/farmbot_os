@@ -4,6 +4,8 @@ defmodule FarmbotFirmware.GCODE.DecoderTest do
   setup :verify_on_exit!
   alias FarmbotFirmware.GCODE.Decoder
 
+  # NOTE: Theese values are totally random and may
+  # not represent real-world use of the GCode.
   test "Decoder.decode_floats" do
     assert {:command_movement, []} == Decoder.do_decode("G00", ["XA0.0"])
     assert {:report_load, [x: 0.0]} == Decoder.do_decode("R89", ["X0.0"])
