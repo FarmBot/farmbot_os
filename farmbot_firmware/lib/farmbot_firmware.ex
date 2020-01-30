@@ -166,6 +166,7 @@ defmodule FarmbotFirmware do
 
   If the firmware is in any of the following states:
     * `:boot`
+    * `:transport_boot`
     * `:no_config`
     * `:configuration`
   `command` will fail with `{:error, state}`
