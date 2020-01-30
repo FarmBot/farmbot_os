@@ -16,6 +16,7 @@ defmodule FarmbotFirmware.CommandTest do
     @subject.command(pid, cmd)
   end
 
+  @tag :this_is_the_bug
   test "direct call (delete this later)" do
     pid = firmware_server()
 
