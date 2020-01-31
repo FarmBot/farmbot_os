@@ -194,9 +194,9 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     [{param, value}]
   end
 
-  defp decode_ints(pvm, acc \\ [])
+  def decode_ints(pvm, acc \\ [])
 
-  defp decode_ints([<<arg::binary-1, val::binary>> | rest], acc) do
+  def decode_ints([<<arg::binary-1, val::binary>> | rest], acc) do
     arg =
       arg
       |> String.downcase()
@@ -208,7 +208,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     end
   end
 
-  defp decode_ints([], acc), do: Enum.reverse(acc)
+  def decode_ints([], acc), do: Enum.reverse(acc)
 
   @spec decode_echo(binary()) :: [binary()]
   defp decode_echo(str) when is_binary(str) do

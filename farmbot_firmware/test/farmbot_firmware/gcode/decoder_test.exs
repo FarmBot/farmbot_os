@@ -4,6 +4,10 @@ defmodule FarmbotFirmware.GCODE.DecoderTest do
   setup :verify_on_exit!
   alias FarmbotFirmware.GCODE.Decoder
 
+  test "Decoder.decode_ints(pvm, acc \\ [])" do
+    assert [a: 1, b: 2, c: 3] == Decoder.decode_ints(["A1", "B2", "C3"])
+  end
+
   test "Decoder.decode_pv" do
     assert [param_config_ok: 3.0] == Decoder.decode_pv(["P2", "V3"])
   end
