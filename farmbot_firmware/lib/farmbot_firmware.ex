@@ -502,8 +502,14 @@ defmodule FarmbotFirmware do
     end
   end
 
-  def handle_call({_tag, _code} = gcode, from, state) do
-    handle_command(gcode, from, state)
+  def handle_call({tag, {kind, args}}, from, state) do
+    handle_command({tag, {kind, args}}, from, state)
+  end
+
+  # TODO(RICK): Not sure if this is required.
+  # Some commands were missing a tag.
+  def handle_call({kind, args}, from, state) do
+    handle_command({nil, {kind, args}}, from, state)
   end
 
   @doc false
