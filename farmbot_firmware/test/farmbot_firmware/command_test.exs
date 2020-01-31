@@ -6,18 +6,17 @@ defmodule FarmbotFirmware.CommandTest do
   import ExUnit.CaptureLog
   @subject FarmbotFirmware.Command
 
-  @tag :this_is_the_bug
   test "command() runs RPCs" do
     arg = [transport: FarmbotFirmware.StubTransport]
     {:ok, pid} = FarmbotFirmware.start_link(arg, [])
     send(pid, :timeout)
 
     assert {:error, :emergency_lock} ==
-             @subject.command(pid, {:command_emergency_lock, []})
+             FarmbotFirmware.command(pid, {:command_emergency_lock, []})
 
-    assert :ok == @subject.command(pid, {:command_emergency_unlock, []})
+    assert :ok == FarmbotFirmware.command(pid, {:command_emergency_unlock, []})
     cmd = {:parameter_write, [movement_stop_at_home_x: 0.0]}
-    assert :ok == @subject.command(pid, cmd)
+    assert :ok == FarmbotFirmware.command(pid, cmd)
   end
 
   test "command() refuses to run RPCs in :boot state" do
