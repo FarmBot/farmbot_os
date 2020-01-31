@@ -6,6 +6,22 @@ defmodule FarmbotFirmware.CommandTest do
   import ExUnit.CaptureLog
   @subject FarmbotFirmware.Command
 
+  test "command() runs RPCs" do
+    arg = [transport: FarmbotFirmware.StubTransport]
+    {:ok, pid} = FarmbotFirmware.start_link(arg, [])
+    send(pid, :timeout)
+    {:error, message} = @subject.command(pid, {:a, {:b, :c}})
+    assert "Can't send command when in :boot state" == message
+  end
+
+  test "command() refuses to run RPCs in :boot state" do
+    arg = [transport: FarmbotFirmware.StubTransport]
+    {:ok, pid} = FarmbotFirmware.start_link(arg, [])
+    send(pid, :timeout)
+    {:error, message} = @subject.command(pid, {:a, {:b, :c}})
+    assert "Can't send command when in :boot state" == message
+  end
+
   test "enable_debug_logs" do
     Application.put_env(:farmbot_firmware, @subject, foo: :bar, debug_log: false)
 

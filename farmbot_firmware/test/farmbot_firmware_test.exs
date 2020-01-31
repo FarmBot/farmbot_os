@@ -3,7 +3,6 @@ defmodule FarmbotFirmwareTest do
   doctest FarmbotFirmware
 
   def try_command(pid, cmd) do
-    # @subject.command(pid, cmd)
     GenServer.call(pid, cmd, :infinity)
   end
 
