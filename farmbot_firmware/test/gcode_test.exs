@@ -383,6 +383,15 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "R06 Z2 Q1" =
                GCODE.encode({"1", {:report_calibration_state, [z: :end]}})
+
+      assert "R15 X200.00" ==
+               GCODE.encode({nil, {:report_position_change, [{:x, 200.0}]}})
+
+      assert "R16 Y12.00" ==
+               GCODE.encode({nil, {:report_position_change, [{:y, 12.0}]}})
+
+      assert "R16 Z37.02" ==
+               GCODE.encode({nil, {:report_position_change, [{:z, 37.02}]}})
     end
 
     test "retry" do
