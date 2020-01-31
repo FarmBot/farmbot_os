@@ -392,6 +392,13 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "R16 Z37.02" ==
                GCODE.encode({nil, {:report_position_change, [{:z, 37.02}]}})
+
+      assert "R20" == GCODE.encode({nil, {:report_parameters_complete, []}})
+
+      assert "R21 P0 V1.20" ==
+               GCODE.encode(
+                 {nil, {:report_parameter_value, [{:param_version, 1.2}]}}
+               )
     end
 
     test "retry" do
