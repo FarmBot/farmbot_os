@@ -445,6 +445,19 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "G00 Z0.00" ==
                GCODE.encode({nil, {:command_movement_home, [:z]}})
+
+      assert(
+        "F21 P222" ==
+          GCODE.encode({nil, {:parameter_read, [:pin_guard_5_time_out]}})
+      )
+
+      p = {:calibration_parameter_write, [{:pin_guard_5_time_out, 1.2}]}
+
+      assert "F23 P222 V1.20" ==
+               GCODE.encode({nil, p})
+
+      assert "F42 P13" == GCODE.encode({nil, {:pin_read, [p: 13]}})
+      assert "F61 P54" == GCODE.encode({nil, {:servo_write, [p: 54]}})
     end
 
     test "retry" do
