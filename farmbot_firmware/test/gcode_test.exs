@@ -399,6 +399,28 @@ defmodule FarmbotFirmware.GCODETest do
                GCODE.encode(
                  {nil, {:report_parameter_value, [{:param_version, 1.2}]}}
                )
+
+      assert "R41 P1 V2 M0 Q3" ==
+               GCODE.encode(
+                 {nil,
+                  {:report_pin_value, [{:p, 1}, {:v, 2}, {:m, 0}, {:q, 3}]}}
+               )
+
+      assert "R23 P0 V1.20" ==
+               GCODE.encode(
+                 {nil,
+                  {:report_calibration_parameter_value, [{:param_version, 1.2}]}}
+               )
+
+      enc_params = [xa: 1, xb: 2, ya: 3, yb: 4, za: 5, zb: 6]
+
+      assert "R81 XA1 XB2 YA3 YB4 ZA5 ZB6" ==
+               GCODE.encode({nil, {:report_end_stops, enc_params}})
+
+      pos_params = [x: 1.4, y: 2.3, z: 3.2, s: 4.1]
+
+      assert "R82 X1.40 Y2.30 Z3.20 S4.10" ==
+               GCODE.encode({nil, {:report_position, pos_params}})
     end
 
     test "retry" do
