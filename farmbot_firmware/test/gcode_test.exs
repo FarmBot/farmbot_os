@@ -436,6 +436,15 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "R89 X1.40 Y2.30 Z3.20" ==
                GCODE.encode({nil, {:report_load, params}})
+
+      assert "G00 X0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:x]}})
+
+      assert "G00 Y0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:y]}})
+
+      assert "G00 Z0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:z]}})
     end
 
     test "retry" do
