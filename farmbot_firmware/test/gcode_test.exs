@@ -421,6 +421,21 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "R82 X1.40 Y2.30 Z3.20 S4.10" ==
                GCODE.encode({nil, {:report_position, pos_params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R84 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_encoders_scaled, params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R85 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_encoders_raw, params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R89 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_load, params}})
     end
 
     test "retry" do
