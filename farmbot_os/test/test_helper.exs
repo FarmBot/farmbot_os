@@ -1,5 +1,5 @@
 Application.ensure_all_started(:mimic)
-Mimic.copy(Avrdude.MuonTrapAdapter)
+Mimic.copy(MuonTrap)
 Mimic.copy(FarmbotCore.Asset)
 Mimic.copy(FarmbotCore.FarmwareRuntime)
 Mimic.copy(FarmbotCore.LogExecutor)
