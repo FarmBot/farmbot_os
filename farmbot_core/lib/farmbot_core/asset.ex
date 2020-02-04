@@ -9,7 +9,6 @@ defmodule FarmbotCore.Asset do
     Repo,
     Device,
     DeviceCert,
-    DiagnosticDump,
     FarmwareEnv,
     FirstPartyFarmware,
     FarmwareInstallation,
@@ -54,6 +53,7 @@ defmodule FarmbotCore.Asset do
     if device = Repo.get_by(Device, id: id) do
       Repo.delete!(device)
     end
+
     :ok
   end
 
@@ -78,13 +78,14 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_farm_event!(farm_event, params) do
-    farm_event = 
-      farm_event |> 
-      FarmEvent.changeset(params) 
+    farm_event =
+      farm_event
+      |> FarmEvent.changeset(params)
       |> Repo.update!()
 
     if farm_event.executable_type == "Regimen" do
       regimen_instance = get_regimen_instance(farm_event)
+
       if regimen_instance do
         regimen_instance
         |> Repo.preload([:farm_event, :regimen])
@@ -111,9 +112,11 @@ defmodule FarmbotCore.Asset do
 
   def get_farm_event_execution(%FarmEvent{} = farm_event, scheduled_at) do
     Repo.one(
-      from e in FarmEvent.Execution, 
-        where: e.farm_event_local_id == ^farm_event.local_id
-        and e.scheduled_at == ^scheduled_at
+      from(e in FarmEvent.Execution,
+        where:
+          e.farm_event_local_id == ^farm_event.local_id and
+            e.scheduled_at == ^scheduled_at
+      )
     )
   end
 
@@ -149,6 +152,7 @@ defmodule FarmbotCore.Asset do
     if fbos_config = Repo.get_by(FbosConfig, id: id) do
       Repo.delete!(fbos_config)
     end
+
     :ok
   end
 
@@ -177,6 +181,7 @@ defmodule FarmbotCore.Asset do
     if firmware_config = Repo.get_by(FirmwareConfig, id: id) do
       Repo.delete!(firmware_config)
     end
+
     :ok
   end
 
@@ -192,12 +197,19 @@ defmodule FarmbotCore.Asset do
   end
 
   def get_regimen_instance(%FarmEvent{} = farm_event) do
-    regimen = Repo.one(from r in Regimen, where: r.id == ^farm_event.executable_id)
-    regimen && Repo.one(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id)    
+    regimen = Repo.one(from(r in Regimen, where: r.id == ^farm_event.executable_id))
+
+    regimen &&
+      Repo.one(
+        from(ri in RegimenInstance,
+          where: ri.regimen_id == ^regimen.local_id and ri.farm_event_id == ^farm_event.local_id
+        )
+      )
   end
 
   def new_regimen_instance!(%FarmEvent{} = farm_event, params \\ %{}) do
-    regimen = Repo.one!(from r in Regimen, where: r.id == ^farm_event.executable_id)
+    regimen = Repo.one!(from(r in Regimen, where: r.id == ^farm_event.executable_id))
+
     RegimenInstance.changeset(%RegimenInstance{}, params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
@@ -207,7 +219,7 @@ defmodule FarmbotCore.Asset do
   def delete_regimen_instance!(%RegimenInstance{} = ri) do
     Repo.delete!(ri)
   end
-  
+
   def add_execution_to_regimen_instance!(%RegimenInstance{} = ri, params \\ %{}) do
     %RegimenInstance.Execution{}
     |> RegimenInstance.Execution.changeset(params)
@@ -217,9 +229,11 @@ defmodule FarmbotCore.Asset do
 
   def get_regimen_instance_execution(%RegimenInstance{} = ri, scheduled_at) do
     Repo.one(
-      from e in RegimenInstance.Execution, 
-        where: e.regimen_instance_local_id == ^ri.local_id
-        and e.scheduled_at == ^scheduled_at
+      from(e in RegimenInstance.Execution,
+        where:
+          e.regimen_instance_local_id == ^ri.local_id and
+            e.scheduled_at == ^scheduled_at
+      )
     )
   end
 
@@ -248,7 +262,7 @@ defmodule FarmbotCore.Asset do
 
   @doc "Returns all points matching Point.pointer_type"
   def get_all_points_by_type(type, order_by \\ "random") do
-    (from p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
+    from(p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
     |> Repo.all()
     |> sort_points(order_by)
   end
@@ -257,7 +271,7 @@ defmodule FarmbotCore.Asset do
     points
     |> Enum.group_by(&group_points_by(&1, order_by))
     |> Enum.sort(&group_sort(&1, &2, order_by))
-    |> Enum.map(fn({_group_index, group}) -> Enum.sort(group, &sort_points(&1, &2, order_by)) end)
+    |> Enum.map(fn {_group_index, group} -> Enum.sort(group, &sort_points(&1, &2, order_by)) end)
     |> List.flatten()
   end
 
@@ -272,7 +286,6 @@ defmodule FarmbotCore.Asset do
   def group_sort({lgroup, _}, {rgroup, _}, "yx_descending"), do: lgroup >= rgroup
   def group_sort(_, _, "random"), do: Enum.random([true, false])
 
-
   def sort_points(%{y: ly}, %{y: ry}, "xy_ascending"), do: ly <= ry
   def sort_points(%{y: ly}, %{y: ry}, "xy_descending"), do: ly >= ry
   def sort_points(%{x: lx}, %{x: rx}, "yx_ascending"), do: lx <= rx
@@ -285,15 +298,15 @@ defmodule FarmbotCore.Asset do
 
   def get_point_group(params) do
     case Repo.get_by(PointGroup, params) do
-      nil -> 
+      nil ->
         nil
 
-      %{sort_type: nil} = group -> 
-        group 
+      %{sort_type: nil} = group ->
+        group
 
       %{point_ids: unsorted, sort_type: sort_by} = point_group ->
-        sorted = 
-          Repo.all(from p in Point, where: p.id in ^unsorted)
+        sorted =
+          Repo.all(from(p in Point, where: p.id in ^unsorted))
           |> sort_points(sort_by)
           |> Enum.map(&Map.fetch!(&1, :id))
 
@@ -308,7 +321,7 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_point_group!(point_group, params) do
-    updated = 
+    updated =
       point_group
       |> PointGroup.changeset(params)
       |> Repo.update!()
@@ -322,11 +335,11 @@ defmodule FarmbotCore.Asset do
     for asset <- farm_events ++ regimen_instances do
       # TODO(Connor) this might be worth creating a behaviour for
       if uses_point_group?(asset, point_group) do
-        Logger.debug "#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it."
+        Logger.debug("#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it.")
         FarmbotCore.AssetSupervisor.update_child(asset)
       end
     end
-    
+
     updated
   end
 
@@ -335,14 +348,16 @@ defmodule FarmbotCore.Asset do
   end
 
   def uses_point_group?(%FarmEvent{body: body}, %PointGroup{id: point_group_id}) do
-    
     any_body_node_uses_point_group?(body, point_group_id)
   end
 
-  def uses_point_group?(%Regimen{body: body, regimen_items: regimen_items}, %PointGroup{id: point_group_id}) do
-    any_body_node_uses_point_group?(body, point_group_id) || Enum.find(regimen_items, fn(%{sequence_id: sequence_id}) -> 
-      any_body_node_uses_point_group?(get_sequence(sequence_id).body, point_group_id)
-    end)
+  def uses_point_group?(%Regimen{body: body, regimen_items: regimen_items}, %PointGroup{
+        id: point_group_id
+      }) do
+    any_body_node_uses_point_group?(body, point_group_id) ||
+      Enum.find(regimen_items, fn %{sequence_id: sequence_id} ->
+        any_body_node_uses_point_group?(get_sequence(sequence_id).body, point_group_id)
+      end)
   end
 
   def uses_point_group?(%RegimenInstance{farm_event: farm_event, regimen: regimen}, point_group) do
@@ -350,11 +365,13 @@ defmodule FarmbotCore.Asset do
   end
 
   def any_body_node_uses_point_group?(body, point_group_id) do
-    Enum.find(body, fn 
+    Enum.find(body, fn
       %{
         kind: "execute",
         body: execute_body
-      } -> any_body_node_uses_point_group?(execute_body, point_group_id)
+      } ->
+        any_body_node_uses_point_group?(execute_body, point_group_id)
+
       %{
         args: %{
           "data_value" => %{
@@ -364,7 +381,8 @@ defmodule FarmbotCore.Asset do
           "label" => "parent"
         },
         kind: "parameter_application"
-      } -> true
+      } ->
+        true
 
       %{
         args: %{
@@ -375,8 +393,11 @@ defmodule FarmbotCore.Asset do
           "label" => "parent"
         },
         kind: "parameter_application"
-      } -> true
-      _ -> false
+      } ->
+        true
+
+      _ ->
+        false
     end)
   end
 
@@ -407,6 +428,7 @@ defmodule FarmbotCore.Asset do
   def new_public_key_from_home!() do
     public_key_path = Path.join([System.get_env("HOME"), ".ssh", "id_rsa.pub"])
     public_key = File.read!(public_key_path)
+
     %PublicKey{}
     |> PublicKey.changeset(%{public_key: public_key})
     |> Repo.insert()
@@ -417,7 +439,7 @@ defmodule FarmbotCore.Asset do
     |> PublicKey.changeset(%{public_key: public_key})
     |> Repo.insert()
   end
-  
+
   ## End PublicKey
 
   ## Begin Regimen
@@ -435,18 +457,23 @@ defmodule FarmbotCore.Asset do
   end
 
   def delete_regimen!(regimen) do
-    regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
+    regimen_instances =
+      Repo.all(from(ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id))
+
     for ri <- regimen_instances do
-      IO.puts "deleting regimen instance: #{inspect(ri)}"
+      IO.puts("deleting regimen instance: #{inspect(ri)}")
       delete_regimen_instance!(ri)
     end
+
     Repo.delete!(regimen)
   end
 
   @doc "Update an existing regimen"
   def update_regimen!(regimen, params) do
-    regimen_instances = Repo.all(from ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id)
-    |> Repo.preload([:farm_event, :regimen])
+    regimen_instances =
+      Repo.all(from(ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id))
+      |> Repo.preload([:farm_event, :regimen])
+
     for ri <- regimen_instances do
       ri
       |> RegimenInstance.changeset(%{updated_at: DateTime.utc_now()})
@@ -469,22 +496,30 @@ defmodule FarmbotCore.Asset do
 
   def update_sequence!(%Sequence{} = sequence, params \\ %{}) do
     sequence_id = sequence.id
-    farm_events = Repo.all(from f in FarmEvent, 
-      where: f.executable_type == "Sequence" 
-      and f.executable_id == ^sequence_id)
 
-    regimen_instances = RegimenInstance
-    |> Repo.all()
-    |> Repo.preload([:regimen, :farm_event])
-    |> Enum.filter(fn
-      %{regimen: %{regimen_items: items}} -> 
-        Enum.find(items, fn
-          %{sequence_id: ^sequence_id} -> true
-          %{sequence_id: _} -> true
+    farm_events =
+      Repo.all(
+        from(f in FarmEvent,
+          where:
+            f.executable_type == "Sequence" and
+              f.executable_id == ^sequence_id
+        )
+      )
+
+    regimen_instances =
+      RegimenInstance
+      |> Repo.all()
+      |> Repo.preload([:regimen, :farm_event])
+      |> Enum.filter(fn
+        %{regimen: %{regimen_items: items}} ->
+          Enum.find(items, fn
+            %{sequence_id: ^sequence_id} -> true
+            %{sequence_id: _} -> true
+          end)
+
+        %{regimen: nil} ->
+          false
       end)
-
-      %{regimen: nil} -> false
-    end)
 
     for asset <- farm_events ++ regimen_instances do
       FarmbotCore.AssetSupervisor.update_child(asset)
@@ -507,10 +542,11 @@ defmodule FarmbotCore.Asset do
   def get_farmware_manifest(package) do
     first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware, select: fwi.manifest))
     regular_farmwares = Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
+
     Enum.find(
-      first_party_farmwares ++ regular_farmwares, 
-      fn 
-        %{package: pkg} -> pkg == package 
+      first_party_farmwares ++ regular_farmwares,
+      fn
+        %{package: pkg} -> pkg == package
         _ -> false
       end
     )
@@ -519,10 +555,11 @@ defmodule FarmbotCore.Asset do
   def get_farmware_installation(package) do
     first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware))
     regular_farmwares = Repo.all(from(fwi in FarmwareInstallation))
+
     Enum.find(
-      first_party_farmwares ++ regular_farmwares, 
-      fn 
-        %{manifest: %{package: pkg}} -> pkg == package 
+      first_party_farmwares ++ regular_farmwares,
+      fn
+        %{manifest: %{package: pkg}} -> pkg == package
         _ -> false
       end
     )
@@ -530,12 +567,14 @@ defmodule FarmbotCore.Asset do
 
   def upsert_farmware_manifest_by_id(id, params) do
     fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
+
     FarmwareInstallation.changeset(fwi, params)
     |> Repo.insert_or_update()
   end
 
   def upsert_first_party_farmware_manifest_by_id(id, params) do
     fwi = Repo.get_by(FirstPartyFarmware, id: id) || %FirstPartyFarmware{}
+
     FirstPartyFarmware.changeset(fwi, params)
     |> Repo.insert_or_update()
   end
@@ -557,12 +596,14 @@ defmodule FarmbotCore.Asset do
 
   def new_farmware_env(params) do
     key = params["key"] || params[:key]
-    fwe = with key when is_binary(key) <- key,
-      [fwe | _] <- Repo.all(from fwe in FarmwareEnv, where: fwe.key == ^key) do
-      fwe
-    else
-      _ -> %FarmwareEnv{}
-    end
+
+    fwe =
+      with key when is_binary(key) <- key,
+           [fwe | _] <- Repo.all(from(fwe in FarmwareEnv, where: fwe.key == ^key)) do
+        fwe
+      else
+        _ -> %FarmwareEnv{}
+      end
 
     FarmwareEnv.changeset(fwe, params)
     |> Repo.insert_or_update()
@@ -596,7 +637,7 @@ defmodule FarmbotCore.Asset do
     Sensor.changeset(%Sensor{}, params)
     |> Repo.insert!()
   end
-  
+
   def update_sensor!(sensor, params) do
     sensor
     |> Sensor.changeset(params)
@@ -623,15 +664,6 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End SensorReading
-
-  ## Begin DiagnosticDump
-
-  def new_diagnostic_dump(params) do
-    DiagnosticDump.changeset(%DiagnosticDump{}, params)
-    |> Repo.insert()
-  end
-
-  ## End DiagnosticDump
 
   ## Begin DeviceCert
 

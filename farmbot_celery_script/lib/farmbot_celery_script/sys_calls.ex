@@ -29,7 +29,6 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback check_update() :: ok_or_error
   @callback coordinate(x :: number, y :: number, z :: number) ::
               %{x: number(), y: number(), z: number()} | error
-  @callback dump_info() :: ok_or_error
   @callback emergency_lock() :: ok_or_error
   @callback emergency_unlock() :: ok_or_error
   @callback execute_script(package, args :: map()) :: ok_or_error
@@ -170,10 +169,6 @@ defmodule FarmbotCeleryScript.SysCalls do
       when is_number(y)
       when is_number(z) do
     coord_or_error(sys_calls, :coordinate, [x, y, z])
-  end
-
-  def dump_info(sys_calls \\ @sys_calls) do
-    ok_or_error(sys_calls, :dump_info, [])
   end
 
   def emergency_lock(sys_calls \\ @sys_calls) do
