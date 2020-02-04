@@ -159,17 +159,17 @@ defmodule FarmbotFirmware.ParamTest do
     assert Param.to_human(:encoder_scaling_y, float_value) ==
              {"encoder scaling, y-axis", nil, "1.2"}
 
-    # assert Param.to_human(:encoder_scaling_z, float_value) ==
-    #          {"encoder scaling, z-axis", nil, "1.2"}
+    assert Param.to_human(:encoder_scaling_z, float_value) ==
+             {"encoder scaling, z-axis", nil, "1.2"}
 
-    # assert Param.to_human(:encoder_missed_steps_decay_x, float_value) ==
-    #          {"encoder missed steps decay, x-axis", nil, "1.2"}
+    assert Param.to_human(:encoder_missed_steps_decay_x, float_value) ==
+             {"encoder missed steps decay, x-axis", nil, "1.2"}
 
-    # assert Param.to_human(:encoder_missed_steps_decay_y, float_value) ==
-    #          {"encoder missed steps decay, y-axis", nil, "1.2"}
+    assert Param.to_human(:encoder_missed_steps_decay_y, float_value) ==
+             {"encoder missed steps decay, y-axis", nil, "1.2"}
 
-    # assert Param.to_human(:encoder_missed_steps_decay_z, float_value) ==
-    #          {"encoder missed steps decay, z-axis", nil, "1.2"}
+    assert Param.to_human(:encoder_missed_steps_decay_z, float_value) ==
+             {"encoder missed steps decay, z-axis", nil, "1.2"}
 
     # assert Param.to_human(:encoder_use_for_pos_x, float_value) ==
     #          {"use true for positioning, x-axis", nil, true}
