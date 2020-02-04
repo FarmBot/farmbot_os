@@ -39,7 +39,7 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
   end
 
   test "load_(server|email|password)()" do
-    :ok == ConfigDataLayer.save_config(@fake_params)
+    :ok = ConfigDataLayer.save_config(@fake_params)
     assert @fake_params["auth_config_server"] == ConfigDataLayer.load_server()
 
     assert @fake_params["auth_config_password"] ==
