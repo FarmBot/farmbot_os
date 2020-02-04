@@ -29,6 +29,74 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
       "net_config_ssid" => nil
     }
 
+    expected = %{
+      domain: nil,
+      identity: nil,
+      ipv4_address: "0.0.0.0",
+      ipv4_gateway: "0.0.0.0",
+      ipv4_method: "dhcp",
+      ipv4_subnet_mask: "255.255.0.0",
+      name: "eth0",
+      name_servers: nil,
+      password: nil,
+      psk: nil,
+      regulatory_domain: "US",
+      security: nil,
+      ssid: nil,
+      type: "wired"
+    }
+
+    FarmbotCore.Config
+    |> expect(:input_network_config!, 1, fn network_params ->
+      assert expected == network_params
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "authorization",
+                                          "email",
+                                          auth_config_email ->
+      assert :x == auth_config_email
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "authorization",
+                                          "password",
+                                          auth_config_password ->
+      assert :x == auth_config_password
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "authorization",
+                                          "server",
+                                          auth_config_server ->
+      assert :x == auth_config_server
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "settings",
+                                          "default_dns_name",
+                                          net_config_dns_name ->
+      assert :x == net_config_dns_name
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "settings",
+                                          "default_ntp_server_1",
+                                          nil ->
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "settings",
+                                          "default_ntp_server_2",
+                                          nil ->
+      :ok
+    end)
+    |> expect(:update_config_value, 1, fn :string,
+                                          "authorization",
+                                          "secret",
+                                          nil ->
+      :ok
+    end)
+
     assert :ok == ConfigDataLayer.save_config(params)
   end
 end
