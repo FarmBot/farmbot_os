@@ -50,51 +50,15 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
     |> expect(:input_network_config!, 1, fn network_params ->
       assert expected == network_params
     end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "authorization",
-                                          "email",
-                                          auth_config_email ->
-      assert :x == auth_config_email
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "authorization",
-                                          "password",
-                                          auth_config_password ->
-      assert :x == auth_config_password
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "authorization",
-                                          "server",
-                                          auth_config_server ->
-      assert :x == auth_config_server
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "settings",
-                                          "default_dns_name",
-                                          net_config_dns_name ->
-      assert :x == net_config_dns_name
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "settings",
-                                          "default_ntp_server_1",
-                                          nil ->
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "settings",
-                                          "default_ntp_server_2",
-                                          nil ->
-      :ok
-    end)
-    |> expect(:update_config_value, 1, fn :string,
-                                          "authorization",
-                                          "secret",
-                                          nil ->
-      :ok
+    |> expect(:update_config_value, 7, fn
+      :string, "authorization", "email", "test@test.com" -> :ok
+      :string, "authorization", "password", "password123" -> :ok
+      :string, "authorization", "server", "http://localhost:3000" -> :ok
+      :string, "settings", "default_dns_name", nil -> :ok
+      :string, "settings", "default_ntp_server_1", nil -> :ok
+      :string, "settings", "default_ntp_server_2", nil -> :ok
+      :string, "authorization", "secret", nil -> :ok
+      _, _, _, _ -> raise "NEVER"
     end)
 
     assert :ok == ConfigDataLayer.save_config(params)
