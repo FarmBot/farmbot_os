@@ -171,47 +171,47 @@ defmodule FarmbotFirmware.ParamTest do
     assert Param.to_human(:encoder_missed_steps_decay_z, float_value) ==
              {"encoder missed steps decay, z-axis", nil, "1.2"}
 
-    # assert Param.to_human(:encoder_use_for_pos_x, float_value) ==
-    #          {"use true for positioning, x-axis", nil, true}
+    assert Param.to_human(:encoder_use_for_pos_x, 1) ==
+             {"use encoders for positioning, x-axis", nil, true}
 
-    # assert Param.to_human(:encoder_use_for_pos_y, float_value) ==
-    #          {"use true for positioning, y-axis", nil, true}
+    assert Param.to_human(:encoder_use_for_pos_y, 1) ==
+             {"use encoders for positioning, y-axis", nil, true}
 
-    # assert Param.to_human(:encoder_use_for_pos_z, float_value) ==
-    #          {"use true for positioning, z-axis", nil, true}
+    assert Param.to_human(:encoder_use_for_pos_z, 1) ==
+             {"use encoders for positioning, z-axis", nil, true}
 
-    # assert Param.to_human(:encoder_invert_x, 1)
-    # {"invert encoders, x-axis", nil, true}
+    assert Param.to_human(:encoder_invert_x, 1)
+    {"invert encoders, x-axis", nil, true}
 
-    # assert Param.to_human(:encoder_invert_y, 1)
-    # {"invert encoders, y-axis", nil, true}
+    assert Param.to_human(:encoder_invert_y, 1)
+    {"invert encoders, y-axis", nil, true}
 
-    # assert Param.to_human(:encoder_invert_z, 1)
-    # {"invert encoders, z-axis", nil, true}
+    assert Param.to_human(:encoder_invert_z, 1)
+    {"invert encoders, z-axis", nil, true}
 
-    # assert Param.to_human(:movement_stop_at_max_x, 1) ==
-    #          {"stop at max, x-axis", nil, true}
+    assert Param.to_human(:movement_stop_at_max_x, 1) ==
+             {"stop at max, x-axis", nil, true}
 
-    # assert Param.to_human(:movement_stop_at_max_y, 1) ==
-    #          {"stop at max, y-axis", nil, true}
+    assert Param.to_human(:movement_stop_at_max_y, 1) ==
+             {"stop at max, y-axis", nil, true}
 
-    # assert Param.to_human(:movement_stop_at_max_z, 1) ==
-    #          {"stop at max, z-axis", nil, true}
+    assert Param.to_human(:movement_stop_at_max_z, 1) ==
+             {"stop at max, z-axis", nil, true}
 
-    # assert Param.to_human(:pin_guard_1_active_state, float_value) ==
-    #          {"pin guard 1 safe state", nil, "HIGH"}
+    assert Param.to_human(:pin_guard_1_active_state, 0) ==
+             {"pin guard 1 safe state", nil, "HIGH"}
 
-    # assert Param.to_human(:pin_guard_2_active_state, float_value) ==
-    #          {"pin guard 2 safe state", nil, "HIGH"}
+    assert Param.to_human(:pin_guard_2_active_state, 0) ==
+             {"pin guard 2 safe state", nil, "HIGH"}
 
-    # assert Param.to_human(:pin_guard_3_active_state, float_value) ==
-    #          {"pin guard 3 safe state", nil, "HIGH"}
+    assert Param.to_human(:pin_guard_3_active_state, 0) ==
+             {"pin guard 3 safe state", nil, "HIGH"}
 
-    # assert Param.to_human(:pin_guard_4_active_state, float_value) ==
-    #          {"pin guard 4 safe state", nil, "HIGH"}
+    assert Param.to_human(:pin_guard_4_active_state, 0) ==
+             {"pin guard 4 safe state", nil, "HIGH"}
 
-    # assert Param.to_human(:pin_guard_5_active_state, float_value) ==
-    #          {"pin guard 5 safe state", nil, "HIGH"}
+    assert Param.to_human(:pin_guard_5_active_state, 0) ==
+             {"pin guard 5 safe state", nil, "HIGH"}
   end
 
   test "Handling of uknown parameters" do
