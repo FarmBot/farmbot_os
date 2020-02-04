@@ -11,15 +11,4 @@ defmodule FarmbotOS.Configurator.LoggerSocketTest do
     expected = {:cowboy_websocket, :foo, :bar}
     assert expected == LoggerSocket.init(:foo, :bar)
   end
-
-  @tag :focus
-  test "websocket_handle/2" do
-    {:ok, json} = Jason.encode(%{foo: "Bar"})
-    state = %{}
-
-    hmm =
-      FarmbotOS.Configurator.LoggerSocket.websocket_handle({:text, json}, state)
-
-    IO.inspect(hmm)
-  end
 end
