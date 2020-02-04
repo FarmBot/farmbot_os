@@ -4,9 +4,7 @@ defmodule FarmbotFirmware.ParamTest do
 
   test "to_human()" do
     float_value = 1.23
-    milliamps = "(milliamps)"
     seconds = "(seconds)"
-    steps = "(steps)"
     steps_per_mm = "(steps/mm)"
 
     assert Param.to_human(:param_test, 1) ==
