@@ -164,15 +164,15 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   end
 
   @spec decode_end_stops([binary()], Keyword.t()) :: Keyword.t()
-  defp decode_end_stops(list, acc \\ [])
+  def decode_end_stops(list, acc \\ [])
 
-  defp decode_end_stops(
-         [
-           <<arg::binary-1, "A", val0::binary>>,
-           <<arg::binary-1, "B", val1::binary>> | rest
-         ],
-         acc
-       ) do
+  def decode_end_stops(
+        [
+          <<arg::binary-1, "A", val0::binary>>,
+          <<arg::binary-1, "B", val1::binary>> | rest
+        ],
+        acc
+      ) do
     dc = String.downcase(arg)
 
     acc =
@@ -185,19 +185,18 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     decode_end_stops(rest, acc)
   end
 
-  defp decode_end_stops([], acc), do: acc
+  def decode_end_stops([], acc), do: acc
+  def decode_end_stops(error, _acc), do: [parse_error: error]
 
-  defp decode_end_stops(error, _acc), do: [parse_error: error]
-
-  defp decode_pv(["P" <> param_id, "V" <> value]) do
+  def decode_pv(["P" <> param_id, "V" <> value]) do
     param = Param.decode(String.to_integer(param_id))
     {value, ""} = Float.parse(value)
     [{param, value}]
   end
 
-  defp decode_ints(pvm, acc \\ [])
+  def decode_ints(pvm, acc \\ [])
 
-  defp decode_ints([<<arg::binary-1, val::binary>> | rest], acc) do
+  def decode_ints([<<arg::binary-1, val::binary>> | rest], acc) do
     arg =
       arg
       |> String.downcase()
@@ -209,7 +208,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     end
   end
 
-  defp decode_ints([], acc), do: Enum.reverse(acc)
+  def decode_ints([], acc), do: Enum.reverse(acc)
 
   @spec decode_echo(binary()) :: [binary()]
   defp decode_echo(str) when is_binary(str) do

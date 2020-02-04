@@ -5,6 +5,7 @@ defmodule FarmbotCore.Logger do
 
   alias FarmbotCore.{Log, Logger.Repo}
   import Ecto.Query
+  @log_types [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion]
 
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
@@ -57,23 +58,27 @@ defmodule FarmbotCore.Logger do
 
   def insert_log!(params) do
     changeset = Log.changeset(%Log{}, params)
+
     try do
       hash = Ecto.Changeset.get_field(changeset, :hash)
+
       case Repo.get_by(Log, hash: hash) do
-        nil -> 
+        nil ->
           Repo.insert!(changeset)
-        old -> 
-          params = 
+
+        old ->
+          params =
             params
-            |> Map.put(:inserted_at, DateTime.utc_now)
+            |> Map.put(:inserted_at, DateTime.utc_now())
             |> Map.put(:duplicates, old.duplicates + 1)
-            old
-            |> Log.changeset(params)
-            |> Repo.update!()
+
+          old
+          |> Log.changeset(params)
+          |> Repo.update!()
       end
     catch
       kind, err ->
-        IO.warn("Error inserting log: #{kind} #{inspect(err)}", __STACKTRACE__) 
+        IO.warn("Error inserting log: #{kind} #{inspect(err)}", __STACKTRACE__)
         Ecto.Changeset.apply_changes(changeset)
     end
   end
@@ -94,13 +99,16 @@ defmodule FarmbotCore.Logger do
 
   @doc false
   def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
-      when level in [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion] and is_number(verbosity) and
-             is_binary(message) and is_list(meta) do
+      when level in @log_types and
+             is_number(verbosity) and
+             is_binary(message) and
+             is_list(meta) do
     fun =
       case env.function do
         {fun, ar} -> "#{fun}/#{ar}"
         nil -> "no_function"
       end
+
     %{
       level: level,
       verbosity: verbosity,
@@ -116,29 +124,8 @@ defmodule FarmbotCore.Logger do
 
   @doc false
   def dispatch_log(params) do
-    params
-    |> insert_log!()
-    |> elixir_log()
-  end
-
-  defp elixir_log(%Log{} = log) do
-    logger_meta = [
-      application: :farmbot,
-      function: log.function,
-      file: log.file,
-      line: log.line,
-      module: log.module,
-      channels: log.meta[:channels] || log.meta["channels"],
-      verbosity: log.verbosity,
-      assertion_passed: log.meta[:assertion_passed]
-      # TODO Connor - fix time
-      # time: time
-    ]
-
-    level = log.level
-    logger_level = if level in [:info, :debug, :warn, :error], do: level, else: :info
-    Elixir.Logger.bare_log(logger_level, log, logger_meta)
-    log
+    log = insert_log!(params)
+    FarmbotCore.LogExecutor.execute(log)
   end
 
   @doc "Helper function for deciding if a message should be logged or not."
