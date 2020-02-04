@@ -7,6 +7,8 @@ defmodule FarmbotOS.Configurator.Router do
   import Phoenix.HTML
   use Plug.Router
   use Plug.Debugger, otp_app: :farmbot
+  alias FarmbotOS.Configurator.ConfigDataLayer
+
   plug(Plug.Logger)
   plug(Plug.Static, from: {:farmbot, "priv/static"}, at: "/")
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart])
@@ -21,7 +23,6 @@ defmodule FarmbotOS.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
   @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
                    :network_layer
                  ]
@@ -355,23 +356,23 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   defp load_last_reset_reason do
-    @data_layer.load_last_reset_reason()
+    ConfigDataLayer.load_last_reset_reason()
   end
 
   defp load_email do
-    @data_layer.load_email()
+    ConfigDataLayer.load_email()
   end
 
   defp load_password do
-    @data_layer.load_password()
+    ConfigDataLayer.load_password()
   end
 
   def load_server do
-    @data_layer.load_server()
+    ConfigDataLayer.load_server()
   end
 
   defp save_config(conf) do
-    @data_layer.save_config(conf)
+    ConfigDataLayer.save_config(conf)
   end
 
   defp list_interfaces() do

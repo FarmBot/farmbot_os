@@ -74,7 +74,6 @@ config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Host.SystemTasks
 
 config :farmbot, FarmbotOS.Configurator,
-  data_layer: FarmbotOS.Configurator.ConfigDataLayer,
   network_layer: FarmbotOS.Configurator.FakeNetworkLayer,
   telemetry_layer: FarmbotOS.Configurator.DetsTelemetryLayer
 
