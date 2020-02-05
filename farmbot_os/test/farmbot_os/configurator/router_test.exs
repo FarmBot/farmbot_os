@@ -401,18 +401,22 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "/finish" do
-    expect(ConfigDataLayer, :save_config, 1, fn conf ->
+    expect(ConfigDataLayer, :save_config, 1, fn _conf ->
       :ok
     end)
 
+    # This data would crash in the real app because it is incomplete.
+    # Maybe we should add an error handler?
+    fake_session = %{
+      "ifname" => "MY_IFNAME",
+      "auth_config_email" => "MY_EMAIL",
+      "auth_config_password" => "MY_PASS",
+      "auth_config_server" => "MY_SERVER"
+    }
+
     kon =
       conn(:get, "/finish")
-      |> init_test_session(%{
-        "ifname" => "MY_IFNAME",
-        "auth_config_email" => "MY_EMAIL",
-        "auth_config_password" => "MY_PASS",
-        "auth_config_server" => "MY_SERVER"
-      })
+      |> init_test_session(fake_session)
       |> Router.call(@opts)
 
     assert String.contains?(
