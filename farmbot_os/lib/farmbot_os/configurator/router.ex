@@ -271,6 +271,11 @@ defmodule FarmbotOS.Configurator.Router do
   get "/finish" do
     FarmbotCore.Logger.debug(1, "Configuration complete")
 
+    # TODO(Rick): This pattern match is not 100% accurate.
+    # TO see what I mean, try calling `save_config/1` with
+    # _only_ the parameters provided in the line below-
+    # it will crash as it is missing numerous keys.
+    # It might be good to add an error page or something.
     case get_session(conn) do
       %{
         "ifname" => _,

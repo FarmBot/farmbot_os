@@ -1,5 +1,7 @@
 defmodule FarmbotOS.Configurator.RouterTest do
   alias FarmbotOS.Configurator.Router
+  alias FarmbotOS.Configurator.ConfigDataLayer
+
   use ExUnit.Case, async: true
   use Plug.Test
 
@@ -396,5 +398,26 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert(is_binary(zero["class"]))
     assert(is_binary(zero["timestamp"]))
     assert(is_integer(zero["value"]))
+  end
+
+  test "/finish" do
+    expect(ConfigDataLayer, :save_config, 1, fn conf ->
+      :ok
+    end)
+
+    kon =
+      conn(:get, "/finish")
+      |> init_test_session(%{
+        "ifname" => "MY_IFNAME",
+        "auth_config_email" => "MY_EMAIL",
+        "auth_config_password" => "MY_PASS",
+        "auth_config_server" => "MY_SERVER"
+      })
+      |> Router.call(@opts)
+
+    assert String.contains?(
+             kon.resp_body,
+             "If any configuration settings are incorrect, FarmBot will reset"
+           )
   end
 end
