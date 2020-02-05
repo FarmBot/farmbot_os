@@ -7,6 +7,25 @@ defmodule FarmbotOS.Configurator.RouterTest do
   setup :verify_on_exit!
 
   @opts Router.init([])
+  # Stolen from https://github.com/phoenixframework/phoenix/blob/3f157c30ceae8d1eb524fdd05b5e3de10e434c42/lib/phoenix/test/conn_test.ex#L438
+  defp redirected_to(conn, status \\ 302)
+
+  defp redirected_to(%Plug.Conn{state: :unset}, _status) do
+    raise "expected connection to have redirected but no response was set/sent"
+  end
+
+  defp redirected_to(conn, status) when is_atom(status) do
+    redirected_to(conn, Plug.Conn.Status.code(status))
+  end
+
+  defp redirected_to(%Plug.Conn{status: status} = conn, status) do
+    location = Plug.Conn.get_resp_header(conn, "location") |> List.first()
+    location || raise "no location header was set on redirected_to"
+  end
+
+  defp redirected_to(conn, status) do
+    raise "expected redirection with status #{status}, got: #{conn.status}"
+  end
 
   test "index after reset" do
     FarmbotOS.Configurator.ConfigDataLayer
@@ -19,19 +38,28 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "whoops!"
   end
 
-  test "redirect to index" do
+  test "redirects" do
     FarmbotOS.Configurator.ConfigDataLayer
-    |> expect(:load_last_reset_reason, fn -> nil end)
+    |> expect(:load_last_reset_reason, fn -> "whoops!" end)
 
-    conn = conn(:get, "/setup")
-    conn = Router.call(conn, @opts)
-    redir = redirected_to(conn)
-    assert redir == "/"
+    redirects = [
+      "/check_network_status.txt",
+      "/connecttest.txt",
+      "/gen_204",
+      "/generate_204",
+      "/hotspot-detect.html",
+      "/library/test/success.html",
+      "/redirect",
+      "/setup",
+      "/success.txt"
+    ]
 
-    conn = conn(:get, redir)
-    conn = Router.call(conn, @opts)
-    redir = redirected_to(conn)
-    assert redir == "/network"
+    Enum.map(redirects, fn path ->
+      conn = conn(:get, path)
+      conn = Router.call(conn, @opts)
+      redir = redirected_to(conn)
+      assert redir == "/"
+    end)
   end
 
   test "celeryscript requests don't get listed as last reset reason" do
@@ -334,25 +362,5 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     assert conn.status == 500
-  end
-
-  # Stolen from https://github.com/phoenixframework/phoenix/blob/3f157c30ceae8d1eb524fdd05b5e3de10e434c42/lib/phoenix/test/conn_test.ex#L438
-  defp redirected_to(conn, status \\ 302)
-
-  defp redirected_to(%Plug.Conn{state: :unset}, _status) do
-    raise "expected connection to have redirected but no response was set/sent"
-  end
-
-  defp redirected_to(conn, status) when is_atom(status) do
-    redirected_to(conn, Plug.Conn.Status.code(status))
-  end
-
-  defp redirected_to(%Plug.Conn{status: status} = conn, status) do
-    location = Plug.Conn.get_resp_header(conn, "location") |> List.first()
-    location || raise "no location header was set on redirected_to"
-  end
-
-  defp redirected_to(conn, status) do
-    raise "expected redirection with status #{status}, got: #{conn.status}"
   end
 end
