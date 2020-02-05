@@ -50,14 +50,12 @@ defmodule FarmbotFirmware.UARTTransport do
   def handle_info({:circuits_uart, _, data}, state) when is_binary(data) do
     code = GCODE.decode(String.trim(data))
     state.handle_gcode.(code)
-    # IO.puts("=== FROM ARDUINO: " <> inspect(code))
     {:noreply, state}
   end
 
   def handle_call(code, _from, state) do
     str = GCODE.encode(code)
     r = UartDefaultAdapter.write(state.uart, str)
-    IO.puts("=== TO ARDUINO: " <> inspect(code))
     {:reply, r, state}
   end
 

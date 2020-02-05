@@ -27,6 +27,11 @@ defmodule FarmbotOS.Configurator.RouterTest do
     raise "expected redirection with status #{status}, got: #{conn.status}"
   end
 
+  defp get_con(path) do
+    conn = conn(:get, path)
+    Router.call(conn, @opts)
+  end
+
   test "index after reset" do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
@@ -39,9 +44,6 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   test "redirects" do
-    FarmbotOS.Configurator.ConfigDataLayer
-    |> expect(:load_last_reset_reason, fn -> "whoops!" end)
-
     redirects = [
       "/check_network_status.txt",
       "/connecttest.txt",
@@ -362,5 +364,37 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     assert conn.status == 500
+  end
+
+  test "/scheduler_debugger" do
+    kon = get_con("/scheduler_debugger")
+    assert String.contains?(kon.resp_body, "scheduler_debugger.js")
+    assert String.contains?(kon.resp_body, "<title>Scheduler Debugger</title>")
+  end
+
+  test "/logger" do
+    kon = get_con("/logger")
+
+    words = [
+      "DateTime",
+      "Function",
+      "Level",
+      "Message",
+      "Module",
+      "Src"
+    ]
+
+    Enum.map(words, fn word ->
+      assert String.contains?(kon.resp_body, word)
+    end)
+  end
+
+  test "/api/telemetry/cpu_usage" do
+    {:ok, json} = Jason.decode(get_con("/api/telemetry/cpu_usage").resp_body)
+    assert Enum.count(json) == 10
+    zero = Enum.at(json, 0)
+    assert(is_binary(zero["class"]))
+    assert(is_binary(zero["timestamp"]))
+    assert(is_integer(zero["value"]))
   end
 end
