@@ -5,8 +5,8 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
   alias FarmbotOS.Configurator.ConfigDataLayer
 
   @fake_params %{
-    "auth_config_email" => "test@test.com",
-    "auth_config_password" => "password123",
+    "auth_config_email" => System.get_env("FARMBOT_EMAIL", "test@test.com"),
+    "auth_config_password" => System.get_env("FARMBOT_PASSWORD", "password123"),
     "auth_config_server" =>
       System.get_env("FARMBOT_SERVER", "http://localhost:3000"),
     "ifname" => "eth0",
