@@ -1,6 +1,6 @@
 PREFIX=$(PWD)/priv
-BUILD=$(PWD)/_build
 ARDUINO_SRC_DIR=$(PWD)/c_src/farmbot-arduino-firmware
+BUILD=$(ARDUINO_SRC_DIR)/_build
 
 .PHONY: all clean fbos_arduino_firmware
 
