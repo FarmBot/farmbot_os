@@ -2,5 +2,6 @@
   "skip_files": [
     "lib/farmbot_celery_script/compiler/tools.ex"
   ],
+  "minimum_coverage": 53,
   "treat_no_relevant_lines_as_covered": true
 }
