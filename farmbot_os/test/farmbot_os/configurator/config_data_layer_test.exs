@@ -72,14 +72,32 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
       assert expected == network_params
     end)
     |> expect(:update_config_value, 7, fn
-      :string, "authorization", "email", "test@test.com" -> :ok
-      :string, "authorization", "password", "password123" -> :ok
-      :string, "authorization", "server", "http://localhost:3000" -> :ok
-      :string, "settings", "default_dns_name", nil -> :ok
-      :string, "settings", "default_ntp_server_1", nil -> :ok
-      :string, "settings", "default_ntp_server_2", nil -> :ok
-      :string, "authorization", "secret", nil -> :ok
-      _, _, _, _ -> raise "NEVER"
+      :string, "authorization", "email", email ->
+        assert email == @fake_params["auth_config_email"]
+        :ok
+
+      :string, "authorization", "password", pass ->
+        assert pass == @fake_params["auth_config_password"]
+        :ok
+
+      :string, "authorization", "server", server ->
+        assert server == @fake_params["auth_config_server"]
+        :ok
+
+      :string, "settings", "default_dns_name", nil ->
+        :ok
+
+      :string, "settings", "default_ntp_server_1", nil ->
+        :ok
+
+      :string, "settings", "default_ntp_server_2", nil ->
+        :ok
+
+      :string, "authorization", "secret", nil ->
+        :ok
+
+      _, _, _, _ ->
+        raise "NEVER"
     end)
 
     assert :ok == ConfigDataLayer.save_config(@fake_params)
