@@ -19,3 +19,4 @@ erl_crash.dump
 auth_secret.exs
 log
 *.csv
+*.coverdata

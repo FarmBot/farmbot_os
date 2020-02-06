@@ -3,7 +3,6 @@ defmodule FarmbotCore.FarmwareRuntime do
   Handles execution of Farmware plugins.
   """
 
-  alias Avrdude.MuonTrapAdapter
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
@@ -113,8 +112,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     # Start the plugin.
     Logger.debug("spawning farmware: #{exec} #{manifest.args}")
 
-    {cmd, _} =
-      spawn_monitor(MuonTrapAdapter, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
       caller: caller,

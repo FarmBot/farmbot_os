@@ -31,11 +31,6 @@ defmodule FarmbotCeleryScript.AST.Factory do
     )
   end
 
-  def dump_info(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:dump_info))
-  end
-
   def emergency_lock(%AST{} = ast) do
     ast
     |> add_body_node(new(:emergency_lock))

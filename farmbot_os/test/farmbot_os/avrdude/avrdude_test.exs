@@ -21,7 +21,7 @@ defmodule FarmbotOs.AvrdudeTest do
   test "works" do
     File.touch("/tmp/wow")
 
-    expect(Avrdude.MuonTrapAdapter, :cmd, fn cmd, args, opts ->
+    expect(MuonTrap, :cmd, 1, fn cmd, args, opts ->
       assert cmd == "avrdude"
 
       assert args == [
@@ -52,7 +52,7 @@ defmodule FarmbotOs.AvrdudeTest do
   test "handles /dev file names, also" do
     File.touch("/tmp/wow")
 
-    expect(Avrdude.MuonTrapAdapter, :cmd, fn cmd, args, opts ->
+    expect(MuonTrap, :cmd, 1, fn cmd, args, opts ->
       assert cmd == "avrdude"
 
       assert args == [

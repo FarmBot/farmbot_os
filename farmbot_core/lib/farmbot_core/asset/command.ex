@@ -4,6 +4,7 @@ defmodule FarmbotCore.Asset.Command do
   """
   require Logger
   alias FarmbotCore.{Asset, Asset.Repo}
+
   alias FarmbotCore.Asset.{
     Device,
     FarmEvent,
@@ -44,31 +45,31 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update(Device, _id, params) do 
+  def update(Device, _id, params) do
     Asset.update_device!(params)
     :ok
   end
 
-  def update(FbosConfig, id, nil) do 
+  def update(FbosConfig, id, nil) do
     Asset.delete_fbos_config!(id)
     :ok
   end
 
-  def update(FbosConfig, _id, params) do 
+  def update(FbosConfig, _id, params) do
     Asset.update_fbos_config!(params)
     :ok
   end
 
-  def update(FirmwareConfig, id, nil) do 
+  def update(FirmwareConfig, id, nil) do
     Asset.delete_firmware_config!(id)
     :ok
   end
-  
-  def update(FirmwareConfig, _id, params) do 
+
+  def update(FirmwareConfig, _id, params) do
     Asset.update_firmware_config!(params)
     :ok
   end
-  
+
   # Deletion use case:
   # TODO(Connor) put checks for deleting Device, FbosConfig and FirmwareConfig
 
@@ -96,12 +97,12 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  def update(FarmwareEnv, id, params) do 
+  def update(FarmwareEnv, id, params) do
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
   end
-  
-  def update(FarmwareInstallation, id, params) do 
+
+  def update(FarmwareInstallation, id, params) do
     Asset.upsert_farmware_manifest_by_id(id, params)
     :ok
   end
@@ -112,15 +113,17 @@ defmodule FarmbotCore.Asset.Command do
 
   def update(FarmEvent, id, params) do
     old = Asset.get_farm_event(id)
-    if old, 
-      do: Asset.update_farm_event!(old, params), 
+
+    if old,
+      do: Asset.update_farm_event!(old, params),
       else: Asset.new_farm_event!(params)
-    
+
     :ok
   end
 
   def update(PublicKey, id, params) do
     old = Asset.get_public_key(id)
+
     if old,
       do: Asset.update_public_key!(old, params),
       else: Asset.new_public_key!(params)
@@ -130,33 +133,37 @@ defmodule FarmbotCore.Asset.Command do
 
   def update(Regimen, id, params) do
     old = Asset.get_regimen(id)
-    if old, 
-      do: Asset.update_regimen!(old, params), 
+
+    if old,
+      do: Asset.update_regimen!(old, params),
       else: Asset.new_regimen!(params)
-    
+
     :ok
   end
 
   def update(Sensor, id, params) do
     old = Asset.get_sensor(id)
-    if old, 
-      do: Asset.update_sensor!(old, params), 
+
+    if old,
+      do: Asset.update_sensor!(old, params),
       else: Asset.new_sensor!(params)
-    
+
     :ok
   end
 
   def update(SensorReading, id, params) do
     old = Asset.get_sensor_reading(id)
-    if old, 
-      do: Asset.update_sensor_reading!(old, params), 
+
+    if old,
+      do: Asset.update_sensor_reading!(old, params),
       else: Asset.new_sensor_reading!(params)
-    
+
     :ok
   end
 
   def update(Sequence, id, params) do
     old = Asset.get_sequence(id)
+
     if old,
       do: Asset.update_sequence!(old, params),
       else: Asset.new_sequence!(params)
@@ -172,6 +179,7 @@ defmodule FarmbotCore.Asset.Command do
 
   def update(PointGroup, id, params) do
     old = Asset.get_point_group(id: id)
+
     if old,
       do: Asset.update_point_group!(old, params),
       else: Asset.new_point_group!(params)
@@ -181,8 +189,9 @@ defmodule FarmbotCore.Asset.Command do
 
   # Catch-all use case:
   def update(asset_kind, id, params) do
-    Logger.warn "AssetCommand needs implementation: #{asset_kind}"
+    Logger.warn("AssetCommand needs implementation: #{asset_kind}")
     mod = as_module!(asset_kind)
+
     case Repo.get_by(mod, id: id) do
       nil ->
         struct!(mod)
@@ -205,28 +214,27 @@ defmodule FarmbotCore.Asset.Command do
     mod.changeset(asset, params)
   end
 
-  defp as_module!("Device"), do: Asset.Device 
-  defp as_module!("DiagnosticDump"), do: Asset.DiagnosticDump 
-  defp as_module!("FarmEvent"), do: Asset.FarmEvent 
-  defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv 
-  defp as_module!("FirstPartyFarmware"), do: Asset.FirstPartyFarmware 
-  defp as_module!("FarmwareInstallation"), do: Asset.FarmwareInstallation 
-  defp as_module!("FbosConfig"), do: Asset.FbosConfig 
-  defp as_module!("FirmwareConfig"), do: Asset.FirmwareConfig 
-  defp as_module!("Peripheral"), do: Asset.Peripheral 
-  defp as_module!("PinBinding"), do: Asset.PinBinding 
-  defp as_module!("Point"), do: Asset.Point 
-  defp as_module!("PointGroup"), do: Asset.PointGroup 
-  defp as_module!("Regimen"), do: Asset.Regimen 
-  defp as_module!("Sensor"), do: Asset.Sensor 
-  defp as_module!("SensorReading"), do: Asset.SensorReading 
-  defp as_module!("Sequence"), do: Asset.Sequence 
-  defp as_module!("Tool"), do: Asset.Tool 
+  defp as_module!("Device"), do: Asset.Device
+  defp as_module!("FarmEvent"), do: Asset.FarmEvent
+  defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv
+  defp as_module!("FirstPartyFarmware"), do: Asset.FirstPartyFarmware
+  defp as_module!("FarmwareInstallation"), do: Asset.FarmwareInstallation
+  defp as_module!("FbosConfig"), do: Asset.FbosConfig
+  defp as_module!("FirmwareConfig"), do: Asset.FirmwareConfig
+  defp as_module!("Peripheral"), do: Asset.Peripheral
+  defp as_module!("PinBinding"), do: Asset.PinBinding
+  defp as_module!("Point"), do: Asset.Point
+  defp as_module!("PointGroup"), do: Asset.PointGroup
+  defp as_module!("Regimen"), do: Asset.Regimen
+  defp as_module!("Sensor"), do: Asset.Sensor
+  defp as_module!("SensorReading"), do: Asset.SensorReading
+  defp as_module!("Sequence"), do: Asset.Sequence
+  defp as_module!("Tool"), do: Asset.Tool
 
   defp as_module!(module) when is_atom(module) do
     as_module!(List.last(Module.split(module)))
   end
-  
+
   defp as_module!(kind) when is_binary(kind) do
     raise("""
     Unknown kind: #{kind}

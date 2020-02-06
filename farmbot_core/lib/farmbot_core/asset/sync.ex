@@ -41,7 +41,6 @@ defmodule FarmbotCore.Asset.Sync do
     embeds_many(:devices, Item)
     embeds_many(:firmware_configs, Item)
     embeds_many(:fbos_configs, Item)
-    embeds_many(:diagnostic_dumps, Item)
     embeds_many(:farm_events, Item)
     embeds_many(:farmware_envs, Item)
     embeds_many(:first_party_farmwares, Item)
@@ -65,7 +64,6 @@ defmodule FarmbotCore.Asset.Sync do
       devices: Enum.map(sync.device, &Item.render/1),
       fbos_configs: Enum.map(sync.fbos_config, &Item.render/1),
       firmware_configs: Enum.map(sync.firmware_config, &Item.render/1),
-      diagnostic_dumps: Enum.map(sync.diagnostic_dumps, &Item.render/1),
       farm_events: Enum.map(sync.farm_events, &Item.render/1),
       farmware_envs: Enum.map(sync.farmware_envs, &Item.render/1),
       first_party_farmwares: Enum.map(sync.first_party_farmwares, &Item.render/1),
@@ -90,7 +88,6 @@ defmodule FarmbotCore.Asset.Sync do
     |> cast_embed(:devices)
     |> cast_embed(:fbos_configs)
     |> cast_embed(:firmware_configs)
-    |> cast_embed(:diagnostic_dumps)
     |> cast_embed(:farm_events)
     |> cast_embed(:farmware_envs)
     |> cast_embed(:farmware_installations)
