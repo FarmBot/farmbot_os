@@ -82,9 +82,15 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "R"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("arduino")
+      [_, _, _, "R", _] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("arduino")
 
       # Farmduino
       [_, _, _, "F"] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("farmduino")
+      [_, _, _, "F", _] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino")
 
@@ -92,9 +98,15 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "G"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k14")
+      [_, _, _, "G", _] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("farmduino_k14")
 
       # Farmduino V15
       [_, _, _, "H"] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("farmduino_k15")
+      [_, _, _, "H", _] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("farmduino_k15")
 
@@ -102,8 +114,15 @@ defmodule FarmbotCore.FirmwareSideEffects do
       [_, _, _, "E"] ->
         _ = Leds.red(:solid)
         :ok = BotState.set_firmware_hardware("express_k10")
+      [_, _, _, "E", _] ->
+        _ = Leds.red(:solid)
+        :ok = BotState.set_firmware_hardware("express_k10")
 
       [_, _, _, "S"] ->
+        _ = Leds.red(:slow_blink)
+        :ok = BotState.set_firmware_version("none")
+        :ok = BotState.set_firmware_hardware("none")
+      [_, _, _, "S", _] ->
         _ = Leds.red(:slow_blink)
         :ok = BotState.set_firmware_version("none")
         :ok = BotState.set_firmware_hardware("none")

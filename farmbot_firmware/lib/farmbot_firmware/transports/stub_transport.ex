@@ -215,7 +215,7 @@ defmodule FarmbotFirmware.StubTransport do
     resp_codes = [
       GCODE.new(:report_echo, [GCODE.encode(code)]),
       GCODE.new(:report_begin, [], tag),
-      GCODE.new(:report_software_version, ["8.0.0.S"]),
+      GCODE.new(:report_software_version, ["8.0.0.S.stub"]),
       GCODE.new(:report_success, [], tag)
     ]
 
