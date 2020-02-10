@@ -23,7 +23,7 @@
     <label for="ssh_key"> id_rsa.pub </label>
     <input type="text" id="ssh_key" name="ssh_key" value="">
 
-    <label for="dns_name"> DNS test name </label>
+    <label for="dns_name"> Domain for verifying DNS (eg: "my.farm.bot")</label>
     <input type="text" id="dns_name" name="dns_name" value="">
 
     <label for="ntp_server_1"> NTP Pool Server 1 </label>

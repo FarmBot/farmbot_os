@@ -69,39 +69,10 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def move_absolute(x, y, z, speed) do
-    do_move_absolute(x, y, z, speed, max_retries())
+    do_move_absolute(x, y, z, speed)
   end
 
-  defp do_move_absolute(x, y, z, speed, retries, errors \\ [])
-
-  # This is the final attempt before movement is aborted.
-  defp do_move_absolute(x, y, z, speed, 0, errors) do
-    with {:ok, speed_x} <- param_read(:movement_max_spd_x),
-         {:ok, speed_y} <- param_read(:movement_max_spd_y),
-         {:ok, speed_z} <- param_read(:movement_max_spd_z),
-         params <- [
-           x: x / 1.0,
-           y: y / 1.0,
-           z: z / 1.0,
-           a: speed / 100 * (speed_x || 1),
-           b: speed / 100 * (speed_y || 1),
-           c: speed / 100 * (speed_z || 1)
-         ],
-         :ok <- FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok
-    else
-      {:error, reason} ->
-        errors =
-          [reason | errors]
-          |> Enum.reverse()
-          |> Enum.map(&inspect/1)
-          |> Enum.join(", ")
-
-        {:error, "movement error(s): #{errors}"}
-    end
-  end
-
-  defp do_move_absolute(x, y, z, speed, retries, errors) do
+  defp do_move_absolute(x, y, z, speed) do
     with {:ok, speed_x} <- param_read(:movement_max_spd_x),
          {:ok, speed_y} <- param_read(:movement_max_spd_y),
          {:ok, speed_z} <- param_read(:movement_max_spd_z),
@@ -120,13 +91,16 @@ defmodule FarmbotOS.SysCalls.Movement do
         {:error, "emergency_lock"}
 
       {:error, reason} ->
-        FarmbotCore.Logger.error(
-          1,
-          "Movement failed. Retrying up to #{retries} more time(s)"
-        )
+        handle_movement_error(reason)
 
-        do_move_absolute(x, y, z, speed, retries - 1, [reason | errors])
+      reason ->
+        handle_movement_error(reason)
     end
+  end
+
+  def handle_movement_error(reason) do
+    msg = "Movement failed. #{inspect(reason)}"
+    FarmbotCore.Logger.error(1, msg)
   end
 
   def calibrate(axis) do
@@ -173,13 +147,6 @@ defmodule FarmbotOS.SysCalls.Movement do
     end
   end
 
-  defp max_retries do
-    case param_read(:param_mov_nr_retry) do
-      {:ok, nr} -> floor(nr)
-      _ -> 3
-    end
-  end
-
   defp assert_axis!(axis) when is_atom(axis),
     do: axis
 
@@ -187,7 +154,6 @@ defmodule FarmbotOS.SysCalls.Movement do
     do: String.to_existing_atom(axis)
 
   defp assert_axis!(axis) do
-    # {:error, "unknown axis #{axis}"}
     raise("unknown axis #{axis}")
   end
 end
