@@ -34,7 +34,6 @@ config :nerves, :firmware,
 config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 5_000
 
 config :farmbot_core, FarmbotCore.EctoMigrator,
-  expected_fw_versions: ["6.4.2.F", "6.4.2.R", "6.4.2.G"],
   default_firmware_io_logs: false,
   default_server: "https://my.farm.bot",
   default_ntp_server_1: "0.pool.ntp.org",
