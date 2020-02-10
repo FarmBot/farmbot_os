@@ -19,4 +19,29 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
 
     assert true == lua("update device test", lua_code)
   end
+
+  test "get_device/0" do
+    fake_device = %{fake: :device}
+    expect(FarmbotCore.Asset, :device, 1, fn -> fake_device end)
+    expect(FarmbotCore.Asset.Device, :render, 1, fn dev -> dev end)
+
+    lua_code = """
+    get_device()
+    return true
+    """
+
+    assert true == lua("get device test", lua_code)
+  end
+
+  test "get_device/1" do
+    fake_device = %{name: "my farmbot", id: 23}
+    expect(FarmbotCore.Asset, :device, 1, fn -> fake_device end)
+    expect(FarmbotCore.Asset.Device, :render, 1, fn dev -> dev end)
+
+    lua_code = """
+    return get_device("id") == 23
+    """
+
+    assert true == lua("get device test", lua_code)
+  end
 end
