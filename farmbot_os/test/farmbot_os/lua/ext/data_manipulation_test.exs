@@ -57,4 +57,27 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
 
     assert true == lua("update_fbos_config test", lua_code)
   end
+
+  test "get_fbos_config/1" do
+    fake_config = %{id: 47}
+    expect(FarmbotCore.Asset, :fbos_config, 1, fn -> fake_config end)
+    expect(FarmbotCore.Asset.FbosConfig, :render, 1, fn params -> params end)
+
+    lua_code = "return 47 == get_fbos_config(\"id\")"
+
+    assert true == lua("get_fbos_config", lua_code)
+  end
+
+  test "get_fbos_config/0" do
+    fake_config = %{id: 47, foo: "bar"}
+    expect(FarmbotCore.Asset, :fbos_config, 1, fn -> fake_config end)
+    expect(FarmbotCore.Asset.FbosConfig, :render, 1, fn params -> params end)
+
+    lua_code = """
+    c = get_fbos_config()
+    return (c.id == 47) and (c.foo == "bar")
+    """
+
+    assert true == lua("get_fbos_config/1", lua_code)
+  end
 end
