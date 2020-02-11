@@ -154,8 +154,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   end
 
   def handle_info({:step_complete, ref, :ok}, %{scheduler_ref: ref} = state) do
-    label = UUID.uuid4()
-    result = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
+    result = %AST{kind: :rpc_ok, args: %{label: state.rpc.args.label}, body: []}
 
     ipc = add_header(result)
     _reply = PipeWorker.write(state.response_pipe_handle, ipc)
