@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Platform.Target.Configurator.Validator do
   @moduledoc """
-  VintageNet.Technology that handles turning Farmbot's internal 
-  network representation into either a VintageNetEthernet 
+  VintageNet.Technology that handles turning Farmbot's internal
+  network representation into either a VintageNetEthernet
   or VintageNetWiFi RawConfig.
   """
 
@@ -71,9 +71,8 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
 
   defp to_ipv4(%{
          ipv4_method: "static",
-         # TODO(Connor) fix nameservers
-         # name_servers: name_servers,
-         # domain: domain,
+         name_servers: name_servers,
+         domain: domain,
          ipv4_address: ipv4_address,
          ipv4_gateway: ipv4_gateway,
          ipv4_subnet_mask: ipv4_subnet_mask
@@ -82,7 +81,9 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       method: :static,
       address: ipv4_address,
       netmask: ipv4_subnet_mask,
-      gateway: ipv4_gateway
+      gateway: ipv4_gateway,
+      name_servers: name_servers,
+      domain: domain
     }
   end
 
