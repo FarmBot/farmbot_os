@@ -28,11 +28,8 @@ defmodule FarmbotFirmware.PackageUtils do
   end
 
   def find_hex_file("none") do
-    IO.puts("Selected `none` firmware. This is a no-op.")
-    # Abort entire flash process because the
-    # user selected "none" as their firmware.
-
-    {:error, :the_user_selected_none_for_firmware}
+    Application.app_dir(:farmbot_firmware, ["priv", "eeprom_clear.ino.hex"])
+    |> assert_exists()
   end
 
   def find_hex_file(hardware) when is_binary(hardware),
