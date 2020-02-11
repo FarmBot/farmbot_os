@@ -71,7 +71,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     _ = maybe_hack_tzdata()
     _ = init_net_kernel()
     send(self(), :setup)
-    # If a secret exists, assume that 
+    # If a secret exists, assume that
     # farmbot at one point has been connected to the internet
     first_connect? = is_first_connect?()
 
@@ -136,9 +136,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
         vintage_net_config = to_vintage_net(config)
 
-        FarmbotTelemetry.event(:network, :interface_configure, nil,
-          interface: ifname
-        )
+        FarmbotTelemetry.event(:network, :interface_configure, nil, interface: ifname)
 
         configure_result = VintageNet.configure(config.name, vintage_net_config)
 
@@ -164,9 +162,7 @@ defmodule FarmbotOS.Platform.Target.Network do
       "Interface #{ifname} disconnected from access point"
     )
 
-    FarmbotTelemetry.event(:network, :interface_disconnect, nil,
-      interface: ifname
-    )
+    FarmbotTelemetry.event(:network, :interface_disconnect, nil, interface: ifname)
 
     state = start_network_not_found_timer(state)
     {:noreply, state}
@@ -183,8 +179,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan,
-         _meta},
+        {VintageNet, ["interface", ifname, "connection"], :disconnected, :lan, _meta},
         state
       ) do
     FarmbotCore.Logger.warn(
@@ -197,8 +192,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :lan, :internet,
-         _meta},
+        {VintageNet, ["interface", ifname, "connection"], :lan, :internet, _meta},
         state
       ) do
     FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
@@ -208,8 +202,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", ifname, "connection"], :internet, ifstate,
-         _meta},
+        {VintageNet, ["interface", ifname, "connection"], :internet, ifstate, _meta},
         state
       ) do
     FarmbotCore.Logger.warn(
@@ -229,16 +222,15 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", _, "wifi", "access_points"], _old, _new,
-         _meta},
+        {VintageNet, ["interface", _, "wifi", "access_points"], _old, _new, _meta},
         state
       ) do
     {:noreply, state}
   end
 
   def handle_info(
-        {VintageNet, ["interface", _ifname, "eap_status"], _old,
-         %{status: :success} = eap_status, _meta},
+        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :success} = eap_status,
+         _meta},
         state
       ) do
     FarmbotCore.Logger.debug(3, """
@@ -250,8 +242,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info(
-        {VintageNet, ["interface", _ifname, "eap_status"], _old,
-         %{status: :failure}, _meta},
+        {VintageNet, ["interface", _ifname, "eap_status"], _old, %{status: :failure}, _meta},
         state
       ) do
     FarmbotCore.Logger.error(1, """
@@ -260,7 +251,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     """)
 
     FarmbotOS.System.factory_reset("""
-    Farmbot was unable to assosiate with the EAP network. 
+    Farmbot was unable to assosiate with the EAP network.
     Please check the identity, password and method of connection
     """)
 
@@ -270,11 +261,11 @@ defmodule FarmbotOS.Platform.Target.Network do
   def handle_info({VintageNet, property, old, new, _meta}, state) do
     Logger.debug("""
     Unknown property change: #{inspect(property)}
-    old: 
+    old:
 
     #{inspect(old, limit: :infinity)}
 
-    new: 
+    new:
 
     #{inspect(new, limit: :infinity)}
     """)
@@ -284,12 +275,12 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def handle_info({:network_not_found_timer, minutes}, state) do
     FarmbotCore.Logger.warn(1, """
-    Farmbot has been disconnected from the network for 
+    Farmbot has been disconnected from the network for
     #{minutes} minutes. Going down for factory reset.
     """)
 
     FarmbotOS.System.factory_reset("""
-    Farmbot has been disconnected from the network for 
+    Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
 
@@ -332,8 +323,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     minutes = network_not_found_timer_minutes(state)
     millis = minutes * 60000
 
-    new_timer =
-      Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
+    new_timer = Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
 
     FarmbotCore.Logger.warn(
       1,
@@ -356,11 +346,9 @@ defmodule FarmbotOS.Platform.Target.Network do
   def reset_ntp do
     FarmbotTelemetry.event(:ntp, :reset)
 
-    ntp_server_1 =
-      Config.get_config_value(:string, "settings", "default_ntp_server_1")
+    ntp_server_1 = Config.get_config_value(:string, "settings", "default_ntp_server_1")
 
-    ntp_server_2 =
-      Config.get_config_value(:string, "settings", "default_ntp_server_2")
+    ntp_server_2 = Config.get_config_value(:string, "settings", "default_ntp_server_2")
 
     if ntp_server_1 || ntp_server_2 do
       Logger.info("Setting NTP servers: [#{ntp_server_1}, #{ntp_server_2}]")
