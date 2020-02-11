@@ -5,6 +5,8 @@ defmodule FarmbotFirmware.ParamTest do
   test "to_human()" do
     float_value = 1.23
     seconds = "(seconds)"
+    steps = "(steps)"
+    steps_per_s = "(steps/s)"
     steps_per_mm = "(steps/mm)"
 
     assert Param.to_human(:param_test, 1) ==
@@ -98,31 +100,31 @@ defmodule FarmbotFirmware.ParamTest do
              {"steps per mm, z-axis", steps_per_mm, "1.2"}
 
     assert Param.to_human(:movement_min_spd_x, float_value) ==
-             {"minimum speed, x-axis", steps_per_mm, "1.2"}
+             {"minimum speed, x-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_min_spd_y, float_value) ==
-             {"minimum speed, y-axis", steps_per_mm, "1.2"}
+             {"minimum speed, y-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_min_spd_z, float_value) ==
-             {"minimum speed, z-axis", steps_per_mm, "1.2"}
+             {"minimum speed, z-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_home_spd_x, float_value) ==
-             {"homing speed, x-axis", steps_per_mm, "1.2"}
+             {"homing speed, x-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_home_spd_y, float_value) ==
-             {"homing speed, y-axis", steps_per_mm, "1.2"}
+             {"homing speed, y-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_home_spd_z, float_value) ==
-             {"homing speed, z-axis", steps_per_mm, "1.2"}
+             {"homing speed, z-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_max_spd_x, float_value) ==
-             {"max speed, x-axis", steps_per_mm, "1.2"}
+             {"max speed, x-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_max_spd_y, float_value) ==
-             {"max speed, y-axis", steps_per_mm, "1.2"}
+             {"max speed, y-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_max_spd_z, float_value) ==
-             {"max speed, z-axis", steps_per_mm, "1.2"}
+             {"max speed, z-axis", steps_per_s, "1.2"}
 
     assert Param.to_human(:movement_invert_2_endpoints_x, 1) ==
              {"invert endstops, x-axis", nil, true}
@@ -133,14 +135,14 @@ defmodule FarmbotFirmware.ParamTest do
     assert Param.to_human(:movement_invert_2_endpoints_z, 1) ==
              {"invert endstops, z-axis", nil, true}
 
-    assert Param.to_human(:encoder_enabled_x, 1)
-    {"enable encoders, x-axis", nil, true}
+    assert Param.to_human(:encoder_enabled_x, 1) ==
+             {"enable encoders / stall detection, x-axis", nil, true}
 
-    assert Param.to_human(:encoder_enabled_y, 1)
-    {"enable encoders, y-axis", nil, true}
+    assert Param.to_human(:encoder_enabled_y, 1) ==
+             {"enable encoders / stall detection, y-axis", nil, true}
 
-    assert Param.to_human(:encoder_enabled_z, 1)
-    {"enable encoders, z-axis", nil, true}
+    assert Param.to_human(:encoder_enabled_z, 1) ==
+             {"enable encoders / stall detection, z-axis", nil, true}
 
     assert Param.to_human(:encoder_type_x, float_value) ==
              {"encoder type, x-axis", nil, "1.2"}
@@ -161,13 +163,13 @@ defmodule FarmbotFirmware.ParamTest do
              {"encoder scaling, z-axis", nil, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_x, float_value) ==
-             {"encoder missed steps decay, x-axis", nil, "1.2"}
+             {"missed step decay, x-axis", @steps, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_y, float_value) ==
-             {"encoder missed steps decay, y-axis", nil, "1.2"}
+             {"missed step decay, y-axis", @steps, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_z, float_value) ==
-             {"encoder missed steps decay, z-axis", nil, "1.2"}
+             {"missed step decay, z-axis", @steps, "1.2"}
 
     assert Param.to_human(:encoder_use_for_pos_x, 1) ==
              {"use encoders for positioning, x-axis", nil, true}
@@ -178,14 +180,14 @@ defmodule FarmbotFirmware.ParamTest do
     assert Param.to_human(:encoder_use_for_pos_z, 1) ==
              {"use encoders for positioning, z-axis", nil, true}
 
-    assert Param.to_human(:encoder_invert_x, 1)
-    {"invert encoders, x-axis", nil, true}
+    assert Param.to_human(:encoder_invert_x, 1) ==
+             {"invert encoders, x-axis", nil, true}
 
-    assert Param.to_human(:encoder_invert_y, 1)
-    {"invert encoders, y-axis", nil, true}
+    assert Param.to_human(:encoder_invert_y, 1) ==
+             {"invert encoders, y-axis", nil, true}
 
-    assert Param.to_human(:encoder_invert_z, 1)
-    {"invert encoders, z-axis", nil, true}
+    assert Param.to_human(:encoder_invert_z, 1) ==
+             {"invert encoders, z-axis", nil, true}
 
     assert Param.to_human(:movement_stop_at_max_x, 1) ==
              {"stop at max, x-axis", nil, true}
