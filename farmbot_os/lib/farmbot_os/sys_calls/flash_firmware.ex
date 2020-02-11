@@ -33,7 +33,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
       %{
-        # firmware_hardware: package, 
+        # firmware_hardware: package,
         firmware_path: tty
       }
       |> Asset.update_fbos_config!()
@@ -41,6 +41,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
       :ok
     else
+      {:error, :the_user_selected_none_for_firmware} ->
+        # Abort entire flash process because the
+        # user selected "none" as their firmware.
+        :ok
+
       {:error, reason} when is_binary(reason) ->
         {:error, reason}
 

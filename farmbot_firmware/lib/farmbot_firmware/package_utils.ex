@@ -27,6 +27,14 @@ defmodule FarmbotFirmware.PackageUtils do
     |> assert_exists()
   end
 
+  def find_hex_file("none") do
+    IO.puts("Selected `none` firmware. This is a no-op.")
+    # Abort entire flash process because the
+    # user selected "none" as their firmware.
+
+    {:error, :the_user_selected_none_for_firmware}
+  end
+
   def find_hex_file(hardware) when is_binary(hardware),
     do: {:error, "unknown firmware hardware: #{hardware}"}
 
