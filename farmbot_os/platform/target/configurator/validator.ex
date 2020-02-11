@@ -82,9 +82,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       address: ipv4_address,
       netmask: ipv4_subnet_mask,
       gateway: ipv4_gateway,
-      # TYPO Warning! VintageNet says "nameservers", we (erroneously) say
-      # "name_servers". Be mindful of this.
-      nameservers: name_servers,
+      name_servers: name_servers,
       domain: domain
     }
   end

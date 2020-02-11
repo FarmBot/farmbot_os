@@ -1,5 +1,8 @@
 Application.ensure_all_started(:mimic)
 Mimic.copy(FarmbotCore.Asset)
+Mimic.copy(FarmbotCore.Asset.Device)
+Mimic.copy(FarmbotCore.Asset.FbosConfig)
+Mimic.copy(FarmbotCore.Asset.FirmwareConfig)
 Mimic.copy(FarmbotCore.Config)
 Mimic.copy(FarmbotCore.FarmwareRuntime)
 Mimic.copy(FarmbotCore.LogExecutor)
