@@ -102,8 +102,7 @@ defmodule FarmbotOS.MixProject do
 
       # Host/test only dependencies.
       {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
       {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false},
       {:elixir_make, "~> 0.6", runtime: false},
 
@@ -118,14 +117,13 @@ defmodule FarmbotOS.MixProject do
       {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
       {:circuits_i2c, "~> 0.3.5", targets: @all_targets},
       {:toolshed, "~> 0.2", targets: @all_targets},
-      {:vintage_net, "~> 0.7", targets: @all_targets},
+      {:vintage_net, "~> 0.7.5", targets: @all_targets},
       {:vintage_net_ethernet, "~> 0.7.0", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.7.0", targets: @all_targets},
       {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
       {:mdns_lite, "~> 0.6.1", targets: @all_targets},
       {:busybox, "~> 0.1.4", targets: @all_targets},
-      {:farmbot_system_rpi3, "1.10.0-farmbot.1",
-       runtime: false, targets: :rpi3},
+      {:farmbot_system_rpi3, "1.10.0-farmbot.1", runtime: false, targets: :rpi3},
       {:farmbot_system_rpi, "1.10.0-farmbot.1", runtime: false, targets: :rpi}
     ]
   end

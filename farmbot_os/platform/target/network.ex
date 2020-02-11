@@ -135,6 +135,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
+        FarmbotCore.Logger.info(3, inspect(vintage_net_config))
 
         FarmbotTelemetry.event(:network, :interface_configure, nil, interface: ifname)
 
