@@ -6,7 +6,7 @@ defmodule FarmbotFirmware.NullReset do
   use GenServer
 
   @impl FarmbotFirmware.Reset
-  def reset(_server \\ __MODULE__), do: :ok
+  def reset(), do: :ok
 
   @impl GenServer
   def init(_args) do

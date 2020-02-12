@@ -61,11 +61,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp find_reset_fun("express_k10") do
     FarmbotCore.Logger.debug(3, "Using special reset function for express")
-    &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/1
+    &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/0
   end
 
   defp find_reset_fun(_) do
     FarmbotCore.Logger.debug(3, "Using default reset function")
-    &FarmbotFirmware.NullReset.reset/1
+    &FarmbotFirmware.NullReset.reset/0
   end
 end
