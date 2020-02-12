@@ -162,7 +162,9 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
     - run:
         name: Sign Image
         working_directory: /nerves/build/farmbot_os
-        command: mix nerves_hub.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+        command: |
+          mix deps.get
+          mix nerves_hub.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
     - run:
         name: Publish to NervesHub
         working_directory: /nerves/build/farmbot_os

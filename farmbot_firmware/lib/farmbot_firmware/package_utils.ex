@@ -27,6 +27,11 @@ defmodule FarmbotFirmware.PackageUtils do
     |> assert_exists()
   end
 
+  def find_hex_file("none") do
+    Application.app_dir(:farmbot_firmware, ["priv", "eeprom_clear.ino.hex"])
+    |> assert_exists()
+  end
+
   def find_hex_file(hardware) when is_binary(hardware),
     do: {:error, "unknown firmware hardware: #{hardware}"}
 
