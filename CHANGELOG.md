@@ -1,5 +1,13 @@
 # Changelog
 
+# 9.0.4
+
+ * Bug fix for slow Farmware execution (Thanks, @jsimmonds2)
+ * Dependency upgrades
+ * Upgrade VintageNet (networking library)
+ * Removal of `dump_info` RPCs
+ * Numerous internal improvements, such as increasing test coverage and changing dependency injection scheme.
+
 # 9.0.3
 
  * Dependency updates
