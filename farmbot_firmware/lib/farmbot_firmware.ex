@@ -444,7 +444,9 @@ defmodule FarmbotFirmware do
   # the `configuration_queue` and in the `command_queue`.
   def handle_call(:close_transport, _from, %{status: s} = state)
       when s != :transport_boot do
-    true = Process.demonitor(state.transport_ref)
+    if is_reference(state.transport_ref) do
+      true = Process.demonitor(state.transport_ref)
+    end
     :ok = GenServer.stop(state.transport_pid, :normal)
 
     next_state =
