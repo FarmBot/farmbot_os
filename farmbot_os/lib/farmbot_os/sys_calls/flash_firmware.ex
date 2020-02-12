@@ -32,7 +32,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
       FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
-      %{ firmware_path: tty }
+      %{firmware_path: tty}
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
 
@@ -61,11 +61,13 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp find_reset_fun("express_k10") do
     FarmbotCore.Logger.debug(3, "Using special reset function for express")
-    &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/0
+    fun = &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/0
+    {:ok, fun}
   end
 
   defp find_reset_fun(_) do
     FarmbotCore.Logger.debug(3, "Using default reset function")
-    &FarmbotFirmware.NullReset.reset/0
+    fun = &FarmbotFirmware.NullReset.reset/0
+    {:ok, fun}
   end
 end
