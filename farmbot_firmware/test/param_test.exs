@@ -163,13 +163,13 @@ defmodule FarmbotFirmware.ParamTest do
              {"encoder scaling, z-axis", nil, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_x, float_value) ==
-             {"missed step decay, x-axis", @steps, "1.2"}
+             {"missed step decay, x-axis", steps, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_y, float_value) ==
-             {"missed step decay, y-axis", @steps, "1.2"}
+             {"missed step decay, y-axis", steps, "1.2"}
 
     assert Param.to_human(:encoder_missed_steps_decay_z, float_value) ==
-             {"missed step decay, z-axis", @steps, "1.2"}
+             {"missed step decay, z-axis", steps, "1.2"}
 
     assert Param.to_human(:encoder_use_for_pos_x, 1) ==
              {"use encoders for positioning, x-axis", nil, true}

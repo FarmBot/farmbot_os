@@ -61,7 +61,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp find_reset_fun("express_k10") do
     FarmbotCore.Logger.debug(3, "Using special reset function for express")
-    fun = &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/0
+    # "magic" workaround to avoid compiler warnings.
+    # We used to inject this via App config, but it was
+    # error prone.
+    mod = :"Elixir.FarmbotOS.Platform.Target.FirmwareReset.GPIO"
+    fun = &mod.reset/0
     {:ok, fun}
   end
 
