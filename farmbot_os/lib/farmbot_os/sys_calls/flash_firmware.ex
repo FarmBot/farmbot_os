@@ -33,7 +33,6 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
       %{
-        # firmware_hardware: package, 
         firmware_path: tty
       }
       |> Asset.update_fbos_config!()
@@ -62,15 +61,13 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     end
   end
 
-  defp find_reset_fun(_) do
-    config = Application.get_env(:farmbot_firmware, FarmbotFirmware)
+  defp find_reset_fun("express_k10") do
+    FarmbotCore.Logger.debug(3, "Using special reset function for express")
+    &FarmbotOS.Platform.Target.FirmwareReset.GPIO.reset/1
+  end
 
-    if module = config[:reset] do
-      Logger.error("using reset function: #{inspect(config)}")
-      {:ok, &module.reset/0}
-    else
-      Logger.error("no reset function is going to be used #{inspect(config)}")
-      {:ok, fn -> :ok end}
-    end
+  defp find_reset_fun(_) do
+    FarmbotCore.Logger.debug(3, "Using default reset function")
+    &FarmbotFirmware.NullReset.reset/1
   end
 end

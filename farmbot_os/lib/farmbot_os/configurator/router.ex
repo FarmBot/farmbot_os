@@ -23,9 +23,7 @@ defmodule FarmbotOS.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
-                   :network_layer
-                 ]
+  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:network_layer]
   @telemetry_layer FarmbotOS.Configurator.DetsTelemetryLayer
 
   # Trigger for captive portal for various operating systems
@@ -281,10 +279,12 @@ defmodule FarmbotOS.Configurator.Router do
         "auth_config_password" => _,
         "auth_config_server" => _
       } ->
+        FarmbotCore.Logger.debug(1, "Configuration success!")
         save_config(get_session(conn))
         render_page(conn, "finish")
 
       _ ->
+        FarmbotCore.Logger.debug(1, "Configuration FAIL")
         redir(conn, "/")
     end
   end
