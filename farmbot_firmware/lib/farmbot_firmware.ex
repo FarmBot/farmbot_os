@@ -447,6 +447,7 @@ defmodule FarmbotFirmware do
     if is_reference(state.transport_ref) do
       true = Process.demonitor(state.transport_ref)
     end
+
     :ok = GenServer.stop(state.transport_pid, :normal)
 
     next_state =
