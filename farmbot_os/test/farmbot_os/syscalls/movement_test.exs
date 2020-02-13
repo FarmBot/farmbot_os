@@ -4,6 +4,22 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.Movement
 
+  test "zero()" do
+    mock = fn
+      {:position_write_zero, [:x]} ->
+        :ok
+
+      {:position_write_zero, [:y]} ->
+        {:error, "my test"}
+    end
+
+    expect(FarmbotFirmware, :command, 2, mock)
+
+    expected = "Firmware error @ \"zero()\": \"my test\""
+    assert {:error, ^expected} = Movement.zero(:y)
+    assert :ok == Movement.zero("x")
+  end
+
   test "get_current_(x|y|z)" do
     expect(FarmbotFirmware, :request, 3, fn _args ->
       fake_stuff = [x: 1, y: 2, z: 3]
@@ -22,7 +38,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
           position: %{
             x: 1,
             y: 2,
-            z: 3,
+            z: 3
           }
         }
       }
