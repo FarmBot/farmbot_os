@@ -9,6 +9,7 @@
  * Upgrade VintageNet (networking library)
  * Removal of `dump_info` RPCs
  * Numerous internal improvements, such as increasing test coverage and changing dependency injection scheme.
+ * Fix issue where firmware commands would be tried too many times.
 
 # 9.0.4
 
