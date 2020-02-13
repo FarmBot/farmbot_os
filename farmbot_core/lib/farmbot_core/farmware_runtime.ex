@@ -3,7 +3,6 @@ defmodule FarmbotCore.FarmwareRuntime do
   Handles execution of Farmware plugins.
   """
 
-  alias Avrdude.MuonTrapAdapter
   alias FarmbotCeleryScript.AST
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
@@ -113,8 +112,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     # Start the plugin.
     Logger.debug("spawning farmware: #{exec} #{manifest.args}")
 
-    {cmd, _} =
-      spawn_monitor(MuonTrapAdapter, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", "#{exec} #{manifest.args}"], opts])
 
     state = %State{
       caller: caller,
@@ -156,8 +154,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   end
 
   def handle_info({:step_complete, ref, :ok}, %{scheduler_ref: ref} = state) do
-    label = UUID.uuid4()
-    result = %AST{kind: :rpc_ok, args: %{label: label}, body: []}
+    result = %AST{kind: :rpc_ok, args: %{label: state.rpc.args.label}, body: []}
 
     ipc = add_header(result)
     _reply = PipeWorker.write(state.response_pipe_handle, ipc)

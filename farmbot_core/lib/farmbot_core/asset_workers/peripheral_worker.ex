@@ -33,7 +33,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     {:noreply, state}
   end
 
-  def handle_info(:timeout, %{fw_version: "8.0.0.S"} = state) do
+  def handle_info(:timeout, %{fw_version: "8.0.0.S.stub"} = state) do
     {:noreply, state}
   end
 
@@ -47,15 +47,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     Logger.debug("Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
     case FarmbotCeleryScript.execute(rpc, make_ref()) do
-      :ok -> 
+      :ok ->
         Logger.debug("Read peripheral: #{peripheral.label} ok")
         {:noreply, state}
-      
-      {:error, reason} when errors < 5 -> 
+
+      {:error, reason} when errors < 5 ->
         Logger.error("Read peripheral: #{peripheral.label} error: #{reason} errors=#{state.errors}")
         Process.send_after(self(), :timeout, @retry_ms)
         {:noreply, %{state | errors: state.errors + 1}}
-      
+
       {:error, reason} when errors == 5 ->
         Logger.error("Read peripheral: #{peripheral.label} error: #{reason} errors=5 not trying again.")
         {:noreply, state}

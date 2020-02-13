@@ -100,16 +100,15 @@ defimpl String.Chars, for: FarmbotCore.Asset.PinBinding do
   end
 
   defp special_action(button_number, action, pin_num) do
-    "Button #{button_number}: #{format_action(action)} (Pi #{pin_num})"  
+    "Button #{button_number}: #{format_action(action)} (Pi #{pin_num})"
   end
 
-  defp format_action("dump_info"), do: "Dump Info"
-  defp format_action("emergency_lock"), do:  "E-Stop"
+  defp format_action("emergency_lock"), do: "E-Stop"
   defp format_action("emergency_unlock"), do: "E-Unlock"
   defp format_action("power_off"), do: "Power Off"
   defp format_action("read_status"), do: "Read Status"
   defp format_action("reboot"), do: "Reboot"
   defp format_action("sync"), do: "Sync"
-  defp format_action("take_photo"), do: "Take Photo" 
+  defp format_action("take_photo"), do: "Take Photo"
   defp format_action(_), do: nil
 end

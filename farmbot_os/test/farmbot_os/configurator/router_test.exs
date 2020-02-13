@@ -1,5 +1,7 @@
 defmodule FarmbotOS.Configurator.RouterTest do
   alias FarmbotOS.Configurator.Router
+  alias FarmbotOS.Configurator.ConfigDataLayer
+
   use ExUnit.Case, async: true
   use Plug.Test
 
@@ -7,6 +9,30 @@ defmodule FarmbotOS.Configurator.RouterTest do
   setup :verify_on_exit!
 
   @opts Router.init([])
+  # Stolen from https://github.com/phoenixframework/phoenix/blob/3f157c30ceae8d1eb524fdd05b5e3de10e434c42/lib/phoenix/test/conn_test.ex#L438
+  defp redirected_to(conn, status \\ 302)
+
+  defp redirected_to(%Plug.Conn{state: :unset}, _status) do
+    raise "expected connection to have redirected but no response was set/sent"
+  end
+
+  defp redirected_to(conn, status) when is_atom(status) do
+    redirected_to(conn, Plug.Conn.Status.code(status))
+  end
+
+  defp redirected_to(%Plug.Conn{status: status} = conn, status) do
+    location = Plug.Conn.get_resp_header(conn, "location") |> List.first()
+    location || raise "no location header was set on redirected_to"
+  end
+
+  defp redirected_to(conn, status) do
+    raise "expected redirection with status #{status}, got: #{conn.status}"
+  end
+
+  defp get_con(path) do
+    conn = conn(:get, path)
+    Router.call(conn, @opts)
+  end
 
   test "index after reset" do
     FarmbotOS.Configurator.ConfigDataLayer
@@ -19,19 +45,25 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "whoops!"
   end
 
-  test "redirect to index" do
-    FarmbotOS.Configurator.ConfigDataLayer
-    |> expect(:load_last_reset_reason, fn -> nil end)
+  test "redirects" do
+    redirects = [
+      "/check_network_status.txt",
+      "/connecttest.txt",
+      "/gen_204",
+      "/generate_204",
+      "/hotspot-detect.html",
+      "/library/test/success.html",
+      "/redirect",
+      "/setup",
+      "/success.txt"
+    ]
 
-    conn = conn(:get, "/setup")
-    conn = Router.call(conn, @opts)
-    redir = redirected_to(conn)
-    assert redir == "/"
-
-    conn = conn(:get, redir)
-    conn = Router.call(conn, @opts)
-    redir = redirected_to(conn)
-    assert redir == "/network"
+    Enum.map(redirects, fn path ->
+      conn = conn(:get, path)
+      conn = Router.call(conn, @opts)
+      redir = redirected_to(conn)
+      assert redir == "/"
+    end)
   end
 
   test "celeryscript requests don't get listed as last reset reason" do
@@ -336,23 +368,60 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.status == 500
   end
 
-  # Stolen from https://github.com/phoenixframework/phoenix/blob/3f157c30ceae8d1eb524fdd05b5e3de10e434c42/lib/phoenix/test/conn_test.ex#L438
-  defp redirected_to(conn, status \\ 302)
-
-  defp redirected_to(%Plug.Conn{state: :unset}, _status) do
-    raise "expected connection to have redirected but no response was set/sent"
+  test "/scheduler_debugger" do
+    kon = get_con("/scheduler_debugger")
+    assert String.contains?(kon.resp_body, "scheduler_debugger.js")
+    assert String.contains?(kon.resp_body, "<title>Scheduler Debugger</title>")
   end
 
-  defp redirected_to(conn, status) when is_atom(status) do
-    redirected_to(conn, Plug.Conn.Status.code(status))
+  test "/logger" do
+    kon = get_con("/logger")
+
+    words = [
+      "DateTime",
+      "Function",
+      "Level",
+      "Message",
+      "Module",
+      "Src"
+    ]
+
+    Enum.map(words, fn word ->
+      assert String.contains?(kon.resp_body, word)
+    end)
   end
 
-  defp redirected_to(%Plug.Conn{status: status} = conn, status) do
-    location = Plug.Conn.get_resp_header(conn, "location") |> List.first()
-    location || raise "no location header was set on redirected_to"
+  test "/api/telemetry/cpu_usage" do
+    {:ok, json} = Jason.decode(get_con("/api/telemetry/cpu_usage").resp_body)
+    assert Enum.count(json) == 10
+    zero = Enum.at(json, 0)
+    assert(is_binary(zero["class"]))
+    assert(is_binary(zero["timestamp"]))
+    assert(is_integer(zero["value"]))
   end
 
-  defp redirected_to(conn, status) do
-    raise "expected redirection with status #{status}, got: #{conn.status}"
+  test "/finish" do
+    expect(ConfigDataLayer, :save_config, 1, fn _conf ->
+      :ok
+    end)
+
+    # This data would crash in the real app because it is incomplete.
+    # Maybe we should add an error handler?
+    fake_session = %{
+      "ifname" => "MY_IFNAME",
+      "auth_config_email" => "MY_EMAIL",
+      "auth_config_password" => "MY_PASS",
+      "auth_config_server" => "MY_SERVER"
+    }
+
+    kon =
+      conn(:get, "/finish")
+      |> init_test_session(fake_session)
+      |> Router.call(@opts)
+
+    assert String.contains?(
+             kon.resp_body,
+             "If any configuration settings are incorrect, FarmBot will reset"
+           )
   end
 end

@@ -7,6 +7,8 @@ defmodule FarmbotOS.Configurator.Router do
   import Phoenix.HTML
   use Plug.Router
   use Plug.Debugger, otp_app: :farmbot
+  alias FarmbotOS.Configurator.ConfigDataLayer
+
   plug(Plug.Logger)
   plug(Plug.Static, from: {:farmbot, "priv/static"}, at: "/")
   plug(Plug.Parsers, parsers: [:urlencoded, :multipart])
@@ -21,13 +23,10 @@ defmodule FarmbotOS.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  @data_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[:data_layer]
   @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
                    :network_layer
                  ]
-  @telemetry_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
-                     :telemetry_layer
-                   ]
+  @telemetry_layer FarmbotOS.Configurator.DetsTelemetryLayer
 
   # Trigger for captive portal for various operating systems
   get("/gen_204", do: redir(conn, "/"))
@@ -270,6 +269,11 @@ defmodule FarmbotOS.Configurator.Router do
   get "/finish" do
     FarmbotCore.Logger.debug(1, "Configuration complete")
 
+    # TODO(Rick): This pattern match is not 100% accurate.
+    # TO see what I mean, try calling `save_config/1` with
+    # _only_ the parameters provided in the line below-
+    # it will crash as it is missing numerous keys.
+    # It might be good to add an error page or something.
     case get_session(conn) do
       %{
         "ifname" => _,
@@ -277,10 +281,12 @@ defmodule FarmbotOS.Configurator.Router do
         "auth_config_password" => _,
         "auth_config_server" => _
       } ->
+        FarmbotCore.Logger.debug(1, "Configuration success!")
         save_config(get_session(conn))
         render_page(conn, "finish")
 
       _ ->
+        FarmbotCore.Logger.debug(1, "Configuration FAIL")
         redir(conn, "/")
     end
   end
@@ -355,23 +361,23 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   defp load_last_reset_reason do
-    @data_layer.load_last_reset_reason()
+    ConfigDataLayer.load_last_reset_reason()
   end
 
   defp load_email do
-    @data_layer.load_email()
+    ConfigDataLayer.load_email()
   end
 
   defp load_password do
-    @data_layer.load_password()
+    ConfigDataLayer.load_password()
   end
 
   def load_server do
-    @data_layer.load_server()
+    ConfigDataLayer.load_server()
   end
 
   defp save_config(conf) do
-    @data_layer.save_config(conf)
+    ConfigDataLayer.save_config(conf)
   end
 
   defp list_interfaces() do

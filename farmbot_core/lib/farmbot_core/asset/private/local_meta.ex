@@ -9,7 +9,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
   alias FarmbotCore.Asset.{
     Repo,
     Device,
-    DiagnosticDump,
     DeviceCert,
     FarmEvent,
     FarmwareEnv,
@@ -41,13 +40,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     )
 
     belongs_to(:device_cert, DeviceCert,
-      foreign_key: :asset_local_id,
-      type: :binary_id,
-      references: :local_id,
-      define_field: false
-    )
-
-    belongs_to(:diagnostic_dump, DiagnosticDump,
       foreign_key: :asset_local_id,
       type: :binary_id,
       references: :local_id,
@@ -174,8 +166,7 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
       "firmware_configs",
       "fbos_configs",
       "farmware_installations",
-      "farmware_envs",
-      "diagnostic_dumps"
+      "farmware_envs"
     ])
     |> unsafe_validate_unique([:table, :asset_local_id], Repo,
       message: "LocalMeta already exists."

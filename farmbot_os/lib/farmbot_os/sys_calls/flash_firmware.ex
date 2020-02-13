@@ -32,10 +32,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
          {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
       FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
 
-      %{
-        # firmware_hardware: package, 
-        firmware_path: tty
-      }
+      %{firmware_path: tty}
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
 
@@ -62,15 +59,19 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     end
   end
 
-  defp find_reset_fun(_) do
-    config = Application.get_env(:farmbot_firmware, FarmbotFirmware)
+  defp find_reset_fun("express_k10") do
+    FarmbotCore.Logger.debug(3, "Using special reset function for express")
+    # "magic" workaround to avoid compiler warnings.
+    # We used to inject this via App config, but it was
+    # error prone.
+    mod = :"Elixir.FarmbotOS.Platform.Target.FirmwareReset.GPIO"
+    fun = &mod.reset/0
+    {:ok, fun}
+  end
 
-    if module = config[:reset] do
-      Logger.error("using reset function: #{inspect(config)}")
-      {:ok, &module.reset/0}
-    else
-      Logger.error("no reset function is going to be used #{inspect(config)}")
-      {:ok, fn -> :ok end}
-    end
+  defp find_reset_fun(_) do
+    FarmbotCore.Logger.debug(3, "Using default reset function")
+    fun = &FarmbotFirmware.NullReset.reset/0
+    {:ok, fun}
   end
 end

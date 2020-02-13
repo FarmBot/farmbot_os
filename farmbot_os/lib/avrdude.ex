@@ -31,7 +31,7 @@ defmodule Avrdude do
     # call the function for resetting the line before executing avrdude.
     call_reset_fun(reset_fun)
 
-    Avrdude.MuonTrapAdapter.cmd("avrdude", args,
+    MuonTrap.cmd("avrdude", args,
       into: IO.stream(:stdio, :line),
       stderr_to_stdout: true
     )

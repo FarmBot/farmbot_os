@@ -1,5 +1,24 @@
 # Changelog
 
+# 9.1.0
+
+ * Improved support for new FarmBot Express models
+ * Various firmware bug fixes for Express models.
+ * Bug fix for slow Farmware execution (Thanks, @jsimmonds2)
+ * Dependency upgrades
+ * Upgrade VintageNet (networking library)
+ * Removal of `dump_info` RPCs
+ * Numerous internal improvements, such as increasing test coverage and changing dependency injection scheme.
+ * Fix issue where firmware commands would be tried too many times.
+
+# 9.0.4
+
+ * Bug fix for slow Farmware execution (Thanks, @jsimmonds2)
+ * Dependency upgrades
+ * Upgrade VintageNet (networking library)
+ * Removal of `dump_info` RPCs
+ * Numerous internal improvements, such as increasing test coverage and changing dependency injection scheme.
+
 # 9.0.3
 
  * Dependency updates

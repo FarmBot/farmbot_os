@@ -92,7 +92,6 @@
         "calibrate",
         "change_ownership",
         "check_updates",
-        "dump_info",
         "emergency_lock",
         "emergency_unlock",
         "execute",
@@ -835,18 +834,6 @@
     {
       "allowed_args": [],
       "allowed_body_types": [],
-      "name": "dump_info",
-      "tags": [
-        "function",
-        "network_user",
-        "disk_user",
-        "api_writer"
-      ],
-      "docs": "Sends an info dump to server administrators for troubleshooting."
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
       "name": "emergency_lock",
       "tags": [
         "function",
@@ -1170,7 +1157,6 @@
         "calibrate",
         "change_ownership",
         "check_updates",
-        "dump_info",
         "emergency_lock",
         "emergency_unlock",
         "execute",
@@ -1242,7 +1228,6 @@
         "calibrate",
         "change_ownership",
         "check_updates",
-        "dump_info",
         "emergency_lock",
         "emergency_unlock",
         "execute",

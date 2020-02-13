@@ -71,7 +71,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     _ = maybe_hack_tzdata()
     _ = init_net_kernel()
     send(self(), :setup)
-    # If a secret exists, assume that 
+    # If a secret exists, assume that
     # farmbot at one point has been connected to the internet
     first_connect? = is_first_connect?()
 
@@ -135,6 +135,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
+        FarmbotCore.Logger.info(3, inspect(vintage_net_config))
 
         FarmbotTelemetry.event(:network, :interface_configure, nil,
           interface: ifname
@@ -260,7 +261,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     """)
 
     FarmbotOS.System.factory_reset("""
-    Farmbot was unable to assosiate with the EAP network. 
+    Farmbot was unable to assosiate with the EAP network.
     Please check the identity, password and method of connection
     """)
 
@@ -270,11 +271,11 @@ defmodule FarmbotOS.Platform.Target.Network do
   def handle_info({VintageNet, property, old, new, _meta}, state) do
     Logger.debug("""
     Unknown property change: #{inspect(property)}
-    old: 
+    old:
 
     #{inspect(old, limit: :infinity)}
 
-    new: 
+    new:
 
     #{inspect(new, limit: :infinity)}
     """)
@@ -284,12 +285,12 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def handle_info({:network_not_found_timer, minutes}, state) do
     FarmbotCore.Logger.warn(1, """
-    Farmbot has been disconnected from the network for 
+    Farmbot has been disconnected from the network for
     #{minutes} minutes. Going down for factory reset.
     """)
 
     FarmbotOS.System.factory_reset("""
-    Farmbot has been disconnected from the network for 
+    Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
 

@@ -166,6 +166,7 @@ defmodule FarmbotFirmware do
 
   If the firmware is in any of the following states:
     * `:boot`
+    * `:transport_boot`
     * `:no_config`
     * `:configuration`
   `command` will fail with `{:error, state}`
@@ -443,10 +444,13 @@ defmodule FarmbotFirmware do
   # the `configuration_queue` and in the `command_queue`.
   def handle_call(:close_transport, _from, %{status: s} = state)
       when s != :transport_boot do
-    true = Process.demonitor(state.transport_ref)
+    if is_reference(state.transport_ref) do
+      true = Process.demonitor(state.transport_ref)
+    end
+
     :ok = GenServer.stop(state.transport_pid, :normal)
 
-    state =
+    next_state =
       goto(
         %{
           state
@@ -459,7 +463,7 @@ defmodule FarmbotFirmware do
         :transport_boot
       )
 
-    {:reply, :ok, state}
+    {:reply, :ok, next_state}
   end
 
   def handle_call(:close_transport, _, %{status: s} = state) do
@@ -501,8 +505,14 @@ defmodule FarmbotFirmware do
     end
   end
 
-  def handle_call({_tag, _code} = gcode, from, state) do
-    handle_command(gcode, from, state)
+  def handle_call({tag, {kind, args}}, from, state) do
+    handle_command({tag, {kind, args}}, from, state)
+  end
+
+  # TODO(RICK): Not sure if this is required.
+  # Some commands were missing a tag.
+  def handle_call({kind, args}, from, state) do
+    handle_command({nil, {kind, args}}, from, state)
   end
 
   @doc false
@@ -542,7 +552,7 @@ defmodule FarmbotFirmware do
   # If not in an acceptable state, return an error immediately.
   def handle_command(_, _, %{status: s} = state)
       when s in [:transport_boot, :boot, :no_config, :configuration] do
-    {:reply, {:error, s}, state}
+    {:reply, {:error, "Can't send command when in #{inspect(s)} state"}, state}
   end
 
   def handle_command({tag, {_, _}} = code, {pid, _ref}, state) do

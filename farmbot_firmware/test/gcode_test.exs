@@ -383,6 +383,81 @@ defmodule FarmbotFirmware.GCODETest do
 
       assert "R06 Z2 Q1" =
                GCODE.encode({"1", {:report_calibration_state, [z: :end]}})
+
+      assert "R15 X200.00" ==
+               GCODE.encode({nil, {:report_position_change, [{:x, 200.0}]}})
+
+      assert "R16 Y12.00" ==
+               GCODE.encode({nil, {:report_position_change, [{:y, 12.0}]}})
+
+      assert "R16 Z37.02" ==
+               GCODE.encode({nil, {:report_position_change, [{:z, 37.02}]}})
+
+      assert "R20" == GCODE.encode({nil, {:report_parameters_complete, []}})
+
+      assert "R21 P0 V1.20" ==
+               GCODE.encode(
+                 {nil, {:report_parameter_value, [{:param_version, 1.2}]}}
+               )
+
+      assert "R41 P1 V2 M0 Q3" ==
+               GCODE.encode(
+                 {nil,
+                  {:report_pin_value, [{:p, 1}, {:v, 2}, {:m, 0}, {:q, 3}]}}
+               )
+
+      assert "R23 P0 V1.20" ==
+               GCODE.encode(
+                 {nil,
+                  {:report_calibration_parameter_value, [{:param_version, 1.2}]}}
+               )
+
+      enc_params = [xa: 1, xb: 2, ya: 3, yb: 4, za: 5, zb: 6]
+
+      assert "R81 XA1 XB2 YA3 YB4 ZA5 ZB6" ==
+               GCODE.encode({nil, {:report_end_stops, enc_params}})
+
+      pos_params = [x: 1.4, y: 2.3, z: 3.2, s: 4.1]
+
+      assert "R82 X1.40 Y2.30 Z3.20 S4.10" ==
+               GCODE.encode({nil, {:report_position, pos_params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R84 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_encoders_scaled, params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R85 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_encoders_raw, params}})
+
+      params = [x: 1.4, y: 2.3, z: 3.2]
+
+      assert "R89 X1.40 Y2.30 Z3.20" ==
+               GCODE.encode({nil, {:report_load, params}})
+
+      assert "G00 X0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:x]}})
+
+      assert "G00 Y0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:y]}})
+
+      assert "G00 Z0.00" ==
+               GCODE.encode({nil, {:command_movement_home, [:z]}})
+
+      assert(
+        "F21 P222" ==
+          GCODE.encode({nil, {:parameter_read, [:pin_guard_5_time_out]}})
+      )
+
+      p = {:calibration_parameter_write, [{:pin_guard_5_time_out, 1.2}]}
+
+      assert "F23 P222 V1.20" ==
+               GCODE.encode({nil, p})
+
+      assert "F42 P13" == GCODE.encode({nil, {:pin_read, [p: 13]}})
+      assert "F61 P54" == GCODE.encode({nil, {:servo_write, [p: 54]}})
     end
 
     test "retry" do

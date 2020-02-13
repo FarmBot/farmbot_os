@@ -226,6 +226,7 @@ defmodule FarmbotFirmware.Param do
   @seconds "(seconds)"
   @steps "(steps)"
   @steps_per_mm "(steps/mm)"
+  @steps_per_s "(steps/s)"
   @milliamps "(milliamps)"
 
   @doc "Translates a param to a human readable string"
@@ -349,31 +350,31 @@ defmodule FarmbotFirmware.Param do
     do: {"steps per mm, z-axis", @steps_per_mm, format_float(value)}
 
   def to_human(:movement_min_spd_x, value),
-    do: {"minimum speed, x-axis", @steps_per_mm, format_float(value)}
+    do: {"minimum speed, x-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_min_spd_y, value),
-    do: {"minimum speed, y-axis", @steps_per_mm, format_float(value)}
+    do: {"minimum speed, y-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_min_spd_z, value),
-    do: {"minimum speed, z-axis", @steps_per_mm, format_float(value)}
+    do: {"minimum speed, z-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_home_spd_x, value),
-    do: {"homing speed, x-axis", @steps_per_mm, format_float(value)}
+    do: {"homing speed, x-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_home_spd_y, value),
-    do: {"homing speed, y-axis", @steps_per_mm, format_float(value)}
+    do: {"homing speed, y-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_home_spd_z, value),
-    do: {"homing speed, z-axis", @steps_per_mm, format_float(value)}
+    do: {"homing speed, z-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_max_spd_x, value),
-    do: {"max speed, x-axis", @steps_per_mm, format_float(value)}
+    do: {"max speed, x-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_max_spd_y, value),
-    do: {"max speed, y-axis", @steps_per_mm, format_float(value)}
+    do: {"max speed, y-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_max_spd_z, value),
-    do: {"max speed, z-axis", @steps_per_mm, format_float(value)}
+    do: {"max speed, z-axis", @steps_per_s, format_float(value)}
 
   def to_human(:movement_invert_2_endpoints_x, value),
     do: {"invert endstops, x-axis", nil, format_bool(value)}
@@ -412,13 +413,13 @@ defmodule FarmbotFirmware.Param do
     do: {"microsteps, z-axis", nil, format_float(value)}
 
   def to_human(:encoder_enabled_x, value),
-    do: {"enable encoders, x-axis", nil, format_bool(value)}
+    do: {"enable encoders / stall detection, x-axis", nil, format_bool(value)}
 
   def to_human(:encoder_enabled_y, value),
-    do: {"enable encoders, y-axis", nil, format_bool(value)}
+    do: {"enable encoders / stall detection, y-axis", nil, format_bool(value)}
 
   def to_human(:encoder_enabled_z, value),
-    do: {"enable encoders, z-axis", nil, format_bool(value)}
+    do: {"enable encoders / stall detection, z-axis", nil, format_bool(value)}
 
   def to_human(:encoder_type_x, value),
     do: {"encoder type, x-axis", nil, format_float(value)}
@@ -430,13 +431,13 @@ defmodule FarmbotFirmware.Param do
     do: {"encoder type, z-axis", nil, format_float(value)}
 
   def to_human(:encoder_missed_steps_max_x, value),
-    do: {"max missed steps, x-axis", nil, format_float(value)}
+    do: {"max missed steps, x-axis", @steps, format_float(value)}
 
   def to_human(:encoder_missed_steps_max_y, value),
-    do: {"max missed steps, y-axis", nil, format_float(value)}
+    do: {"max missed steps, y-axis", @steps, format_float(value)}
 
   def to_human(:encoder_missed_steps_max_z, value),
-    do: {"max missed steps, z-axis", nil, format_float(value)}
+    do: {"max missed steps, z-axis", @steps, format_float(value)}
 
   def to_human(:encoder_scaling_x, value),
     do: {"encoder scaling, x-axis", nil, format_float(value)}
@@ -448,13 +449,13 @@ defmodule FarmbotFirmware.Param do
     do: {"encoder scaling, z-axis", nil, format_float(value)}
 
   def to_human(:encoder_missed_steps_decay_x, value),
-    do: {"encoder missed steps decay, x-axis", nil, format_float(value)}
+    do: {"missed step decay, x-axis", @steps, format_float(value)}
 
   def to_human(:encoder_missed_steps_decay_y, value),
-    do: {"encoder missed steps decay, y-axis", nil, format_float(value)}
+    do: {"missed step decay, y-axis", @steps, format_float(value)}
 
   def to_human(:encoder_missed_steps_decay_z, value),
-    do: {"encoder missed steps decay, z-axis", nil, format_float(value)}
+    do: {"missed step decay, z-axis", @steps, format_float(value)}
 
   def to_human(:encoder_use_for_pos_x, value),
     do: {"use encoders for positioning, x-axis", nil, format_bool(value)}

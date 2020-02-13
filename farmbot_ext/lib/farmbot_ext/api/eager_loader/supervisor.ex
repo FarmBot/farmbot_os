@@ -9,7 +9,6 @@ defmodule FarmbotExt.API.EagerLoader.Supervisor do
 
   alias FarmbotCore.Asset.{
     Device,
-    DiagnosticDump,
     FarmEvent,
     FarmwareEnv,
     FirstPartyFarmware,
@@ -42,7 +41,6 @@ defmodule FarmbotExt.API.EagerLoader.Supervisor do
   def init(_args) do
     children = [
       {EagerLoader, Device},
-      {EagerLoader, DiagnosticDump},
       {EagerLoader, FarmEvent},
       {EagerLoader, FarmwareEnv},
       {EagerLoader, FirstPartyFarmware},

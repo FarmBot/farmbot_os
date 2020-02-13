@@ -29,9 +29,6 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def coordinate(x, y, z), do: error(:coordinate, [x, y, z])
 
   @impl true
-  def dump_info(), do: error(:dump_info, [])
-
-  @impl true
   def emergency_lock(), do: error(:emergency_lock, [])
 
   @impl true

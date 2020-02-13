@@ -279,12 +279,6 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  def dump_info(_, _env) do
-    quote location: :keep do
-      FarmbotCeleryScript.SysCalls.dump_info()
-    end
-  end
-
   defp print_compiled_code(compiled) do
     IO.puts("========")
 
