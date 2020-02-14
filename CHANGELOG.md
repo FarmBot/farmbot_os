@@ -1,5 +1,9 @@
 # Changelog
 
+# 9.1.1
+
+ * Genesis v1.5 and Express v1.0 firmware updates.
+
 # 9.1.0
 
  * Improved support for new FarmBot Express models
