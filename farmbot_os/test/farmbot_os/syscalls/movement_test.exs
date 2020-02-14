@@ -26,6 +26,26 @@ defmodule FarmbotOS.SysCalls.MovementTest do
     assert :ok == result
   end
 
+  test "move_absolute/4 - unexpected error (not a tuple)" do
+    FarmbotFirmware
+    |> expect(:request, 3, fn
+      {:parameter_read, [:movement_max_spd_x]} ->
+        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_x, 1}]}}}
+
+      {:parameter_read, [:movement_max_spd_y]} ->
+        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_y, 2}]}}}
+
+      {:parameter_read, [:movement_max_spd_z]} ->
+        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_z, 3}]}}}
+    end)
+    |> expect(:command, 1, fn {nil, {:command_movement, params}} ->
+      "kaboom"
+    end)
+
+    error_log = Movement.move_absolute(1, 2, 3, 4)
+    assert "Movement failed. \"kaboom\"" == error_log.message
+  end
+
   test "move_absolute/4 - error (in tuple)" do
     expect(FarmbotFirmware, :request, 1, fn {:parameter_read, [_]} ->
       {:error, "boom"}
