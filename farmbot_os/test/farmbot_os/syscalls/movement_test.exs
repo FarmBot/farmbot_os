@@ -4,6 +4,44 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.Movement
 
+  test "home/1" do
+    expect(FarmbotFirmware, :command, 2, fn
+      {:command_movement_home, [:x]} -> :ok
+      {:command_movement_home, [:y]} -> {:error, "error"}
+    end)
+
+    assert :ok == Movement.home(:x, 100)
+    {:error, message} = Movement.home(:y, 100)
+    assert "Firmware error @ \"home\": \"error\"" == message
+  end
+
+  test "find_home/1" do
+    expect(FarmbotFirmware, :command, 2, fn
+      {:command_movement_find_home, [:x]} -> :ok
+      {:command_movement_find_home, [:y]} -> {:error, "whoops"}
+    end)
+
+    assert :ok == Movement.find_home(:x)
+    {:error, message} = Movement.find_home(:y)
+    assert "Firmware error @ \"find_home\": \"whoops\"" == message
+  end
+
+  test "calibrate/1" do
+    expect(FarmbotFirmware, :command, 2, fn
+      {:command_movement_calibrate, [:x]} -> :ok
+      {:command_movement_calibrate, [:y]} -> {:error, "nope"}
+    end)
+
+    assert :ok == Movement.calibrate(:x)
+    {:error, message} = Movement.calibrate(:y)
+    assert "Firmware error @ \"calibrate()\": \"nope\"" == message
+  end
+
+  test "catching bad axis values" do
+    boom = fn -> Movement.find_home("q") end
+    assert_raise RuntimeError, "unknown axis q", boom
+  end
+
   test "move_absolute/4" do
     FarmbotFirmware
     |> expect(:request, 3, fn
@@ -38,7 +76,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       {:parameter_read, [:movement_max_spd_z]} ->
         {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_z, 3}]}}}
     end)
-    |> expect(:command, 1, fn {nil, {:command_movement, params}} ->
+    |> expect(:command, 1, fn {nil, {:command_movement, _}} ->
       "kaboom"
     end)
 
