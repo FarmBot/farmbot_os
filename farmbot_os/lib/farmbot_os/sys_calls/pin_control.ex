@@ -70,7 +70,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   defp do_toggle_pin(pin_number, value) do
-    result = FarmbotFirmware.command( {:pin_write, [p: pin_number, v: value, m: 0]})
+    result =
+      FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: 0]})
 
     with :ok <- result,
          value when is_number(value) <- do_read_pin(pin_number, 0) do
