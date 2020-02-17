@@ -1,7 +1,5 @@
 defmodule FarmbotOS.SysCalls.PointLookupTest do
   use ExUnit.Case
-  use Mimic
-  setup :verify_on_exit!
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotCore.Asset.Point
@@ -64,7 +62,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
 
-    pg = point_group(%{ point_ids: [1, 2, 3] })
+    pg = point_group(%{point_ids: [1, 2, 3]})
 
     assert pg == PointLookup.get_point_group(pg.id)
   end
@@ -73,10 +71,10 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
 
-    point(%{ pointer_type: "ToolSlot", id: 601})
-    point(%{ pointer_type: "Plant", id: 602})
-    point(%{ pointer_type: "GenericPointer", id: 603})
-    %{point_ids: list } = PointLookup.get_point_group("Plant")
+    point(%{pointer_type: "ToolSlot", id: 601})
+    point(%{pointer_type: "Plant", id: 602})
+    point(%{pointer_type: "GenericPointer", id: 603})
+    %{point_ids: list} = PointLookup.get_point_group("Plant")
     assert list == [602]
   end
 
