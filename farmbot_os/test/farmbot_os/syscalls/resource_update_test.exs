@@ -3,10 +3,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
 
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.SysCalls.PointLookup
-  alias FarmbotCore.Asset.{
-    Point,
-    Repo,
-  }
+  alias FarmbotCore.Asset.{Point, Repo}
 
   test "resource_update/3 - Device" do
     params = %{name: "X is {{ x }}"}
@@ -32,8 +29,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   end
 
   test "resource_update/3 - unknown" do
-    params = %{name: "never called"}
-    {:error, error } = ResourceUpdate.resource_update("Foo", 0, nil)
+    {:error, error} = ResourceUpdate.resource_update("Foo", 0, nil)
     assert error == "Unknown resource: Foo.0\n"
   end
 end

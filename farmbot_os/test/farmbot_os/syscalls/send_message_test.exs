@@ -10,6 +10,7 @@ defmodule FarmbotOS.SysCalls.SendMessageTest do
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == "You are here: -1, -1, -1"
     end)
+
     channels = [:email]
     type = "info"
     templ = "You are here: {{ x }}, {{ y }}, {{ z }}"

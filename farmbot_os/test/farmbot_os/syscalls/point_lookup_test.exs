@@ -1,7 +1,6 @@
 defmodule FarmbotOS.SysCalls.PointLookupTest do
   use ExUnit.Case
   alias FarmbotOS.SysCalls.PointLookup
-  alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotCore.Asset.Point
   alias FarmbotCore.Asset.Repo
 
