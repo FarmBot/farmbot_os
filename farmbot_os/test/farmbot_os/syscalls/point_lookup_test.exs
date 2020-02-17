@@ -9,6 +9,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
   alias FarmbotCore.Asset.{
     Point,
+    PointGroup,
     Repo,
     Tool
   }
@@ -57,6 +58,34 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
     point(Map.merge(important_part, other_stuff))
     assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+  end
+
+  test "PointLookup.get_point_group/1 - int" do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    pg = point_group(%{ point_ids: [1, 2, 3] })
+
+    assert pg == PointLookup.get_point_group(pg.id)
+  end
+
+  test "PointLookup.get_point_group/1 - string" do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    point(%{ pointer_type: "ToolSlot", id: 601})
+    point(%{ pointer_type: "Plant", id: 602})
+    point(%{ pointer_type: "GenericPointer", id: 603})
+    %{point_ids: list } = PointLookup.get_point_group("Plant")
+    assert list == [602]
+  end
+
+  defp point_group(extra_stuff) do
+    base = %PointGroup{id: 555}
+
+    Map.merge(base, extra_stuff)
+    |> PointGroup.changeset()
+    |> Repo.insert!()
   end
 
   defp point(extra_stuff) do
