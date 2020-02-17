@@ -49,9 +49,14 @@ defmodule FarmbotFirmware.Command do
         debug_log("#{GCODE.encode(code)} position change")
         wait_for_command_result(tag, code, retries, error)
 
-      {_, {:report_error, _}} ->
-        debug_log("#{GCODE.encode(code)} firmware error")
-        if err, do: {:error, err}, else: {:error, :firmware_error}
+      {_, {:report_error, [error_code]}} ->
+        if err do
+          debug_log("#{GCODE.encode(code)} error: #{inspect(err)}")
+          {:error, err}
+        else
+          debug_log("#{GCODE.encode(code)} #{inspect(error_code)}")
+          {:error, "firmware error: #{inspect(error_code)}"}
+        end
 
       {_, {:report_invalid, []}} ->
         debug_log("#{GCODE.encode(code)} invalid command")
