@@ -26,7 +26,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
         {:ok, {:qqq, {:report_pin_value, [p: 13, v: 0]}}}
     end)
 
-    peripheral = %Peripheral{ pin: 13, label: "xyz" }
+    peripheral = %Peripheral{pin: 13, label: "xyz"}
     assert 0 == PinControl.read_pin(peripheral, @digital)
   end
 
