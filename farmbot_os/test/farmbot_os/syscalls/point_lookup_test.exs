@@ -4,8 +4,12 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotOS.SysCalls.ResourceUpdate
-  alias FarmbotCore.Asset.Point
-  alias FarmbotCore.Asset.Repo
+
+  alias FarmbotCore.Asset.{
+    Point,
+    Repo,
+    Tool
+  }
 
   test "failure cases" do
     err1 = PointLookup.point("GenericPointer", 24)
@@ -19,18 +23,53 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   end
 
   test "PointLookup.point/2" do
+    Repo.delete_all(Point)
+
     expected = %{
       name: "test suite III",
       x: 1.2,
       y: 3.4,
       z: 5.6
     }
-   point = %Point{id: 555, pointer_type: "GenericPointer"}
 
-    Map.merge(point, expected)
-      |> Point.changeset()
-      |> Repo.insert!()
+    p = point(expected)
 
-    assert expected == PointLookup.point("GenericPointer", point.id)
+    assert expected == PointLookup.point("GenericPointer", p.id)
+  end
+
+  test "PointLookup.get_toolslot_for_tool/1" do
+    Repo.delete_all(Point)
+    t = tool(%{name: "moisture probe"})
+
+    important_part = %{
+      name: "Tool Slot",
+      x: 1.9,
+      y: 2.9,
+      z: 3.9
+    }
+
+    other_stuff = %{
+      pointer_type: "ToolSlot",
+      tool_id: t.id
+    }
+
+    point(Map.merge(important_part, other_stuff))
+    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+  end
+
+  defp point(extra_stuff) do
+    base = %Point{id: 555, pointer_type: "GenericPointer"}
+
+    Map.merge(base, extra_stuff)
+    |> Point.changeset()
+    |> Repo.insert!()
+  end
+
+  defp tool(extra_stuff) do
+    base = %Tool{id: 555}
+
+    Map.merge(base, extra_stuff)
+    |> Tool.changeset()
+    |> Repo.insert!()
   end
 end
