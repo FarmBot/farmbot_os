@@ -4,6 +4,8 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotOS.SysCalls.ResourceUpdate
+  alias FarmbotCore.Asset.Point
+  alias FarmbotCore.Asset.Repo
 
   alias FarmbotCore.Asset.{
     Point,
