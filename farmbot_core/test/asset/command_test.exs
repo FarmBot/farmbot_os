@@ -20,7 +20,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     refute next_config
 
     # Restore config to old value
-    :ok = Command.update(FirmwareConfig, 23, config)
+    :ok = Command.update(FirmwareConfig, 23, Map.from_struct(config))
   end
 
   test "update / destroy fbos config" do
