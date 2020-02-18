@@ -18,6 +18,9 @@ defmodule FarmbotCore.Asset.CommandTest do
     :ok = Command.update(FirmwareConfig, 23, nil)
     next_config = Enum.at(Asset.Repo.all(FirmwareConfig), 0)
     refute next_config
+
+    # Restore config to old value
+    :ok = Command.update(FirmwareConfig, 23, config)
   end
 
   test "update / destroy fbos config" do
