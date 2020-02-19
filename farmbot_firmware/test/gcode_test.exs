@@ -65,6 +65,9 @@ defmodule FarmbotFirmware.GCODETest do
       assert "R03 V4" = GCODE.encode({nil, {:report_error, :calibration_error}})
       assert "R03 V14" = GCODE.encode({nil, {:report_error, :invalid_command}})
       assert "R03 V15" = GCODE.encode({nil, {:report_error, :no_config}})
+      assert "R03 V31" = GCODE.encode({nil, {:report_error, :stall_detected_x}})
+      assert "R03 V32" = GCODE.encode({nil, {:report_error, :stall_detected_y}})
+      assert "R03 V33" = GCODE.encode({nil, {:report_error, :stall_detected_z}})
       assert "R03 Q100" = GCODE.encode({"100", {:report_error, []}})
     end
 

@@ -110,6 +110,9 @@ defmodule FarmbotFirmware.GCODE.Decoder do
       4.0 -> [:calibration_error]
       14.0 -> [:invalid_command]
       15.0 -> [:no_config]
+      31.0 -> [:stall_detected_x]
+      32.0 -> [:stall_detected_y]
+      33.0 -> [:stall_detected_z]
       unk -> [unknown_error: unk]
     end
   end
