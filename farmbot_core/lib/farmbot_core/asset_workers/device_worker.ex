@@ -77,7 +77,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
 
       {:mounted_tool_id, id} ->
         if tool = Asset.get_tool(id: id) do
-          FarmbotCore.Logger.info(2, "Farmbot mounted #{tool.name}")
+          FarmbotCore.Logger.info(2, "Mounted the #{tool.name}")
         else
           FarmbotCore.Logger.info(2, "Farmbot mounted unknown tool")
         end
