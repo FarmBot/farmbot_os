@@ -1,5 +1,7 @@
 defmodule FarmbotOS.SysCalls.PointLookupTest do
   use ExUnit.Case
+  use Mimic
+
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotCore.Asset.Point
   alias FarmbotCore.Asset.Repo
@@ -10,6 +12,8 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     Repo,
     Tool
   }
+
+  setup :verify_on_exit!
 
   test "failure cases" do
     err1 = PointLookup.point("GenericPointer", 24)
@@ -37,6 +41,35 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     assert expected == PointLookup.point("GenericPointer", p.id)
   end
 
+  test "PointLookup.get_toolslot_for_tool/1 (gantry mounted tool)" do
+    Repo.delete_all(Point)
+    Repo.delete_all(Tool)
+    expect(FarmbotOS.SysCalls.Movement, :get_current_x, 1, fn -> 9.99 end)
+
+    t = tool(%{name: "moisture probe"})
+
+    p =
+      point(%{
+        pointer_type: "ToolSlot",
+        name: "Tool Slot",
+        tool_id: t.id,
+        gantry_mounted: true,
+        x: 4.4,
+        y: 4.4,
+        z: 4.4
+      })
+
+    important_part = %{
+      name: "Tool Slot",
+      x: 9.99,
+      y: 4.4,
+      z: 4.4,
+      gantry_mounted: true
+    }
+
+    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+  end
+
   test "PointLookup.get_toolslot_for_tool/1" do
     Repo.delete_all(Point)
     Repo.delete_all(Tool)
@@ -47,7 +80,8 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       name: "Tool Slot",
       x: 1.9,
       y: 2.9,
-      z: 3.9
+      z: 3.9,
+      gantry_mounted: false
     }
 
     other_stuff = %{
