@@ -80,8 +80,15 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       "kaboom"
     end)
 
-    error_log = Movement.move_absolute(1, 2, 3, 4)
-    assert "Movement failed. \"kaboom\"" == error_log.message
+    msg = "Movement failed. \"kaboom\""
+
+    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+      assert log.message == msg
+    end)
+
+    {:error, error_log} = Movement.move_absolute(1, 2, 3, 4)
+
+    assert msg == error_log
   end
 
   test "move_absolute/4 - error (in tuple)" do
@@ -89,9 +96,15 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       {:error, "boom"}
     end)
 
-    message = "Movement failed. \"boom\""
+    msg = "Movement failed. \"boom\""
 
-    assert message == Movement.move_absolute(1, 2, 3, 4).message
+    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+      assert log.message == msg
+    end)
+
+    {:error, error_log} = Movement.move_absolute(1, 2, 3, 4)
+
+    assert msg == error_log
   end
 
   test "get_position/1 - error" do
