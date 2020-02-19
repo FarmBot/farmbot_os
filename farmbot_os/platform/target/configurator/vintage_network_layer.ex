@@ -15,7 +15,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
       VintageNet.get_by_prefix(["interface", interface_name, "mac_address"])
     end)
     |> Enum.filter(fn
-      [{["interface", ifname, "mac_address"], mac_addr}] -> true
+      [{["interface", _ifname, "mac_address"], _mac_addr}] -> true
       # Sometimes VintageNet.get_by_prefix/1 will
       # return [[]], leading to runtime errors.
       _ -> false
