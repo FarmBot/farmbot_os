@@ -101,6 +101,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   def handle_movement_error(reason) do
     msg = "Movement failed. #{inspect(reason)}"
     FarmbotCore.Logger.error(1, msg)
+    {:error, msg}
   end
 
   def calibrate(axis) do

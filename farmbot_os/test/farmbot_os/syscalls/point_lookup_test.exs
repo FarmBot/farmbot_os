@@ -40,6 +40,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   test "PointLookup.get_toolslot_for_tool/1" do
     Repo.delete_all(Point)
     Repo.delete_all(Tool)
+
     t = tool(%{name: "moisture probe"})
 
     important_part = %{
