@@ -32,7 +32,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
           do_toggle_pin(peripheral || pin_number, 1)
 
         {:error, reason} ->
-        FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
+          FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
       end
     else
       {:error, reason} ->
