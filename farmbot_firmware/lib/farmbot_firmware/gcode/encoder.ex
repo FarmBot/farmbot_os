@@ -165,6 +165,9 @@ defmodule FarmbotFirmware.GCODE.Encoder do
       :calibration_error -> "V4"
       :invalid_command -> "V14"
       :no_config -> "V15"
+      :stall_detected_x -> "V31"
+      :stall_detected_y -> "V32"
+      :stall_detected_z -> "V33"
       _ -> ""
     end
   end

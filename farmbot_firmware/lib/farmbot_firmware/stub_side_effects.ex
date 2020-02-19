@@ -164,19 +164,4 @@ defmodule FarmbotFirmware.StubSideEffects do
 
   @impl SideEffects
   def handle_debug_message(_), do: :noop
-
-  @impl SideEffects
-  def handle_unknown_error(_), do: :noop
-
-  @impl SideEffects
-  def handle_calibration_error(), do: :noop
-
-  @impl SideEffects
-  def handle_invalid_command(), do: :noop
-
-  @impl SideEffects
-  def handle_no_configuration(), do: :noop
-
-  @impl SideEffects
-  def handle_stall_detected(), do: :noop
 end

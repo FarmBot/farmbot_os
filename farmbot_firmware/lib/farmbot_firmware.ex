@@ -729,51 +729,6 @@ defmodule FarmbotFirmware do
     {:noreply, goto(state, :busy)}
   end
 
-  def handle_report({:report_error, [:no_error]}, state) do
-    Logger.error("Error: no error")
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:emergency_lock]}, state) do
-    Logger.error("Error: emergency lock")
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:timeout]}, state) do
-    Logger.error("Error: timeout")
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:stall_detected]}, state) do
-    Logger.error("Error: stall detected")
-    side_effects(state, :handle_stall_detected, [])
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:calibration_error]}, state) do
-    Logger.error("Error: calibration error")
-    side_effects(state, :handle_calibration_error, [])
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:invalid_command]}, state) do
-    Logger.error("Error: invalid command")
-    side_effects(state, :handle_invalid_command, [])
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [:no_config]}, state) do
-    Logger.error("Error: no configuration")
-    side_effects(state, :handle_no_configuration, [])
-    handle_report({:report_error, []}, state)
-  end
-
-  def handle_report({:report_error, [unk]}, state) do
-    Logger.error("Error: #{inspect(unk)}")
-    side_effects(state, :handle_unknown_error, [unk])
-    handle_report({:report_error, []}, state)
-  end
-
   def handle_report(
         {:report_error, _} = code,
         %{status: :configuration} = state

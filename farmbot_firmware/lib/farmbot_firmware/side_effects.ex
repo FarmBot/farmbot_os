@@ -47,9 +47,4 @@ defmodule FarmbotFirmware.SideEffects do
   @callback handle_input_gcode(GCODE.t()) :: any()
   @callback handle_output_gcode(GCODE.t()) :: any()
   @callback handle_debug_message([String.t()]) :: any()
-  @callback handle_calibration_error() :: any()
-  @callback handle_invalid_command() :: any()
-  @callback handle_no_configuration() :: any()
-  @callback handle_stall_detected() :: any()
-  @callback handle_unknown_error(any()) :: any()
 end
