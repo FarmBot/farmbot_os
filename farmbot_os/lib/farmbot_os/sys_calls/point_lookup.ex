@@ -51,5 +51,7 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     %{point | x: Movement.get_current_x()}
   end
 
-  defp maybe_adjust_coordinates(point), do: point
+  defp maybe_adjust_coordinates(point) do
+    point
+  end
 end

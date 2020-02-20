@@ -16,7 +16,14 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_position_change([{_axis, _value}]) do
+  def handle_position_change([{axis, 0.0}]) do
+    FarmbotCore.Logger.error(1, "Axis #{axis} stopped at home")
+    :noop
+  end
+
+    @impl FarmbotFirmware.SideEffects
+  def handle_position_change([{axis, _}]) do
+    FarmbotCore.Logger.error(1, "Axis #{axis} stopped at maximum")
     :noop
   end
 
@@ -28,36 +35,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_axis_timeout(axis) do
     FarmbotCore.Logger.error(1, "Axis #{axis} timed out waiting for movement to complete")
-    :noop
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_stall_detected() do
-    FarmbotCore.Logger.error(1, "Movement failed: stall detected")
-    :noop
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_calibration_error() do
-    FarmbotCore.Logger.error(1, "Calibration failed")
-    :noop
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_invalid_command() do
-    FarmbotCore.Logger.error(1, "Invalid command")
-    :noop
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_no_configuration() do
-    FarmbotCore.Logger.error(1, "No configuration")
-    :noop
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_unknown_error(err) do
-    FarmbotCore.Logger.error(1, "Unknown error: #{inspect(err)}")
     :noop
   end
 

@@ -1,5 +1,12 @@
 # Changelog
 
+# 9.1.2
+
+ * Genesis v1.5 and Express v1.0 firmware updates.
+ * Bug fix for movement error reporting
+ * Improved firmware error message reporting
+ * Improved support for gantry mounted tools.
+
 # 9.1.1
 
  * Genesis v1.5 and Express v1.0 firmware updates.

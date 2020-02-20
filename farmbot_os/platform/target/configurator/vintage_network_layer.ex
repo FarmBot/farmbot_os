@@ -9,12 +9,18 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
 
   @impl FarmbotOS.Configurator.NetworkLayer
   def list_interfaces() do
-    VintageNet.all_interfaces()
-    |> Kernel.--(["usb0", "lo"])
-    |> Enum.map(fn ifname ->
-      [{["interface", ^ifname, "mac_address"], mac_address}] =
-        VintageNet.get_by_prefix(["interface", ifname, "mac_address"])
-
+    # Remove usb0 and local loopback from the list.
+    (VintageNet.all_interfaces() -- ["usb0", "lo"])
+    |> Enum.map(fn interface_name ->
+      VintageNet.get_by_prefix(["interface", interface_name, "mac_address"])
+    end)
+    |> Enum.filter(fn
+      [{["interface", _ifname, "mac_address"], _mac_addr}] -> true
+      # Sometimes VintageNet.get_by_prefix/1 will
+      # return [[]], leading to runtime errors.
+      _ -> false
+    end)
+    |> Enum.map(fn [{[_, ifname, _], mac_address}] ->
       {ifname, %{mac_address: mac_address}}
     end)
   end
