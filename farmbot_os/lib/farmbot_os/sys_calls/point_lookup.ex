@@ -33,6 +33,10 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     tool = Asset.get_tool(id: id)
     p = Asset.get_point(tool_id: id)
 
+    IO.puts("======== BEGIN get_toolslot_for_tool(id)")
+    IO.inspect(tool)
+    IO.inspect(p)
+
     with %{id: ^id} <- tool,
          %{name: name, x: x, y: y, z: z, gantry_mounted: mounted} <- p do
       maybe_adjust_coordinates(%{
@@ -48,8 +52,12 @@ defmodule FarmbotOS.SysCalls.PointLookup do
   end
 
   defp maybe_adjust_coordinates(%{gantry_mounted: true} = point) do
+    IO.puts("==== IT IS DOING THE CORRECT THING")
     %{point | x: Movement.get_current_x()}
   end
 
-  defp maybe_adjust_coordinates(point), do: point
+  defp maybe_adjust_coordinates(point) do
+    IO.puts("==== Using regular coordinates!")
+    point
+  end
 end

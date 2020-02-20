@@ -32,7 +32,6 @@ defmodule FarmbotExt.API.SyncGroup do
       FarmwareEnv,
       FirstPartyFarmware,
       FarmwareInstallation
-      # PublicKey
     ]
 
   @doc "Group 1 should have no external requirements"
