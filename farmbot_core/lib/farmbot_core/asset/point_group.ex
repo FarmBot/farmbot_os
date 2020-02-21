@@ -17,7 +17,7 @@ defmodule FarmbotCore.Asset.PointGroup do
     field(:name, :string)
     field(:point_ids, {:array, :integer})
     field(:sort_type, :string)
-    field(:meta, :map)
+    field(:criteria, :map)
 
     field(:monitor, :boolean, default: true)
     timestamps()
