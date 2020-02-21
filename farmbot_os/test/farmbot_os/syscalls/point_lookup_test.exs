@@ -49,14 +49,14 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     t = tool(%{name: "moisture probe"})
 
     point(%{
-        pointer_type: "ToolSlot",
-        name: "Tool Slot",
-        tool_id: t.id,
-        gantry_mounted: true,
-        x: 4.4,
-        y: 4.4,
-        z: 4.4
-      })
+      pointer_type: "ToolSlot",
+      name: "Tool Slot",
+      tool_id: t.id,
+      gantry_mounted: true,
+      x: 4.4,
+      y: 4.4,
+      z: 4.4
+    })
 
     important_part = %{
       name: "Tool Slot",
