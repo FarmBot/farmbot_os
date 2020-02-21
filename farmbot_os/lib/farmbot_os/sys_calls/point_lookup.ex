@@ -2,21 +2,14 @@ defmodule FarmbotOS.SysCalls.PointLookup do
   @moduledoc false
 
   alias FarmbotCore.Asset
+  alias FarmbotOS.SysCalls.Movement
+
   require Logger
 
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil -> {:error, "#{kind} not found"}
       %{name: name, x: x, y: y, z: z} -> %{name: name, x: x, y: y, z: z}
-    end
-  end
-
-  def get_toolslot_for_tool(id) do
-    with %{id: ^id} <- Asset.get_tool(id: id),
-         %{name: name, x: x, y: y, z: z} <- Asset.get_point(tool_id: id) do
-      %{name: name, x: x, y: y, z: z}
-    else
-      nil -> {:error, "Could not find point for tool by id: #{id}"}
     end
   end
 
@@ -34,5 +27,31 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     Enum.reduce(points, %{point_ids: []}, fn
       %{id: id}, acc -> %{acc | point_ids: [id | acc.point_ids]}
     end)
+  end
+
+  def get_toolslot_for_tool(id) do
+    tool = Asset.get_tool(id: id)
+    p = Asset.get_point(tool_id: id)
+
+    with %{id: ^id} <- tool,
+         %{name: name, x: x, y: y, z: z, gantry_mounted: mounted} <- p do
+      maybe_adjust_coordinates(%{
+        name: name,
+        x: x,
+        y: y,
+        z: z,
+        gantry_mounted: mounted
+      })
+    else
+      nil -> {:error, "Could not find point for tool by id: #{id}"}
+    end
+  end
+
+  defp maybe_adjust_coordinates(%{gantry_mounted: true} = point) do
+    %{point | x: Movement.get_current_x()}
+  end
+
+  defp maybe_adjust_coordinates(point) do
+    point
   end
 end

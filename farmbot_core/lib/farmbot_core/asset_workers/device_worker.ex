@@ -66,9 +66,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       {:mounted_tool_id, nil} ->
         if old_device.mounted_tool_id do
           if tool = Asset.get_tool(id: old_device.mounted_tool_id) do
-            FarmbotCore.Logger.info(2, "Farmbot dismounted #{tool.name}")
+            FarmbotCore.Logger.info(2, "Dismounted the #{tool.name}")
           else
-            FarmbotCore.Logger.info(2, "Farmbot dismounted unknown tool")
+            FarmbotCore.Logger.info(2, "Dismounted unknown tool")
           end
         else
           # no previously mounted tool
@@ -77,9 +77,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
 
       {:mounted_tool_id, id} ->
         if tool = Asset.get_tool(id: id) do
-          FarmbotCore.Logger.info(2, "Farmbot mounted #{tool.name}")
+          FarmbotCore.Logger.info(2, "Mounted the #{tool.name}")
         else
-          FarmbotCore.Logger.info(2, "Farmbot mounted unknown tool")
+          FarmbotCore.Logger.info(2, "Mounted unknown tool")
         end
 
       {_key, _value} ->

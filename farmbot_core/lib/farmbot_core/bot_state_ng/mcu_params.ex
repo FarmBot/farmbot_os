@@ -210,7 +210,7 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       pin_guard_4_active_state: mcu_params.pin_guard_4_active_state,
       pin_guard_5_pin_nr: mcu_params.pin_guard_5_pin_nr,
       pin_guard_5_time_out: mcu_params.pin_guard_5_time_out,
-      pin_guard_5_active_state: :pin_guard_5_active_stat
+      pin_guard_5_active_state: mcu_params.pin_guard_5_active_state
     }
   end
 

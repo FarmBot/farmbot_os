@@ -49,9 +49,26 @@ defmodule FarmbotFirmware.Command do
         debug_log("#{GCODE.encode(code)} position change")
         wait_for_command_result(tag, code, retries, error)
 
-      {_, {:report_error, _}} ->
-        debug_log("#{GCODE.encode(code)} firmware error")
-        if err, do: {:error, err}, else: {:error, :firmware_error}
+      {_, {:report_error, [error_code]}} ->
+        if err do
+          debug_log("#{GCODE.encode(code)} error: #{inspect(err)}")
+          {:error, err}
+        else
+          debug_log("#{GCODE.encode(code)} #{inspect(error_code)}")
+
+          case error_code do
+            :no_error -> {:ok, "ok"}
+            :emergency_lock -> {:error, "emergency lock"}
+            :timeout -> {:error, "timeout"}
+            :calibration_error -> {:error, "calibration error"}
+            :invalid_command -> {:error, "invalid command"}
+            :no_config -> {:error, "no configuration"}
+            :stall_detected_x -> {:error, "X axis stall detected"}
+            :stall_detected_y -> {:error, "Y axis stall detected"}
+            :stall_detected_z -> {:error, "Z axis stall detected"}
+            error -> {:error, "unknown firmware error #{inspect(error)}"}
+          end
+        end
 
       {_, {:report_invalid, []}} ->
         debug_log("#{GCODE.encode(code)} invalid command")

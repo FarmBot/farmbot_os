@@ -32,10 +32,11 @@ defmodule FarmbotOS.SysCalls.PinControl do
           do_toggle_pin(peripheral || pin_number, 1)
 
         {:error, reason} ->
-          {:error, reason}
+          FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
       end
     else
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
     end
   end
 
@@ -70,10 +71,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   defp do_toggle_pin(pin_number, value) do
-    with :ok <-
-           FarmbotFirmware.command(
-             {:pin_write, [p: pin_number, v: value, m: 0]}
-           ),
+    result =
+      FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: 0]})
+
+    with :ok <- result,
          value when is_number(value) <- do_read_pin(pin_number, 0) do
       :ok
     else

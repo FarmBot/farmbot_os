@@ -9,7 +9,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
   def do_decode("R01", []), do: {:report_begin, []}
   def do_decode("R02", []), do: {:report_success, []}
   def do_decode("R03", []), do: {:report_error, [:no_error]}
-  def do_decode("R03", error), do: {:report_error, decode_error(error)}
+  def do_decode("R03", v), do: {:report_error, decode_v(v)}
   def do_decode("R04", []), do: {:report_busy, []}
 
   def do_decode("R05", xyz), do: {:report_axis_state, decode_axis_state(xyz)}
@@ -99,17 +99,23 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     {:unknown, [kind | args]}
   end
 
-  def decode_error(["V0"]), do: [:no_error]
-  def decode_error(["V1"]), do: [:emergency_lock]
-  def decode_error(["V2"]), do: [:timeout]
-  def decode_error(["V3"]), do: [:stall_detected]
-  def decode_error(["V14"]), do: [:invalid_command]
-  def decode_error(["V15"]), do: [:no_config]
-  def decode_error([unk]), do: [unknown_error: unk]
-  # TODO(Rick): This is a guess. Can be removed if
-  # better solution is found.
-  # FarmBot/farmbot_os/issues/1105#issuecomment-572381069
-  def decode_error(unk), do: [unknown_error: [unk]]
+  def decode_v(["V" <> value]) do
+    {value, ""} = Float.parse(value)
+
+    case value do
+      0.0 -> [:no_error]
+      1.0 -> [:emergency_lock]
+      2.0 -> [:timeout]
+      3.0 -> [:stall_detected]
+      4.0 -> [:calibration_error]
+      14.0 -> [:invalid_command]
+      15.0 -> [:no_config]
+      31.0 -> [:stall_detected_x]
+      32.0 -> [:stall_detected_y]
+      33.0 -> [:stall_detected_z]
+      unk -> [unknown_error: unk]
+    end
+  end
 
   defp decode_floats(list, acc \\ [])
 
