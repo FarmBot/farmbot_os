@@ -23,7 +23,14 @@ defmodule FarmbotCore.Asset.PointGroupTest do
       id: 23,
       name: "wow",
       point_ids: [1, 2],
-      sort_type: "random"
+      sort_type: "random",
+      criteria: %{
+        "day" => %{"days" => 0, "op" => ">"},
+        "number_eq" => %{},
+        "number_gt" => %{},
+        "number_lt" => %{},
+        "string_eq" => %{}
+      }
     }
 
     actual = PointGroup.render(pg)

@@ -14,6 +14,60 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
               10.
     """
 
-   def run(%PointGroup{} = _pg) do
-   end
+    # @number_eq_fields [:radius, :x, :y, :z, :z]
+    # @number_gt_fields [:radius, :x, :y, :z, :z]
+    # @number_lt_fields [:radius, :x, :y, :z, :z]
+    # @string_eq_fields [:name,  :openfarm_slug,  :plant_stage,  :pointer_type]
+
+  def run(%PointGroup{} = _pg) do
+  end
+
+  def flatten(%PointGroup{} = pg) do
+    {_, results} = ({pg, []}
+      # |> handle_meta_fields()
+      # |> handle_point_ids()
+      |> handle_number_eq_fields()
+      |> handle_number_gt_fields()
+      |> handle_number_lt_fields()
+      |> handle_string_eq_fields()
+      |> handle_day_field())
+    results
+  end
+
+  # # == THIS IS SPECIAL!
+  # defp handle_meta_fields({%PointGroup{} = pg, [] = results}) do
+  #   raise "Not Implemented"
+  #   {pg, results}
+  # end
+
+  # # == THIS IS SPEICAL!
+  # defp handle_point_ids({%PointGroup{} = pg, [] = results}) do
+  #   raise "Not Implemented"
+  #   {pg, results}
+  # end
+
+  defp handle_number_eq_fields({%PointGroup{} = pg, [] = results}) do
+    raise "Not Implemented"
+    {pg, results}
+  end
+
+  defp handle_number_gt_fields({%PointGroup{} = pg, [] = results}) do
+    raise "Not Implemented"
+    {pg, results}
+  end
+
+  defp handle_number_lt_fields({%PointGroup{} = pg, [] = results}) do
+    raise "Not Implemented"
+    {pg, results}
+  end
+
+  defp handle_string_eq_fields({%PointGroup{} = pg, [] = results}) do
+    raise "Not Implemented"
+    {pg, results}
+  end
+
+  defp handle_day_field({%PointGroup{} = pg, [] = results}) do
+    raise "Not Implemented"
+    {pg, results}
+  end
 end
