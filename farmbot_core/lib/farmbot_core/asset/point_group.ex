@@ -4,6 +4,17 @@ defmodule FarmbotCore.Asset.PointGroup do
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/point_groups"
+  @default_criteria %{
+      "day" => %{ "op" => ">", "days" => 0 },
+      # Map<string, string[]>
+      "string_eq" => %{},
+      # Map<string, number[]>
+      "number_eq" => %{},
+      # Map<string, number[]>
+      "number_lt" => %{},
+      # Map<string, number[]>
+      "number_gt" => %{}
+    }
 
   schema "point_groups" do
     field(:id, :id)
@@ -17,7 +28,7 @@ defmodule FarmbotCore.Asset.PointGroup do
     field(:name, :string)
     field(:point_ids, {:array, :integer})
     field(:sort_type, :string)
-    field(:criteria, :map)
+    field(:criteria, :map, default: @default_criteria)
 
     field(:monitor, :boolean, default: true)
     timestamps()
