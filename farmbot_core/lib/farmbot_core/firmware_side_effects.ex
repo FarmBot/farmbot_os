@@ -17,13 +17,13 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   @impl FarmbotFirmware.SideEffects
   def handle_position_change([{axis, 0.0}]) do
-    FarmbotCore.Logger.error(1, "Axis #{axis} stopped at home")
+    FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at home")
     :noop
   end
 
     @impl FarmbotFirmware.SideEffects
   def handle_position_change([{axis, _}]) do
-    FarmbotCore.Logger.error(1, "Axis #{axis} stopped at maximum")
+    FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at maximum")
     :noop
   end
 
@@ -34,7 +34,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   @impl FarmbotFirmware.SideEffects
   def handle_axis_timeout(axis) do
-    FarmbotCore.Logger.error(1, "Axis #{axis} timed out waiting for movement to complete")
+    FarmbotCore.Logger.error(1, "#{axis}-axis timed out waiting for movement to complete")
     :noop
   end
 
