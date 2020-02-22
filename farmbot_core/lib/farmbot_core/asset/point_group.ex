@@ -4,15 +4,16 @@ defmodule FarmbotCore.Asset.PointGroup do
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/point_groups"
+
   @default_criteria %{
-      "day" => %{ "op" => ">", "days" => 0 },
-      # Map<string, string[]>
-      "string_eq" => %{},
-      # Map<string, number[]>
-      "number_eq" => %{},
-      # Map<string, number[]>
-      "number_lt" => %{},
-      # Map<string, number[]>
+    "day" => %{ "op" => ">", "days" => 0 },
+    # Map<string, string[] | undefined>,
+    "string_eq" => %{},
+    # Map<string, number[] | undefined>,
+    "number_eq" => %{},
+    # Map<string, number | undefined>,
+    "number_lt" => %{},
+    # Map<string, number | undefined>,
       "number_gt" => %{}
     }
 

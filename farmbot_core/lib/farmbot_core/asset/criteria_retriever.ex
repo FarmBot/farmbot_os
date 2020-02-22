@@ -14,60 +14,55 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
               10.
     """
 
-    # @number_eq_fields [:radius, :x, :y, :z, :z]
-    # @number_gt_fields [:radius, :x, :y, :z, :z]
-    # @number_lt_fields [:radius, :x, :y, :z, :z]
-    # @string_eq_fields [:name,  :openfarm_slug,  :plant_stage,  :pointer_type]
+    @numberic_fields ["radius", "x", "y", "z"]
+    @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
   def run(%PointGroup{} = _pg) do
+    # Handle AND criteria
+    # Handle point_id criteria
+    # Handle meta.* criteria
   end
 
   def flatten(%PointGroup{} = pg) do
-    {_, results} = ({pg, []}
-      # |> handle_meta_fields()
-      # |> handle_point_ids()
+     {pg, []}
       |> handle_number_eq_fields()
       |> handle_number_gt_fields()
       |> handle_number_lt_fields()
       |> handle_string_eq_fields()
-      |> handle_day_field())
-    results
+      |> handle_day_field()
   end
 
-  # # == THIS IS SPECIAL!
-  # defp handle_meta_fields({%PointGroup{} = pg, [] = results}) do
-  #   raise "Not Implemented"
-  #   {pg, results}
-  # end
-
-  # # == THIS IS SPEICAL!
-  # defp handle_point_ids({%PointGroup{} = pg, [] = results}) do
-  #   raise "Not Implemented"
-  #   {pg, results}
-  # end
-
-  defp handle_number_eq_fields({%PointGroup{} = pg, [] = results}) do
-    raise "Not Implemented"
-    {pg, results}
+  defp handle_number_eq_fields({%PointGroup{} = pg, accum}) do
+    {pg, accum ++ filter_it(pg, "number_eq", @numberic_fields, "IN")}
   end
 
-  defp handle_number_gt_fields({%PointGroup{} = pg, [] = results}) do
-    raise "Not Implemented"
-    {pg, results}
+  defp handle_number_gt_fields({%PointGroup{} = pg, accum}) do
+    {pg, accum ++ filter_it(pg, "number_gt", @numberic_fields, ">")}
   end
 
-  defp handle_number_lt_fields({%PointGroup{} = pg, [] = results}) do
-    raise "Not Implemented"
-    {pg, results}
+  defp handle_number_lt_fields({%PointGroup{} = pg, accum}) do
+    {pg, accum ++ filter_it(pg, "number_lt", @numberic_fields, "<")}
   end
 
-  defp handle_string_eq_fields({%PointGroup{} = pg, [] = results}) do
-    raise "Not Implemented"
-    {pg, results}
+  defp handle_string_eq_fields({%PointGroup{} = pg, accum}) do
+    {pg, accum ++ filter_it(pg, "string_eq", @string_fields, "IN")}
   end
 
-  defp handle_day_field({%PointGroup{} = pg, [] = results}) do
-    raise "Not Implemented"
-    {pg, results}
+  defp handle_day_field({%PointGroup{} = pg, accum}) do
+    op = pg.criteria["day"]["op"] || "<"
+    days = pg.criteria["day"]["days"] || 0
+
+    query = ["created_at #{op} ?", Timex.shift(Timex.now(), days: days)]
+
+    { pg, accum ++ [ query ] }
+  end
+
+  defp filter_it(pg, criteria_kind, criteria_fields, op) do
+    criteria_fields
+      |> Enum.map(fn field ->
+        {field, pg.criteria[criteria_kind][field]}
+      end)
+      |> Enum.filter(fn {_k, v} -> v end)
+      |> Enum.map(fn {k, v} -> ["#{k} #{op} ?", v] end)
   end
 end
