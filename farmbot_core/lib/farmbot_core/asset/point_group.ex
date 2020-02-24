@@ -6,7 +6,7 @@ defmodule FarmbotCore.Asset.PointGroup do
   use FarmbotCore.Asset.Schema, path: "/api/point_groups"
 
   @default_criteria %{
-    "day" => %{ "op" => ">", "days" => 0 },
+    "day" => %{ "op" => ">", "days_ago" => 0 },
     # Map<string, string[] | undefined>,
     "string_eq" => %{},
     # Map<string, number[] | undefined>,

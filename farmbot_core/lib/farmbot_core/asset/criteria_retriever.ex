@@ -33,36 +33,39 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   end
 
   defp handle_number_eq_fields({%PointGroup{} = pg, accum}) do
-    {pg, accum ++ filter_it(pg, "number_eq", @numberic_fields, "IN")}
+     build(pg, "number_eq", @numberic_fields, "IN", accum)
   end
 
   defp handle_number_gt_fields({%PointGroup{} = pg, accum}) do
-    {pg, accum ++ filter_it(pg, "number_gt", @numberic_fields, ">")}
+     build(pg, "number_gt", @numberic_fields, ">", accum)
   end
 
   defp handle_number_lt_fields({%PointGroup{} = pg, accum}) do
-    {pg, accum ++ filter_it(pg, "number_lt", @numberic_fields, "<")}
+     build(pg, "number_lt", @numberic_fields, "<", accum)
   end
 
   defp handle_string_eq_fields({%PointGroup{} = pg, accum}) do
-    {pg, accum ++ filter_it(pg, "string_eq", @string_fields, "IN")}
+     build(pg, "string_eq", @string_fields, "IN", accum)
   end
 
   defp handle_day_field({%PointGroup{} = pg, accum}) do
     op = pg.criteria["day"]["op"] || "<"
-    days = pg.criteria["day"]["days"] || 0
+    days = pg.criteria["day"]["days_ago"] || 0
+    now = Timex.now()
+    time = Timex.shift(now, days: -1 * days)
 
-    query = ["created_at #{op} ?", Timex.shift(Timex.now(), days: days)]
+    query = ["created_at #{op} ?", time]
 
     { pg, accum ++ [ query ] }
   end
 
-  defp filter_it(pg, criteria_kind, criteria_fields, op) do
-    criteria_fields
+  defp build(pg, criteria_kind, criteria_fields, op, accum) do
+    results = criteria_fields
       |> Enum.map(fn field ->
         {field, pg.criteria[criteria_kind][field]}
       end)
       |> Enum.filter(fn {_k, v} -> v end)
       |> Enum.map(fn {k, v} -> ["#{k} #{op} ?", v] end)
+      {pg, accum ++ results}
   end
 end
