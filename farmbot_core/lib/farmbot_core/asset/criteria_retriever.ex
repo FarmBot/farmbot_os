@@ -1,5 +1,7 @@
 defmodule FarmbotCore.Asset.CriteriaRetriever do
   alias FarmbotCore.Asset.PointGroup
+  # import Ecto.Query
+
   @moduledoc """
       __      _ The PointGroup asset declares a list
     o'')}____// of criteria to query points. This
@@ -14,10 +16,19 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
               10.
     """
 
-    @numberic_fields ["radius", "x", "y", "z"]
-    @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
+  @numberic_fields ["radius", "x", "y", "z"]
+  @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
-  def run(%PointGroup{} = _pg) do
+  def run(%PointGroup{} = pg) do
+    {_, list} = flatten(pg)
+
+      Enum.map(list, fn [expr, args] ->
+        # hmm = where([expr], ^args)
+        hmm = [expr, args]
+        IO.inspect(hmm)
+        hmm
+      end)
+
     # Handle AND criteria
     # Handle point_id criteria
     # Handle meta.* criteria
