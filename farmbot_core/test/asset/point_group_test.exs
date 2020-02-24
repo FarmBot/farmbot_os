@@ -25,7 +25,7 @@ defmodule FarmbotCore.Asset.PointGroupTest do
       point_ids: [1, 2],
       sort_type: "random",
       criteria: %{
-        "day" => %{"days" => 0, "op" => ">"},
+        "day" => %{"days_ago" => 0, "op" => ">"},
         "number_eq" => %{},
         "number_gt" => %{},
         "number_lt" => %{},
