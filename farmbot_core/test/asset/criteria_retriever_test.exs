@@ -2,7 +2,6 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   use ExUnit.Case, async: true
   use Mimic
 
-  # alias FarmbotCore.Asset.{ CriteriaRetriever, PointGroup, Repo, Point }
   alias FarmbotCore.Asset.{
     CriteriaRetriever,
     Point,
@@ -64,8 +63,8 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "query" do
     pg = point_group_with_fake_points()
-    CriteriaRetriever.run(pg)
-    raise "TODO: Need to build dynamic query."
+    IO.puts("===")
+    IO.inspect(CriteriaRetriever.run(pg))
   end
 
   test "CriteriaRetriever.flatten/1" do

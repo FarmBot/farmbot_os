@@ -1,6 +1,6 @@
 defmodule FarmbotCore.Asset.CriteriaRetriever do
-  alias FarmbotCore.Asset.PointGroup
-  # import Ecto.Query
+  alias FarmbotCore.Asset.{PointGroup, Repo, Point}
+  import Ecto.Query
 
   @moduledoc """
       __      _ The PointGroup asset declares a list
@@ -22,13 +22,16 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def run(%PointGroup{} = pg) do
     {_, list} = flatten(pg)
 
-      Enum.map(list, fn [expr, args] ->
-        # hmm = where([expr], ^args)
-        hmm = [expr, args]
-        IO.inspect(hmm)
-        hmm
-      end)
+    queries = Enum.map(list, fn [expr, op, args] ->
+      from p in Point, where: fragment("? ? ?", ^expr, ^op, ^args)
+    end)
 
+    # all =
+    Repo.all(Point, queries)
+
+    # Enum.reduce(queries, all, fn(query, results)->
+    #   results
+    # end)
     # Handle AND criteria
     # Handle point_id criteria
     # Handle meta.* criteria
@@ -65,7 +68,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     now = Timex.now()
     time = Timex.shift(now, days: -1 * days)
 
-    query = ["created_at #{op} ?", time]
+    query = ["created_at", op, time]
 
     { pg, accum ++ [ query ] }
   end
@@ -76,7 +79,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
         {field, pg.criteria[criteria_kind][field]}
       end)
       |> Enum.filter(fn {_k, v} -> v end)
-      |> Enum.map(fn {k, v} -> ["#{k} #{op} ?", v] end)
+      |> Enum.map(fn {k, v} -> [k, op, v] end)
       {pg, accum ++ results}
   end
 end
