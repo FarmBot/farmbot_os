@@ -1,6 +1,10 @@
 defmodule FarmbotCore.Asset.CriteriaRetriever do
-  alias FarmbotCore.Asset.{PointGroup, Repo, Point}
-  import Ecto.Query
+  alias FarmbotCore.Asset.{
+    PointGroup,
+    Repo,
+    # Point
+  }
+  # import Ecto.Query
 
   @moduledoc """
       __      _ The PointGroup asset declares a list
@@ -20,64 +24,74 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
   def run(%PointGroup{} = pg) do
-    {_, list} = flatten(pg)
-
-    reducer = fn [expr, op, args], results ->
-      from(p in results, where: fragment("? ? ?", ^expr, ^op, ^args))
-    end
-
-    and_query = Enum.reduce(list, Point, reducer)
     # = = = Handle AND criteria
-    IO.inspect(and_query)
-
-    Repo.all(and_query)
+    {query, criteria} = flatten(pg) |> normalize() |> to_sql()
+    x = Repo.query(query, criteria)
+    IO.puts("FIX THIS SYNTAX ERROR. COnvert ? to $123. WILL BE HARD FOR ARRAYS")
+    IO.inspect(x)
+    []
     # = = = Handle point_id criteria
     # = = = Handle meta.* criteria
   end
 
+  # Map/Reduce operations to convert a %PointGroup{}
+  # to a list of SQL queries.
   def flatten(%PointGroup{} = pg) do
-     {pg, []}
-      |> handle_number_eq_fields()
-      |> handle_number_gt_fields()
-      |> handle_number_lt_fields()
-      |> handle_string_eq_fields()
-      |> handle_day_field()
+    {pg, []}
+     |> stage_1("string_eq", @string_fields, "IN")
+     |> stage_1("number_eq", @numberic_fields, "IN")
+     |> stage_1("number_gt", @numberic_fields, ">")
+     |> stage_1("number_lt", @numberic_fields, "<")
+     |> stage_1("day")
+     |> unwrap()
+    end
+
+  def normalize(list) do
+    list
+    |> Enum.reduce(%{}, &stage_2/2)
+    |> Map.to_list()
+    |> Enum.reduce({[], []}, &stage_3/2)
   end
 
-  defp handle_number_eq_fields({%PointGroup{} = pg, accum}) do
-     build(pg, "number_eq", @numberic_fields, "IN", accum)
+  def to_sql({fragments, criteria}) do
+    queries = fragments
+      |> Enum.with_index
+      |> Enum.map(fn {str, inx} -> String.replace(str, "?", "$#{inx}") end)
+      |> Enum.join(" AND ")
+
+    {"SELECT id FROM points WHERE #{queries}", criteria}
   end
 
-  defp handle_number_gt_fields({%PointGroup{} = pg, accum}) do
-     build(pg, "number_gt", @numberic_fields, ">", accum)
+  defp unwrap({_pg, accum}), do: accum
+
+  defp stage_1({pg, accum}, kind, fields, op) do
+    results = fields
+      |> Enum.map(fn field -> {field, pg.criteria[kind][field]} end)
+      |> Enum.filter(fn {_k, v} -> v end)
+      |> Enum.map(fn {k, v} -> {k, op, v} end)
+      {pg, accum ++ results}
   end
 
-  defp handle_number_lt_fields({%PointGroup{} = pg, accum}) do
-     build(pg, "number_lt", @numberic_fields, "<", accum)
-  end
-
-  defp handle_string_eq_fields({%PointGroup{} = pg, accum}) do
-     build(pg, "string_eq", @string_fields, "IN", accum)
-  end
-
-  defp handle_day_field({%PointGroup{} = pg, accum}) do
+  defp stage_1({pg, accum}, "day") do
     op = pg.criteria["day"]["op"] || "<"
     days = pg.criteria["day"]["days_ago"] || 0
-    now = Timex.now()
-    time = Timex.shift(now, days: -1 * days)
+    time = Timex.shift(Timex.now(), days: -1 * days)
 
-    query = ["created_at", op, time]
-
-    { pg, accum ++ [ query ] }
+    { pg, accum ++ [{"created_at", op, time}] }
   end
 
-  defp build(pg, criteria_kind, criteria_fields, op, accum) do
-    results = criteria_fields
-      |> Enum.map(fn field ->
-        {field, pg.criteria[criteria_kind][field]}
-      end)
-      |> Enum.filter(fn {_k, v} -> v end)
-      |> Enum.map(fn {k, v} -> [k, op, v] end)
-      {pg, accum ++ results}
+  defp stage_2({lhs, "IN", rhs}, results) do
+    query = "(#{lhs} IN ?)"
+    all_values = results[query] || []
+    Map.merge(results, %{query => rhs ++ all_values})
+  end
+
+  defp stage_2({lhs, op, rhs}, results) do
+    query = "(#{lhs} #{op} ?)"
+    Map.merge(results, %{query => rhs})
+  end
+
+  defp stage_3({next_query, next_fragment}, {query, fragments}) do
+    {query ++ [next_query], fragments ++ [next_fragment]}
   end
 end

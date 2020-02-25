@@ -15,10 +15,10 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     criteria: %{
       "day" => %{"op" => "<", "days_ago" => 4},
       "string_eq" => %{
-        "openfarm_slug" => ["five"],
+        "openfarm_slug" => ["five", "nine"],
         "meta.created_by" => ["plant-detection"]
       },
-      "number_eq" => %{"radius" => [6]},
+      "number_eq" => %{"radius" => [6, 10]},
       "number_lt" => %{"x" => 7},
       "number_gt" => %{"z" => 8}
     }
@@ -62,22 +62,23 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "query" do
-    pg = point_group_with_fake_points()
-    CriteriaRetriever.run(pg)
+    results = CriteriaRetriever.run(point_group_with_fake_points())
+    IO.puts("===================================")
+    IO.inspect(results)
   end
 
   test "CriteriaRetriever.flatten/1" do
     expect(Timex, :now, 1, fn -> ~U[2222-12-12 02:22:22.222222Z] end)
 
     expected = [
-      ["created_at", "<", ~U[2222-12-08 02:22:22.222222Z]],
-      ["openfarm_slug", "IN", ["five"]],
-      ["radius", "IN", [6]],
-      ["x", "<", 7],
-      ["z", ">", 8]
+      {"created_at", "<", ~U[2222-12-08 02:22:22.222222Z]},
+      {"openfarm_slug", "IN", ["five", "nine"]},
+      {"radius", "IN", [6, 10]},
+      {"x", "<", 7},
+      {"z", ">", 8}
     ]
 
-    {_pg, results} = CriteriaRetriever.flatten(@fake_point_group)
+    results = CriteriaRetriever.flatten(@fake_point_group)
 
     assert Enum.count(expected) == Enum.count(results)
 
