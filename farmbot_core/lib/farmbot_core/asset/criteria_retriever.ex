@@ -22,19 +22,17 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def run(%PointGroup{} = pg) do
     {_, list} = flatten(pg)
 
-    queries = Enum.map(list, fn [expr, op, args] ->
-      from p in Point, where: fragment("? ? ?", ^expr, ^op, ^args)
-    end)
+    reducer = fn [expr, op, args], results ->
+      from(p in results, where: fragment("? ? ?", ^expr, ^op, ^args))
+    end
 
-    # all =
-    Repo.all(Point, queries)
+    and_query = Enum.reduce(list, Point, reducer)
+    # = = = Handle AND criteria
+    IO.inspect(and_query)
 
-    # Enum.reduce(queries, all, fn(query, results)->
-    #   results
-    # end)
-    # Handle AND criteria
-    # Handle point_id criteria
-    # Handle meta.* criteria
+    Repo.all(and_query)
+    # = = = Handle point_id criteria
+    # = = = Handle meta.* criteria
   end
 
   def flatten(%PointGroup{} = pg) do

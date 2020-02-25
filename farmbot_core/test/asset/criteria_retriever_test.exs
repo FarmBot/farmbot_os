@@ -63,19 +63,18 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "query" do
     pg = point_group_with_fake_points()
-    IO.puts("===")
-    IO.inspect(CriteriaRetriever.run(pg))
+    CriteriaRetriever.run(pg)
   end
 
   test "CriteriaRetriever.flatten/1" do
     expect(Timex, :now, 1, fn -> ~U[2222-12-12 02:22:22.222222Z] end)
 
     expected = [
-      ["created_at < ?", ~U[2222-12-08 02:22:22.222222Z]],
-      ["openfarm_slug IN ?", ["five"]],
-      ["radius IN ?", [6]],
-      ["x < ?", 7],
-      ["z > ?", 8]
+      ["created_at", "<", ~U[2222-12-08 02:22:22.222222Z]],
+      ["openfarm_slug", "IN", ["five"]],
+      ["radius", "IN", [6]],
+      ["x", "<", 7],
+      ["z", ">", 8]
     ]
 
     {_pg, results} = CriteriaRetriever.flatten(@fake_point_group)
