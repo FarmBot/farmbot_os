@@ -305,7 +305,7 @@ defmodule FarmbotCore.Asset do
       %{sort_type: nil} = group ->
         group
 
-      %{point_ids: unsorted, sort_type: sort_by} = point_group ->
+      %{point_ids: _unsorted, sort_type: sort_by} = point_group ->
         sorted_and_augmented = CriteriaRetriever.run(point_group)
           |> sort_points(sort_by)
           |> Enum.map(&Map.fetch!(&1, :id))
