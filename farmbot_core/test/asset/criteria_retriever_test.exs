@@ -24,8 +24,32 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     }
   }
 
+  # Use this is a fake "Timex.now()" value when mocking.
+  @now ~U[2222-12-10 02:22:22.222222Z]
+  @five_days_ago ~U[2222-12-05 01:11:11.111111Z]
+
   @n 1000
   def rand, do: Enum.random(0..@n) / 1
+
+  def point!(%{id: id} = params) do
+    point = Map.merge(%Point{
+      id: id,
+      name: "point #{id}",
+      meta: %{},
+      plant_stage: "planted",
+      created_at: @now,
+      pointer_type: "Plant",
+      radius: 10.0,
+      tool_id: nil,
+      discarded_at: nil,
+      gantry_mounted: false,
+      x: 0.0,
+      y: 0.0,
+      z: 0.0
+    }, params)
+    Repo.insert!(point)
+    point
+  end
 
   def point_group_with_fake_points do
     Repo.delete_all(PointGroup)
@@ -38,7 +62,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     ]
 
     exclusion = [
-      %Point{created_at: ~U[2222-12-10 02:22:22.222222Z]},
+      %Point{created_at: @now},
       %Point{openfarm_slug: "not five"},
       %Point{radius: 10.0},
       %Point{x: 10.0},
@@ -62,6 +86,19 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "query" do
-    CriteriaRetriever.run(point_group_with_fake_points())
+    expect(Timex, :now, fn -> @now end)
+    pg = point_group_with_fake_points()
+
+    perfect_match = point!(%{
+      id: 999,
+      created_at: @five_days_ago,
+      openfarm_slug: "five",
+      meta: %{ "created_by" => "plant-detection" },
+      radius: 10.0,
+      x: 6.0,
+      z: 9.0
+    })
+
+    assert [perfect_match.id] == CriteriaRetriever.run(pg)
   end
 end

@@ -32,9 +32,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def run(%PointGroup{} = pg) do
     # = = = Handle AND criteria
     results = find_matching_point_ids(pg)
-    IO.puts("=========")
-    IO.inspect(results)
-    results
+    List.flatten(results)
     # = = = Handle point_id criteria
     # = = = Handle meta.* criteria
   end
