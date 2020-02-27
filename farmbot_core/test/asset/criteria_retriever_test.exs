@@ -62,25 +62,6 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "query" do
-    _results = CriteriaRetriever.run(point_group_with_fake_points())
-  end
-
-  @tag :focus
-  test "CriteriaRetriever.flatten/1" do
-    expect(Timex, :now, 1, fn -> ~U[2222-12-12 02:22:22.222222Z] end)
-
-    expected = [
-      {"created_at", "<", ~U[2222-12-08 02:22:22.222222Z]},
-      {"openfarm_slug", "IN", ["five", "nine"]},
-      {"radius", "IN", [6, 10, 11]},
-      {"x", "<", 7},
-      {"z", ">", 8}
-    ]
-
-    results = CriteriaRetriever.flatten(@fake_point_group)
-
-    assert Enum.count(expected) == Enum.count(results)
-
-    Enum.map(expected, fn query -> assert Enum.member?(results, query) end)
+    CriteriaRetriever.run(point_group_with_fake_points())
   end
 end

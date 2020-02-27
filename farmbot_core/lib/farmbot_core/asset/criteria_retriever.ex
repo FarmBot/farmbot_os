@@ -23,48 +23,50 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   @numberic_fields ["radius", "x", "y", "z"]
   @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
+  @doc """
+  You provide it a %PointGroup{},
+  it provides you an array of
+  point IDs (int) that match
+  the group's criteria.
+  """
   def run(%PointGroup{} = pg) do
     # = = = Handle AND criteria
-    {query, criteria} = flatten(pg) |> normalize()
-    q = Repo.query(query, criteria)
-    IO.inspect(query)
-    IO.inspect(criteria)
-    IO.inspect(q)
-    q
+    results = find_matching_point_ids(pg)
+    IO.puts("=========")
+    IO.inspect(results)
+    results
     # = = = Handle point_id criteria
     # = = = Handle meta.* criteria
   end
 
   # Map/Reduce operations to convert a %PointGroup{}
   # to a list of SQL queries.
-  def flatten(%PointGroup{} = pg) do
+  defp find_matching_point_ids(%PointGroup{} = pg) do
     {pg, []}
      |> stage_1("string_eq", @string_fields, "IN")
      |> stage_1("number_eq", @numberic_fields, "IN")
      |> stage_1("number_gt", @numberic_fields, ">")
      |> stage_1("number_lt", @numberic_fields, "<")
-     |> stage_1("day")
-     |> unwrap()
+     |> stage_1_day_field()
+     |> unwrap_stage_1()
+     |> Enum.reduce(%{}, &stage_2/2)
+     |> Map.to_list()
+     |> Enum.reduce({[], [], 0}, &stage_3/2)
+     |> unwrap_stage_3()
+     |> finalize()
     end
 
-  def normalize(list) do
-    {query, args, _count} = list
-    |> Enum.reduce(%{}, &stage_2/2)
-    |> Map.to_list()
-    |> Enum.reduce({[], [], 0}, &stage_3/2)
-
-    to_sql({query, args})
-  end
-
-  def to_sql({fragments, criteria}) do
+  def finalize({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
     escapes = List.flatten(criteria)
-
-    {sql, escapes}
+    {:ok, query} = Repo.query(sql, escapes)
+    %Sqlite.DbConnection.Result{ rows: rows } = query
+    rows
   end
 
-  defp unwrap({_, right}), do: right
+  defp unwrap_stage_1({_, right}), do: right
+  defp unwrap_stage_3({query, args, _count}), do: {query, args}
 
   defp stage_1({pg, accum}, kind, fields, op) do
     results = fields
@@ -74,12 +76,11 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
       {pg, accum ++ results}
   end
 
-  defp stage_1({pg, accum}, "day") do
-    op = pg.criteria["day"]["op"] || "<"
+  defp stage_1_day_field({pg, accum}) do
     days = pg.criteria["day"]["days_ago"] || 0
     time = Timex.shift(Timex.now(), days: -1 * days)
 
-    { pg, accum ++ [{"created_at", op, time}] }
+    { pg, accum ++ [{"created_at", pg.criteria["day"]["op"] || "<", time}] }
   end
 
   defp stage_2({lhs, "IN", rhs}, results) do
