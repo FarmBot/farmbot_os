@@ -1,10 +1,6 @@
 defmodule FarmbotCore.Asset.CriteriaRetriever do
-  alias FarmbotCore.Asset.{
-    PointGroup,
-    Repo,
-    # Point
-  }
-  # import Ecto.Query
+  alias FarmbotCore.Asset.{ PointGroup, Repo, Point }
+  import Ecto.Query
 
   @moduledoc """
       __      _ The PointGroup asset declares a list
@@ -29,18 +25,54 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   point IDs (int) that match
   the group's criteria.
   """
-  def run(%PointGroup{} = pg) do
-    # = = = Handle AND criteria
-    results = find_matching_point_ids(pg)
-    List.flatten(results)
+  def run(%PointGroup{point_ids: static_ids} = pg) do
     # = = = Handle point_id criteria
+    always_ok = Repo.all(from(p in Point, where: p.id in ^static_ids, select: p))
+    # = = = Handle AND criteria
+    dynamic_ids = find_matching_point_ids(pg)
+    dynamic_query = from(p in Point, where: p.id in ^dynamic_ids, select: p)
+    needs_meta_filter = Repo.all(dynamic_query)
     # = = = Handle meta.* criteria
+    search_matches = search_meta_fields(pg, needs_meta_filter)
+
+    search_matches ++ always_ok
   end
 
-  # Map/Reduce operations to convert a %PointGroup{}
-  # to a list of SQL queries.
+  def search_meta_fields(%PointGroup{} = pg, points) do
+    meta = "meta."
+    meta_len = String.length(meta)
+
+    pg.criteria["string_eq"]
+      |> Map.to_list()
+      |> Enum.filter(fn {k, _v} ->
+        String.starts_with?(k, meta)
+      end)
+      |> Enum.map(fn {k, value} ->
+        clean_key = String.slice(k, ((meta_len)..-1))
+        {clean_key, value}
+      end)
+      |> Enum.reduce(%{}, fn {key, value}, all ->
+        all_values = all[key] || []
+        Map.merge(all, %{key => value ++ all_values})
+      end)
+      |> Map.to_list()
+      |> Enum.reduce(points, fn {key, values}, finalists ->
+        finalists
+          |> Enum.filter(fn point -> point.meta[key] end)
+          |> Enum.filter(fn point -> point.meta[key] in values end)
+      end)
+  end
+
+  def matching_ids_no_meta(%PointGroup{} = pg) do
+    find_matching_point_ids(pg)
+  end
+
+  # Find all point IDs that are matched by a PointGroup
+  # This is not including any meta.* search terms,
+  # since `meta` is a JSON coolumn that must be
+  # manually searched in memory.
   defp find_matching_point_ids(%PointGroup{} = pg) do
-    {pg, []}
+    results = {pg, []}
      |> stage_1("string_eq", @string_fields, "IN")
      |> stage_1("number_eq", @numberic_fields, "IN")
      |> stage_1("number_gt", @numberic_fields, ">")
@@ -52,15 +84,16 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
      |> Enum.reduce({[], [], 0}, &stage_3/2)
      |> unwrap_stage_3()
      |> finalize()
-    end
+
+     results
+  end
 
   def finalize({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
-    escapes = List.flatten(criteria)
-    {:ok, query} = Repo.query(sql, escapes)
+    {:ok, query} = Repo.query(sql, List.flatten(criteria))
     %Sqlite.DbConnection.Result{ rows: rows } = query
-    rows
+    List.flatten(rows)
   end
 
   defp unwrap_stage_1({_, right}), do: right
