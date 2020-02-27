@@ -127,7 +127,8 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 9.0
     })
 
-    perfect_match = point!(%{
+    perfect_match =
+      point!(%{
         id: 999,
         created_at: @five_days_ago,
         openfarm_slug: "five",
