@@ -63,7 +63,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "query" do
     results = CriteriaRetriever.run(point_group_with_fake_points())
-    IO.puts("===================================")
+    IO.puts("----- #37")
     IO.inspect(results)
   end
 
@@ -84,7 +84,5 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     assert Enum.count(expected) == Enum.count(results)
 
     Enum.map(expected, fn query -> assert Enum.member?(results, query) end)
-    IO.puts("===================================")
-    IO.inspect(CriteriaRetriever.normalize(results))
   end
 end

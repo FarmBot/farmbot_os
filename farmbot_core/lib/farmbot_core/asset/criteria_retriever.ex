@@ -25,11 +25,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
 
   def run(%PointGroup{} = pg) do
     # = = = Handle AND criteria
-    {query, criteria} = flatten(pg) |> normalize() |> to_sql()
-    x = Repo.query(query, criteria)
-    IO.puts("FIX THIS SYNTAX ERROR. COnvert ? to $123. WILL BE HARD FOR ARRAYS")
-    IO.inspect(x)
-    []
+    {query, criteria} = flatten(pg) |> normalize()
+    Repo.query(query, criteria)
     # = = = Handle point_id criteria
     # = = = Handle meta.* criteria
   end
@@ -47,22 +44,27 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     end
 
   def normalize(list) do
-    list
+    {query, args, _count} = list
     |> Enum.reduce(%{}, &stage_2/2)
     |> Map.to_list()
     |> Enum.reduce({[], [], 0}, &stage_3/2)
+
+    to_sql({query, args})
   end
 
   def to_sql({fragments, criteria}) do
-    queries = fragments
-      |> Enum.with_index
-      |> Enum.map(fn {str, inx} -> String.replace(str, "?", "$#{inx}") end)
-      |> Enum.join(" AND ")
+    x = Enum.join(fragments, " AND ")
+    sql = "SELECT * FROM points WHERE #{x}"
+    escapes = List.flatten(criteria)
 
-    {"SELECT id FROM points WHERE #{queries}", criteria}
+    IO.puts("%%%%%%%%%%%%%%%%%%%%%%")
+    IO.inspect(sql)
+    IO.inspect(escapes)
+
+    {sql, escapes}
   end
 
-  defp unwrap({_pg, accum}), do: accum
+  defp unwrap({_, right}), do: right
 
   defp stage_1({pg, accum}, kind, fields, op) do
     results = fields
