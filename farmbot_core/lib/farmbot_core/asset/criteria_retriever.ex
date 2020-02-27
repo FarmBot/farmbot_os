@@ -50,7 +50,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     list
     |> Enum.reduce(%{}, &stage_2/2)
     |> Map.to_list()
-    |> Enum.reduce({[], []}, &stage_3/2)
+    |> Enum.reduce({[], [], 0}, &stage_3/2)
   end
 
   def to_sql({fragments, criteria}) do
@@ -81,17 +81,32 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   end
 
   defp stage_2({lhs, "IN", rhs}, results) do
-    query = "(#{lhs} IN ?)"
+    query = "#{lhs} IN"
     all_values = results[query] || []
     Map.merge(results, %{query => rhs ++ all_values})
   end
 
   defp stage_2({lhs, op, rhs}, results) do
-    query = "(#{lhs} #{op} ?)"
-    Map.merge(results, %{query => rhs})
+    Map.merge(results, %{"#{lhs} #{op}" => rhs})
   end
 
-  defp stage_3({next_query, next_fragment}, {query, fragments}) do
-    {query ++ [next_query], fragments ++ [next_fragment]}
+  defp stage_3({sql, args}, {full_query, full_args, original_count}) when is_list(args) do
+    final_count = original_count + Enum.count(args)
+    initial = {sql, original_count}
+    {next_sql, _} = Enum.reduce(args, initial, fn _, {ssql, ccount} ->
+      next_ccount = ccount + 1
+      initial_count = original_count + 1
+      case next_ccount do
+        ^initial_count -> {ssql <> " ($#{next_ccount},", next_ccount}
+        ^final_count -> {ssql <> " $#{next_ccount})", next_ccount}
+        _ -> {ssql <> " $#{next_ccount},", next_ccount}
+      end
+    end)
+
+    {full_query ++ [next_sql], full_args ++ [args], final_count}
+  end
+
+  defp stage_3({sql, args}, {full_query, full_args, count}) do
+    {full_query ++ [sql <> " $#{count}"], full_args ++ [args], count + 1}
   end
 end
