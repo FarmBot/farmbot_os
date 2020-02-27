@@ -26,7 +26,11 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def run(%PointGroup{} = pg) do
     # = = = Handle AND criteria
     {query, criteria} = flatten(pg) |> normalize()
-    Repo.query(query, criteria)
+    q = Repo.query(query, criteria)
+    IO.inspect(query)
+    IO.inspect(criteria)
+    IO.inspect(q)
+    q
     # = = = Handle point_id criteria
     # = = = Handle meta.* criteria
   end
@@ -54,12 +58,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
 
   def to_sql({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
-    sql = "SELECT * FROM points WHERE #{x}"
+    sql = "SELECT id FROM points WHERE #{x}"
     escapes = List.flatten(criteria)
-
-    IO.puts("%%%%%%%%%%%%%%%%%%%%%%")
-    IO.inspect(sql)
-    IO.inspect(escapes)
 
     {sql, escapes}
   end

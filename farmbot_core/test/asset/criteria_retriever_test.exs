@@ -18,7 +18,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
         "openfarm_slug" => ["five", "nine"],
         "meta.created_by" => ["plant-detection"]
       },
-      "number_eq" => %{"radius" => [6, 10]},
+      "number_eq" => %{"radius" => [6, 10, 11]},
       "number_lt" => %{"x" => 7},
       "number_gt" => %{"z" => 8}
     }
@@ -62,9 +62,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "query" do
-    results = CriteriaRetriever.run(point_group_with_fake_points())
-    IO.puts("----- #37")
-    IO.inspect(results)
+    _results = CriteriaRetriever.run(point_group_with_fake_points())
   end
 
   @tag :focus
@@ -74,7 +72,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     expected = [
       {"created_at", "<", ~U[2222-12-08 02:22:22.222222Z]},
       {"openfarm_slug", "IN", ["five", "nine"]},
-      {"radius", "IN", [6, 10]},
+      {"radius", "IN", [6, 10, 11]},
       {"x", "<", 7},
       {"z", ">", 8}
     ]
