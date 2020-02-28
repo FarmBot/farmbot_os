@@ -6,15 +6,15 @@ defmodule FarmbotCore.Asset do
   """
 
   alias FarmbotCore.Asset.{
-    CriteriaRetriever,
+    Repo,
     Device,
     DeviceCert,
-    FarmEvent,
     FarmwareEnv,
+    FirstPartyFarmware,
     FarmwareInstallation,
+    FarmEvent,
     FbosConfig,
     FirmwareConfig,
-    FirstPartyFarmware,
     Peripheral,
     PinBinding,
     Point,
@@ -22,10 +22,9 @@ defmodule FarmbotCore.Asset do
     PublicKey,
     Regimen,
     RegimenInstance,
-    Repo,
+    Sequence,
     Sensor,
     SensorReading,
-    Sequence,
     Tool
   }
 
@@ -305,12 +304,13 @@ defmodule FarmbotCore.Asset do
       %{sort_type: nil} = group ->
         group
 
-      %{point_ids: _unsorted, sort_type: sort_by} = point_group ->
-        sorted_and_augmented = CriteriaRetriever.run(point_group)
+      %{point_ids: unsorted, sort_type: sort_by} = point_group ->
+        sorted =
+          Repo.all(from(p in Point, where: p.id in ^unsorted))
           |> sort_points(sort_by)
           |> Enum.map(&Map.fetch!(&1, :id))
 
-        %{point_group | point_ids: sorted_and_augmented}
+        %{point_group | point_ids: sorted}
     end
   end
 
