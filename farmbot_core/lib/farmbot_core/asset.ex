@@ -25,7 +25,8 @@ defmodule FarmbotCore.Asset do
     Sequence,
     Sensor,
     SensorReading,
-    Tool
+    Tool,
+    CriteriaRetriever
   }
 
   alias FarmbotCore.AssetSupervisor
@@ -311,6 +312,23 @@ defmodule FarmbotCore.Asset do
           |> Enum.map(&Map.fetch!(&1, :id))
 
         %{point_group | point_ids: sorted}
+    end
+  end
+
+  def find_points_via_group(params) do
+    case Repo.get_by(PointGroup, params) do
+      %{id: _id, sort_type: sort_by} = point_group ->
+        sorted = CriteriaRetriever.run(point_group)
+          |> sort_points(sort_by || "xy_ascending")
+          |> Enum.map(&Map.fetch!(&1, :id))
+
+        %{ point_ids: sorted }
+      other ->
+        # Swallow all other errors
+        a = inspect(params)
+        b = inspect(other)
+        Logger.debug("Unexpected point group #{a} #{b}")
+        nil
     end
   end
 

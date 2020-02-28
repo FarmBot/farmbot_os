@@ -42,7 +42,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     meta = "meta."
     meta_len = String.length(meta)
 
-    pg.criteria["string_eq"]
+    (pg.criteria["string_eq"] || %{})
       |> Map.to_list()
       |> Enum.filter(fn {k, _v} ->
         String.starts_with?(k, meta)
@@ -108,10 +108,12 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   end
 
   defp stage_1_day_field({pg, accum}) do
-    days = pg.criteria["day"]["days_ago"] || 0
+    day_criteria = pg.criteria["day"] || %{}
+    days = day_criteria["days_ago"] || 0
+    op = day_criteria["op"] || "<"
     time = Timex.shift(Timex.now(), days: -1 * days)
 
-    { pg, accum ++ [{"created_at", pg.criteria["day"]["op"] || "<", time}] }
+    { pg, accum ++ [{"created_at", op, time}] }
   end
 
   defp stage_2({lhs, "IN", rhs}, results) do

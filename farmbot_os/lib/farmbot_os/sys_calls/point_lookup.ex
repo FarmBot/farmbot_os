@@ -20,6 +20,7 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     end
   end
 
+  # TODO(Rick) This can be removed. Not used by CSRT.
   def get_point_group(type) when is_binary(type) do
     Logger.debug("Looking up points by type: #{type}")
     points = Asset.get_all_points_by_type(type)
