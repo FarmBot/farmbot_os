@@ -10,7 +10,7 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
   test "compilation of point_group in parameter application" do
     fake_point_ids = [4, 5, 6, 7]
 
-    expect(Stubs, :get_point_group, fn _ ->
+    expect(Stubs, :find_points_via_group, fn _ ->
       %{name: "woosh", point_ids: fake_point_ids}
     end)
 
