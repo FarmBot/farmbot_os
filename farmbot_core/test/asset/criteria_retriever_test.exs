@@ -143,4 +143,39 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     assert Enum.count(expected) == Enum.count(results)
     Enum.map(expected, fn id -> assert Enum.member?(results, id) end)
   end
+
+  test "point group that does not define criteria" do
+    now = ~U[2020-03-02 22:00:30.231198Z]
+    expect(Timex, :now, fn -> now end)
+
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    whitelist = [88457, 88455]
+    blacklist = [75488, 55488]
+
+    Enum.map(blacklist ++ whitelist, fn id -> point!(%{id: id}) end)
+
+    pg = %PointGroup{
+      created_at: ~U[2020-02-29 21:14:33.337000Z],
+      criteria: %{
+        "day" => %{"days_ago" => 0, "op" => "<"},
+        "number_eq" => %{},
+        "number_gt" => %{},
+        "number_lt" => %{},
+        "string_eq" => %{}
+      },
+      id: 201,
+      local_id: "30856f5e-1f97-4e18-b5e0-84dc7cd9bbf0",
+      name: "Test (Broke?)",
+      point_ids: whitelist,
+      sort_type: "xy_ascending",
+      updated_at: ~U[2020-03-02 21:55:26.973000Z]
+    }
+
+    Repo.insert!(pg)
+    results = Enum.map(CriteriaRetriever.run(pg), fn p -> p.id end)
+    assert Enum.count(whitelist) == Enum.count(results)
+    Enum.map(whitelist, fn id -> assert Enum.member?(results, id) end)
+  end
 end
