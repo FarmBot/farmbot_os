@@ -91,6 +91,10 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
      results
   end
 
+  def finalize({_, []}) do
+    []
+  end
+
   def finalize({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
@@ -113,10 +117,15 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   defp stage_1_day_field({pg, accum}) do
     day_criteria = pg.criteria["day"] || %{}
     days = day_criteria["days_ago"] || 0
-    op = day_criteria["op"] || "<"
-    time = Timex.shift(Timex.now(), days: -1 * days)
-
-    { pg, accum ++ [{"created_at", op, time}] }
+    if days == 0 do
+      { pg, accum }
+    else
+  
+      op = day_criteria["op"] || "<"
+      time = Timex.shift(Timex.now(), days: -1 * days)
+  
+      { pg, accum ++ [{"created_at", op, time}] }
+    end
   end
 
   defp stage_2({lhs, "IN", rhs}, results) do
