@@ -1,4 +1,6 @@
 defmodule FarmbotCeleryScript.FormatUtil do
+  def format_float(nil), do: nil
+
   def format_float(value) when is_integer(value) do
     format_float(value / 1)
   end
