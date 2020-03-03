@@ -316,6 +316,7 @@ defmodule FarmbotCore.Asset do
   end
 
   def find_points_via_group(params) do
+    IO.puts("== Finding points via group...")
     case Repo.get_by(PointGroup, params) do
       %{id: _id, sort_type: sort_by} = point_group ->
         sorted = CriteriaRetriever.run(point_group)
