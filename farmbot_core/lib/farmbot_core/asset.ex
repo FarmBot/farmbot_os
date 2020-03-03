@@ -315,18 +315,25 @@ defmodule FarmbotCore.Asset do
     end
   end
 
-  def find_points_via_group(params) do
-    IO.puts("== Finding points via group...")
-    case Repo.get_by(PointGroup, params) do
+  def find_points_via_group(id) do
+    case Repo.get_by(PointGroup, id: id) do
       %{id: _id, sort_type: sort_by} = point_group ->
+        # I don't like this because it makes the code
+        # harder to understand.
+        # We are essentially patching the value of
+        # point_group.point_ids with additional IDs.
+        # Keep this in mind when debugging sequences
+        # that deal with point groups- the point_ids
+        # value is not a reflection of what is in
+        # the DB / API.
         sorted = CriteriaRetriever.run(point_group)
           |> sort_points(sort_by || "xy_ascending")
           |> Enum.map(&Map.fetch!(&1, :id))
 
-        %{ point_ids: sorted }
+        %{ point_group | point_ids: sorted }
       other ->
         # Swallow all other errors
-        a = inspect(params)
+        a = inspect(id)
         b = inspect(other)
         Logger.debug("Unexpected point group #{a} #{b}")
         nil
