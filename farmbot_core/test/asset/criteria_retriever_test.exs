@@ -145,13 +145,11 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "point group that does not define criteria" do
-    now = ~U[2020-03-02 22:00:30.231198Z]
-    expect(Timex, :now, fn -> now end)
-
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
 
     whitelist = [88457, 88455]
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:39.176321Z],
       discarded_at: nil,
@@ -170,6 +168,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 100.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:39.413318Z],
       discarded_at: nil,
@@ -188,6 +187,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 300.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:39.610901Z],
       discarded_at: nil,
@@ -206,6 +206,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 100.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:39.824048Z],
       discarded_at: nil,
@@ -224,6 +225,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 300.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:40.012075Z],
       discarded_at: nil,
@@ -242,6 +244,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 300.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:40.202385Z],
       discarded_at: nil,
@@ -260,6 +263,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 100.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:40.402777Z],
       discarded_at: nil,
@@ -278,6 +282,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 700.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:40.776337Z],
       discarded_at: nil,
@@ -296,6 +301,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 1.1e3,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:40.960424Z],
       discarded_at: nil,
@@ -314,6 +320,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 1.1e3,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:41.171967Z],
       discarded_at: nil,
@@ -332,6 +339,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 1.1e3,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-01-09 19:09:41.393021Z],
       discarded_at: nil,
@@ -350,6 +358,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 1.1e3,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-02-21 01:41:07.714000Z],
       discarded_at: nil,
@@ -368,6 +377,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 0.0,
       z: -20.0
     })
+
     point!(%{
       created_at: ~U[2020-02-21 18:30:56.301000Z],
       discarded_at: nil,
@@ -386,6 +396,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 200.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-02-21 18:47:45.170000Z],
       discarded_at: nil,
@@ -404,6 +415,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 0.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-02-21 20:01:59.960000Z],
       discarded_at: nil,
@@ -426,12 +438,17 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       y: 1.0,
       z: 0.0
     })
+
     point!(%{
       created_at: ~U[2020-02-29 21:08:40.934000Z],
       discarded_at: nil,
       gantry_mounted: false,
       id: 88887,
-      meta: %{"color" => "red", "created_by" => "farm-designer", "type" => "weed"},
+      meta: %{
+        "color" => "red",
+        "created_by" => "farm-designer",
+        "type" => "weed"
+      },
       name: "Created Weed",
       openfarm_slug: nil,
       plant_stage: nil,
