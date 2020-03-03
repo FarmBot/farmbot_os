@@ -38,7 +38,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     # = = = Handle meta.* criteria
     search_matches = search_meta_fields(pg, needs_meta_filter)
 
-    search_matches ++ always_ok
+    Enum.uniq_by((search_matches ++ always_ok), fn p -> p.id end)
   end
 
   def search_meta_fields(%PointGroup{} = pg, points) do
