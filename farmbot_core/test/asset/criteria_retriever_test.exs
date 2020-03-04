@@ -90,27 +90,6 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     pg
   end
 
-  test "matching_ids_no_meta - Finds point group critera (excluding meta attrs)" do
-    expect(Timex, :now, fn -> @now end)
-    pg = point_group_with_fake_points()
-
-    perfect_match =
-      point!(%{
-        id: 999,
-        created_at: @five_days_ago,
-        openfarm_slug: "five",
-        meta: %{"created_by" => "plant-detection"},
-        radius: 10.0,
-        x: 6.0,
-        z: 9.0
-      })
-
-    expected = [perfect_match.id]
-    results = CriteriaRetriever.matching_ids_no_meta(pg)
-    assert Enum.count(expected) == Enum.count(results)
-    Enum.map(expected, fn id -> assert Enum.member?(results, id) end)
-  end
-
   test "run/1" do
     expect(Timex, :now, fn -> @now end)
     pg = point_group_with_fake_points()

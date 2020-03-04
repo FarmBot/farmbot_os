@@ -14,8 +14,8 @@ defmodule FarmbotCore.Asset.PointGroup do
     # Map<string, number | undefined>,
     "number_lt" => %{},
     # Map<string, number | undefined>,
-      "number_gt" => %{}
-    }
+    "number_gt" => %{},
+  }
 
   schema "point_groups" do
     field(:id, :id)

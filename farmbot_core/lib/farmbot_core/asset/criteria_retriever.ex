@@ -12,35 +12,53 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     Example:
 
     You have a PointGroup with a criteria
-    of `points WHERE x > 10`.
+    where group.criteria.number_gt.x == 10
     Passing that PointGroup to this module
     will return an array of `Point` assets
     with an x property that is greater than
     10.
     """
 
+  # We will not query any string/numeric fields other than these.
+  # Updating the PointGroup / Point models may require an update
+  # to these fields.
   @numberic_fields ["radius", "x", "y", "z"]
   @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
   @doc """
   You provide it a %PointGroup{},
   it provides you an array of
-  point IDs (int) that match
+  point records (%Point{}) that match
   the group's criteria.
   """
   def run(%PointGroup{point_ids: static_ids} = pg) do
-    # = = = Handle point_id criteria
+    # pg.point_ids is *always* include in search results,
+    # even if it does not match pg.criteria in any way.
     always_ok = Repo.all(from(p in Point, where: p.id in ^static_ids, select: p))
-    # = = = Handle AND criteria
+    # Now we need a list of point IDs that actually match
+    # the pg.criteria fields. We only get the ID because
+    # we are circumventing Ecto and doing raw SQL.
+    # There may be better ways to do this:
     dynamic_ids = find_matching_point_ids(pg)
-    dynamic_query = from(p in Point, where: p.id in ^dynamic_ids, select: p)
-    needs_meta_filter = Repo.all(dynamic_query)
-    # = = = Handle meta.* criteria
-    search_matches = search_meta_fields(pg, needs_meta_filter)
 
+    # Once we have a list of matching criteria, we can run a
+    # SQL query through Ecto to return real %Point{} structs...
+    dynamic_query = from(p in Point, where: p.id in ^dynamic_ids, select: p)
+    # ...but we're not done! If the criteria contains meta fields,
+    # we need to perform a lookup in memory
+    needs_meta_filter = Repo.all(dynamic_query)
+    # There we go. We have all the matching %Point{}s
+    search_matches = search_meta_fields(pg, needs_meta_filter)
+    # ...but there are duplicates. We can remove them via uniq_by: 
     Enum.uniq_by((search_matches ++ always_ok), fn p -> p.id end)
   end
 
+  @doc """
+  Takes intermediate search results and makes them
+  more specific by iterating over the search results
+  and only returning the ones that match the meta.*
+  field provided in pg.criteria
+  """
   def search_meta_fields(%PointGroup{} = pg, points) do
     meta = "meta."
     meta_len = String.length(meta)
@@ -66,13 +84,9 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
       end)
   end
 
-  def matching_ids_no_meta(%PointGroup{} = pg) do
-    find_matching_point_ids(pg)
-  end
-
   # Find all point IDs that are matched by a PointGroup
   # This is not including any meta.* search terms,
-  # since `meta` is a JSON coolumn that must be
+  # since `meta` is a JSON column that must be
   # manually searched in memory.
   defp find_matching_point_ids(%PointGroup{} = pg) do
     results = {pg, []}
@@ -91,6 +105,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
      results
   end
 
+  # EDGE CASE: If the user _only_ wants to put static points
+  # in their group, we need to perform 0 SQL queries.
   def finalize({_, []}) do
     []
   end
@@ -138,6 +154,10 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     Map.merge(results, %{"#{lhs} #{op}" => rhs})
   end
 
+  # Interpolatinng data turned out to be hard.
+  # Pretty sure there is an easier way to do this.
+  # NOT OK: Repo.query("SELECT foo WHERE bar IN $0", [[1, 2, 3]])
+  # OK:     Repo.query("SELECT foo WHERE bar IN ($0, $1, $2)", [1, 2, 3])
   defp stage_3({sql, args}, {full_query, full_args, count0}) when is_list(args) do
     final = count0 + Enum.count(args) - 1
     initial_state = {sql, count0}
