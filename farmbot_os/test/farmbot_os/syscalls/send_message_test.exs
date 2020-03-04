@@ -9,7 +9,7 @@ defmodule FarmbotOS.SysCalls.SendMessageTest do
   test "send_message" do
     expect(FarmbotOS.SysCalls, :get_cached_position, fn ->
       [x: 1.2, y: 2.3, z: 3.4]
-     end)
+    end)
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == "You are here: 1.2, 2.3, 3.4"

@@ -11,8 +11,9 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   def fake_coords! do
     expect(FarmbotOS.SysCalls, :get_cached_position, fn ->
       [x: 1.2, y: 2.3, z: 3.4]
-     end)
+    end)
   end
+
   test "resource_update/3 - Device" do
     fake_coords!
     params = %{name: "X is {{ x }}"}
