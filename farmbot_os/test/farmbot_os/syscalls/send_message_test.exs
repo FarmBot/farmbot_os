@@ -7,8 +7,12 @@ defmodule FarmbotOS.SysCalls.SendMessageTest do
   alias FarmbotOS.SysCalls.SendMessage
 
   test "send_message" do
+    expect(FarmbotOS.SysCalls, :get_cached_position, fn ->
+      [x: 1.2, y: 2.3, z: 3.4]
+    end)
+
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-      assert log.message == "You are here: -1, -1, -1"
+      assert log.message == "You are here: 1.2, 2.3, 3.4"
     end)
 
     channels = [:email]

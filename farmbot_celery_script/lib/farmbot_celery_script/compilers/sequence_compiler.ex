@@ -76,13 +76,13 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
         group_ast.args[:every_point_type]
 
     # lookup all point_groups related to this value
-    case FarmbotCeleryScript.SysCalls.get_point_group(point_group_arg) do
+    case FarmbotCeleryScript.SysCalls.find_points_via_group(point_group_arg) do
       {:error, reason} ->
         quote location: :keep, do: Macro.escape({:error, unquote(reason)})
 
       %{name: group_name} = point_group ->
         total = Enum.count(point_group.point_ids)
-        # Map over all the points returned by `get_point_group/1`
+        # Map over all the points returned by `find_points_via_group/1`
         {body, _} =
           Enum.reduce(point_group.point_ids, {[], 1}, fn point_id,
                                                          {acc, index} ->

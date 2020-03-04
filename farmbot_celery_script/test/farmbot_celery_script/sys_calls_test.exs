@@ -29,21 +29,21 @@ defmodule FarmbotCeleryScript.SysCallsTest do
   end
 
   test "point groups failure" do
-    expect(Stubs, :get_point_group, 1, fn _id ->
+    expect(Stubs, :find_points_via_group, 1, fn _id ->
       :whatever
     end)
 
-    boom = fn -> SysCalls.get_point_group(Stubs, :something_else) end
+    boom = fn -> SysCalls.find_points_via_group(Stubs, :something_else) end
     assert_raise FarmbotCeleryScript.RuntimeError, boom
   end
 
   test "point groups success" do
-    expect(Stubs, :get_point_group, 1, fn _id ->
+    expect(Stubs, :find_points_via_group, 1, fn _id ->
       %{point_ids: [1, 2, 3]}
     end)
 
     pg = %{point_ids: [1, 2, 3]}
-    result = SysCalls.get_point_group(Stubs, 456)
+    result = SysCalls.find_points_via_group(Stubs, 456)
     assert result == pg
   end
 
