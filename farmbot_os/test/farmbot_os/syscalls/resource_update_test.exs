@@ -15,7 +15,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   end
 
   test "resource_update/3 - Device" do
-    fake_coords!
+    fake_coords!()
     params = %{name: "X is {{ x }}"}
     assert :ok == ResourceUpdate.resource_update("Device", 0, params)
     assert "X is 1.2" == FarmbotCore.Asset.device().name
