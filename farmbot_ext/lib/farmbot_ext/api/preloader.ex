@@ -24,7 +24,7 @@ defmodule FarmbotExt.API.Preloader do
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
          sync_changeset <- Reconciler.sync_group(sync_changeset, SyncGroup.group_0()) do
       FarmbotCore.Logger.success(3, "Successfully preloaded resources.")
-      maybe_auto_sync(sync_changeset, Query.auto_sync?())
+      maybe_auto_sync(sync_changeset, Query.auto_sync?() || false)
     end
   end
 
