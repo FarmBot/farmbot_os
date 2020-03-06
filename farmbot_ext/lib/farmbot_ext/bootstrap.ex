@@ -51,8 +51,6 @@ defmodule FarmbotExt.Bootstrap do
   end
 
   def try_auth(email, server, password, _secret) do
-    Logger.debug("using password to auth")
-
     with {:ok, tkn} <- Authorization.authorize_with_password(email, password, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
          {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do

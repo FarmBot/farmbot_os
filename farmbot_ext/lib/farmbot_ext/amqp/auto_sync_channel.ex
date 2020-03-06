@@ -35,7 +35,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     Tool
   )
 
-  # Sync messgaes about these assets
+  # Sync messgages about these assets
   # should not be cached. They need to be applied
   # in real time.
   @no_cache_kinds ~w(
@@ -136,11 +136,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         id = data["id"] || String.to_integer(id_str)
         _ = handle_asset(asset_kind, id, body)
 
-      ["bot", ^device, "sync", asset_kind, _id_str] ->
-        Logger.warn("Unknown syncable asset: #{asset_kind}")
-
-      _ ->
-        Logger.info("ignoring route: #{key}")
+      _ -> ""
+        # Logger.info("ignoring route: #{key}")
     end
 
     :ok = ConnectionWorker.rpc_reply(chan, device, label)

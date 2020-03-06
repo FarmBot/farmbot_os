@@ -6,7 +6,8 @@ Mimic.copy(FarmbotCore.Asset.Command)
 Mimic.copy(FarmbotCore.Asset.Query)
 Mimic.copy(FarmbotExt.AMQP.ConnectionWorker)
 Mimic.copy(FarmbotExt.API)
-
+Mimic.copy(AMQP.Channel)
+Mimic.copy(FarmbotCore.LogExecutor)
 if timeout do
   ExUnit.start(assert_receive_timeout: String.to_integer(timeout))
 else

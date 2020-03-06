@@ -8,9 +8,16 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
-  test "read_status" do
-    # {:ok, pid} = GenServer.start_link(BotStateChannel, [jwt: %{}])
-    # expect(BotState, :fetch, 1, fn -> %{} end)
-    # BotStateChannel.read_status(pid)
+  defmodule FakeState do
+    defstruct conn: %{fake: :conn}, chan: "fake_chan_", jwt: "fake_jwt_", cache: %{fake: :cache}
+  end
+
+  test "terminate" do
+    expected = "Disconnected from BotState channel: \"foo\""
+    expect(AMQP.Channel, :close, 1, fn "fake_chan_" -> :ok end)
+    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+      assert log.message == expected
+    end)
+    FarmbotExt.AMQP.BotStateChannel.terminate("foo", %FakeState{})
   end
 end

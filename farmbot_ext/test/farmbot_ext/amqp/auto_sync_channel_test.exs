@@ -105,7 +105,7 @@ defmodule AutoSyncChannelTest do
       })
 
     send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
-    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
+    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}, 1000
   end
 
   test "wont autosync unknown assets" do
@@ -121,7 +121,7 @@ defmodule AutoSyncChannelTest do
       })
 
     send(pid, {:basic_deliver, payload, %{routing_key: "bot.device_15.sync.SavedGarden.999"}})
-    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
+    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}, 1000
   end
 
   test "ignores asset deletion when auto_sync is off" do
@@ -136,9 +136,10 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?
+    assert_receive :called_auto_sync?, 1200
   end
 
+  @tag :blinky
   test "handles Device assets" do
     %{pid: pid} = under_normal_conditions()
     test_pid = self()
@@ -152,7 +153,7 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, "Device", 999, %{}}
+    assert_receive {:update_called, "Device", 999, %{}}, 1200
   end
 
   def simple_asset_test_singleton(module_name) do
@@ -175,9 +176,10 @@ defmodule AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
+    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}, 1000
   end
 
+  @tag :blinky
   test "handles auto_sync of 'no_cache' when auto_sync is false" do
     test_pid = self()
     %{pid: pid} = under_normal_conditions()
@@ -196,8 +198,8 @@ defmodule AutoSyncChannelTest do
     end)
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?
-    assert_receive {:update_called, "FbosConfig", 999, %{"foo" => "bar"}}
+    assert_receive :called_auto_sync?, 1200
+    assert_receive {:update_called, "FbosConfig", 999, %{"foo" => "bar"}}, 1200
   end
 
   test "auto_sync disabled, resource not in @cache_kinds" do
@@ -232,6 +234,6 @@ defmodule AutoSyncChannelTest do
 
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
+    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}, 3000
   end
 end

@@ -13,7 +13,8 @@ defmodule FarmbotCore.Leds.StubHandler do
   def white5(status), do: do_debug(:white, status)
 
   defp do_debug(color, status) do
-    msg = [IO.ANSI.reset(), "LED STATUS: ",
+    unless System.get_env("LOG_SILENCE") do
+      msg = [IO.ANSI.reset(), "LED STATUS: ",
            apply(IO.ANSI, color, []),
            status_in(status),
            to_string(color),
@@ -22,7 +23,8 @@ defmodule FarmbotCore.Leds.StubHandler do
            status_out(status),
            IO.ANSI.reset()
          ]
-    IO.puts(msg)
+      IO.puts(msg)
+    end
   end
 
   defp status_in(:slow_blink), do: IO.ANSI.blink_slow()
