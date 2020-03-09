@@ -52,17 +52,24 @@ defmodule AutoSyncChannelTest do
     # It will try to connect to authsync channel after init.
     # we're not going to actually connect to a server in our
     # test suite except under limited circumstances.
-    expect(ConnectionWorker, :maybe_connect_autosync, ok1)
+    stub(ConnectionWorker, :maybe_connect_autosync, ok1)
 
-    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, ok)
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
     pid
   end
 
   test "init / terminate" do
+    ok = fn -> :ok end
+    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, ok)
     # Most assertions are handled by `gnerate_pid`:
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
+  end
+
+  test ":basic_cancel" do
+    pid = generate_pid()
+    result = send(pid, {:basic_cancel, nil})
+    refute Process.alive?(pid)
   end
 end
