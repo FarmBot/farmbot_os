@@ -136,7 +136,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         id = data["id"] || String.to_integer(id_str)
         _ = handle_asset(asset_kind, id, body)
 
-      _ -> ""
+      _ ->
+        ""
         # Logger.info("ignoring route: #{key}")
     end
 

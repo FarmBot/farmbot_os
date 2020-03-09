@@ -1,7 +1,4 @@
 defmodule AutoSyncChannelTest do
-
-  import ExUnit.CaptureIO
-
   alias FarmbotExt.AMQP.AutoSyncChannel
 
   use ExUnit.Case, async: true
@@ -12,6 +9,7 @@ defmodule AutoSyncChannelTest do
     API.Preloader,
     AMQP.ConnectionWorker
   }
+
   setup :verify_on_exit!
   setup :set_mimic_global
 

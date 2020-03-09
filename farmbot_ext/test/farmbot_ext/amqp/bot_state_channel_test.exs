@@ -15,9 +15,11 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
   test "terminate" do
     expected = "Disconnected from BotState channel: \"foo\""
     expect(AMQP.Channel, :close, 1, fn "fake_chan_" -> :ok end)
+
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == expected
     end)
+
     FarmbotExt.AMQP.BotStateChannel.terminate("foo", %FakeState{})
   end
 end
