@@ -1,5 +1,11 @@
 # Changelog
 
+# 9.2.0
+
+ * Support for criteria-based groups.
+ * Genesis v1.5 and Express v1.0 firmware homing updates.
+ * Fix bug where unknown positions would report as -1.
+
 # 9.1.2
 
  * Genesis v1.5 and Express v1.0 firmware updates.
