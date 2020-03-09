@@ -54,14 +54,15 @@ defmodule AutoSyncChannelTest do
     # test suite except under limited circumstances.
     expect(ConnectionWorker, :maybe_connect_autosync, ok1)
 
-    stub(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, ok)
+    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, ok)
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
     pid
   end
 
   test "init / terminate" do
+    # Most assertions are handled by `gnerate_pid`:
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
-    Process.exit(pid, :normal)
+    GenServer.stop(pid, :normal)
   end
 end
