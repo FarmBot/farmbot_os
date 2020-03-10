@@ -94,7 +94,6 @@ defmodule FarmbotCore.AssetMonitor do
           Map.put(sub_state, id, updated_at)
 
         is_nil(sub_state[id]) ->
-          Logger.debug("#{inspect(kind)} #{id} needs to be started")
           asset = Repo.preload(asset, AssetWorker.preload(asset))
           :ok = AssetSupervisor.start_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)

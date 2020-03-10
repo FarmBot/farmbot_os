@@ -21,10 +21,10 @@ string.
 cd $FARMBOT_OS_ROOT_DIRECTORY
 git checkout staging
 git fetch --all && git reset --hard origin/staging
-echo 10.5.6-rc30 > VERSION
 # update the CHANGELOG, but DO NOT put the `rc`
 # on the semver string.
 $EDITOR CHANGELOG.md
+echo 10.5.6-rc30 > VERSION
 git add CHANGELOG.md VERSION
 git commit -m "Release v10.5.6-rc30"
 git tag v$(cat VERSION)
@@ -84,8 +84,6 @@ done by pushing anything to the master branch:
 echo $NEW_VERSION > VERSION
 # update CHANGELOG.md
 $EDITOR CHANGELOG.md
-# update the download link in the readme
-$EDITOR README.md
 git checkout -b rel-$(cat VERSION)
 git commit -am 'Release v$(cat VERSION)'
 git push origin rel-$(cat VERSION)

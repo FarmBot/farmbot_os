@@ -1,18 +1,15 @@
 defmodule AutoSyncChannelTest do
+  require Helpers
+  use ExUnit.Case, async: true
+  use Mimic
   alias FarmbotExt.AMQP.AutoSyncChannel
 
-  use ExUnit.Case
-  use Mimic
-
-  alias FarmbotCore.JSON
-
-  alias FarmbotCore.Asset.{
-    Query,
-    Command,
-    Sync
+  alias FarmbotExt.{
+    AMQP.ConnectionWorker,
+    API.Preloader,
+    JWT
   }
 
-  alias FarmbotExt.{JWT, API, AMQP.ConnectionWorker}
   setup :verify_on_exit!
   setup :set_mimic_global
 
@@ -35,203 +32,127 @@ defmodule AutoSyncChannelTest do
               "eXTEVkqw7rved84ogw6EKBSFCVqwRA-NKWLpPMV_q7fRwiEG" <>
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
 
-  def pretend_network_returned(fake_value) do
+  def generate_pid do
+    apply_default_mocks()
     jwt = JWT.decode!(@fake_jwt)
-
-    test_pid = self()
-
-    expect(Query, :auto_sync?, 2, fn -> false end)
-
-    expect(API, :get_changeset, fn _module ->
-      send(test_pid, :preload_all_called)
-      changeset = Sync.changeset(%Sync{}, %{})
-      {:ok, changeset}
-    end)
-
-    expect(ConnectionWorker, :maybe_connect_autosync, fn jwt ->
-      send(test_pid, {:maybe_connect_called, jwt})
-      fake_value
-    end)
-
-    stub(ConnectionWorker, :close_channel, fn _ ->
-      send(test_pid, :close_channel_called)
-      :ok
-    end)
-
-    stub(ConnectionWorker, :rpc_reply, fn chan, jwt_dot_bot, label ->
-      send(test_pid, {:rpc_reply_called, chan, jwt_dot_bot, label})
-      :ok
-    end)
-
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
-
-    Map.merge(%{pid: pid}, AutoSyncChannel.network_status(pid))
+    pid
   end
 
-  def under_normal_conditions() do
-    fake_con = %{fake: :conn}
-    fake_chan = %{fake: :chan}
-    pretend_network_returned(%{conn: fake_con, chan: fake_chan})
+  def apply_default_mocks do
+    ok1 = fn _ -> :whatever end
+    stub(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, fn -> :ok end)
+    stub(ConnectionWorker, :close_channel, ok1)
+
+    stub(ConnectionWorker, :maybe_connect_autosync, fn _ ->
+      %{conn: %{fake_conn: true}, chan: %{fake_chan: true}}
+    end)
   end
 
-  test "network returns `nil`" do
-    results = pretend_network_returned(nil)
-    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
-
-    assert has_chan == nil
-    assert has_conn == nil
-    assert is_preloaded
+  def ensure_response_to(msg) do
+    # Not much to check here other than matching clauses.
+    # AMQP lib handles most all of this.
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    pid = generate_pid()
+    send(pid, msg)
+    Process.sleep(5)
   end
 
-  test "network returns unexpected object (probably an error)" do
-    results = pretend_network_returned({:something, :else})
-    %{conn: has_conn, chan: has_chan, preloaded: is_preloaded} = results
+  test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
+  test "basic_cancel_ok", do: ensure_response_to({:basic_cancel_ok, :anything})
+  test "basic_consume_ok", do: ensure_response_to({:basic_consume_ok, :anything})
 
-    assert has_chan == nil
-    assert has_conn == nil
-    assert is_preloaded
+  test "init / terminate - auto_sync enabled" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> true end)
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "synced" -> :ok end)
+
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :solid ->
+        :ok
+
+      :really_fast_blink ->
+        :ok
+    end)
+
+    # Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
+    # Helpers.expect_log("Disconnected from AutoSync channel: :normal")
+    pid = generate_pid()
+    assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
   end
 
-  test "catch-all clause for inbound AMQP messages" do
-    fake_con = %{fake: :conn}
-    fake_chan = %{fake: :chan}
-    fake_response = %{conn: fake_con, chan: fake_chan}
+  test "init / terminate - auto_sync disabled" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> false end)
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_now" -> :ok end)
 
-    %{pid: pid} = pretend_network_returned(fake_response)
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :slow_blink ->
+        :ok
 
-    payload =
-      JSON.encode!(%{
-        args: %{label: "xyz"}
+      :really_fast_blink ->
+        :ok
+    end)
+
+    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
+    pid = generate_pid()
+    assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
+  end
+
+  test "init / terminate - auto_sync error" do
+    Helpers.expect_log("Error preloading. #{inspect("a test example")}")
+    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
+    expect(Preloader, :preload_all, 1, fn -> {:error, "a test example"} end)
+
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :slow_blink ->
+        :ok
+
+      :really_fast_blink ->
+        :ok
+    end)
+
+    pid = generate_pid()
+    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
+  end
+
+  test "delivery of auto sync messages" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+
+    expect(ConnectionWorker, :rpc_reply, 1, fn chan, device, label ->
+      assert chan == %{fake_chan: true}
+      assert device == "device_15"
+      assert label == "thisismylabelinatestsuite"
+      :ok
+    end)
+
+    key = "bot.device_15.sync.Device.46"
+
+    {:ok, payload} =
+      FarmbotCore.JSON.encode(%{
+        "id" => 46,
+        "args" => %{
+          "label" => "thisismylabelinatestsuite"
+        },
+        "body" => %{name: "This is my bot"}
       })
 
-    send(pid, {:basic_deliver, payload, %{routing_key: "WRONG!"}})
-    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
-  end
-
-  test "wont autosync unknown assets" do
-    fake_con = %{fake: :conn}
-    fake_chan = %{fake: :chan}
-    fake_response = %{conn: fake_con, chan: fake_chan}
-
-    %{pid: pid} = pretend_network_returned(fake_response)
-
-    payload =
-      JSON.encode!(%{
-        args: %{label: "xyz"}
-      })
-
-    send(pid, {:basic_deliver, payload, %{routing_key: "bot.device_15.sync.SavedGarden.999"}})
-    assert_receive {:rpc_reply_called, %{fake: :chan}, "device_15", "xyz"}
-  end
-
-  test "ignores asset deletion when auto_sync is off" do
-    %{pid: pid} = under_normal_conditions()
-    test_pid = self()
-    payload = '{"args":{"label":"foo"}}'
-    key = "bot.device_15.sync.Device.999"
-
-    stub(Query, :auto_sync?, fn ->
-      send(test_pid, :called_auto_sync?)
-      false
-    end)
-
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?
-  end
-
-  test "handles Device assets" do
-    %{pid: pid} = under_normal_conditions()
-    test_pid = self()
-    payload = '{"args":{"label":"foo"},"body":{}}'
-    key = "bot.device_15.sync.Device.999"
-    stub(Query, :auto_sync?, fn -> true end)
-
-    stub(Command, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
-      :ok
-    end)
-
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive {:update_called, "Device", 999, %{}}
-  end
-
-  def simple_asset_test_singleton(module_name) do
-    %{pid: pid} = under_normal_conditions()
-    test_pid = self()
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
-    key = "bot.device_15.sync.#{module_name}.999"
-
-    stub(Query, :auto_sync?, fn -> true end)
-
-    stub(Command, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
-      :ok
-    end)
-
-    stub(Command, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
-      :ok
-    end)
-
+    pid = generate_pid()
+    # We need the process to be preloaded for these tests to work:
+    %{preloaded: true} = AutoSyncChannel.network_status(pid)
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
 
-    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
-  end
-
-  test "handles auto_sync of 'no_cache' when auto_sync is false" do
-    test_pid = self()
-    %{pid: pid} = under_normal_conditions()
-
-    key = "bot.device_15.sync.FbosConfig.999"
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
-
-    stub(Query, :auto_sync?, fn ->
-      send(test_pid, :called_auto_sync?)
-      false
-    end)
-
-    stub(Command, :update, fn kind, id, params ->
-      send(test_pid, {:update_called, kind, id, params})
+    expect(FarmbotExt.AMQP.AutoSyncAssetHandler, :handle_asset, fn kind, id, body ->
+      assert kind == "Device"
+      assert id == 46
+      assert body == %{"name" => "This is my bot"}
       :ok
     end)
 
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    assert_receive :called_auto_sync?
-    assert_receive {:update_called, "FbosConfig", 999, %{"foo" => "bar"}}
-  end
-
-  test "auto_sync disabled, resource not in @cache_kinds" do
-    under_normal_conditions()
-
-    stub(Query, :auto_sync?, fn ->
-      false
-    end)
-
-    stub(Command, :new_changeset, fn _kind, _id, _params ->
-      :ok
-    end)
-  end
-
-  test "handles FbosConfig", do: simple_asset_test_singleton("FbosConfig")
-  test "handles FirmwareConfig", do: simple_asset_test_singleton("FirmwareConfig")
-  test "handles FarmwareEnv", do: simple_asset_test_plural("FarmwareEnv")
-  test "handles FarmwareInstallation", do: simple_asset_test_plural("FarmwareInstallation")
-
-  defp simple_asset_test_plural(module_name) do
-    %{pid: pid} = under_normal_conditions()
-    test_pid = self()
-    payload = '{"args":{"label":"foo"},"body":{"foo": "bar"}}'
-    key = "bot.device_15.sync.#{module_name}.999"
-
-    stub(Query, :auto_sync?, fn -> true end)
-
-    stub(Command, :update, fn x, y, z ->
-      send(test_pid, {:update_called, x, y, z})
-      :ok
-    end)
-
-    send(pid, {:basic_deliver, payload, %{routing_key: key}})
-
-    assert_receive {:update_called, ^module_name, 999, %{"foo" => "bar"}}
+    Process.sleep(1000)
   end
 end

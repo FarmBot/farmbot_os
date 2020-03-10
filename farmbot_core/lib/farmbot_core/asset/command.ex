@@ -189,7 +189,6 @@ defmodule FarmbotCore.Asset.Command do
 
   # Catch-all use case:
   def update(asset_kind, id, params) do
-    Logger.warn("AssetCommand needs implementation: #{asset_kind}")
     mod = as_module!(asset_kind)
 
     case Repo.get_by(mod, id: id) do
