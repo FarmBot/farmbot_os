@@ -8,13 +8,12 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   use GenServer
   use AMQP
 
-  alias FarmbotCore.{Asset, BotState, JSON, Leds}
-  alias FarmbotExt.AMQP.ConnectionWorker
-  alias FarmbotExt.API.{EagerLoader, Preloader}
-
-  require Logger
   require FarmbotCore.Logger
   require FarmbotTelemetry
+
+  alias FarmbotCore.{Asset, BotState, JSON, Leds}
+  alias FarmbotExt.AMQP.{ConnectionWorker, AutoSyncAssetHandler}
+  alias FarmbotExt.API.{EagerLoader, Preloader}
 
   # The API dispatches messages for other resources, but these
   # are the only ones that Farmbot needs to sync.
@@ -35,18 +34,8 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     Tool
   )
 
-  # Sync messgages about these assets
-  # should not be cached. They need to be applied
-  # in real time.
-  @no_cache_kinds ~w(
-    Device
-    FbosConfig
-    FirmwareConfig
-    FarmwareEnv
-    FarmwareInstallation
-  )
-
   defstruct [:conn, :chan, :jwt, :preloaded]
+
   alias __MODULE__, as: State
 
   @doc "Gets status of auto_sync connection for diagnostics / tests."
@@ -106,6 +95,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:connect, state) do
+    # THIS IS WHERE state.chan GETS SET
     result = ConnectionWorker.maybe_connect_autosync(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
   end
@@ -137,7 +127,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     case String.split(key, ".") do
       ["bot", ^device, "sync", asset_kind, id_str] when asset_kind in @known_kinds ->
         id = data["id"] || String.to_integer(id_str)
-        _ = handle_asset(asset_kind, id, body)
+        _ = AutoSyncAssetHandler.handle_asset(asset_kind, id, body)
 
       _ ->
         ""
@@ -157,36 +147,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     reply = %{conn: state.conn, chan: state.chan, preloaded: state.preloaded}
 
     {:reply, reply, state}
-  end
-
-  def handle_asset(asset_kind, id, params) do
-    if Asset.Query.auto_sync?() do
-      :ok = BotState.set_sync_status("syncing")
-      _ = Leds.green(:really_fast_blink)
-      # Logger.info "Syncing #{asset_kind} #{id} #{inspect(params)}"
-      Asset.Command.update(asset_kind, id, params)
-      :ok = BotState.set_sync_status("synced")
-      _ = Leds.green(:solid)
-    else
-      cache_sync(asset_kind, id, params)
-    end
-  end
-
-  def cache_sync(kind, id, params) when kind in @no_cache_kinds do
-    :ok = Asset.Command.update(kind, id, params)
-  end
-
-  def cache_sync(_, _, nil) do
-    :ok = BotState.set_sync_status("sync_now")
-    _ = Leds.green(:slow_blink)
-  end
-
-  def cache_sync(asset_kind, id, params) do
-    Logger.info("Autocaching sync #{asset_kind} #{id} #{inspect(params)}")
-    changeset = Asset.Command.new_changeset(asset_kind, id, params)
-    :ok = EagerLoader.cache(changeset)
-    :ok = BotState.set_sync_status("sync_now")
-    _ = Leds.green(:slow_blink)
   end
 
   defp compute_reply_from_amqp_state(state, %{conn: conn, chan: chan}) do

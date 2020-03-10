@@ -11,6 +11,7 @@ Mimic.copy(FarmbotExt.AMQP.ConnectionWorker)
 Mimic.copy(FarmbotExt.API.EagerLoader.Supervisor)
 Mimic.copy(FarmbotExt.API.Preloader)
 Mimic.copy(FarmbotExt.API)
+Mimic.copy(FarmbotExt.AMQP.AutoSyncAssetHandler)
 
 timeout = System.get_env("EXUNIT_TIMEOUT")
 System.put_env("LOG_SILENCE", "true")

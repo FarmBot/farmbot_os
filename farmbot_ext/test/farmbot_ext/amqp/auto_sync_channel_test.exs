@@ -33,6 +33,7 @@ defmodule AutoSyncChannelTest do
               "Wj7R-KZqRweALXuvCLF765E6-ENxA"
 
   def generate_pid do
+    apply_default_mocks()
     jwt = JWT.decode!(@fake_jwt)
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
     pid
@@ -42,14 +43,16 @@ defmodule AutoSyncChannelTest do
     ok1 = fn _ -> :whatever end
     stub(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, fn -> :ok end)
     stub(ConnectionWorker, :close_channel, ok1)
-    stub(ConnectionWorker, :maybe_connect_autosync, ok1)
+
+    stub(ConnectionWorker, :maybe_connect_autosync, fn _ ->
+      %{conn: %{fake_conn: true}, chan: %{fake_chan: true}}
+    end)
   end
 
   def ensure_response_to(msg) do
     # Not much to check here other than matching clauses.
     # AMQP lib handles most all of this.
     expect(Preloader, :preload_all, 1, fn -> :ok end)
-    apply_default_mocks()
     pid = generate_pid()
     send(pid, msg)
     Process.sleep(5)
@@ -72,9 +75,8 @@ defmodule AutoSyncChannelTest do
         :ok
     end)
 
-    apply_default_mocks()
-    Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
-    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
+    # Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
+    # Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
@@ -93,8 +95,6 @@ defmodule AutoSyncChannelTest do
         :ok
     end)
 
-    apply_default_mocks()
-    Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
     Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
@@ -102,7 +102,6 @@ defmodule AutoSyncChannelTest do
   end
 
   test "init / terminate - auto_sync error" do
-    apply_default_mocks()
     Helpers.expect_log("Error preloading. #{inspect("a test example")}")
     Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
@@ -119,5 +118,39 @@ defmodule AutoSyncChannelTest do
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
+  end
+
+  test "delivery of auto sync messages" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+
+    expect(ConnectionWorker, :rpc_reply, 1, fn chan, device, label ->
+      assert chan == %{fake_chan: true}
+      assert device == "device_15"
+      assert label == "thisismylabelinatestsuite"
+      :ok
+    end)
+
+    key = "bot.device_15.sync.Device.46"
+
+    {:ok, payload} =
+      FarmbotCore.JSON.encode(%{
+        "id" => 46,
+        "args" => %{
+          "label" => "thisismylabelinatestsuite"
+        },
+        "body" => %{name: "This is my bot"}
+      })
+
+    pid = generate_pid()
+    # We need the process to be preloaded for these tests to work:
+    %{preloaded: true} = AutoSyncChannel.network_status(pid)
+    send(pid, {:basic_deliver, payload, %{routing_key: key}})
+    expect(FarmbotExt.AMQP.AutoSyncAssetHandler, :handle_asset, fn (kind, id, body) ->
+      assert kind == "Device"
+      assert id == 46
+      assert body == %{"name" => "This is my bot"}
+      :ok
+    end)
+    Process.sleep(1000)
   end
 end
