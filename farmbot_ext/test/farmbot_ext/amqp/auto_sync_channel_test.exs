@@ -40,7 +40,7 @@ defmodule AutoSyncChannelTest do
 
   def apply_default_mocks do
     ok1 = fn _ -> :whatever end
-    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, fn -> :ok end)
+    stub(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, fn -> :ok end)
     stub(ConnectionWorker, :close_channel, ok1)
     stub(ConnectionWorker, :maybe_connect_autosync, ok1)
   end
@@ -49,9 +49,15 @@ defmodule AutoSyncChannelTest do
     # Not much to check here other than matching clauses.
     # AMQP lib handles most all of this.
     expect(Preloader, :preload_all, 1, fn -> :ok end)
-    send(generate_pid(), msg)
-    Process.sleep(10)
+    apply_default_mocks()
+    pid = generate_pid()
+    send(pid, msg)
+    Process.sleep(5)
   end
+
+  test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
+  test "basic_cancel_ok", do: ensure_response_to({:basic_cancel_ok, :anything})
+  test "basic_consume_ok", do: ensure_response_to({:basic_consume_ok, :anything})
 
   test "init / terminate - auto_sync enabled" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
@@ -114,8 +120,4 @@ defmodule AutoSyncChannelTest do
     assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
-
-  test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
-  test "basic_cancel_ok", do: ensure_response_to({:basic_cancel_ok, :anything})
-  test "basic_consume_ok", do: ensure_response_to({:basic_consume_ok, :anything})
 end
