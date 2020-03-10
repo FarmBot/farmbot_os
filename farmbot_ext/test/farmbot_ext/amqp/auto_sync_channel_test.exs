@@ -45,6 +45,14 @@ defmodule AutoSyncChannelTest do
     stub(ConnectionWorker, :maybe_connect_autosync, ok1)
   end
 
+  def ensure_response_to(msg) do
+    # Not much to check here other than matching clauses.
+    # AMQP lib handles most all of this.
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    send(generate_pid(), msg)
+    Process.sleep(10)
+  end
+
   test "init / terminate - auto_sync enabled" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
     expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> true end)
@@ -106,4 +114,8 @@ defmodule AutoSyncChannelTest do
     assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
+
+  test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
+  test "basic_cancel_ok", do: ensure_response_to({:basic_cancel_ok, :anything})
+  test "basic_consume_ok", do: ensure_response_to({:basic_consume_ok, :anything})
 end
