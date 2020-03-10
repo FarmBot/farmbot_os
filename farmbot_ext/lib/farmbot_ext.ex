@@ -1,19 +1,18 @@
 defmodule FarmbotExt do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
-    children = [
-      FarmbotExt.Bootstrap
-    ]
-
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: __MODULE__]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children(), opts)
+  end
+
+  # This only exists because I was getting too many crashed
+  # supervisor reports in the test suite (distraction from
+  # real test failures).
+  def children do
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(config, :children, [FarmbotExt.Bootstrap])
   end
 end

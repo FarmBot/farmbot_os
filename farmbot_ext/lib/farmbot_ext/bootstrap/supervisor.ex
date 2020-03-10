@@ -12,14 +12,7 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
 
   @impl Supervisor
   def init([]) do
-    Supervisor.init(children(), strategy: :one_for_one)
-  end
-
-  # This only exists because I was getting too many crashed
-  # supervisor reports in the test suite (distraction from
-  # real test failures).
-  def children do
-    default = [
+    children = [
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
       FarmbotExt.AMQP.Supervisor,
@@ -27,7 +20,6 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
       FarmbotExt.Bootstrap.DropPasswordTask
     ]
 
-    config = Application.get_env(:farmbot_ext, __MODULE__) || []
-    Keyword.get(config, :children, default)
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end

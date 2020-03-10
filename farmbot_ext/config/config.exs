@@ -8,10 +8,7 @@ config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotCeleryScript.SysCalls.Stubs
 
-if Mix.env() == :test do
-  import_config "test.exs"
-end
-
 import_config "ecto.exs"
 import_config "farmbot_core.exs"
 import_config "lagger.exs"
+import_config "test.exs"

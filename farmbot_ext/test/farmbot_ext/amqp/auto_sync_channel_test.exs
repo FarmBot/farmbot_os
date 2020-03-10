@@ -1,13 +1,13 @@
 defmodule AutoSyncChannelTest do
-  alias FarmbotExt.AMQP.AutoSyncChannel
-
+  require Helpers
   use ExUnit.Case, async: true
   use Mimic
+  alias FarmbotExt.AMQP.AutoSyncChannel
 
   alias FarmbotExt.{
-    JWT,
+    AMQP.ConnectionWorker,
     API.Preloader,
-    AMQP.ConnectionWorker
+    JWT
   }
 
   setup :verify_on_exit!
@@ -34,42 +34,76 @@ defmodule AutoSyncChannelTest do
 
   def generate_pid do
     jwt = JWT.decode!(@fake_jwt)
-    ok = fn -> :ok end
-    ok1 = fn _ -> :ok end
-    # Test output will fill with huge termination errors
-    # if this is not stubbed.
-    stub(ConnectionWorker, :close_channel, ok1)
-
-    # Happy Path: Pretend preloading went OK
-    expect(Preloader, :preload_all, 1, ok)
-
-    # Happy Path: Pretend autosync is enabled
-    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> true end)
-
-    # Happy Path: Set status to "synced" and only that.
-    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "synced" -> :ok end)
-
-    # It will try to connect to authsync channel after init.
-    # we're not going to actually connect to a server in our
-    # test suite except under limited circumstances.
-    stub(ConnectionWorker, :maybe_connect_autosync, ok1)
-
     {:ok, pid} = AutoSyncChannel.start_link([jwt: jwt], [])
     pid
   end
 
-  test "init / terminate" do
-    ok = fn -> :ok end
-    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, ok)
-    # Most assertions are handled by `gnerate_pid`:
+  def apply_default_mocks do
+    ok1 = fn _ -> :whatever end
+    expect(FarmbotExt.API.EagerLoader.Supervisor, :drop_all_cache, fn -> :ok end)
+    stub(ConnectionWorker, :close_channel, ok1)
+    stub(ConnectionWorker, :maybe_connect_autosync, ok1)
+  end
+
+  test "init / terminate - auto_sync enabled" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> true end)
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "synced" -> :ok end)
+
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :solid ->
+        :ok
+
+      :really_fast_blink ->
+        :ok
+    end)
+
+    apply_default_mocks()
+    Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
+    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
 
-  test ":basic_cancel" do
+  test "init / terminate - auto_sync disabled" do
+    expect(Preloader, :preload_all, 1, fn -> :ok end)
+    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> false end)
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_now" -> :ok end)
+
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :slow_blink ->
+        :ok
+
+      :really_fast_blink ->
+        :ok
+    end)
+
+    apply_default_mocks()
+    Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
+    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
-    result = send(pid, {:basic_cancel, nil})
-    refute Process.alive?(pid)
+    assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
+  end
+
+  test "init / terminate - auto_sync error" do
+    apply_default_mocks()
+    Helpers.expect_log("Error preloading. #{inspect("a test example")}")
+    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
+    expect(Preloader, :preload_all, 1, fn -> {:error, "a test example"} end)
+
+    expect(FarmbotCore.Leds, :green, 2, fn
+      :slow_blink ->
+        :ok
+
+      :really_fast_blink ->
+        :ok
+    end)
+
+    pid = generate_pid()
+    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
   end
 end
