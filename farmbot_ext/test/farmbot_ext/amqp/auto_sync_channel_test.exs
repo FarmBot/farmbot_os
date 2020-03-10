@@ -145,12 +145,14 @@ defmodule AutoSyncChannelTest do
     # We need the process to be preloaded for these tests to work:
     %{preloaded: true} = AutoSyncChannel.network_status(pid)
     send(pid, {:basic_deliver, payload, %{routing_key: key}})
-    expect(FarmbotExt.AMQP.AutoSyncAssetHandler, :handle_asset, fn (kind, id, body) ->
+
+    expect(FarmbotExt.AMQP.AutoSyncAssetHandler, :handle_asset, fn kind, id, body ->
       assert kind == "Device"
       assert id == 46
       assert body == %{"name" => "This is my bot"}
       :ok
     end)
+
     Process.sleep(1000)
   end
 end
