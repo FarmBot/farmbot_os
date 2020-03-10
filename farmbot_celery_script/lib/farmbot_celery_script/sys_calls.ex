@@ -92,12 +92,12 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
               true | false | error()
 
-  @callback get_point_group(String.t() | resource_id) :: %{
+  @callback find_points_via_group(String.t() | resource_id) :: %{
               required(:point_ids) => [resource_id]
             }
 
-  def get_point_group(sys_calls \\ @sys_calls, point_group_id) do
-    point_group_or_error(sys_calls, :get_point_group, [point_group_id])
+  def find_points_via_group(sys_calls \\ @sys_calls, point_group_id) do
+    point_group_or_error(sys_calls, :find_points_via_group, [point_group_id])
   end
 
   def format_lhs(sys_calls \\ @sys_calls, lhs)

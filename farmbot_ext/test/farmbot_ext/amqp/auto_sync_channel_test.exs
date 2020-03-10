@@ -92,23 +92,6 @@ defmodule AutoSyncChannelTest do
     assert is_preloaded
   end
 
-  # test "expected object bootstraps process state" do
-  #   fake_con = %{fake: :conn}
-  #   fake_chan = %{fake: :chan}
-  #   fake_response = %{conn: fake_con, chan: fake_chan}
-
-  #   results = pretend_network_returned(fake_response)
-  #   IO.puts("=====================")
-  #   IO.inspect(results)
-  #   %{conn: real_conn, chan: real_chan, preloaded: is_preloaded, pid: pid} = results
-
-  #   assert real_chan == fake_chan
-  #   assert real_conn == fake_con
-  #   assert is_preloaded
-  #   send(pid, {:basic_cancel, "--NOT USED--"})
-  #   assert_receive :close_channel_called, 150
-  # end
-
   test "catch-all clause for inbound AMQP messages" do
     fake_con = %{fake: :conn}
     fake_chan = %{fake: :chan}

@@ -15,6 +15,7 @@ defmodule FarmbotCore.Asset.Point do
 
     field(:meta, :map)
     field(:name, :string)
+    field(:openfarm_slug, :string)
     field(:plant_stage, :string)
     field(:planted_at, :utc_datetime)
     field(:pointer_type, :string)

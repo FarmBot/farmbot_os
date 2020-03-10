@@ -82,7 +82,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
 
   defp do_handle_log(log, state) do
     if FarmbotCore.Logger.should_log?(log.module, log.verbosity) do
-      fb = %{position: %{x: -1, y: -1, z: -1}}
+      fb = %{position: %{x: nil, y: nil, z: nil}}
       location_data = Map.get(state.state_cache || %{}, :location_data, fb)
 
       log_without_pos = %{

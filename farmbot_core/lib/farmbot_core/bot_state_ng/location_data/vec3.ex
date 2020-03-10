@@ -13,7 +13,7 @@ defmodule FarmbotCore.BotStateNG.LocationData.Vec3 do
 
   def new do
     %__MODULE__{}
-    |> changeset(%{x: -1, y: -1, z: -1})
+    |> changeset(%{x: nil, y: nil, z: nil})
     |> apply_changes()
   end
 
