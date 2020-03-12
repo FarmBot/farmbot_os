@@ -9,7 +9,7 @@ defmodule FarmbotOS.SysCalls.FarmwareTest do
 
     expect(FarmbotCore.LogExecutor, :execute, fn log ->
       expected =
-        "Farmware did not exit after 30.0 seconds. Terminating :FAKE_PID"
+        "Farmware did not exit after 60.0 seconds. Terminating :FAKE_PID"
 
       assert log.message == expected
       :ok
