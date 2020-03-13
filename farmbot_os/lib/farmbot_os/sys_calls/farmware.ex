@@ -4,7 +4,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}
   alias FarmbotExt.API.ImageUploader
-  @farmware_timeout 30_000
+  @farmware_timeout 60_000
 
   def update_farmware(farmware_name) do
     with {:ok, installation} <- lookup_installation(farmware_name) do
