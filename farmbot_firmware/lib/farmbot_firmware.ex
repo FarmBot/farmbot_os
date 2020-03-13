@@ -955,13 +955,16 @@ defmodule FarmbotFirmware do
 
     cond do
       old != new && new == :emergency_lock ->
+        Logger.warn("Handle E-Stop: 958")
         side_effects(new_state, :handle_emergency_lock, [])
 
       old != new && old == :emergency_lock ->
+        Logger.warn("Handle E-Stop: 962")
         side_effects(new_state, :handle_emergency_unlock, [])
 
       # Boot up emergency unlock
       old == :boot && new != :emergency_lock ->
+        Logger.warn("Handle E-Stop: 967")
         side_effects(new_state, :handle_emergency_unlock, [])
 
       # start of a command.

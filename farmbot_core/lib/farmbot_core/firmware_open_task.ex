@@ -25,6 +25,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
   @doc false
   def swap_transport(tty) do
+    FarmbotCore.Logger.debug(3, "swap_transport")
     Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: UARTTransport, device: tty)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
@@ -33,6 +34,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   end
 
   def unswap_transport() do
+    FarmbotCore.Logger.debug(3, "unswap_transport")
     Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: StubTransport)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
