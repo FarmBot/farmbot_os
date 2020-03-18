@@ -196,9 +196,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
     should_log? && do_send_debug_message(message)
   end
 
-  def do_send_debug_message("error 0") do
-    do_send_debug_message("OK")
-  end
+  # TODO(Rick): 0 means OK, but firmware debug logs say "error 0". Why?
+  def do_send_debug_message("error 0"), do: do_send_debug_message("OK")
 
   def do_send_debug_message(message) do
     FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
