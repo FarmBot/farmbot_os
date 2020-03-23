@@ -1,6 +1,8 @@
 defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
   alias FarmbotCore.BotStateNG
+  alias FarmbotCore.BotState.JobProgress.Percent
+
   require FarmbotCore.Logger
   use GenServer
 
@@ -180,7 +182,8 @@ defmodule FarmbotCore.BotState do
   end
 
   def handle_call({:job_in_progress?, job_name}, _from, state) do
-    progress = state.tree.jobs[job_name] || 0.0
+    progress = (state.tree.jobs[job_name] || %Percent{}).percent
+
     in_progress? = (progress > 0.0 && progress < 100.0)
     {:reply, in_progress?, state}
   end

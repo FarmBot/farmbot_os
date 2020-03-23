@@ -397,7 +397,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         %{is_applying_update: false, probably_connected: true} = state
       ) do
     if should_auto_apply_update?() && update_available?() do
-      FarmbotCore.Logger.busy(1, "Applying OTA update")
+      FarmbotCore.Logger.busy(1, "Applying OTA update (1)")
       run_update_but_only_once()
       {:noreply, %{state | is_applying_update: true}}
     else
@@ -465,7 +465,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       ) do
     case should_auto_apply_update?() do
       true ->
-        FarmbotCore.Logger.busy(1, "Applying OTA update")
+        FarmbotCore.Logger.busy(1, "Applying OTA update (2)")
         _ = set_update_available_in_bot_state()
         _ = update_device_last_ota_checkup()
         _ = set_firmware_needs_flash()
@@ -484,7 +484,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     _ = set_update_available_in_bot_state()
     _ = update_device_last_ota_checkup()
     _ = set_firmware_needs_flash()
-    FarmbotCore.Logger.busy(1, "Applying OTA update")
+    FarmbotCore.Logger.busy(1, "Applying OTA update (3)")
     {:reply, :apply, %{state | is_applying_update: true}}
   end
 
