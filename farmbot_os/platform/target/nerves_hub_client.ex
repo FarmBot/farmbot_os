@@ -398,7 +398,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       ) do
     if should_auto_apply_update?() && update_available?() do
       FarmbotCore.Logger.busy(1, "Applying OTA update")
-      run_update_but_only_once
+      run_update_but_only_once()
       {:noreply, %{state | is_applying_update: true}}
     else
       Process.send_after(self(), :checkup, @checkup_timeout_ms)
@@ -501,7 +501,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         FarmbotCore.Logger.busy(1, "Attempting OTA update...")
         # This is where the NervesHub update gets called.
         # Maybe we can check if the BotState has job progress for "FBOS_OTA"
-        run_update_but_only_once
+        run_update_but_only_once()
         {:reply, data, %{state | is_applying_update: true}}
     end
   end
