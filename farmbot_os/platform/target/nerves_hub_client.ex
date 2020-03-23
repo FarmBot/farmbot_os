@@ -692,7 +692,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         "Can't perform OTA. OTA alread in progress. Restart device if problem persists."
       )
     else
-      FarmbotCore.Logger.error(1, "OTA started.")
+      FarmbotCore.Logger.success(1, "OTA started.")
       spawn_link(fn -> NervesHub.update() end)
     end
   end
