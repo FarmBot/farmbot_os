@@ -686,7 +686,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   def currently_downloading?, do: BotState.job_in_progress?("FBOS_OTA")
 
   def run_update_but_only_once do
-    if currently_downloading? do
+    if currently_downloading?() do
       FarmbotCore.Logger.error(
         1,
         "Can't perform OTA. OTA alread in progress. Restart device if problem persists."
