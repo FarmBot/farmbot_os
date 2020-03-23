@@ -512,38 +512,41 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     ota_hour = Asset.device(:ota_hour)
     timezone = Asset.device(:timezone)
     # if ota_hour is nil, auto apply the update
-    if ota_hour && timezone do
-      # check that now.hour == device.ota_hour
-      case Timex.Timezone.convert(now, timezone) do
-        %{hour: ^ota_hour} ->
-          FarmbotCore.Logger.debug(
-            3,
-            "current hour: #{ota_hour} (utc=#{now.hour}) == ota_hour #{ota_hour}. auto_update=#{
-              auto_update
-            }"
-          )
+    result =
+      if ota_hour && timezone do
+        # check that now.hour == device.ota_hour
+        case Timex.Timezone.convert(now, timezone) do
+          %{hour: ^ota_hour} ->
+            FarmbotCore.Logger.debug(
+              3,
+              "current hour: #{ota_hour} (utc=#{now.hour}) == ota_hour #{
+                ota_hour
+              }. auto_update=#{auto_update}"
+            )
 
-          auto_update
+            auto_update
 
-        %{hour: now_hour} ->
-          FarmbotCore.Logger.debug(
-            3,
-            "current hour: #{now_hour} (utc=#{now.hour}) != ota_hour: #{
-              ota_hour
-            }. auto_update=#{auto_update}"
-          )
+          %{hour: now_hour} ->
+            FarmbotCore.Logger.debug(
+              3,
+              "current hour: #{now_hour} (utc=#{now.hour}) != ota_hour: #{
+                ota_hour
+              }. auto_update=#{auto_update}"
+            )
 
-          false
+            false
+        end
+      else
+        # ota_hour or timezone are nil
+        FarmbotCore.Logger.debug(
+          3,
+          "ota_hour = #{ota_hour || "null"} timezone = #{timezone || "null"}"
+        )
+
+        true
       end
-    else
-      # ota_hour or timezone are nil
-      FarmbotCore.Logger.debug(
-        3,
-        "ota_hour = #{ota_hour || "null"} timezone = #{timezone || "null"}"
-      )
 
-      true
-    end
+    result && !currently_downloading?
   end
 
   def update_available?() do
@@ -680,8 +683,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     end
   end
 
+  def currently_downloading?, do: BotState.job_in_progress?("FBOS_OTA")
+
   def run_update_but_only_once do
-    if BotState.job_in_progress?("FBOS_OTA") do
+    if currently_downloading? do
       FarmbotCore.Logger.error(
         1,
         "Can't perform OTA. OTA alread in progress. Restart device if problem persists."
