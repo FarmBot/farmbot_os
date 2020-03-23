@@ -1,5 +1,9 @@
 # Changelog
 
+# 9.2.1
+
+ * Genesis v1.5 and Express v1.0 firmware homing updates.
+
 # 9.2.0
 
  * Support for criteria-based groups.
