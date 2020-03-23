@@ -546,7 +546,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         true
       end
 
-    result && !currently_downloading?
+    result && !currently_downloading?()
   end
 
   def update_available?() do
