@@ -423,7 +423,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         {:handle_nerves_hub_error, error},
         %{is_applying_update: true} = state
       ) do
-    FarmbotCore.Logger.error(1, "Error applying OTA: #{inspect(error)}")
+    FarmbotCore.Logger.error(1, "Error applying OTA (1): #{inspect(error)}")
     {:noreply, state}
   end
 
@@ -449,7 +449,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
 
   def handle_cast({:handle_nerves_hub_fwup_message, {:error, _, reason}}, state) do
     _ = set_ota_progress(100)
-    FarmbotCore.Logger.error(1, "Error applying OTA: #{inspect(reason)}")
+    FarmbotCore.Logger.error(1, "Error applying OTA (2): #{inspect(reason)}")
     {:noreply, state}
   end
 
