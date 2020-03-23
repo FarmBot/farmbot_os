@@ -6,6 +6,7 @@
  * Remove confusing firmware debug messages, such as "Error OK".
  * Improved camera support on FarmBot express.
  * Bug fix to prevents OTA updates occuring when one is already in progress.
+ * Genesis v1.5 and Express v1.0 firmware homing updates.
 
 # 9.2.0
 
