@@ -2,7 +2,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
   @moduledoc """
   NervesHub.Client implementation.
 
-  This should be one of the very first processes to be started. 
+  This should be one of the very first processes to be started.
   Because it is started so early, it has to check for things that
   might not be available in the environment. Environment is checked
   in this order:
@@ -398,7 +398,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       ) do
     if should_auto_apply_update?() && update_available?() do
       FarmbotCore.Logger.busy(1, "Applying OTA update")
-      spawn_link(fn -> NervesHub.update() end)
+      run_update_but_only_once
       {:noreply, %{state | is_applying_update: true}}
     else
       Process.send_after(self(), :checkup, @checkup_timeout_ms)
@@ -498,9 +498,10 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         _ = set_update_available_in_bot_state()
         _ = update_device_last_ota_checkup()
         _ = set_firmware_needs_flash()
-        FarmbotCore.Logger.busy(1, "Applying OTA update")
-
-        spawn_link(fn -> NervesHub.update() end)
+        FarmbotCore.Logger.busy(1, "Attempting OTA update...")
+        # This is where the NervesHub update gets called.
+        # Maybe we can check if the BotState has job progress for "FBOS_OTA"
+        run_update_but_only_once
         {:reply, data, %{state | is_applying_update: true}}
     end
   end
@@ -615,7 +616,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         Process.monitor(conn.pid)
         {:ok, conn}
 
-      # Squash this log since it will be displayed for the 
+      # Squash this log since it will be displayed for the
       # main AMQP connection
       {:error, :unknown_host} = err ->
         err
@@ -676,6 +677,18 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         "master" -> "stable"
         branch -> branch
       end
+    end
+  end
+
+  def run_update_but_only_once do
+    if BotState.job_in_progress?("FBOS_OTA") do
+      FarmbotCore.Logger.error(
+        1,
+        "Can't perform OTA. OTA alread in progress. Restart device if problem persists."
+      )
+    else
+      FarmbotCore.Logger.error(1, "OTA started.")
+      spawn_link(fn -> NervesHub.update() end)
     end
   end
 end

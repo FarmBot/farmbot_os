@@ -2,9 +2,10 @@
 
 # 9.2.1
 
- * Add new firmware debug messages.
+ * Improve firmware debug messages.
  * Remove confusing firmware debug messages, such as "Error OK".
  * Improved camera support on FarmBot express.
+ * Bug fix to prevents OTA updates occuring when one is already in progress.
 
 # 9.2.0
 
