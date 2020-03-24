@@ -474,7 +474,6 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
       _ ->
         _ = set_update_available_in_bot_state()
         _ = update_device_last_ota_checkup()
-        FarmbotCore.Logger.info(1, "New Farmbot OS is available!")
         Process.send_after(self(), :checkup, @checkup_timeout_ms)
         {:reply, :ignore, %{state | firmware_url: url}}
     end
