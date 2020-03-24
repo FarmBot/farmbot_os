@@ -126,7 +126,7 @@ defmodule FarmbotOS.MixProject do
       {:busybox, "~> 0.1.4", targets: @all_targets},
       {:farmbot_system_rpi3, "1.10.0-farmbot.1",
        runtime: false, targets: :rpi3},
-      {:farmbot_system_rpi, "1.10.0-farmbot.1", runtime: false, targets: :rpi}
+      {:farmbot_system_rpi, "1.10.0-farmbot.2", runtime: false, targets: :rpi}
     ]
   end
 

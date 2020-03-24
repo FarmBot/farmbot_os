@@ -193,7 +193,14 @@ defmodule FarmbotCore.FirmwareSideEffects do
   def handle_debug_message([message]) do
     fbos_config = Asset.fbos_config()
     should_log? = fbos_config.firmware_debug_log || fbos_config.arduino_debug_messages
-    should_log? && FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
+    should_log? && do_send_debug_message(message)
+  end
+
+  # TODO(Rick): 0 means OK, but firmware debug logs say "error 0". Why?
+  def do_send_debug_message("error 0"), do: do_send_debug_message("OK")
+
+  def do_send_debug_message(message) do
+    FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
   end
 
   @impl FarmbotFirmware.SideEffects

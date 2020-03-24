@@ -1,6 +1,8 @@
 defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
   alias FarmbotCore.BotStateNG
+  alias FarmbotCore.BotState.JobProgress.Percent
+
   require FarmbotCore.Logger
   use GenServer
 
@@ -28,7 +30,7 @@ defmodule FarmbotCore.BotState do
   def set_position(bot_state_server \\ __MODULE__, x, y, z) do
     GenServer.call(bot_state_server, {:set_position, x, y, z})
   end
-  
+
   @doc "Sets the location_data.load"
   def set_load(bot_state_server \\ __MODULE__, x, y, z) do
     GenServer.call(bot_state_server, {:set_load, x, y, z})
@@ -161,6 +163,10 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, :enter_maintenance_mode)
   end
 
+  def job_in_progress?(job_name, bot_state_server \\ __MODULE__) do
+    GenServer.call(bot_state_server, {:job_in_progress?, job_name})
+  end
+
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -173,6 +179,13 @@ defmodule FarmbotCore.BotState do
 
   def terminate(reason, _state) do
     FarmbotCore.Logger.error 1, "BotState crashed! #{inspect(reason)}"
+  end
+
+  def handle_call({:job_in_progress?, job_name}, _from, state) do
+    progress = (state.tree.jobs[job_name] || %Percent{}).percent
+
+    in_progress? = (progress > 0.0 && progress < 100.0)
+    {:reply, in_progress?, state}
   end
 
   @doc false

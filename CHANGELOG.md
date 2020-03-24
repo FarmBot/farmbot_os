@@ -1,5 +1,12 @@
 # Changelog
 
+# 9.2.1
+
+ * Improve firmware debug messages.
+ * Remove confusing firmware debug messages, such as "Error OK".
+ * Improved camera support on FarmBot express.
+ * Bug fix to prevents OTA updates occuring when one is already in progress.
+
 # 9.2.0
 
  * Support for criteria-based groups.
