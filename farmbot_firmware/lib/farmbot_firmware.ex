@@ -300,20 +300,10 @@ defmodule FarmbotFirmware do
            name: state.reset
          ) do
       {:ok, pid} ->
-        Logger.debug(
-          "Firmware reset #{state.reset} started. #{
-            inspect(state.transport_args)
-          }"
-        )
-
         {:noreply, %{state | reset_pid: pid}}
 
       # TODO(Rick): I have no idea what's going on here.
       {:error, {:already_started, pid}} ->
-        Logger.debug(
-          "Firmware reset complete. #{inspect(state.transport_args)}"
-        )
-
         {:noreply, %{state | reset_pid: pid}}
 
       error ->

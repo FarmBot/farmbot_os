@@ -1,6 +1,6 @@
 defmodule FarmbotExt.Bootstrap.Supervisor do
   @moduledoc """
-  Supervisor responsible for starting all 
+  Supervisor responsible for starting all
   the tasks and processes that require authentication.
   """
   use Supervisor
@@ -20,7 +20,6 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
       FarmbotExt.Bootstrap.DropPasswordTask
     ]
 
-    opts = [strategy: :one_for_one]
-    Supervisor.init(children, opts)
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end

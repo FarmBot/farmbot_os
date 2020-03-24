@@ -41,8 +41,8 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       {:error, reason} when is_binary(reason) ->
         {:error, reason}
 
-      {_, exit_code} when is_number(exit_code) ->
-        {:error, "avrdude error: #{exit_code}"}
+      error ->
+        {:error, "flash_firmware misc error: #{inspect(error)}"}
     end
   end
 

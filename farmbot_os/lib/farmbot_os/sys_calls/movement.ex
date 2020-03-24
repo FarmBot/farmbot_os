@@ -95,6 +95,9 @@ defmodule FarmbotOS.SysCalls.Movement do
     end
   end
 
+  # TODO(Rick): Figure out source of Error: {:ok, "ok"} logs.
+  def handle_movement_error({:ok, _}), do: :ok
+
   def handle_movement_error(reason) do
     msg = "Movement failed. #{inspect(reason)}"
     FarmbotCore.Logger.error(1, msg)

@@ -188,7 +188,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    FarmbotCore.Logger.warn(
+    FarmbotCore.Logger.success(
       1,
       "Interface #{ifname} connected to local area network"
     )
@@ -202,7 +202,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    FarmbotCore.Logger.warn(1, "Interface #{ifname} connected to internet")
+    FarmbotCore.Logger.success(1, "Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
     FarmbotTelemetry.event(:network, :wan_connect, nil, interface: ifname)
     {:noreply, %{state | first_connect?: false}}

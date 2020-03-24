@@ -90,8 +90,8 @@ defmodule FarmbotCore.FirmwareOpenTask do
             Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
-          _ ->
-            FarmbotCore.Logger.debug 3, "Firmware failed to open"
+          other ->
+            FarmbotCore.Logger.debug 3, "Firmware failed to open: #{inspect(other)}"
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
         end
