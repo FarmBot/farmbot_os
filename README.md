@@ -9,9 +9,9 @@ Old versions of FarmBot OS can be found [here](https://github.com/FarmBot/farmbo
 ---
 
 ## Build status
-| Master Build Status  | Staging Build Status |
-| :---: | :---: |
-| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) |
+| Master Build Status  | Staging Build Status | Test Coverage |
+| :---: | :---: | :---: |
+| [![Master Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/master.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/master) | [![Staging Build Status](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging.svg?style=svg)](https://circleci.com/gh/FarmBot/farmbot_os/tree/staging) | [![codecov](https://codecov.io/gh/FarmBot/farmbot_os/branch/staging/graph/badge.svg)](https://codecov.io/gh/FarmBot/farmbot_os) |
 
 ---
 
