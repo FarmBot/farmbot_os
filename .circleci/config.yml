@@ -379,50 +379,6 @@ jobs:
       - store_artifacts:
           path: farmbot_os/cover
 
-  report_coverage:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - <<: *install_mdl
-      - restore_cache:
-          keys:
-            - v14-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
-      - restore_cache:
-          keys:
-            - v14-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - v14-fbcs-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - v14-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - v14-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - v14-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - restore_cache:
-          keys:
-            - v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
-      - run:
-          name: Check documentation formatting
-          command: |
-            mdl docs/
-      - save_cache:
-          key: v14-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
-          paths:
-            - deps/
-            - _build
-
 ################################################################################
 #                           target=rpi app_env=prod                            #
 ################################################################################
@@ -708,22 +664,6 @@ workflows:
                 - /^qa\/.*/
       - test_farmbot_os:
           context: org-global
-          filters:
-            branches:
-              ignore:
-                - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
-      - report_coverage:
-          context: org-global
-          requires:
-            - test_farmbot_celery_script
-            - test_farmbot_firmware
-            - test_farmbot_core
-            - test_farmbot_ext
-            - test_farmbot_os
           filters:
             branches:
               ignore:
