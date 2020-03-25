@@ -153,6 +153,6 @@ defmodule AutoSyncChannelTest do
       :ok
     end)
 
-    Process.sleep(1000)
+    Process.sleep(1200)
   end
 end
