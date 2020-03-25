@@ -6,7 +6,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
   Also has a ~15-20 minute timer that will do an `HTTP` request
   to `/api/device`. This refreshed the `last_seen_api` field which
-  is required for devices that have `auto_sync` enabled as with 
+  is required for devices that have `auto_sync` enabled as with
   that field enabled, the device would never do an HTTP request
   """
   use GenServer
@@ -99,9 +99,9 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
         http_ping_timer = Process.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: 0}}
 
-      _ ->
+      error ->
         ping_fails = state.ping_fails + 1
-        FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails})")
+        FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails}). #{inspect(error)}")
         _ = Leds.blue(:off)
         http_ping_timer = Process.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: ping_fails}}
