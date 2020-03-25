@@ -417,15 +417,6 @@ jobs:
           name: Check documentation formatting
           command: |
             mdl docs/
-      - run:
-          name: Report Coverage
-          working_directory: /nerves/build/
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            echo "TODO: Remove this task?"
-            # mix farmbot.coveralls circle
       - save_cache:
           key: v14-fbsupport-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
