@@ -16,7 +16,7 @@ defmodule FarmbotExt.API.ImageUploader do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def force_checkup do
+  def force_checkup() do
     GenServer.cast(__MODULE__, :force_checkup)
   end
 
