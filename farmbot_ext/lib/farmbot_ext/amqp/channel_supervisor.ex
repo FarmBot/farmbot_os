@@ -19,17 +19,19 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   end
 
   def init([token]) do
-    jwt = JWT.decode!(token)
+    Supervisor.init(children(JWT.decode!(token)), strategy: :one_for_one)
+  end
 
-    children = [
+  def children(jwt) do
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
+    Keyword.get(config, :children, [
       {TelemetryChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
       {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
       {CeleryScriptChannel, [jwt: jwt]}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    ])
   end
 end

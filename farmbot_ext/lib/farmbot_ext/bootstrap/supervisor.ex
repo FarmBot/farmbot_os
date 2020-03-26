@@ -17,6 +17,7 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
 
   def children() do
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
     Keyword.get(config, :children, [
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
