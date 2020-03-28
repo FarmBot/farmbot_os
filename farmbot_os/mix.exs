@@ -92,6 +92,7 @@ defmodule FarmbotOS.MixProject do
       {:cors_plug, "~> 2.0"},
       {:plug_cowboy, "~> 2.1"},
       {:phoenix_html, "~> 2.13"},
+      {:dns, "~> 2.1"},
 
       # Nerves stuff.
       {:nerves, "~> 1.5", runtime: false},
