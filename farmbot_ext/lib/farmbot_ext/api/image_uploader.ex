@@ -44,7 +44,7 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_continue([], state), do: {:noreply, state, @checkup_time_ms}
-  # WIP - RC
+  # This only exists to flush handle_cast's. I think. -RC
   def handle_call(:noop, _, s), do: {:reply, :ok, s}
 
   # the meta here is likely inaccurate here because of
@@ -63,7 +63,7 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   defp finalize(fname, other) do
-    FarmbotCore.Logger.success(3, "Upload Error (#{fname}): #{inspect(other)}")
+    FarmbotCore.Logger.error(3, "Upload Error (#{fname}): #{inspect(other)}")
   end
 
   # Stolen from

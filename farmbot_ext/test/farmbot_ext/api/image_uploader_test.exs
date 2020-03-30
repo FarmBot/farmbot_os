@@ -5,13 +5,6 @@ defmodule FarmbotExt.API.ImageUploaderTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
-  # TODO: Get some single pixel jpg, jpeg, png, gif files.
-  # TODO: Stub `API.upload_image`
-
-  # upload_image_mock = fn _fname ->
-  #   raise "HMMM...."
-  # end
-
   test "force checkup" do
     pid =
       if Process.whereis(ImageUploader) do
@@ -21,19 +14,20 @@ defmodule FarmbotExt.API.ImageUploaderTest do
         p
       end
 
-    # ref = Process.monitor(pid)
-    Enum.map(
-      ["a.jpg", "b.jpeg", "c.png", "d.gif"],
-      fn fname -> File.touch!("/tmp/images/#{fname}") end
-    )
+    ["a.jpg", "b.jpeg", "c.png", "d.gif"]
+    |> Enum.map(fn fname ->
+      f = "/tmp/images/#{fname}"
+      File.touch!(f)
+      File.write(f, "X")
+    end)
 
-    expect(FarmbotExt.API, :upload_image, 1, fn _image_filename, _meta ->
-      IO.puts("-=-=--==-=-=-=-=--=-=-==--=-=-=-==-")
-      {:ok, %{status: 201, body: %{}}}
+    expect(FarmbotExt.API, :upload_image, 4, fn
+      "/tmp/images/d.gif", _meta -> {:ok, %{status: 401, body: %{}}}
+      _image_filename, _meta -> {:ok, %{status: 201, body: %{}}}
     end)
 
     ImageUploader.force_checkup()
-    GenServer.call(pid, :noop)
     send(pid, :timeout)
+    :ok = GenServer.call(pid, :noop)
   end
 end
