@@ -1,5 +1,5 @@
 defmodule AutoSyncAssetHandlerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use Mimic
 
   setup :verify_on_exit!

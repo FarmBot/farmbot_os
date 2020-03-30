@@ -13,14 +13,10 @@ Mimic.copy(FarmbotExt.API.Preloader)
 Mimic.copy(FarmbotExt.API)
 Mimic.copy(FarmbotExt.AMQP.AutoSyncAssetHandler)
 
-timeout = System.get_env("EXUNIT_TIMEOUT")
+timeout = System.get_env("EXUNIT_TIMEOUT") || "5000"
 System.put_env("LOG_SILENCE", "true")
 
-if timeout do
-  ExUnit.start(assert_receive_timeout: String.to_integer(timeout))
-else
-  ExUnit.start()
-end
+ExUnit.start(assert_receive_timeout: String.to_integer(timeout))
 
 defmodule Helpers do
   defmacro expect_log(message) do
@@ -31,4 +27,3 @@ defmodule Helpers do
     end
   end
 end
-
