@@ -23,24 +23,24 @@ defmodule Helpers do
   # Maybe I could use `start_supervised`?
   # https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2
 
-  @wait_time 25
+  @wait_time 13
   # Base case: We have a pid
-  def wait_for(pid) when is_pid(pid), do: continue_waiting(pid)
+  def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.
   def wait_for(nil), do: raise("Attempted to wait on bad module/pid")
   # Edge case: We have a module and need to try finding its pid.
   def wait_for(mod), do: wait_for(Process.whereis(mod))
 
-  defp continue_waiting(pid) do
+  # Enter recursive loop
+  defp check_on_mbox(pid) do
+    Process.sleep(@wait_time)
     wait(pid, Process.info(pid, :message_queue_len))
   end
 
-  defp wait(_pid, {:message_queue_len, 0}), do: Process.sleep(@wait_time)
-
-  defp wait(pid, {:message_queue_len, _n}) do
-    Process.sleep(@wait_time)
-    continue_waiting(pid)
-  end
+  # Exit recursive loop
+  defp wait(_, {:message_queue_len, 0}), do: Process.sleep(@wait_time)
+  # Continue recursive loop
+  defp wait(pid, {:message_queue_len, _n}), do: check_on_mbox(pid)
 
   defmacro expect_log(message) do
     quote do
