@@ -55,7 +55,7 @@ defmodule AutoSyncChannelTest do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
     pid = generate_pid()
     send(pid, msg)
-    Process.sleep(5)
+    Helpers.wait_for(pid)
   end
 
   test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
@@ -153,6 +153,6 @@ defmodule AutoSyncChannelTest do
       :ok
     end)
 
-    Process.sleep(1200)
+    Helpers.wait_for(pid)
   end
 end

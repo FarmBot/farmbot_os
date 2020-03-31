@@ -23,7 +23,7 @@ defmodule Helpers do
   # Maybe I could use `start_supervised`?
   # https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2
 
-  @wait_time 13
+  @wait_time 15
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.
@@ -37,8 +37,11 @@ defmodule Helpers do
     wait(pid, Process.info(pid, :message_queue_len))
   end
 
-  # Exit recursive loop
-  defp wait(_, {:message_queue_len, 0}), do: Process.sleep(@wait_time)
+  # Exit recursive loop (mbox is clear)
+  defp wait(_, {:message_queue_len, 0}), do: Process.sleep(@wait_time * 3)
+  # Exit recursive loop (pid is dead)
+  defp wait(_, nil), do: Process.sleep(@wait_time * 3)
+
   # Continue recursive loop
   defp wait(pid, {:message_queue_len, _n}), do: check_on_mbox(pid)
 
