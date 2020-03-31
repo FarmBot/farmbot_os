@@ -19,6 +19,32 @@ System.put_env("LOG_SILENCE", "true")
 ExUnit.start(assert_receive_timeout: String.to_integer(timeout))
 
 defmodule Helpers do
+  # Maybe I don't need this?
+  # Maybe I could use `start_supervised`?
+  # https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2
+
+  # Base case: We have a pid
+  def wait_for(pid) when is_pid(pid), do: continue_waiting(pid)
+  # Failure case: We failed to find a pid for a module.
+  def wait_for(nil), do: raise("Attempted to wait on bad module/pid")
+  # Edge case: We have a module and need to try finding its pid.
+  def wait_for(mod), do: wait_for(Process.whereis(mod))
+
+  defp continue_waiting(pid) do
+    wait(pid, Process.info(pid, :message_queue_len))
+  end
+
+  defp wait(_pid, {:message_queue_len, 0}), do: :ok
+
+  defp wait(pid, {:message_queue_len, n}) when n < 20 do
+    Process.sleep(100)
+    continue_waiting(pid)
+  end
+
+  defp wait(pid, {:message_queue_len, n}) do
+    raise "No longer waiting on #{inspect(pid)} after #{n} attempts"
+  end
+
   defmacro expect_log(message) do
     quote do
       expect(FarmbotCore.LogExecutor, :execute, fn log ->
