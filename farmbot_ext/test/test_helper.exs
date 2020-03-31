@@ -13,7 +13,7 @@ Application.ensure_all_started(:farmbot)
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
-  FarmbotExt.API.Preloader,
+  FarmbotExt.API.Preloader
 ]
 |> Enum.map(&Mimic.copy/1)
 
