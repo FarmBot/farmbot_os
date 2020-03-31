@@ -16,7 +16,7 @@ defmodule FarmbotExt.API.ImageUploader do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def force_checkup do
+  def force_checkup() do
     GenServer.cast(__MODULE__, :force_checkup)
   end
 
@@ -44,20 +44,26 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_continue([], state), do: {:noreply, state, @checkup_time_ms}
+  # This only exists to flush handle_cast's. I think. -RC
+  def handle_call(:noop, _, s), do: {:reply, :ok, s}
 
-  # the meta here is likely inaccurate here because of
-  # pulling the location data from the cache instead of from the firmware
-  # directly. It's close enough and getting data from the firmware directly
-  # would require more work than it is worth
+  # the meta here is likely inaccurate here because of pulling the location data
+  # from the cache instead of from the firmware directly. It's close enough and
+  # getting data from the firmware directly would require more work than it is
+  # worth
   defp try_upload(image_filename) do
     %{x: x, y: y, z: z} = BotState.fetch().location_data.position
     meta = %{x: x, y: y, z: z, name: Path.rootname(image_filename)}
+    finalize(image_filename, API.upload_image(image_filename, meta))
+  end
 
-    with {:ok, %{status: s, body: _body}} when s > 199 and s < 300 <-
-           API.upload_image(image_filename, meta) do
-      FarmbotCore.Logger.success(3, "Uploaded image: #{image_filename}")
-      File.rm(image_filename)
-    end
+  defp finalize(file, {:ok, %{status: s, body: _}}) when s > 199 and s < 300 do
+    FarmbotCore.Logger.success(3, "Uploaded image: #{file}")
+    File.rm(file)
+  end
+
+  defp finalize(fname, other) do
+    FarmbotCore.Logger.error(3, "Upload Error (#{fname}): #{inspect(other)}")
   end
 
   # Stolen from

@@ -1,6 +1,6 @@
 defmodule AutoSyncChannelTest do
   require Helpers
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use Mimic
   alias FarmbotExt.AMQP.AutoSyncChannel
 
