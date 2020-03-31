@@ -44,8 +44,6 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_continue([], state), do: {:noreply, state, @checkup_time_ms}
-  # This only exists to flush handle_cast's. I think. -RC
-  def handle_call(:noop, _, s), do: {:reply, :ok, s}
 
   # the meta here is likely inaccurate here because of pulling the location data
   # from the cache instead of from the firmware directly. It's close enough and

@@ -1,6 +1,7 @@
 use Mix.Config
 
 if Mix.env() == :test do
+  config :ex_unit, capture_logs: true
   mapper = fn mod -> config :farmbot_ext, mod, children: [] end
 
   list = [

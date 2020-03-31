@@ -1,4 +1,5 @@
 defmodule FarmbotExt.API.ImageUploaderTest do
+  require Helpers
   use ExUnit.Case, async: false
   use Mimic
   alias FarmbotExt.API.ImageUploader
@@ -22,12 +23,21 @@ defmodule FarmbotExt.API.ImageUploaderTest do
     end)
 
     expect(FarmbotExt.API, :upload_image, 4, fn
-      "/tmp/images/d.gif", _meta -> {:ok, %{status: 401, body: %{}}}
+      "/tmp/images/d.gif", _meta -> {:error, %{status: 401, body: %{}}}
       _image_filename, _meta -> {:ok, %{status: 201, body: %{}}}
     end)
 
+    err_msg =
+      "Upload Error (/tmp/images/d.gif): " <>
+        "{:error, %{body: %{}, status: 401}}"
+
+    Helpers.expect_log("Uploaded image: /tmp/images/a.jpg")
+    Helpers.expect_log("Uploaded image: /tmp/images/b.jpeg")
+    Helpers.expect_log("Uploaded image: /tmp/images/c.png")
+    Helpers.expect_log(err_msg)
+
     ImageUploader.force_checkup()
     send(pid, :timeout)
-    :ok = GenServer.call(pid, :noop)
+    Helpers.wait_for(pid)
   end
 end
