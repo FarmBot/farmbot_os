@@ -24,6 +24,16 @@ defmodule AutoSyncAssetHandlerTest do
     AutoSyncAssetHandler.handle_asset("Point", 23, nil)
   end
 
+  test "Handles @no_cache_kinds" do
+    id = 64
+    params = %{}
+    kind = ~w(Device FbosConfig FirmwareConfig FarmwareEnv FarmwareInstallation)
+    |> Enum.shuffle
+    |> Enum.at(0)
+    expect(Asset.Command, :update, 1, fn ^kind, ^id, ^params -> :ok end)
+    assert :ok = AutoSyncAssetHandler.cache_sync(kind, id, params)
+  end
+
   test "handling of deleted assets when auto_sync is enabled" do
     auto_sync_on()
     expect_sync_status_to_be("syncing")
