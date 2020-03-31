@@ -23,7 +23,11 @@ defmodule FarmbotCore.Asset.Supervisor do
   end
 
   def init([]) do
-    children = [
+    Supervisor.init(children(), strategy: :one_for_one)
+  end
+
+  def children do
+    default = [
       Repo,
       {AssetSupervisor, module: FbosConfig},
       {AssetSupervisor, module: FirmwareConfig},
@@ -38,7 +42,7 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: FarmwareEnv},
       AssetMonitor,
     ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+Keyword.get(config, :children, default)
   end
 end

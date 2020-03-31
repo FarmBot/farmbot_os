@@ -7,9 +7,12 @@ defmodule FarmbotCore.Config.Supervisor do
   end
 
   def init([]) do
-    children = [
-      {FarmbotCore.Config.Repo, []},
-    ]
-    Supervisor.init(children, strategy: :one_for_one)
+    Supervisor.init(children(), strategy: :one_for_one)
+  end
+
+  def children do
+    default = [ {FarmbotCore.Config.Repo, []} ]
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+Keyword.get(config, :children, default)
   end
 end
