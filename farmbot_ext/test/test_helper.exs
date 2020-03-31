@@ -1,17 +1,21 @@
 Application.ensure_all_started(:farmbot)
 
-Mimic.copy(AMQP.Channel)
-Mimic.copy(FarmbotCeleryScript.SysCalls.Stubs)
-Mimic.copy(FarmbotCore.Asset.Command)
-Mimic.copy(FarmbotCore.Asset.Query)
-Mimic.copy(FarmbotCore.BotState)
-Mimic.copy(FarmbotCore.Leds)
-Mimic.copy(FarmbotCore.LogExecutor)
-Mimic.copy(FarmbotExt.AMQP.ConnectionWorker)
-Mimic.copy(FarmbotExt.API.EagerLoader.Supervisor)
-Mimic.copy(FarmbotExt.API.Preloader)
-Mimic.copy(FarmbotExt.API)
-Mimic.copy(FarmbotExt.AMQP.AutoSyncAssetHandler)
+[
+  AMQP.Channel,
+  FarmbotCeleryScript.SysCalls.Stubs,
+  FarmbotCore.Asset.Command,
+  FarmbotCore.Asset.Query,
+  FarmbotCore.BotState,
+  FarmbotCore.Leds,
+  FarmbotCore.LogExecutor,
+  FarmbotExt.AMQP.AutoSyncAssetHandler,
+  FarmbotExt.AMQP.ConnectionWorker,
+  FarmbotExt.API,
+  FarmbotExt.API.EagerLoader,
+  FarmbotExt.API.EagerLoader.Supervisor,
+  FarmbotExt.API.Preloader,
+]
+|> Enum.map(&Mimic.copy/1)
 
 timeout = System.get_env("EXUNIT_TIMEOUT") || "5000"
 System.put_env("LOG_SILENCE", "true")
