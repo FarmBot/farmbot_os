@@ -1,5 +1,5 @@
 defmodule FarmbotExt.AMQP.BotStateChannelTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   use Mimic
 
   # alias FarmbotExt.AMQP.BotStateChannel
