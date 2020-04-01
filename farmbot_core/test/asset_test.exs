@@ -15,4 +15,11 @@ defmodule FarmbotCore.AssetTest do
       assert %RegimenInstance{} = Asset.new_regimen_instance!(event)
     end
   end
+
+  test "Asset.device/1" do
+    # Update device...
+    assert nil == Asset.device(:ota_hour)
+    assert %FarmbotCore.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
+    assert 17 == Asset.device(:ota_hour)
+  end
 end
