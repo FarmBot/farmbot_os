@@ -25,8 +25,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
 
   @impl GenServer
   def init([regimen_instance, _args]) do
-    Logger.warn "RegimenInstance #{inspect(regimen_instance)} initializing"
-
     with %Regimen{} <- regimen_instance.regimen,
          %FarmEvent{} <- regimen_instance.farm_event do
           send self(), :schedule
@@ -40,25 +38,25 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   def handle_info(:schedule, state) do
     regimen_instance = state.regimen_instance
     # load the sequence and calculate the scheduled_at time
-    Enum.map(regimen_instance.regimen.regimen_items, fn(%{time_offset: offset, sequence_id: sequence_id}) -> 
+    Enum.map(regimen_instance.regimen.regimen_items, fn(%{time_offset: offset, sequence_id: sequence_id}) ->
       scheduled_at = DateTime.add(regimen_instance.epoch, offset, :millisecond)
       sequence = Asset.get_sequence(sequence_id) || raise("sequence #{sequence_id} is not synced")
       %{scheduled_at: scheduled_at, sequence: sequence}
     end)
     # get rid of any item that has already been scheduled/executed
-    |> Enum.reject(fn(%{scheduled_at: scheduled_at}) -> 
+    |> Enum.reject(fn(%{scheduled_at: scheduled_at}) ->
       Asset.get_regimen_instance_execution(regimen_instance, scheduled_at)
     end)
-    |> Enum.each(fn(%{scheduled_at: at, sequence: sequence}) -> 
+    |> Enum.each(fn(%{scheduled_at: at, sequence: sequence}) ->
       schedule_sequence(regimen_instance, sequence, at)
     end)
-    {:noreply, state}    
+    {:noreply, state}
   end
 
   def handle_info({FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
-      {:error, reason} -> 
+      {:error, reason} ->
         FarmbotCore.Logger.error(2, "Regimen scheduled at #{scheduled_at} failed to execute: #{reason}")
         reason
     end
@@ -81,11 +79,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     regimen_params = AST.decode(regimen_instance.regimen.body)
     # there may be many sequence scopes from here downward
     celery_ast =  AST.decode(sequence)
-    celery_args = 
+    celery_args =
       celery_ast.args
       |> Map.put(:sequence_name, sequence.name)
       |> Map.put(:locals, %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params})
-    
+
     celery_ast = %{celery_ast | args: celery_args}
     FarmbotCeleryScript.schedule(celery_ast, at, sequence)
   end

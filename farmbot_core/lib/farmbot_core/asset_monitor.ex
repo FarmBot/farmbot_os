@@ -82,7 +82,6 @@ defmodule FarmbotCore.AssetMonitor do
     sub_state = Map.drop(sub_state, deleted_ids)
 
     Enum.each(deleted_ids, fn local_id ->
-      Logger.error("#{inspect(kind)} #{local_id} needs to be terminated")
       AssetSupervisor.terminate_child(kind, local_id)
     end)
 
@@ -99,7 +98,6 @@ defmodule FarmbotCore.AssetMonitor do
           Map.put(sub_state, id, updated_at)
 
         compare_datetimes(updated_at, sub_state[id]) == :gt ->
-          Logger.warn("#{inspect(kind)} #{id} needs to be updated")
           asset = Repo.preload(asset, AssetWorker.preload(asset))
           :ok = AssetSupervisor.update_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
