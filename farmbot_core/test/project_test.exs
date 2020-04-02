@@ -4,12 +4,7 @@ defmodule FarmbotCore.ProjectTest do
 
   test "arduino_commit" do
     actual = FarmbotCore.Project.arduino_commit()
-
-    expected =
-      System.cmd("git", ~w"rev-parse --verify HEAD", @opts)
-      |> elem(0)
-      |> String.trim()
-
-    assert expected == actual
+    assert is_binary(actual)
+    assert String.length(actual) == 40
   end
 end
