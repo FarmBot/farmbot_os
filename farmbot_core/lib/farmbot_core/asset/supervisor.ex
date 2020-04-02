@@ -43,6 +43,6 @@ defmodule FarmbotCore.Asset.Supervisor do
       AssetMonitor,
     ]
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
-Keyword.get(config, :children, default)
+    Keyword.get(config, :children, default)
   end
 end
