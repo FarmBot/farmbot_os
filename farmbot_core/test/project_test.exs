@@ -4,6 +4,7 @@ defmodule FarmbotCore.ProjectTest do
   test "arduino_commit" do
     actual = FarmbotCore.Project.arduino_commit()
     expected = "0c4b14eb1bec8d466fbb815bfd7ee13b0b2d8c91"
+    # Prevents me from accidentally releasing wrong firmware.
     assert expected == actual
   end
 end
