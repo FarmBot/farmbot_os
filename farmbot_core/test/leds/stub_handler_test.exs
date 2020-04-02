@@ -13,8 +13,10 @@ defmodule FarmbotCore.Leds.StubHandlerTest do
     :white4 => :white,
     :white5 => :white
   }
+  @status [:fast_blink, :really_fast_blink, :slow_blink, :solid]
 
-  def capture_led(color, status) do
+  def capture_led(color) do
+    status = @status |> Enum.shuffle() |> Enum.at(0)
     do_it = fn -> apply(FarmbotCore.Leds, color, [status]) end
     cap = capture_io(do_it)
     assert cap =~ "LED STATUS:"
@@ -22,14 +24,14 @@ defmodule FarmbotCore.Leds.StubHandlerTest do
   end
 
   test "leds" do
-    capture_led(:red, :solid)
-    capture_led(:blue, :solid)
-    capture_led(:green, :solid)
-    capture_led(:yellow, :solid)
-    capture_led(:white1, :solid)
-    capture_led(:white2, :solid)
-    capture_led(:white3, :solid)
-    capture_led(:white4, :solid)
-    capture_led(:white5, :solid)
+    capture_led(:red)
+    capture_led(:blue)
+    capture_led(:green)
+    capture_led(:yellow)
+    capture_led(:white1)
+    capture_led(:white2)
+    capture_led(:white3)
+    capture_led(:white4)
+    capture_led(:white5)
   end
 end
