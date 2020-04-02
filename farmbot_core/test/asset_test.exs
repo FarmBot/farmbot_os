@@ -21,10 +21,4 @@ defmodule FarmbotCore.AssetTest do
     assert %FarmbotCore.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
     assert 17 == Asset.device(:ota_hour)
   end
-
-  test "update_farm_event!/2" do
-    farm_event = Asset.new_farm_event!(%{repeat: 7})
-    new_farm_event = Asset.update_farm_event!(farm_event, %{repeat: 3})
-    assert 3 == new_farm_event.repeat
-  end
 end
