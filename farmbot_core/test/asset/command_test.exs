@@ -27,6 +27,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     :ok = Command.update(FirmwareConfig, 23, Map.from_struct(config))
   end
 
+  @tag :capture_log
   test "update / destroy fbos config" do
     params = %{id: 23, update_channel: "whatever"}
     :ok = Command.update(FbosConfig, 23, params)
@@ -38,6 +39,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     refute next_config
   end
 
+  @tag :capture_log
   test "update / destroy device" do
     params = %{id: 23, name: "Old Device"}
     :ok = Command.update(Device, 23, params)
@@ -56,6 +58,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     assert Asset.get_regimen(id)
   end
 
+  @tag :capture_log
   test "update regimen" do
     id = id()
     :ok = Command.update("Regimen", id, %{id: id, name: "abc", monitor: false})
@@ -70,6 +73,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     refute Asset.get_regimen(id)
   end
 
+  @tag :capture_log
   test "insert new farm_event" do
     id = id()
     :ok = Command.update("FarmEvent", id, %{id: id, monitor: false})
@@ -101,6 +105,7 @@ defmodule FarmbotCore.Asset.CommandTest do
     assert Asset.get_farm_event(id).executable_type == "Regimen"
   end
 
+  @tag :capture_log
   test "delete farm_event" do
     id = id()
 

@@ -2,6 +2,7 @@ defmodule FarmbotCore.LoggerTest do
   use ExUnit.Case
   require FarmbotCore.Logger
 
+  @tag :capture_log
   test "allows handling a log more than once by re-inserting it." do
     log = FarmbotCore.Logger.debug(1, "Test log ABC")
     # Handling a log should delete it from the store.

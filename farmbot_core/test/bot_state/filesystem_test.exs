@@ -60,6 +60,7 @@ defmodule FarmbotCore.BotState.FileSystemTest do
   end
 
   describe "server" do
+    @tag :capture_log
     test "serializes state to fs" do
       root_dir =
         Path.join([
