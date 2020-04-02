@@ -14,22 +14,16 @@ defmodule FarmbotCore.Config.Repo.Migrations.AddNtpAndDnsConfigs do
                       :default_dns_name
                     ]
 
-  @config_error """
-  config :farmbot_core, FarmbotCore.EctoMigrator, [
-    default_ntp_server_1: "0.pool.ntp.org",
-    default_ntp_server_2: "1.pool.ntp.org",
-    default_dns_name: "my.farm.bot"
-  ]
-  """
-
-  if is_nil(@default_ntp_server_1),
-    do: raise(@config_error)
-
-  if is_nil(@default_ntp_server_2),
-    do: raise(@config_error)
-
-  if is_nil(@default_dns_name),
-    do: raise(@config_error)
+  unless @default_ntp_server_1 && @default_ntp_server_2 && @default_dns_name do
+    @config_error """
+    config :farmbot_core, FarmbotCore.EctoMigrator, [
+      default_ntp_server_1: "0.pool.ntp.org",
+      default_ntp_server_2: "1.pool.ntp.org",
+      default_dns_name: "my.farm.bot"
+    ]
+    """
+    Mix.raise(@config_error)
+  end
 
   def change do
     create_settings_config(
