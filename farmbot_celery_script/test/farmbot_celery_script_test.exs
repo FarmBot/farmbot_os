@@ -98,10 +98,13 @@ defmodule FarmbotCeleryScriptTest do
     expect(Stubs, :read_pin, fn _, _ ->
       raise("big oops")
     end)
-    io = capture_io(:stderr, fn ->
-      assert {:error, "big oops"} ==
-               FarmbotCeleryScript.execute(execute_ast, execute_ast)
-    end)
+
+    io =
+      capture_io(:stderr, fn ->
+        assert {:error, "big oops"} ==
+                 FarmbotCeleryScript.execute(execute_ast, execute_ast)
+      end)
+
     assert io =~ "CeleryScript Exception"
     assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
   end
