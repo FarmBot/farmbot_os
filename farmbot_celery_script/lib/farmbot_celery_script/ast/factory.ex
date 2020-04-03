@@ -5,6 +5,17 @@ defmodule FarmbotCeleryScript.AST.Factory do
 
   alias FarmbotCeleryScript.AST
 
+  @doc """
+  Create a new AST to work with.
+  iex(6)> FarmbotCeleryScript.AST.Factory.new()
+  %FarmbotCeleryScript.AST{
+    args: nil,
+    body: [],
+    comment: nil,
+    kind: nil,
+    meta: nil
+  }
+  """
   def new do
     %AST{body: []}
   end
