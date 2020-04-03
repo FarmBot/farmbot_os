@@ -3,6 +3,7 @@ defmodule FarmbotCeleryScript.SchedulerTest do
   use Mimic
   alias FarmbotCeleryScript.{Scheduler, AST}
   alias FarmbotCeleryScript.SysCalls.Stubs
+  import ExUnit.CaptureLog
 
   setup :set_mimic_global
   setup :verify_on_exit!
@@ -21,11 +22,14 @@ defmodule FarmbotCeleryScript.SchedulerTest do
       |> AST.Factory.read_pin(9, 0)
 
     scheduled_time = DateTime.utc_now() |> DateTime.add(100, :millisecond)
+    # msg = "[info]  Next execution is ready for execution: now"
     {:ok, _} = Scheduler.schedule(sch, ast, scheduled_time, %{})
 
     # Hack to force the scheduler to checkup instead of waiting the normal 15 seconds
-    send(sch, :checkup)
-    # Sorry.
-    Process.sleep(1100)
+    assert capture_log(fn ->
+             send(sch, :checkup)
+             # Sorry.
+             Process.sleep(1100)
+           end) =~ "[info]  Next execution is ready for execution: now"
   end
 end
