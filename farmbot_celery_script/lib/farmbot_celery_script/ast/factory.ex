@@ -6,8 +6,9 @@ defmodule FarmbotCeleryScript.AST.Factory do
   alias FarmbotCeleryScript.AST
 
   @doc """
-  Create a new AST to work with.
-  iex(6)> FarmbotCeleryScript.AST.Factory.new()
+  Create an empty AST WITH ARG SET TO `nil`.
+
+  iex> new()
   %FarmbotCeleryScript.AST{
     args: nil,
     body: [],
@@ -20,6 +21,19 @@ defmodule FarmbotCeleryScript.AST.Factory do
     %AST{body: []}
   end
 
+  @doc """
+  Create a new AST to work with. Strings `kind`s are
+  converted to symbols.
+
+  iex> new("foo")
+  %FarmbotCeleryScript.AST{
+    args: %{},
+    body: [],
+    comment: nil,
+    kind: :foo,
+    meta: nil
+  }
+  """
   def new(kind, args \\ %{}, body \\ []) do
     AST.new(kind, Map.new(args), body)
   end
@@ -35,59 +49,148 @@ defmodule FarmbotCeleryScript.AST.Factory do
     )
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> set_pin_io_mode(13, 1)).body
+  [%FarmbotCeleryScript.AST{
+    kind: :set_pin_io_mode,
+    args: %{ pin_io_mode: 1, pin_number: 13 },
+    body: [],
+    comment: nil,
+    meta: nil
+  }]
+  """
   def set_pin_io_mode(%AST{} = ast, pin_number, pin_io_mode) do
-    ast
-    |> add_body_node(
-      new(:set_pin_io_mode, %{pin_number: pin_number, pin_io_mode: pin_io_mode})
-    )
+    args = %{pin_number: pin_number, pin_io_mode: pin_io_mode}
+    ast |> add_body_node(new(:set_pin_io_mode, args))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> emergency_lock()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :emergency_lock
+  }]
+  """
   def emergency_lock(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:emergency_lock))
+    ast |> add_body_node(new(:emergency_lock))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> emergency_unlock()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :emergency_unlock
+  }]
+  """
   def emergency_unlock(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:emergency_unlock))
+    ast |> add_body_node(new(:emergency_unlock))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> read_status()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :read_status
+  }]
+  """
   def read_status(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:read_status))
+    ast |> add_body_node(new(:read_status))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> power_off()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :power_off
+  }]
+  """
   def power_off(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:power_off))
+    ast |> add_body_node(new(:power_off))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> reboot()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :reboot
+  }]
+  """
   def reboot(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:reboot))
+    ast |> add_body_node(new(:reboot))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> sync()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :sync
+  }]
+  """
   def sync(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:sync))
+    ast |> add_body_node(new(:sync))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> take_photo()).body
+  [%FarmbotCeleryScript.AST{
+    body: [],
+    comment: nil,
+    meta: nil,
+    args: %{},
+    kind: :take_photo
+  }]
+  """
   def take_photo(%AST{} = ast) do
-    ast
-    |> add_body_node(new(:take_photo))
+    ast |> add_body_node(new(:take_photo))
   end
 
+  @doc """
+  iex> (new() |> rpc_request("x") |> flash_firmware("arduino")).body
+  [%FarmbotCeleryScript.AST{
+      kind: :flash_firmware,
+      comment: nil,
+      meta: nil,
+      args: %{package: "arduino"},
+      body: [],
+  }]
+  """
   def flash_firmware(%AST{} = ast, package) when is_binary(package) do
-    ast
-    |> add_body_node(new(:flash_firmware, %{package: package}))
+    ast |> add_body_node(new(:flash_firmware, %{package: package}))
+  end
+
+  @doc """
+  iex> (new() |> rpc_request("x") |> factory_reset("arduino")).body
+  [%FarmbotCeleryScript.AST{
+      kind: :factory_reset,
+      comment: nil,
+      meta: nil,
+      args: %{package: "arduino"},
+      body: [],
+  }]
+  """
+  def factory_reset(%AST{} = ast, package) do
+    ast |> add_body_node(new(:factory_reset, %{package: package}))
   end
 
   def add_body_node(%AST{body: body} = ast, %AST{} = body_node) do
     %{ast | body: body ++ [body_node]}
-  end
-
-  def factory_reset(%AST{} = ast, package) do
-    ast
-    |> add_body_node(new(:factory_reset, %{package: package}))
   end
 end
