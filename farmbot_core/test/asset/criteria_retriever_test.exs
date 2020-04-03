@@ -123,6 +123,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     Enum.map(expected, fn id -> assert Enum.member?(results, id) end)
   end
 
+  @tag :capture_log
   test "point group that does not define criteria" do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)

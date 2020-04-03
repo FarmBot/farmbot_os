@@ -4,6 +4,7 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
 
   import Farmbot.TestSupport.AssetFixtures
 
+  @tag :capture_log
   test "adds configs to bot state and config_storage" do
     %FbosConfig{} =
       conf =
