@@ -5,6 +5,8 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.AST
   alias FarmbotCeleryScript.SysCalls.Stubs
 
+  import ExUnit.CaptureIO
+
   setup :verify_on_exit!
 
   test "uses default values when no parameter is found" do
@@ -93,11 +95,14 @@ defmodule FarmbotCeleryScriptTest do
       }
       |> AST.decode()
 
-    expect(Stubs, :read_pin, fn _, _ -> raise("big oops") end)
-
-    assert {:error, "big oops"} ==
-             FarmbotCeleryScript.execute(execute_ast, execute_ast)
-
+    expect(Stubs, :read_pin, fn _, _ ->
+      raise("big oops")
+    end)
+    io = capture_io(:stderr, fn ->
+      assert {:error, "big oops"} ==
+               FarmbotCeleryScript.execute(execute_ast, execute_ast)
+    end)
+    assert io =~ "CeleryScript Exception"
     assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
   end
 end
