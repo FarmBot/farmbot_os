@@ -6,6 +6,7 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.SysCalls.Stubs
 
   import ExUnit.CaptureIO
+  import ExUnit.CaptureLog
 
   setup :verify_on_exit!
 
@@ -61,8 +62,10 @@ defmodule FarmbotCeleryScriptTest do
       :ok
     end)
 
-    result = FarmbotCeleryScript.execute(sequence_ast, me)
-    assert :ok == result
+    capture_log(fn ->
+      result = FarmbotCeleryScript.execute(sequence_ast, me)
+      assert :ok == result
+    end) =~ "[error] CeleryScript syscall stubbed: log"
   end
 
   test "syscall errors" do
