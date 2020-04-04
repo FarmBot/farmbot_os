@@ -49,6 +49,9 @@ defmodule FarmbotFirmware.PackageUtilsTest do
     {:ok, path} = PackageUtils.find_hex_file("express_k10")
     assert String.contains?(path, "/farmbot_firmware/priv/express_k10.hex")
 
+    {:ok, path} = PackageUtils.find_hex_file("none")
+    assert path =~ "lib/farmbot_firmware/priv/eeprom_clear.ino.hex"
+
     assert {:error, "unknown firmware hardware: no"} ==
              PackageUtils.find_hex_file("no")
   end
