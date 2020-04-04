@@ -213,6 +213,45 @@ defmodule FarmbotFirmware.ParamTest do
 
     assert Param.to_human(:pin_guard_5_active_state, 0) ==
              {"pin guard 5 safe state", nil, "HIGH"}
+
+    assert Param.to_human(:pin_guard_5_pin_nr, 12) ==
+             {"pin guard 5 pin number", nil, "12"}
+
+    assert Param.to_human(:pin_guard_5_time_out, 12) ==
+             {"pin guard 5 timeout", "(seconds)", "12"}
+
+    assert Param.to_human(:pin_guard_4_time_out, 12) ==
+             {"pin guard 4 timeout", "(seconds)", "12"}
+
+    assert Param.to_human(:pin_guard_4_pin_nr, 12) ==
+             {"pin guard 4 pin number", nil, "12"}
+
+    assert Param.to_human(:pin_guard_3_time_out, 3.3) ==
+             {"pin guard 3 timeout", "(seconds)", "3.3"}
+
+    assert Param.to_human(:pin_guard_3_pin_nr, 3.3) ==
+             {"pin guard 3 pin number", nil, "3.3"}
+
+    assert Param.to_human(:pin_guard_2_time_out, 3.3) ==
+             {"pin guard 2 timeout", "(seconds)", "3.3"}
+
+    assert Param.to_human(:pin_guard_2_pin_nr, 3.3) ==
+             {"pin guard 2 pin number", nil, "3.3"}
+
+    assert Param.to_human(:pin_guard_1_time_out, 3.3) ==
+             {"pin guard 1 timeout", "(seconds)", "3.3"}
+
+    assert Param.to_human(:pin_guard_1_pin_nr, 3.3) ==
+             {"pin guard 1 pin number", nil, "3.3"}
+
+    assert Param.to_human(:movement_axis_nr_steps_z, 3.3) ==
+             {"axis length, z-axis", "(steps)", "3.3"}
+
+    assert Param.to_human(:movement_axis_nr_steps_y, 3.3) ==
+             {"axis length, y-axis", "(steps)", "3.3"}
+
+    assert Param.to_human(:movement_axis_nr_steps_x, 3.3) ==
+             {"axis length, x-axis", "(steps)", "3.3"}
   end
 
   test "Handling of uknown parameters" do
