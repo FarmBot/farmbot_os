@@ -19,6 +19,7 @@ defmodule FarmbotFirmwareTest do
     pid
   end
 
+  @tag :capture_log
   test "various reports" do
     pid = firmware_server()
 
@@ -63,6 +64,7 @@ defmodule FarmbotFirmwareTest do
     Process.sleep(1000)
   end
 
+  @tag :capture_log
   test "various command()s" do
     pid = firmware_server()
 

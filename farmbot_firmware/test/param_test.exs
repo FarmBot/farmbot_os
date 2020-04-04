@@ -1,6 +1,7 @@
 defmodule FarmbotFirmware.ParamTest do
   use ExUnit.Case
   alias FarmbotFirmware.Param
+  import ExUnit.CaptureLog
 
   test "to_human()" do
     float_value = 1.23
@@ -215,6 +216,11 @@ defmodule FarmbotFirmware.ParamTest do
   end
 
   test "Handling of uknown parameters" do
-    assert :unknown_parameter == Param.decode(-999)
+    log =
+      capture_log(fn ->
+        assert :unknown_parameter == Param.decode(-999)
+      end)
+
+    assert log =~ "unknown firmware parameter: -999"
   end
 end
