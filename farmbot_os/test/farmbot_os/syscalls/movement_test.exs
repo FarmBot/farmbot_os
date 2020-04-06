@@ -91,6 +91,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
     assert msg == error_log
   end
 
+  @tag :capture_log
   test "move_absolute/4 - error (in tuple)" do
     expect(FarmbotFirmware, :request, 1, fn {:parameter_read, [_]} ->
       {:error, "boom"}

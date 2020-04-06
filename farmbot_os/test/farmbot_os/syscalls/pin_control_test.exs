@@ -6,6 +6,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   alias FarmbotCore.Asset.Peripheral
   @digital 0
 
+  @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 1" do
     expect(FarmbotFirmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
@@ -20,6 +21,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert 1 == PinControl.read_pin(peripheral, @digital)
   end
 
+  @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 0" do
     expect(FarmbotFirmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
@@ -30,6 +32,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert 0 == PinControl.read_pin(peripheral, @digital)
   end
 
+  @tag :capture_log
   test "toggle_pin, 1 => 0" do
     expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
       nil
@@ -48,6 +51,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert :ok = PinControl.toggle_pin(12)
   end
 
+  @tag :capture_log
   test "toggle_pin, 0 => 1" do
     expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
       nil
