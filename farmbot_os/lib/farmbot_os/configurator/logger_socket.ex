@@ -20,16 +20,7 @@ defmodule FarmbotOS.Configurator.LoggerSocket do
   end
 
   @impl :cowboy_websocket
-  def websocket_handle({:text, message}, state) do
-    case Jason.decode(message) do
-      {:ok, json} ->
-        websocket_handle({:json, json}, state)
-
-      _ ->
-        _ = Logger.debug("discarding info: #{message}")
-        {:ok, state}
-    end
-  end
+  def websocket_handle({:text, _}, state), do: {:ok, state}
 
   @impl :cowboy_websocket
   def websocket_info(:after_connect, state) do

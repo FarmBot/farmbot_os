@@ -8,6 +8,8 @@ defmodule FarmbotOS.Configurator.RouterTest do
   use Mimic
   setup :verify_on_exit!
 
+  import ExUnit.CaptureIO
+
   @opts Router.init([])
   # Stolen from https://github.com/phoenixframework/phoenix/blob/3f157c30ceae8d1eb524fdd05b5e3de10e434c42/lib/phoenix/test/conn_test.ex#L438
   defp redirected_to(conn, status \\ 302)
@@ -34,6 +36,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     Router.call(conn, @opts)
   end
 
+  @tag :capture_log
   test "index after reset" do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
@@ -45,6 +48,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "whoops!"
   end
 
+  @tag :capture_log
   test "redirects" do
     redirects = [
       "/check_network_status.txt",
@@ -66,6 +70,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     end)
   end
 
+  @tag :capture_log
   test "celeryscript requests don't get listed as last reset reason" do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "CeleryScript request." end)
@@ -75,6 +80,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     refute conn.resp_body =~ "CeleryScript request."
   end
 
+  @tag :capture_log
   test "no reset reason" do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
@@ -84,6 +90,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     refute conn.resp_body =~ "<div class=\"last-shutdown-reason\">"
   end
 
+  @tag :capture_log
   test "captive portal" do
     conn = conn(:get, "/generate_204")
     conn = Router.call(conn, @opts)
@@ -94,6 +101,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.status == 302
   end
 
+  @tag :capture_log
   test "network index" do
     FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:list_interfaces, fn ->
@@ -108,6 +116,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "eth0"
   end
 
+  @tag :capture_log
   test "select network sets session data" do
     conn = conn(:post, "select_interface")
     conn = Router.call(conn, @opts)
@@ -124,6 +133,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "ifname") == "wlan0"
   end
 
+  @tag :capture_log
   test "config wired" do
     conn =
       conn(:get, "/config_wired")
@@ -133,6 +143,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Advanced settings"
   end
 
+  @tag :capture_log
   test "config wireless SSID list" do
     FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
@@ -154,6 +165,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "Test Network"
   end
 
+  @tag :capture_log
   test "config wireless" do
     # No SSID or SECURITY
     conn =
@@ -238,6 +250,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "unknown or unsupported"
   end
 
+  @tag :capture_log
   test "config_network" do
     params = %{
       "dns_name" => "super custom",
@@ -290,6 +303,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert redirected_to(conn) == "/credentials"
   end
 
+  @tag :capture_log
   test "credentials index" do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_email, fn -> "test@test.org" end)
@@ -302,6 +316,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "https://my.farm.bot"
   end
 
+  @tag :capture_log
   test "configure credentials" do
     params = %{
       "email" => "test@test.org",
@@ -334,6 +349,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert redirected_to(conn) == "/credentials"
   end
 
+  @tag :capture_log
   test "finish" do
     conn =
       conn(:get, "/finish")
@@ -342,6 +358,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert redirected_to(conn) == "/"
   end
 
+  @tag :capture_log
   test "404" do
     conn =
       conn(:get, "/whoops")
@@ -350,6 +367,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body == "Page not found"
   end
 
+  @tag :capture_log
   test "500" do
     FarmbotOS.Configurator.FakeNetworkLayer
     |> expect(:scan, fn _ ->
@@ -360,20 +378,26 @@ defmodule FarmbotOS.Configurator.RouterTest do
       ]
     end)
 
-    conn =
-      conn(:get, "/config_wireless")
-      |> init_test_session(%{"ifname" => "wlan0"})
-      |> Router.call(@opts)
+    crasher = fn ->
+      conn =
+        conn(:get, "/config_wireless")
+        |> init_test_session(%{"ifname" => "wlan0"})
+        |> Router.call(@opts)
 
-    assert conn.status == 500
+      assert conn.status == 500
+    end
+
+    assert capture_io(:stderr, crasher) =~ "render error"
   end
 
+  @tag :capture_log
   test "/scheduler_debugger" do
     kon = get_con("/scheduler_debugger")
     assert String.contains?(kon.resp_body, "scheduler_debugger.js")
     assert String.contains?(kon.resp_body, "<title>Scheduler Debugger</title>")
   end
 
+  @tag :capture_log
   test "/logger" do
     kon = get_con("/logger")
 
@@ -391,6 +415,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     end)
   end
 
+  @tag :capture_log
   test "/api/telemetry/cpu_usage" do
     {:ok, json} = Jason.decode(get_con("/api/telemetry/cpu_usage").resp_body)
     assert Enum.count(json) == 10
@@ -400,6 +425,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert(is_integer(zero["value"]))
   end
 
+  @tag :capture_log
   test "/finish" do
     expect(ConfigDataLayer, :save_config, 1, fn _conf ->
       :ok
