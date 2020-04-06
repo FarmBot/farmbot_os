@@ -96,8 +96,8 @@ defmodule FarmbotOS.SysCallsTest do
     end)
 
     assert capture_io(fn ->
-      assert {:error, "\"this is a test\""} == SysCalls.sync()
-    end) =~ "green slow_blink"
+             assert {:error, "\"this is a test\""} == SysCalls.sync()
+           end) =~ "green slow_blink"
   end
 
   test "get_sequence(id)" do
