@@ -24,7 +24,7 @@ defmodule FarmbotOS.Configurator.LoggerSocketTest do
 
   test "websocket_info/2" do
     assert capture_log(fn ->
-      LoggerSocket.websocket_info(:whatever, %{})
-    end) =~ "Dropping :whatever"
+             LoggerSocket.websocket_info(:whatever, %{})
+           end) =~ "Dropping :whatever"
   end
 end
