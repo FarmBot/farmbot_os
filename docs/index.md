@@ -6,6 +6,28 @@ This document will act as an index to available documentation.
 
 * [FarmBot Source Code common terms](/docs/glossary.md)
 
+## Cheat Sheet
+
+**Create a *.fw file from local repo (RPi Zero):**
+
+```sh
+NERVES_SYSTEM=farmbot_system_rpi MIX_TARGET=rpi mix deps.get
+NERVES_SYSTEM=farmbot_system_rpi MIX_TARGET=rpi mix firmware
+sudo fwup farmbot_os/_build/rpi/rpi_dev/nerves/images/farmbot.fw
+```
+
+**Create a *.fw file from local repo (RPi v3):**
+
+```sh
+NERVES_SYSTEM=farmbot_system_rpi3 MIX_TARGET=rpi3 mix deps.get
+NERVES_SYSTEM=farmbot_system_rpi3 MIX_TARGET=rpi3 mix firmware
+sudo fwup farmbot_os/_build/rpi3/rpi3_dev/nerves/images/farmbot.fw
+```
+
+**Create or Update the Nerves System:**
+
+Please see the official [Nerves documentation on "Nerves Systems"](https://hexdocs.pm/nerves/0.4.0/systems.html).
+
 ## Hardware specifics
 
 Most FarmBot development/testing is done on a standard desktop PC.
