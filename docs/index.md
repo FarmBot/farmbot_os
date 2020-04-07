@@ -28,6 +28,8 @@ sudo fwup farmbot_os/_build/rpi3/rpi3_dev/nerves/images/farmbot.fw
 
 Please see the official [Nerves documentation on "Nerves Systems"](https://hexdocs.pm/nerves/0.4.0/systems.html).
 
+HINT: You may want to [develop the system locally](https://stackoverflow.com/a/28189056/1064917)
+
 ## Hardware specifics
 
 Most FarmBot development/testing is done on a standard desktop PC.
