@@ -3,6 +3,7 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
 
   @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
   require Logger
+  require FarmbotCore.Logger
   use GenServer
   alias Circuits.GPIO
 
