@@ -4,6 +4,7 @@ defmodule FarmbotOS.LuaTest do
   setup :verify_on_exit!
   alias FarmbotOS.Lua
 
+  @tag :capture_log
   test "evaluates Lua" do
     assert Lua.eval_assertion("Returns 'true'", "return true")
     {:error, message1} = Lua.eval_assertion("Returns 'true'", "-1")

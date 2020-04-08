@@ -7,11 +7,13 @@ defmodule FarmbotCore.Logger.Supervisor do
   end
 
   def init([]) do
-    children = [
-      supervisor(FarmbotCore.Logger.Repo, [])
-    ]
-
     opts = [strategy: :one_for_all]
-    supervise(children, opts)
+    supervise(children(), opts)
+  end
+
+  def children do
+    default = [supervisor(FarmbotCore.Logger.Repo, [])]
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(config, :children, default)
   end
 end

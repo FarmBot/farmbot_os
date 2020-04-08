@@ -6,11 +6,16 @@ defmodule FarmbotCore.BotState.Supervisor do
   end
 
   def init([]) do
-    children = [
+    Supervisor.init(children(), [strategy: :one_for_all])
+  end
+
+  def children do
+    default = [
       FarmbotCore.BotState,
       FarmbotCore.BotState.FileSystem,
       FarmbotCore.BotState.SchedulerUsageReporter
     ]
-    Supervisor.init(children, [strategy: :one_for_all])
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+    Keyword.get(config, :children, default)
   end
 end

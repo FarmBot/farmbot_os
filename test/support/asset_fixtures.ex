@@ -1,6 +1,4 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias FarmbotCore.Asset
-
   alias FarmbotCore.Asset.{
     Device,
     FarmEvent,
@@ -10,12 +8,12 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     Sequence
   }
 
-  def regimen_instance(regimen_params, farm_event_params, params \\ %{}) do
-    regimen = regimen(regimen_params)
-    farm_event = regimen_event(regimen, farm_event_params)
-    params = Map.merge(%{id: :rand.uniform(10000), monitor: false}, params)
-    Asset.new_regimen_instance!(farm_event, params)
-  end
+  # def regimen_instance(regimen_params, farm_event_params, params \\ %{}) do
+  #   regimen = regimen(regimen_params)
+  #   farm_event = regimen_event(regimen, farm_event_params)
+  #   params = Map.merge(%{id: :rand.uniform(10000), monitor: false}, params)
+  #   Asset.new_regimen_instance!(farm_event, params)
+  # end
 
   def fbos_config(params \\ %{}) do
     default = %{
@@ -63,30 +61,6 @@ defmodule Farmbot.TestSupport.AssetFixtures do
           monitor: false,
           executable_type: "Regimen",
           executable_id: regimen.id,
-          start_time: now,
-          end_time: now,
-          repeat: 0,
-          time_unit: "never"
-        },
-        params
-      )
-
-    FarmEvent
-    |> struct()
-    |> FarmEvent.changeset(params)
-    |> Repo.insert!()
-  end
-
-  def sequence_event(sequence, params \\ %{}) do
-    now = DateTime.utc_now()
-
-    params =
-      Map.merge(
-        %{
-          id: :rand.uniform(1_000_000),
-          monitor: false,
-          executable_type: "Sequence",
-          executable_id: sequence.id,
           start_time: now,
           end_time: now,
           repeat: 0,

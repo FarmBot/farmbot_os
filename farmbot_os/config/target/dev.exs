@@ -99,13 +99,6 @@ config :farmbot, FarmbotOS.Configurator,
 config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
-config :nerves_hub,
-  client: FarmbotOS.Platform.Target.NervesHubClient,
-  remote_iex: true,
-  public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
-
-config :nerves_hub, NervesHub.Socket, reconnect_interval: 5_000
-
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,

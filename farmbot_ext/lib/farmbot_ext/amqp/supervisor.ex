@@ -10,14 +10,17 @@ defmodule FarmbotExt.AMQP.Supervisor do
   end
 
   def init([]) do
+    Supervisor.init(children(), strategy: :one_for_all)
+  end
+
+  def children do
     token = get_config_value(:string, "authorization", "token")
     email = get_config_value(:string, "authorization", "email")
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
-    children = [
+    Keyword.get(config, :children, [
       {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
       {FarmbotExt.AMQP.ChannelSupervisor, [token]}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_all)
+    ])
   end
 end

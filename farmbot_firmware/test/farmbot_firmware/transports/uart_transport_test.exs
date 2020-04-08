@@ -4,6 +4,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
   doctest FarmbotFirmware.UARTTransport
   alias FarmbotFirmware.{UartDefaultAdapter, UARTTransport}
   setup :verify_on_exit!
+  import ExUnit.CaptureLog
 
   test "UARTTransport.init/1" do
     expect(UartDefaultAdapter, :start_link, fn ->
@@ -61,15 +62,22 @@ defmodule FarmbotFirmware.UARTTransportTest do
       fake_opts
     end)
 
+    error = "Simulated UART failure. This is OK"
+
     expect(UartDefaultAdapter, :open, fn _, _, _ ->
-      {:error, "Simulated UART failure. This is OK"}
+      {:error, error}
     end)
 
-    {:noreply, state2, retry_timeout} =
-      UARTTransport.handle_info(:timeout, state)
+    logs =
+      capture_log(fn ->
+        {:noreply, state2, retry_timeout} =
+          UARTTransport.handle_info(:timeout, state)
 
-    assert retry_timeout == 5000
-    assert state.open == state2.open
+        assert retry_timeout == 5000
+        assert state.open == state2.open
+      end)
+
+    assert logs =~ error
   end
 
   test "UARTTransport handles `Circuits-UART` speecific errors" do
