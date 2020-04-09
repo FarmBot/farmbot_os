@@ -20,6 +20,7 @@ Application.ensure_all_started(:mimic)
   File,
   MuonTrap,
   FarmbotCeleryScript.SysCalls
-] |> Enum.map(&Mimic.copy/1)
+]
+|> Enum.map(&Mimic.copy/1)
 
 ExUnit.start()
