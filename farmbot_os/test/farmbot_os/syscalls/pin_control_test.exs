@@ -75,15 +75,14 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   end
 
   test "set_servo_angle" do
-    expect(FarmbotFirmware, :command, 1, fn
+    expect(FarmbotFirmware, :command, 2, fn
       {:servo_write, [p: 20, v: 90]} -> {:error, "opps"}
       {:servo_write, [p: 40, v: 180]} -> :ok
     end)
 
     assert :ok = PinControl.set_servo_angle(40, 180)
 
-    message =
-      "Firmware error @ \"set_servo_angle\": \"Can't send command when in :transport_boot state\""
+    message = "Firmware error @ \"set_servo_angle\": \"opps\""
 
     assert {:error, ^message} = PinControl.set_servo_angle(20, 90)
   end

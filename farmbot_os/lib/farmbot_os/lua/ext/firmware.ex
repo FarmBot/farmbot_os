@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Lua.Ext.Firmware do
   @moduledoc """
-  Lua extensions for interacting with the Firmware  
+  Lua extensions for interacting with the Firmware
   """
 
   alias FarmbotCeleryScript.SysCalls
