@@ -25,7 +25,7 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     :ok = GPIO.set_interrupts(pin, :rising)
     # this has been checked on v1.3 and v1.5 hardware and it seems to be fine.
     # but that was with `:pulldown`.
-    :ok = GPIO.set_pull_mode(pin, :pullup)
+    :ok = GPIO.set_pull_mode(pin, :none)
     result = %{pin_number: pin_number, pin: pin, fun: fun, debounce: nil}
     str = "*** " <> inspect(result)
     FarmbotCore.Logger.info(1, str)
