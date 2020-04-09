@@ -3,7 +3,6 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
 
   @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
   require Logger
-  require FarmbotCore.Logger
   use GenServer
   alias Circuits.GPIO
 
@@ -23,13 +22,10 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     Logger.info("CircuitsGPIOHandler #{pin_number} init")
     {:ok, pin} = GPIO.open(pin_number, :input)
     :ok = GPIO.set_interrupts(pin, :rising)
-    # this has been checked on v1.3 and v1.5 hardware and it seems to be fine.
-    # but that was with `:pulldown`.
-    :ok = GPIO.set_pull_mode(pin, :none)
-    result = %{pin_number: pin_number, pin: pin, fun: fun, debounce: nil}
-    str = "*** " <> inspect(result)
-    FarmbotCore.Logger.info(1, str)
-    {:ok, result}
+    # this has been checked on v1.3 and v1.5 hardware
+    # and it seems to be fine.
+    :ok = GPIO.set_pull_mode(pin, :pulldown)
+    {:ok, %{pin_number: pin_number, pin: pin, fun: fun, debounce: nil}}
   end
 
   def handle_info(:timeout, state) do
