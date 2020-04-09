@@ -1,20 +1,25 @@
 Application.ensure_all_started(:mimic)
-Mimic.copy(FarmbotCore.Asset.Device)
-Mimic.copy(FarmbotCore.Asset.FbosConfig)
-Mimic.copy(FarmbotCore.Asset.FirmwareConfig)
-Mimic.copy(FarmbotCore.Asset)
-Mimic.copy(FarmbotCore.BotState)
-Mimic.copy(FarmbotCore.Config)
-Mimic.copy(FarmbotCore.FarmwareRuntime)
-Mimic.copy(FarmbotCore.LogExecutor)
-Mimic.copy(FarmbotExt.API.Reconciler)
-Mimic.copy(FarmbotExt.API)
-Mimic.copy(FarmbotFirmware)
-Mimic.copy(FarmbotOS.Configurator.ConfigDataLayer)
-Mimic.copy(FarmbotOS.Configurator.DetsTelemetryLayer)
-Mimic.copy(FarmbotOS.Configurator.FakeNetworkLayer)
-Mimic.copy(FarmbotOS.SysCalls.Movement)
-Mimic.copy(FarmbotOS.SysCalls)
-Mimic.copy(File)
-Mimic.copy(MuonTrap)
+
+[
+  FarmbotCore.Asset.Device,
+  FarmbotCore.Asset.FbosConfig,
+  FarmbotCore.Asset.FirmwareConfig,
+  FarmbotCore.Asset,
+  FarmbotCore.BotState,
+  FarmbotCore.Config,
+  FarmbotCore.FarmwareRuntime,
+  FarmbotCore.LogExecutor,
+  FarmbotExt.API.Reconciler,
+  FarmbotExt.API,
+  FarmbotFirmware,
+  FarmbotOS.Configurator.ConfigDataLayer,
+  FarmbotOS.Configurator.DetsTelemetryLayer,
+  FarmbotOS.Configurator.FakeNetworkLayer,
+  FarmbotOS.SysCalls.Movement,
+  FarmbotOS.SysCalls,
+  File,
+  MuonTrap,
+  FarmbotCeleryScript.SysCalls
+] |> Enum.map(&Mimic.copy/1)
+
 ExUnit.start()
