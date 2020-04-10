@@ -1,5 +1,14 @@
 # Changelog
 
+# 9.2.2
+
+ * Fix firmware locking error ("Can't perform X in Y state")
+ * Removal of dead code / legacy plus numerous unit test additions.
+ * Added coveralls test coverage reporter
+ * Unit test additions (+2.7% coverage :tada:)
+ * Updates to build instructions for third party developers
+ * Bug fix for criteria-based groups that have only one filter criteria.
+
 # 9.2.1
 
  * Improve firmware debug messages.

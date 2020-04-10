@@ -24,6 +24,23 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     }
   }
 
+  @simple_point_group %PointGroup{
+    point_ids: [],
+    sort_type: "xy_ascending",
+    criteria: %{
+      "day" => %{
+        "op" => "<",
+        "days_ago" => 0
+      },
+      "string_eq" => %{
+        "pointer_type" => ["Plant"]
+      },
+      "number_eq" => %{},
+      "number_lt" => %{},
+      "number_gt" => %{}
+    }
+  }
+
   # Use this is a fake "Timex.now()" value when mocking.
   @now ~U[2222-12-10 02:22:22.222222Z]
   @five_days_ago ~U[2222-12-05 01:11:11.111111Z]
@@ -88,6 +105,19 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     pg = %PointGroup{@fake_point_group | point_ids: [1, 2, 3]}
     Repo.insert!(pg)
     pg
+  end
+
+  test "direct match on `pointer_type` via `string_eq`" do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    point!(%{id: 1, pointer_type: "Plant"})
+    point!(%{id: 2, pointer_type: "Weed"})
+    point!(%{id: 3, pointer_type: "ToolSlot"})
+    point!(%{id: 4, pointer_type: "GenericPointer"})
+
+    result = CriteriaRetriever.run(@simple_point_group)
+    assert Enum.count(result) == 1
   end
 
   test "run/1" do
