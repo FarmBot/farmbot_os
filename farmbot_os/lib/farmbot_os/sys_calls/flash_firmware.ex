@@ -29,9 +29,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
            ),
          :ok <- FarmbotFirmware.close_transport(),
          _ <- FarmbotCore.Logger.debug(3, "starting firmware flash"),
-         {_, 0} <- Avrdude.flash(hex_file, tty, fun) do
-      FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
-
+         _ <- finish_flashing(Avrdude.flash(hex_file, tty, fun)) do
       %{firmware_path: tty}
       |> Asset.update_fbos_config!()
       |> Private.mark_dirty!(%{})
@@ -42,8 +40,16 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
         {:error, reason}
 
       error ->
-        {:error, "flash_firmware misc error: #{inspect(error)}"}
+        {:error, "flash_firmware returned #{inspect(error)}"}
     end
+  end
+
+  def finish_flashing({_result, 0}) do
+    FarmbotCore.Logger.success(2, "Firmware flashed successfully!")
+  end
+
+  def finish_flashing(result) do
+    FarmbotCore.Logger.debug(2, "AVR Unexpected return code #{inspect(result)}")
   end
 
   defp find_tty() do
