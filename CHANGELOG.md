@@ -7,6 +7,7 @@
  * Added coveralls test coverage reporter
  * Unit test additions (+2.7% coverage :tada:)
  * Updates to build instructions for third party developers
+ * Bug fix for criteria-based groups that have only one filter criteria.
 
 # 9.2.1
 

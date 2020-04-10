@@ -108,18 +108,13 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   end
 
   test "direct match on `pointer_type` via `string_eq`" do
-    point!(%{
-      id: 42111,
-      gantry_mounted: false,
-      meta: %{},
-      name: "Spinach",
-      plant_stage: "planned",
-      pointer_type: "Plant",
-      radius: 25.0,
-      x: 400.0,
-      y: 100.0,
-      z: 0.0
-    })
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    point!(%{id: 1, pointer_type: "Plant"})
+    point!(%{id: 2, pointer_type: "Weed"})
+    point!(%{id: 3, pointer_type: "ToolSlot"})
+    point!(%{id: 4, pointer_type: "GenericPointer"})
 
     result = CriteriaRetriever.run(@simple_point_group)
     assert Enum.count(result) == 1
