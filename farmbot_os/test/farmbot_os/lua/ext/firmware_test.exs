@@ -22,14 +22,14 @@ defmodule FarmbotOS.Lua.Ext.FirmwareTest do
     lua = "return"
 
     expect(FarmbotCeleryScript.SysCalls, :move_absolute, 4, fn
-      (1, _, _, _) -> :ok
-      (_, _, _, _) -> {:error, msg}
+      1, _, _, _ -> :ok
+      _, _, _, _ -> {:error, msg}
     end)
 
-    assert {[true], ^lua} = Firmware.move_absolute([1,2,3,4], lua)
-    assert {[nil, ^msg], ^lua} = Firmware.move_absolute([5,6,7,8], lua)
-    assert {[true], ^lua} = Firmware.move_absolute([1,2,3], lua)
-    assert {[nil, ^msg], ^lua} = Firmware.move_absolute([5,6,7], lua)
+    assert {[true], ^lua} = Firmware.move_absolute([1, 2, 3, 4], lua)
+    assert {[nil, ^msg], ^lua} = Firmware.move_absolute([5, 6, 7, 8], lua)
+    assert {[true], ^lua} = Firmware.move_absolute([1, 2, 3], lua)
+    assert {[nil, ^msg], ^lua} = Firmware.move_absolute([5, 6, 7], lua)
   end
 
   test "find_home/2" do
