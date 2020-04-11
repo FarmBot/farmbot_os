@@ -31,15 +31,16 @@ defmodule FarmbotOs.AvrdudeTest do
                "-b115200",
                "-D",
                "-V",
+               "-v",
                "-Uflash:w:/tmp/wow:i"
              ]
 
       assert opts == [
-               into: %IO.Stream{
-                 device: :standard_io,
-                 line_or_bytes: :line,
-                 raw: false
-               },
+               #  into: %IO.Stream{
+               #    device: :standard_io,
+               #    line_or_bytes: :line,
+               #    raw: false
+               #  },
                stderr_to_stdout: true
              ]
     end)
@@ -62,15 +63,16 @@ defmodule FarmbotOs.AvrdudeTest do
                "-b115200",
                "-D",
                "-V",
+               "-v",
                "-Uflash:w:/tmp/wow:i"
              ]
 
       assert opts == [
-               into: %IO.Stream{
-                 device: :standard_io,
-                 line_or_bytes: :line,
-                 raw: false
-               },
+               #  into: %IO.Stream{
+               #    device: :standard_io,
+               #    line_or_bytes: :line,
+               #    raw: false
+               #  },
                stderr_to_stdout: true
              ]
     end)

@@ -25,6 +25,7 @@ defmodule Avrdude do
       "-b#{@uart_speed}",
       "-D",
       "-V",
+      "-v",
       "-Uflash:w:#{hex_path}:i"
     ]
 
@@ -32,16 +33,25 @@ defmodule Avrdude do
     call_reset_fun(reset_fun)
     FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
 
-    IO.inspect(%{
-      args: args,
-      into: IO.stream(:stdio, :line),
-      stderr_to_stdout: true
-    })
-
-    MuonTrap.cmd("avrdude", args,
-      into: IO.stream(:stdio, :line),
-      stderr_to_stdout: true
+    FarmbotCore.Logger.debug(
+      1,
+      inspect(%{
+        args: args,
+        into: IO.stream(:stdio, :line),
+        stderr_to_stdout: true
+      })
     )
+
+    FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
+
+    result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
+
+    if is_tuple(result) do
+      {a, _b} = result
+      FarmbotCore.Logger.info(3, "Done. #{inspect(a)}")
+    end
+
+    result
   end
 
   def call_reset_fun(reset_fun) do

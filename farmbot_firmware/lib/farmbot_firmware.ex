@@ -344,7 +344,6 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-
     case call_transport(state.transport_pid, {tag, code}, 348) do
       :ok ->
         new_state = %{
@@ -934,7 +933,11 @@ defmodule FarmbotFirmware do
   end
 
   defp call_transport(nil, args, where) do
-    msg = "#{inspect(where)} Firmware restart required (#{inspect(args)})"
+    msg =
+      "#{inspect(where)} Firmware not ready. A restart may be required if not already started (#{
+        inspect(args)
+      })"
+
     Logger.debug(msg)
     {:error, msg}
   end
