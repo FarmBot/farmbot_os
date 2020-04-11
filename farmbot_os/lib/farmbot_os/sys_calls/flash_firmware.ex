@@ -5,6 +5,23 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   alias FarmbotFirmware
   alias FarmbotCore.FirmwareTTYDetector
 
+  defmodule Stub do
+    require FarmbotCore.Logger
+
+    def fail do
+      m = "No express function found. Please notify support."
+      FarmbotCore.Logger.error(3, m)
+      {:error, m}
+    end
+
+    def open(_, _), do: fail()
+    def write(_, _), do: fail()
+  end
+
+  # This only matter for express.
+  # When it's an express, use Circuits.GPIO.
+  @gpio Application.get_env(:farmbot, __MODULE__, [])[:gpio] || Stub
+
   import FarmbotFirmware.PackageUtils,
     only: [find_hex_file: 1, package_to_string: 1]
 
@@ -66,18 +83,32 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   end
 
   defp find_reset_fun("express_k10") do
-    FarmbotCore.Logger.debug(3, "Using special reset function for express")
-    # "magic" workaround to avoid compiler warnings.
-    # We used to inject this via App config, but it was
-    # error prone.
-    mod = :"Elixir.FarmbotOS.Platform.Target.FirmwareReset.GPIO"
-    fun = &mod.reset/0
-    {:ok, fun}
+    FarmbotCore.Logger.debug(3, "Using special express reset function")
+    {:ok, fn -> express_reset_fun() end}
   end
 
   defp find_reset_fun(_) do
     FarmbotCore.Logger.debug(3, "Using default reset function")
-    fun = &FarmbotFirmware.NullReset.reset/0
-    {:ok, fun}
+    {:ok, &FarmbotFirmware.NullReset.reset/0}
+  end
+
+  defp express_reset_fun() do
+    try do
+      FarmbotCore.Logger.debug(3, "Express reset step (1/4)")
+      {:ok, gpio} = @gpio.open(19, :output)
+
+      FarmbotCore.Logger.debug(3, "Express reset step (2/4)")
+      :ok = @gpio.write(gpio, 1)
+
+      FarmbotCore.Logger.debug(3, "Express reset step (3/4)")
+      :ok = @gpio.write(gpio, 0)
+
+      FarmbotCore.Logger.debug(3, "Express reset step (4/4)")
+    rescue
+      ex ->
+        message = Exception.message(ex)
+        Logger.error("Could not flash express firmware: #{message}")
+        :express_reset_error
+    end
   end
 end
