@@ -30,7 +30,7 @@ defmodule FarmbotCore do
       {FarmbotFirmware, transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects},
       FarmbotCeleryScript.Scheduler
     ]
-    config = Application.get_env(:farmbot_ext, __MODULE__) || []
-Keyword.get(config, :children, default)
+    config = (Application.get_env(:farmbot_ext, __MODULE__) || [])
+    Keyword.get(config, :children, default)
   end
 end
