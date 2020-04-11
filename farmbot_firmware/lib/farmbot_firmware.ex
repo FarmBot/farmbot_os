@@ -227,7 +227,7 @@ defmodule FarmbotFirmware do
       reset: reset,
       reset_pid: nil,
       command_queue: [],
-      configuration_queue: [],
+      configuration_queue: []
     }
 
     send_timeout_self()
@@ -294,7 +294,7 @@ defmodule FarmbotFirmware do
           ]
         } = state
       ) do
-    case GenServer.call(state.transport_pid, {tag, code}) do
+    case call_transport(state.transport_pid, {tag, code}, 297) do
       :ok ->
         new_state = %{
           state
@@ -316,7 +316,7 @@ defmodule FarmbotFirmware do
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
     # Logger.debug("Starting next configuration code: #{inspect(code)}")
 
-    case GenServer.call(state.transport_pid, {state.tag, code}) do
+    case call_transport(state.transport_pid, {state.tag, code}, 319) do
       :ok ->
         new_state = %{state | current: code, configuration_queue: rest}
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
@@ -344,7 +344,8 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    case GenServer.call(state.transport_pid, {tag, code}) do
+
+    case call_transport(state.transport_pid, {tag, code}, 348) do
       :ok ->
         new_state = %{
           state
@@ -385,8 +386,9 @@ defmodule FarmbotFirmware do
       Logger.debug("closing transport")
       :ok = GenServer.stop(state.transport_pid, :normal)
     else
-      Logger.debug("No tranport pid found.")
+      Logger.debug("No tranport pid found. Nothing to close")
     end
+
     next_state =
       goto(
         %{
@@ -929,5 +931,22 @@ defmodule FarmbotFirmware do
 
   defp send_timeout_self do
     send(self(), :timeout)
+  end
+
+  defp call_transport(nil, args, where) do
+    msg = "#{inspect(where)} Firmware restart required (#{inspect(args)})"
+    Logger.debug(msg)
+    {:error, msg}
+  end
+
+  defp call_transport(transport_pid, args, where) do
+    # Returns :ok
+    response = GenServer.call(transport_pid, args)
+
+    unless response == :ok do
+      Logger.debug("#{inspect(where)}: returned #{inspect(response)}")
+    end
+
+    response
   end
 end
