@@ -230,7 +230,7 @@ defmodule FarmbotFirmware do
       configuration_queue: [],
     }
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:ok, state}
   end
 
@@ -334,7 +334,6 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    # Logger.debug "Got checkup message when current command still executing"
     {:noreply, state}
   end
 
@@ -382,8 +381,12 @@ defmodule FarmbotFirmware do
       true = Process.demonitor(state.transport_ref)
     end
 
-    :ok = GenServer.stop(state.transport_pid, :normal)
-
+    if is_pid(state.transport_pid) do
+      Logger.debug("closing transport")
+      :ok = GenServer.stop(state.transport_pid, :normal)
+    else
+      Logger.debug("No tranport pid found.")
+    end
     next_state =
       goto(
         %{
@@ -417,7 +420,7 @@ defmodule FarmbotFirmware do
 
     next_state = %{state | transport: module, transport_args: transport_args}
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:reply, :ok, next_state}
   end
 
@@ -455,7 +458,7 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_emergency_lock, []}})
 
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:reply, {:ok, tag},
      %{state | command_queue: [{pid, code}], configuration_queue: []}}
@@ -467,7 +470,7 @@ defmodule FarmbotFirmware do
         {pid, _ref},
         state
       ) do
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:reply, {:ok, tag},
      %{state | command_queue: [{pid, code}], configuration_queue: []}}
@@ -484,14 +487,14 @@ defmodule FarmbotFirmware do
 
     case {new_state.status, state.current} do
       {:idle, nil} ->
-        send(self(), :timeout)
+        send_timeout_self()
         {:reply, {:ok, tag}, new_state}
 
       # Don't do any flow control if state is emergency_lock.
       # This allows a transport to decide
       # if a command should be blocked or not.
       {:emergency_lock, _} ->
-        send(self(), :timeout)
+        send_timeout_self()
         {:reply, {:ok, tag}, new_state}
 
       _unknown ->
@@ -513,7 +516,7 @@ defmodule FarmbotFirmware do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, code)
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(%{state | current: nil, caller_pid: nil}, :emergency_lock)}
   end
 
@@ -576,7 +579,7 @@ defmodule FarmbotFirmware do
         do: to_process ++ [{:command_movement_find_home, [:x]}],
         else: to_process
 
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:noreply,
      goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
@@ -612,7 +615,7 @@ defmodule FarmbotFirmware do
 
     side_effects(state, :handle_busy, [false])
     side_effects(state, :handle_idle, [true])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle)}
   end
 
@@ -633,7 +636,7 @@ defmodule FarmbotFirmware do
 
     new_state = %{state | current: nil, caller_pid: nil}
     side_effects(state, :handle_busy, [false])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(new_state, :idle)}
   end
 
@@ -667,7 +670,7 @@ defmodule FarmbotFirmware do
         do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [false])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
@@ -689,7 +692,7 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
@@ -724,7 +727,7 @@ defmodule FarmbotFirmware do
     to_process = [{:parameter_write, param}]
     side_effects(state, :handle_parameter_value, [param])
     side_effects(state, :handle_parameter_calibration_value, [param])
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:noreply,
      goto(
@@ -923,4 +926,8 @@ defmodule FarmbotFirmware do
 
   defp side_effects(%{side_effects: m}, function, args),
     do: apply(m, function, args)
+
+  defp send_timeout_self do
+    send(self(), :timeout)
+  end
 end

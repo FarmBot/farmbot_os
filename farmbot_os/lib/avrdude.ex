@@ -31,6 +31,11 @@ defmodule Avrdude do
     # call the function for resetting the line before executing avrdude.
     call_reset_fun(reset_fun)
     FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
+    IO.inspect(%{
+      args: args,
+      into: IO.stream(:stdio, :line),
+      stderr_to_stdout: true
+    })
     MuonTrap.cmd("avrdude", args,
       into: IO.stream(:stdio, :line),
       stderr_to_stdout: true
