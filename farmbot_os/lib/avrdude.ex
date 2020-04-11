@@ -47,11 +47,15 @@ defmodule Avrdude do
     result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
 
     if is_tuple(result) do
-      {a, _b} = result
-      FarmbotCore.Logger.info(3, "Done. #{inspect(a)}")
+      {a, exit_code} = result
+      FarmbotCore.Logger.info(3, inspect(a))
+      FarmbotCore.Logger.info(3, "Exit code #{exit_code}")
+      # Manually override errors while debugging.
+      {a, 0}
+    else
+      result
     end
 
-    result
   end
 
   def call_reset_fun(reset_fun) do
