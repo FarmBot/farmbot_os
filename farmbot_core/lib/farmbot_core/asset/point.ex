@@ -13,20 +13,21 @@ defmodule FarmbotCore.Asset.Point do
       foreign_key: :asset_local_id
     )
 
+    field(:discarded_at, :utc_datetime)
+    field(:gantry_mounted, :boolean)
     field(:meta, :map)
+    field(:monitor, :boolean, default: true)
     field(:name, :string)
     field(:openfarm_slug, :string)
     field(:plant_stage, :string)
     field(:planted_at, :utc_datetime)
     field(:pointer_type, :string)
+    field(:pullout_direction, :integer)
     field(:radius, :float)
+    field(:tool_id, :integer)
     field(:x, :float)
     field(:y, :float)
     field(:z, :float)
-    field(:tool_id, :integer)
-    field(:discarded_at, :utc_datetime)
-    field(:gantry_mounted, :boolean)
-    field(:monitor, :boolean, default: true)
     timestamps()
   end
 
@@ -42,6 +43,7 @@ defmodule FarmbotCore.Asset.Point do
       tool_id: point.tool_id,
       discarded_at: point.discarded_at,
       gantry_mounted: point.gantry_mounted,
+      pullout_direction: point.pullout_direction,
       x: point.x,
       y: point.y,
       z: point.z

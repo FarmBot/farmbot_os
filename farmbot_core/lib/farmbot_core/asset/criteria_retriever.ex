@@ -115,12 +115,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
     query_params = List.flatten(criteria)
-    IO.inspect(sql)
-    IO.inspect(query_params)
     {:ok, query} = Repo.query(sql, query_params)
     %Sqlite.DbConnection.Result{ rows: rows } = query
-    IO.puts("Results:")
-    IO.inspect(rows)
     List.flatten(rows)
   end
 
