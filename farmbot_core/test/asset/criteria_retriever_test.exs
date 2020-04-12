@@ -495,7 +495,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     Enum.map(whitelist, fn id -> assert Enum.member?(results, id) end)
   end
 
-  test "edge case: Filter by slot direction" do
+  test "edge case: Filter by crop type" do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
     ok = point!(%{id: 1, pointer_type: "Plant", openfarm_slug: "spinach"})
@@ -526,7 +526,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     assert Enum.count(ids) == 1
   end
 
-  test "edge case: Filter by crop type" do
+  test "edge case: Filter by slot direction" do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
 

@@ -22,7 +22,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   # We will not query any string/numeric fields other than these.
   # Updating the PointGroup / Point models may require an update
   # to these fields.
-  @numberic_fields ["radius", "x", "y", "z"]
+  @numberic_fields ["radius", "x", "y", "z", "pullout_direction"]
   @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
   @doc """
@@ -114,8 +114,13 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def finalize({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
-    {:ok, query} = Repo.query(sql, List.flatten(criteria))
+    query_params = List.flatten(criteria)
+    IO.inspect(sql)
+    IO.inspect(query_params)
+    {:ok, query} = Repo.query(sql, query_params)
     %Sqlite.DbConnection.Result{ rows: rows } = query
+    IO.puts("Results:")
+    IO.inspect(rows)
     List.flatten(rows)
   end
 
