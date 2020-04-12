@@ -29,8 +29,6 @@ defmodule Avrdude do
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    # call the function for resetting the line before executing avrdude.
-    call_reset_fun(reset_fun)
     FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
 
     FarmbotCore.Logger.debug(
@@ -50,12 +48,11 @@ defmodule Avrdude do
       {a, exit_code} = result
       FarmbotCore.Logger.info(3, inspect(a))
       FarmbotCore.Logger.info(3, "Exit code #{exit_code}")
-      # Manually override errors while debugging.
-      {a, 0}
-    else
-      result
     end
 
+    call_reset_fun(reset_fun)
+
+    result
   end
 
   def call_reset_fun(reset_fun) do
