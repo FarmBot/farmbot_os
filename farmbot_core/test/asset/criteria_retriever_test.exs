@@ -494,4 +494,70 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     assert Enum.count(whitelist) == Enum.count(results)
     Enum.map(whitelist, fn id -> assert Enum.member?(results, id) end)
   end
+
+  test "edge case: Filter by slot direction" do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+    ok = point!(%{id: 1, pointer_type: "Plant", openfarm_slug: "spinach"})
+    point!(%{id: 2, pointer_type: "Plant", openfarm_slug: "beetroot"})
+    point!(%{id: 3, pointer_type: "Weed", openfarm_slug: "thistle"})
+    point!(%{id: 4, pointer_type: "Weed", openfarm_slug: "spinach"})
+
+    pg = %PointGroup{
+      :id => 241,
+      :point_ids => [],
+      :criteria => %{
+        "day" => %{
+          "op" => "<",
+          "days_ago" => 0
+        },
+        "string_eq" => %{
+          "pointer_type" => ["Plant"],
+          "openfarm_slug" => ["spinach"]
+        },
+        "number_eq" => %{},
+        "number_lt" => %{},
+        "number_gt" => %{}
+      }
+    }
+
+    ids = CriteriaRetriever.run(pg) |> Enum.map(fn p -> p.id end)
+    assert Enum.member?(ids, ok.id)
+    assert Enum.count(ids) == 1
+  end
+
+  test "edge case: Filter by crop type" do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+
+    ok = point!(%{id: 1, pointer_type: "ToolSlot", pullout_direction: 3})
+    point!(%{id: 2, pointer_type: "Weed", pullout_direction: 3})
+    point!(%{id: 3, pointer_type: "ToolSlot", pullout_direction: 4})
+    point!(%{id: 4, pointer_type: "GenericPointer", pullout_direction: 2})
+
+    pg = %PointGroup{
+      :id => 242,
+      :name => "Filter by slot direction",
+      :point_ids => [],
+      :sort_type => "xy_ascending",
+      :criteria => %{
+        "day" => %{
+          "op" => "<",
+          "days_ago" => 0
+        },
+        "string_eq" => %{
+          "pointer_type" => ["ToolSlot"]
+        },
+        "number_eq" => %{
+          "pullout_direction" => [3]
+        },
+        "number_lt" => %{},
+        "number_gt" => %{}
+      }
+    }
+
+    ids = CriteriaRetriever.run(pg) |> Enum.map(fn p -> p.id end)
+    assert Enum.member?(ids, ok.id)
+    assert Enum.count(ids) == 1
+  end
 end
