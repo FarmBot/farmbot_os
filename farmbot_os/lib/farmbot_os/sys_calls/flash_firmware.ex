@@ -66,7 +66,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
   end
 
   def finish_flashing(result) do
-    FarmbotCore.Logger.debug(2, "AVR Unexpected return code #{inspect(result)}")
+    FarmbotCore.Logger.debug(2, "AVR flash returned #{inspect(result)}")
   end
 
   defp find_tty() do
@@ -94,17 +94,12 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp express_reset_fun() do
     try do
-      FarmbotCore.Logger.debug(3, "Reseting MCU (1/4)")
+      FarmbotCore.Logger.debug(3, "Resetting MCU")
       {:ok, gpio} = @gpio.open(19, :output)
-
-      FarmbotCore.Logger.debug(3, "Reseting MCU (2/4)")
       :ok = @gpio.write(gpio, 1)
-      Process.sleep(250)
-      FarmbotCore.Logger.debug(3, "Reseting MCU (3/4)")
       :ok = @gpio.write(gpio, 0)
-      Process.sleep(250)
-
-      FarmbotCore.Logger.debug(3, "Reseting MCU (4/4)")
+      FarmbotCore.Logger.debug(3, "MCU Reset done")
+      :ok
     rescue
       ex ->
         message = Exception.message(ex)

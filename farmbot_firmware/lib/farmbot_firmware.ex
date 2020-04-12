@@ -530,10 +530,7 @@ defmodule FarmbotFirmware do
     handle_report({:report_no_config, []}, state)
   end
 
-  def handle_report(
-        {:report_idle, []},
-        %{status: :boot} = state
-      ) do
+  def handle_report({:report_idle, []}, %{status: :boot} = state) do
     Logger.info("ARDUINO STARTUP COMPLETE (idle) transport=#{state.transport}")
     handle_report({:report_no_config, []}, state)
   end

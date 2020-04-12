@@ -77,21 +77,21 @@ defmodule FarmbotCore.FirmwareOpenTask do
         {:noreply, increment_attempts(%{state | timer: timer})}
 
       firmware_hardware == "none" && needs_open? ->
-        FarmbotCore.Logger.debug 3, "Firmware needs to be closed"
+        FarmbotCore.Logger.debug 3, "Closing firmware..."
         unswap_transport()
         Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, %{state | timer: timer, attempts: 0}}
 
       needs_open? ->
-        FarmbotCore.Logger.debug 3, "Firmware needs to be opened"
+        FarmbotCore.Logger.debug 3, "Opening firmware..."
         case swap_transport(firmware_path) do
           :ok ->
             Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
           other ->
-            FarmbotCore.Logger.debug 3, "Firmware failed to open: #{inspect(other)}"
+            FarmbotCore.Logger.debug 3, "Not ready to open yet, will retry in 5s (#{inspect(other)})"
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
         end
