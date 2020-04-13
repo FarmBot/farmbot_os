@@ -13,7 +13,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   @fake_point_group %PointGroup{
     criteria: %{
-      "day" => %{"op" => "<", "days_ago" => 4},
+      "day" => %{"op" => ">", "days_ago" => 4},
       "string_eq" => %{
         "openfarm_slug" => ["five", "nine"],
         "meta.created_by" => ["plant-detection"]
