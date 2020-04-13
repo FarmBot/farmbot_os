@@ -62,11 +62,6 @@ defmodule FarmbotCore.Asset do
 
   ## Begin FarmEvent
 
-  @doc "Returns all FarmEvents"
-  def list_farm_events do
-    Repo.all(FarmEvent)
-  end
-
   def new_farm_event!(params) do
     %FarmEvent{}
     |> FarmEvent.changeset(params)
@@ -328,8 +323,7 @@ defmodule FarmbotCore.Asset do
         # the DB / API.
         sorted = CriteriaRetriever.run(point_group)
           |> sort_points(sort_by || "xy_ascending")
-          |> Enum.map(&Map.fetch!(&1, :id))
-
+          |> Enum.map(fn point -> point.id end)
         %{ point_group | point_ids: sorted }
       other ->
         # Swallow all other errors
@@ -353,7 +347,7 @@ defmodule FarmbotCore.Asset do
       |> Repo.update!()
 
     regimen_instances = list_regimen_instances()
-    farm_events = list_farm_events()
+    farm_events = Repo.all(FarmEvent)
 
     # check for any matching asset using this point group.
     # This is pretty recursive and probably isn't super great

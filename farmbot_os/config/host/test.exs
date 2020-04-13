@@ -43,3 +43,5 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
   firmware_flash_attempt_threshold: 0
 
 config :plug, :validate_header_keys_during_test, true
+
+config :ex_unit, capture_logs: true

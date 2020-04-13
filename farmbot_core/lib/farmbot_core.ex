@@ -14,8 +14,11 @@ defmodule FarmbotCore do
   def start(_, args), do: Supervisor.start_link(__MODULE__, args, name: __MODULE__)
 
   def init([]) do
+    Supervisor.init(children(), [strategy: :one_for_one])
+  end
 
-    children = [
+  def children do
+    default = [
       FarmbotCore.Leds,
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
@@ -27,6 +30,7 @@ defmodule FarmbotCore do
       {FarmbotFirmware, transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects},
       FarmbotCeleryScript.Scheduler
     ]
-    Supervisor.init(children, [strategy: :one_for_one])
+    config = (Application.get_env(:farmbot_ext, __MODULE__) || [])
+    Keyword.get(config, :children, default)
   end
 end

@@ -33,7 +33,13 @@ defmodule FarmbotExt.API.DirtyWorker.Supervisor do
 
   @impl Supervisor
   def init(_args) do
-    children = [
+    Supervisor.init(children(), strategy: :one_for_one)
+  end
+
+  def children do
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
+    Keyword.get(config, :children, [
       {DirtyWorker, Device},
       {DirtyWorker, DeviceCert},
       {DirtyWorker, FbosConfig},
@@ -50,8 +56,6 @@ defmodule FarmbotExt.API.DirtyWorker.Supervisor do
       {DirtyWorker, Sensor},
       {DirtyWorker, Sequence},
       {DirtyWorker, Tool}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    ])
   end
 end

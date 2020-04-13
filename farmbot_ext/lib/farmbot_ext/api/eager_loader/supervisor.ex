@@ -39,7 +39,13 @@ defmodule FarmbotExt.API.EagerLoader.Supervisor do
 
   @impl Supervisor
   def init(_args) do
-    children = [
+    Supervisor.init(children(), strategy: :one_for_one)
+  end
+
+  def children do
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
+    Keyword.get(config, :children, [
       {EagerLoader, Device},
       {EagerLoader, FarmEvent},
       {EagerLoader, FarmwareEnv},
@@ -56,8 +62,6 @@ defmodule FarmbotExt.API.EagerLoader.Supervisor do
       {EagerLoader, Sensor},
       {EagerLoader, Sequence},
       {EagerLoader, Tool}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    ])
   end
 end

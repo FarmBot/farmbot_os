@@ -22,7 +22,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   # We will not query any string/numeric fields other than these.
   # Updating the PointGroup / Point models may require an update
   # to these fields.
-  @numberic_fields ["radius", "x", "y", "z"]
+  @numberic_fields ["radius", "x", "y", "z", "pullout_direction"]
   @string_fields ["name", "openfarm_slug", "plant_stage", "pointer_type"]
 
   @doc """
@@ -49,7 +49,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     needs_meta_filter = Repo.all(dynamic_query)
     # There we go. We have all the matching %Point{}s
     search_matches = search_meta_fields(pg, needs_meta_filter)
-    # ...but there are duplicates. We can remove them via uniq_by: 
+    # ...but there are duplicates. We can remove them via uniq_by:
     Enum.uniq_by((search_matches ++ always_ok), fn p -> p.id end)
   end
 
@@ -114,7 +114,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   def finalize({fragments, criteria}) do
     x = Enum.join(fragments, " AND ")
     sql = "SELECT id FROM points WHERE #{x}"
-    {:ok, query} = Repo.query(sql, List.flatten(criteria))
+    query_params = List.flatten(criteria)
+    {:ok, query} = Repo.query(sql, query_params)
     %Sqlite.DbConnection.Result{ rows: rows } = query
     List.flatten(rows)
   end
@@ -136,11 +137,13 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     if days == 0 do
       { pg, accum }
     else
-  
+
       op = day_criteria["op"] || "<"
       time = Timex.shift(Timex.now(), days: -1 * days)
-  
-      { pg, accum ++ [{"created_at", op, time}] }
+
+      inverted_op = if op == ">" do "<" else ">" end
+
+      { pg, accum ++ [{"created_at", inverted_op, time}] }
     end
   end
 
@@ -159,14 +162,19 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   # NOT OK: Repo.query("SELECT foo WHERE bar IN $0", [[1, 2, 3]])
   # OK:     Repo.query("SELECT foo WHERE bar IN ($0, $1, $2)", [1, 2, 3])
   defp stage_3({sql, args}, {full_query, full_args, count0}) when is_list(args) do
-    final = count0 + Enum.count(args) - 1
+    arg_count = Enum.count(args)
+    final = count0 + (arg_count - 1)
     initial_state = {sql, count0}
-    {next_sql, _} = Enum.reduce(args, initial_state, fn
-      (_, {sql, ^count0}) -> {sql <> " ($#{count0},", count0+1}
-      (_, {sql, ^final}) -> {sql <> " $#{final})", final}
-      (_, {sql, count}) -> {sql <> " $#{count},", count+1}
-    end)
-
+    {next_sql, _} =
+      if arg_count == 1 do
+        {sql <> " ($#{count0})", nil}
+      else
+        Enum.reduce(args, initial_state, fn
+          (_, {sql, ^count0}) -> {sql <> " ($#{count0},", count0+1}
+          (_, {sql, ^final}) -> {sql <> " $#{final})", final}
+          (_, {sql, count}) -> {sql <> " $#{count},", count+1}
+        end)
+      end
     {full_query ++ [next_sql], full_args ++ [args], final + 1}
   end
 

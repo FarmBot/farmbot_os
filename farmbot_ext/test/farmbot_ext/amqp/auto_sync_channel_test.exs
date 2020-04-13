@@ -1,6 +1,6 @@
 defmodule AutoSyncChannelTest do
   require Helpers
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use Mimic
   alias FarmbotExt.AMQP.AutoSyncChannel
 
@@ -55,7 +55,7 @@ defmodule AutoSyncChannelTest do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
     pid = generate_pid()
     send(pid, msg)
-    Process.sleep(5)
+    Helpers.wait_for(pid)
   end
 
   test "basic_cancel", do: ensure_response_to({:basic_cancel, :anything})
@@ -78,6 +78,7 @@ defmodule AutoSyncChannelTest do
     # Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
     # Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
+    IO.puts("   =====RICK: This test blinks and you should fix it.")
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
@@ -153,6 +154,7 @@ defmodule AutoSyncChannelTest do
       :ok
     end)
 
+    Helpers.wait_for(pid)
     Process.sleep(1000)
   end
 end

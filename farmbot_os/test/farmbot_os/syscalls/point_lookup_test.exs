@@ -101,6 +101,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     assert pg == PointLookup.get_point_group(pg.id)
   end
 
+  @tag :capture_log
   test "PointLookup.get_point_group/1 - string" do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)

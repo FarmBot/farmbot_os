@@ -4,7 +4,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}
   alias FarmbotExt.API.ImageUploader
-  @farmware_timeout 60_000
+  @farmware_timeout 1_200_000
 
   def update_farmware(farmware_name) do
     with {:ok, installation} <- lookup_installation(farmware_name) do
@@ -56,9 +56,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
   end
 
   def farmware_timeout(farmware_runtime) do
-    time = @farmware_timeout / 1_000
+    time = @farmware_timeout / 1_000 / 60
     runtime = inspect(farmware_runtime)
-    msg = "Farmware did not exit after #{time} seconds. Terminating #{runtime}"
+    msg = "Farmware did not exit after #{time} minutes. Terminating #{runtime}"
 
     FarmbotCore.Logger.info(2, msg)
     FarmwareRuntime.stop(farmware_runtime)

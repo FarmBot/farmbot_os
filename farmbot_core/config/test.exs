@@ -1,4 +1,5 @@
 use Mix.Config
+config :logger, level: :warn
 
 # must be lower than other timers
 # To ensure other timers have time to timeout
@@ -17,3 +18,19 @@ config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 0
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
   firmware_flash_attempt_threshold: 0
+
+if Mix.env() == :test do
+  config :ex_unit, capture_logs: true
+  mapper = fn mod -> config :farmbot_core, mod, children: [] end
+
+  list = [
+    FarmbotCore,
+    FarmbotCore.StorageSupervisor,
+    FarmbotCore.Asset.Supervisor,
+    FarmbotCore.BotState.Supervisor,
+    FarmbotCore.Config.Supervisor,
+    FarmbotCore.Logger.Supervisor
+  ]
+
+  Enum.map(list, mapper)
+end

@@ -12,14 +12,18 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
 
   @impl Supervisor
   def init([]) do
-    children = [
+    Supervisor.init(children(), strategy: :one_for_one)
+  end
+
+  def children() do
+    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
+    Keyword.get(config, :children, [
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
       FarmbotExt.AMQP.Supervisor,
       FarmbotExt.API.ImageUploader,
       FarmbotExt.Bootstrap.DropPasswordTask
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+    ])
   end
 end

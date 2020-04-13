@@ -6,6 +6,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   alias FarmbotCore.Asset.Peripheral
   @digital 0
 
+  @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 1" do
     expect(FarmbotFirmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
@@ -20,6 +21,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert 1 == PinControl.read_pin(peripheral, @digital)
   end
 
+  @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 0" do
     expect(FarmbotFirmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
@@ -30,6 +32,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert 0 == PinControl.read_pin(peripheral, @digital)
   end
 
+  @tag :capture_log
   test "toggle_pin, 1 => 0" do
     expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
       nil
@@ -48,6 +51,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     assert :ok = PinControl.toggle_pin(12)
   end
 
+  @tag :capture_log
   test "toggle_pin, 0 => 1" do
     expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
       nil
@@ -71,15 +75,14 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   end
 
   test "set_servo_angle" do
-    expect(FarmbotFirmware, :command, 1, fn
+    expect(FarmbotFirmware, :command, 2, fn
       {:servo_write, [p: 20, v: 90]} -> {:error, "opps"}
       {:servo_write, [p: 40, v: 180]} -> :ok
     end)
 
     assert :ok = PinControl.set_servo_angle(40, 180)
 
-    message =
-      "Firmware error @ \"set_servo_angle\": \"Can't send command when in :transport_boot state\""
+    message = "Firmware error @ \"set_servo_angle\": \"opps\""
 
     assert {:error, ^message} = PinControl.set_servo_angle(20, 90)
   end

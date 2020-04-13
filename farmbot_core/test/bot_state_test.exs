@@ -10,6 +10,7 @@ defmodule FarmbotCore.BotStateTest do
       assert_receive {BotState, %Ecto.Changeset{valid?: true}}
     end
 
+    @tag :capture_log
     test "invalid data doesn't get dispatched" do
       {:ok, bot_state_pid} = BotState.start_link([], [])
       _initial_state = BotState.subscribe(bot_state_pid)

@@ -78,28 +78,6 @@ defmodule FarmbotFirmware do
 
   and reply with `:ok | {:error, term()}`
 
-  # VCR
-
-  This server can save all the input and output gcodes to a text file for
-  further external analysis or playback later.
-
-  ## Using VCR mode
-
-  The server can be started in VCR mode by doing:
-
-      FarmbotFirmware.start_link([transport: FarmbotFirmware.StubTransport, vcr_path: "/tmp/vcr.txt"], [])
-
-  or can be started at runtime:
-
-      FarmbotFirmware.enter_vcr_mode(firmware_server, "/tmp/vcr.txt")
-
-  in either case the VCR recording needs to be stopped:
-
-      FarmbotFirmware.exit_vcr_mode(firmware_server)
-
-  VCRs can later be played back:
-
-      FarmbotFirmware.VCR.playback!("/tmp/vcr.txt")
   """
   use GenServer
   require Logger
@@ -129,7 +107,6 @@ defmodule FarmbotFirmware do
     :command_queue,
     :caller_pid,
     :current,
-    :vcr_fd,
     :reset,
     :reset_pid
   ]
@@ -146,7 +123,6 @@ defmodule FarmbotFirmware do
           command_queue: [{pid(), GCODE.t()}],
           caller_pid: nil | pid,
           current: nil | GCODE.t(),
-          vcr_fd: nil | File.io_device(),
           reset: module(),
           reset_pid: nil | pid()
         }
@@ -210,22 +186,6 @@ defmodule FarmbotFirmware do
   end
 
   @doc """
-  Sets the Firmware server to record input and output GCODES
-  to a pair of text files.
-  """
-  def enter_vcr_mode(server \\ __MODULE__, tape_path) do
-    GenServer.call(server, {:enter_vcr_mode, tape_path})
-  end
-
-  @doc """
-  Sets the Firmware server to stop recording input and output
-  GCODES.
-  """
-  def exit_vcr_mode(server \\ __MODULE__) do
-    GenServer.cast(server, :exit_vcr_mode)
-  end
-
-  @doc """
   Starting the Firmware server requires at least:
   * `:transport` - a module implementing the Transport GenServer behaviour.
     See the `Transports` section of moduledoc.
@@ -252,18 +212,6 @@ defmodule FarmbotFirmware do
     # probably?
     reset = Keyword.get(args, :reset) || FarmbotFirmware.NullReset
 
-    vcr_fd =
-      case Keyword.get(args, :vcr_path) do
-        nil ->
-          nil
-
-        tape_path ->
-          {:ok, vcr_fd} =
-            File.open(tape_path, [:binary, :append, :exclusive, :write])
-
-          vcr_fd
-      end
-
     # Add an anon function that transport implementations should call.
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
@@ -279,11 +227,10 @@ defmodule FarmbotFirmware do
       reset: reset,
       reset_pid: nil,
       command_queue: [],
-      configuration_queue: [],
-      vcr_fd: vcr_fd
+      configuration_queue: []
     }
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:ok, state}
   end
 
@@ -347,7 +294,7 @@ defmodule FarmbotFirmware do
           ]
         } = state
       ) do
-    case GenServer.call(state.transport_pid, {tag, code}) do
+    case call_transport(state.transport_pid, {tag, code}, 297) do
       :ok ->
         new_state = %{
           state
@@ -358,7 +305,6 @@ defmodule FarmbotFirmware do
         }
 
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
-        _ = vcr_write(state, :out, {state.tag, code})
 
         {:noreply, new_state}
 
@@ -370,11 +316,10 @@ defmodule FarmbotFirmware do
   def handle_info(:timeout, %{configuration_queue: [code | rest]} = state) do
     # Logger.debug("Starting next configuration code: #{inspect(code)}")
 
-    case GenServer.call(state.transport_pid, {state.tag, code}) do
+    case call_transport(state.transport_pid, {state.tag, code}, 319) do
       :ok ->
         new_state = %{state | current: code, configuration_queue: rest}
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
-        _ = vcr_write(state, :out, {state.tag, code})
         {:noreply, new_state}
 
       error ->
@@ -389,7 +334,6 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    # Logger.debug "Got checkup message when current command still executing"
     {:noreply, state}
   end
 
@@ -400,7 +344,7 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    case GenServer.call(state.transport_pid, {tag, code}) do
+    case call_transport(state.transport_pid, {tag, code}, 348) do
       :ok ->
         new_state = %{
           state
@@ -411,7 +355,6 @@ defmodule FarmbotFirmware do
         }
 
         _ = side_effects(new_state, :handle_output_gcode, [{state.tag, code}])
-        _ = vcr_write(state, :out, {state.tag, code})
         for {pid, _code} <- rest, do: send(pid, {state.tag, {:report_busy, []}})
 
         {:noreply, new_state}
@@ -438,7 +381,12 @@ defmodule FarmbotFirmware do
       true = Process.demonitor(state.transport_ref)
     end
 
-    :ok = GenServer.stop(state.transport_pid, :normal)
+    if is_pid(state.transport_pid) do
+      Logger.debug("closing transport")
+      :ok = GenServer.stop(state.transport_pid, :normal)
+    else
+      Logger.debug("No tranport pid found. Nothing to close")
+    end
 
     next_state =
       goto(
@@ -473,7 +421,7 @@ defmodule FarmbotFirmware do
 
     next_state = %{state | transport: module, transport_args: transport_args}
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:reply, :ok, next_state}
   end
 
@@ -483,16 +431,6 @@ defmodule FarmbotFirmware do
         %{status: s} = state
       ) do
     {:reply, {:error, s}, state}
-  end
-
-  def handle_call({:enter_vcr_mode, tape_path}, _from, state) do
-    with {:ok, vcr_fd} <-
-           File.open(tape_path, [:binary, :append, :exclusive, :write]) do
-      {:reply, :ok, %{state | vcr_fd: vcr_fd}}
-    else
-      error ->
-        {:reply, error, state}
-    end
   end
 
   def handle_call({tag, {kind, args}}, from, state) do
@@ -521,7 +459,7 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_emergency_lock, []}})
 
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:reply, {:ok, tag},
      %{state | command_queue: [{pid, code}], configuration_queue: []}}
@@ -533,7 +471,7 @@ defmodule FarmbotFirmware do
         {pid, _ref},
         state
       ) do
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:reply, {:ok, tag},
      %{state | command_queue: [{pid, code}], configuration_queue: []}}
@@ -541,7 +479,7 @@ defmodule FarmbotFirmware do
 
   # If not in an acceptable state, return an error immediately.
   def handle_command(_, _, %{status: s} = state)
-      when s in [:transport_boot, :boot, :no_config, :configuration] do
+      when s in [:boot, :no_config] do
     {:reply, {:error, "Can't send command when in #{inspect(s)} state"}, state}
   end
 
@@ -550,14 +488,14 @@ defmodule FarmbotFirmware do
 
     case {new_state.status, state.current} do
       {:idle, nil} ->
-        send(self(), :timeout)
+        send_timeout_self()
         {:reply, {:ok, tag}, new_state}
 
       # Don't do any flow control if state is emergency_lock.
       # This allows a transport to decide
       # if a command should be blocked or not.
       {:emergency_lock, _} ->
-        send(self(), :timeout)
+        send_timeout_self()
         {:reply, {:ok, tag}, new_state}
 
       _unknown ->
@@ -565,15 +503,9 @@ defmodule FarmbotFirmware do
     end
   end
 
-  def handle_cast(:exit_vcr_mode, state) do
-    state.vcr_fd && File.close(state.vcr_fd)
-    {:noreply, %{state | vcr_fd: nil}}
-  end
-
   # Extracts tag
   def handle_cast({tag, {_, _} = code}, state) do
     _ = side_effects(state, :handle_input_gcode, [{tag, code}])
-    _ = vcr_write(state, :in, {tag, code})
     handle_report(code, %{state | tag: tag})
   end
 
@@ -585,7 +517,7 @@ defmodule FarmbotFirmware do
     if state.caller_pid, do: send(state.caller_pid, {state.tag, code})
     for {pid, _code} <- state.command_queue, do: send(pid, code)
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(%{state | current: nil, caller_pid: nil}, :emergency_lock)}
   end
 
@@ -598,10 +530,7 @@ defmodule FarmbotFirmware do
     handle_report({:report_no_config, []}, state)
   end
 
-  def handle_report(
-        {:report_idle, []},
-        %{status: :boot} = state
-      ) do
+  def handle_report({:report_idle, []}, %{status: :boot} = state) do
     Logger.info("ARDUINO STARTUP COMPLETE (idle) transport=#{state.transport}")
     handle_report({:report_no_config, []}, state)
   end
@@ -648,7 +577,7 @@ defmodule FarmbotFirmware do
         do: to_process ++ [{:command_movement_find_home, [:x]}],
         else: to_process
 
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:noreply,
      goto(%{state | tag: tag, configuration_queue: to_process}, :configuration)}
@@ -684,7 +613,7 @@ defmodule FarmbotFirmware do
 
     side_effects(state, :handle_busy, [false])
     side_effects(state, :handle_idle, [true])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(%{state | caller_pid: nil, current: nil}, :idle)}
   end
 
@@ -705,7 +634,7 @@ defmodule FarmbotFirmware do
 
     new_state = %{state | current: nil, caller_pid: nil}
     side_effects(state, :handle_busy, [false])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, goto(new_state, :idle)}
   end
 
@@ -739,7 +668,7 @@ defmodule FarmbotFirmware do
         do: send(pid, {state.tag, {:report_busy, []}})
 
     side_effects(state, :handle_busy, [false])
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
@@ -761,7 +690,7 @@ defmodule FarmbotFirmware do
     for {pid, _code} <- state.command_queue,
         do: send(pid, {state.tag, {:report_busy, []}})
 
-    send(self(), :timeout)
+    send_timeout_self()
     {:noreply, %{state | caller_pid: nil, current: nil}}
   end
 
@@ -796,7 +725,7 @@ defmodule FarmbotFirmware do
     to_process = [{:parameter_write, param}]
     side_effects(state, :handle_parameter_value, [param])
     side_effects(state, :handle_parameter_calibration_value, [param])
-    send(self(), :timeout)
+    send_timeout_self()
 
     {:noreply,
      goto(
@@ -996,30 +925,28 @@ defmodule FarmbotFirmware do
   defp side_effects(%{side_effects: m}, function, args),
     do: apply(m, function, args)
 
-  @spec vcr_write(state, :in | :out, GCODE.t()) :: :ok
-  defp vcr_write(%{vcr_fd: nil}, _direction, _code), do: :ok
+  defp send_timeout_self do
+    send(self(), :timeout)
+  end
 
-  defp vcr_write(state, :in, code), do: vcr_write(state, "<", code)
+  defp call_transport(nil, args, where) do
+    msg =
+      "#{inspect(where)} Firmware not ready. A restart may be required if not already started (#{
+        inspect(args)
+      })"
 
-  defp vcr_write(state, :out, code), do: vcr_write(state, "\n>", code)
+    Logger.debug(msg)
+    {:error, msg}
+  end
 
-  defp vcr_write(state, direction, code) do
-    data = GCODE.encode(code)
-    time = :os.system_time(:second)
+  defp call_transport(transport_pid, args, where) do
+    # Returns :ok
+    response = GenServer.call(transport_pid, args)
 
-    current_data =
-      if state.current do
-        GCODE.encode({state.tag, state.current})
-      else
-        "nil"
-      end
+    unless response == :ok do
+      Logger.debug("#{inspect(where)}: returned #{inspect(response)}")
+    end
 
-    state_data =
-      "#{state.status} | #{current_data} | #{inspect(state.caller_pid)}"
-
-    IO.write(
-      state.vcr_fd,
-      direction <> " #{time} " <> data <> " state=" <> state_data <> "\n"
-    )
+    response
   end
 end
