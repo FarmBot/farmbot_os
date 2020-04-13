@@ -482,7 +482,6 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
         "string_eq" => %{}
       },
       id: 201,
-      local_id: "30856f5e-1f97-4e18-b5e0-84dc7cd9bbf0",
       name: "Test (Broke?)",
       point_ids: whitelist,
       sort_type: "xy_ascending",

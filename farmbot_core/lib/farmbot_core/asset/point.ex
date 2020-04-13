@@ -43,6 +43,7 @@ defmodule FarmbotCore.Asset.Point do
       tool_id: point.tool_id,
       discarded_at: point.discarded_at,
       gantry_mounted: point.gantry_mounted,
+      openfarm_slug: point.openfarm_slug,
       pullout_direction: point.pullout_direction,
       x: point.x,
       y: point.y,
@@ -53,22 +54,24 @@ defmodule FarmbotCore.Asset.Point do
   def changeset(point, params \\ %{}) do
     point
     |> cast(params, [
+      :created_at,
+      :discarded_at,
+      :gantry_mounted,
       :id,
       :meta,
+      :monitor,
       :name,
       :plant_stage,
       :planted_at,
       :pointer_type,
+      :pullout_direction,
+      :openfarm_slug,
       :radius,
+      :tool_id,
+      :updated_at,
       :x,
       :y,
       :z,
-      :tool_id,
-      :gantry_mounted,
-      :discarded_at,
-      :monitor,
-      :created_at,
-      :updated_at
     ])
     |> validate_required([])
   end
