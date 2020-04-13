@@ -17,7 +17,6 @@ defmodule Avrdude do
 
     _ = File.stat!(hex_path)
 
-    # STEP 1: Is the UART in use?
     args = [
       "-patmega2560",
       "-cwiring",
@@ -28,17 +27,6 @@ defmodule Avrdude do
       "-v",
       "-Uflash:w:#{hex_path}:i"
     ]
-
-    FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
-
-    FarmbotCore.Logger.debug(
-      1,
-      inspect(%{
-        args: args,
-        into: IO.stream(:stdio, :line),
-        stderr_to_stdout: true
-      })
-    )
 
     FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
 

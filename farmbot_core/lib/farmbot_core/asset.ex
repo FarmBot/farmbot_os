@@ -324,9 +324,6 @@ defmodule FarmbotCore.Asset do
         sorted = CriteriaRetriever.run(point_group)
           |> sort_points(sort_by || "xy_ascending")
           |> Enum.map(fn point -> point.id end)
-
-        count = Enum.count(sorted)
-        Logger.debug("There are #{count} points. #{inspect(sorted)}")
         %{ point_group | point_ids: sorted }
       other ->
         # Swallow all other errors

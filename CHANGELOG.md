@@ -8,6 +8,9 @@
  * Unit test additions (+2.7% coverage :tada:)
  * Updates to build instructions for third party developers
  * Bug fix for criteria-based groups that have only one filter criteria.
+ * Bug fix for express bots involving timeout during remote firmware flash
+ * Remove VCR again (for now)
+ * Increase farmware timeout to 20 minutes (use at own risk)
 
 # 9.2.1
 
