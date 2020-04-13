@@ -138,8 +138,8 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
       { pg, accum }
     else
 
-      op = day_criteria["op"] || ">"
-      time = Timex.shift(Timex.now(), days: days)
+      op = day_criteria["op"] || "<"
+      time = Timex.shift(Timex.now(), days: -1 * days)
 
       inverted_op = if op == ">" do "<" else ">" end
 
