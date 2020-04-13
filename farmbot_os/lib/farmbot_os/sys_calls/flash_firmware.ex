@@ -65,7 +65,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   def finish_flashing({_result, 0}) do
     FarmbotCore.Logger.success(
-      2,
+      1,
       "Firmware flashed successfully. Unlock FarmBot to finish initialization."
     )
   end

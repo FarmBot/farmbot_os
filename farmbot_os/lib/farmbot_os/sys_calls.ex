@@ -205,7 +205,7 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
-    FarmbotCore.Logger.busy(1, "E-stopped")
+    FarmbotCore.Logger.error(1, "E-stopped")
     :ok
   end
 
