@@ -184,6 +184,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def firmware_reboot do
+    FarmbotCore.Logger.info(1, "Restarting firmware...")
     GenServer.stop(FarmbotFirmware, :reboot)
   end
 
