@@ -27,7 +27,7 @@ defmodule Helpers do
   # Maybe I could use `start_supervised`?
   # https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2
 
-  @wait_time 60
+  @wait_time 180
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.

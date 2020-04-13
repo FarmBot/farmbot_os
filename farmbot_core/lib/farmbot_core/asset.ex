@@ -323,8 +323,7 @@ defmodule FarmbotCore.Asset do
         # the DB / API.
         sorted = CriteriaRetriever.run(point_group)
           |> sort_points(sort_by || "xy_ascending")
-          |> Enum.map(&Map.fetch!(&1, :id))
-
+          |> Enum.map(fn point -> point.id end)
         %{ point_group | point_ids: sorted }
       other ->
         # Swallow all other errors

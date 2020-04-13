@@ -100,9 +100,7 @@ if Mix.target() == :host do
 else
   import_config("target/#{Mix.env()}.exs")
 
-  if File.exists?("config/target/#{Mix.target()}.exs") do
-    import_config("target/#{Mix.target()}.exs")
-  end
+  import_config("target/#{Mix.target()}.exs")
 end
 
 if Mix.env() == :test do

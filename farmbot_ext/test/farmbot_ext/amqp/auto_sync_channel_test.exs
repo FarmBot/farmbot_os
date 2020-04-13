@@ -78,7 +78,7 @@ defmodule AutoSyncChannelTest do
     # Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
     # Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
-    IO.puts("   =  = = ==RICK: This test blinks and you should fix it.")
+    IO.puts("   =====RICK: This test blinks and you should fix it.")
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
@@ -155,5 +155,6 @@ defmodule AutoSyncChannelTest do
     end)
 
     Helpers.wait_for(pid)
+    Process.sleep(1000)
   end
 end
