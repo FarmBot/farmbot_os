@@ -155,5 +155,6 @@ defmodule AutoSyncChannelTest do
     end)
 
     Helpers.wait_for(pid)
+    Process.sleep(1000)
   end
 end
