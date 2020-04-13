@@ -42,9 +42,9 @@ defmodule Avrdude do
 
     FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
 
-    result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
-
     call_reset_fun(reset_fun)
+
+    result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
 
     if is_tuple(result) do
       {a, exit_code} = result

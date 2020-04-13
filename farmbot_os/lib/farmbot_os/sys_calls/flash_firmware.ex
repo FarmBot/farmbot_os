@@ -1,3 +1,5 @@
+Application.get_env(:farmbot, FarmbotOS.SysCalls.FlashFirmware, [])[:gpio]
+
 defmodule FarmbotOS.SysCalls.FlashFirmware do
   @moduledoc false
 
@@ -92,7 +94,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     {:ok, &FarmbotFirmware.NullReset.reset/0}
   end
 
-  defp express_reset_fun() do
+  def express_reset_fun() do
     try do
       FarmbotCore.Logger.debug(3, "Begin MCU reset")
       {:ok, gpio} = @gpio.open(19, :output)
