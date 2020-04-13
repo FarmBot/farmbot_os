@@ -35,7 +35,7 @@ defmodule FarmbotOs.AvrdudeTest do
                "-Uflash:w:/tmp/wow:i"
              ]
 
-      assert opts == [ stderr_to_stdout: true ]
+      assert opts == [stderr_to_stdout: true]
     end)
 
     Avrdude.flash("/tmp/wow", "null", fn ->
@@ -60,7 +60,7 @@ defmodule FarmbotOs.AvrdudeTest do
                "-Uflash:w:/tmp/wow:i"
              ]
 
-      assert opts == [ stderr_to_stdout: true ]
+      assert opts == [stderr_to_stdout: true]
     end)
 
     Avrdude.flash("/tmp/wow", "/dev/null", fn ->

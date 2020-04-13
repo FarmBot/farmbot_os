@@ -94,11 +94,13 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
 
   defp express_reset_fun() do
     try do
-      FarmbotCore.Logger.debug(3, "Resetting MCU")
+      FarmbotCore.Logger.debug(3, "Begin MCU reset")
       {:ok, gpio} = @gpio.open(19, :output)
-      :ok = @gpio.write(gpio, 1)
       :ok = @gpio.write(gpio, 0)
-      FarmbotCore.Logger.debug(3, "MCU Reset done")
+      :ok = @gpio.write(gpio, 1)
+      Process.sleep(1000)
+      :ok = @gpio.write(gpio, 0)
+      FarmbotCore.Logger.debug(3, "Finish MCU Reset")
       :ok
     rescue
       ex ->
