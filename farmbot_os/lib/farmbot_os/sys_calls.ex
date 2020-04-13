@@ -205,12 +205,14 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
+    FarmbotCore.Logger.busy(1, "E-stopped")
     :ok
   end
 
   @impl true
   def emergency_unlock do
     _ = FarmbotFirmware.command({:command_emergency_unlock, []})
+    FarmbotCore.Logger.busy(1, "Unlocked.")
     :ok
   end
 
