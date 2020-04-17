@@ -120,10 +120,6 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def reboot(), do: error(:reboot, [])
 
   @impl true
-  def resource_update(kind, resource_id, data),
-    do: error(:resource_update, [kind, resource_id, data])
-
-  @impl true
   def send_message(type, message, channels),
     do: error(:send_message, [type, message, channels])
 

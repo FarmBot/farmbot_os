@@ -69,7 +69,6 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback toggle_pin(pin_num :: number()) :: ok_or_error
   @callback read_status() :: ok_or_error
   @callback reboot() :: ok_or_error
-  @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
   @callback send_message(type :: String.t(), message :: String.t(), [atom]) ::
               ok_or_error
   @callback set_servo_angle(pin :: number(), value :: number()) :: ok_or_error
@@ -295,10 +294,6 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def reboot(sys_calls \\ @sys_calls) do
     ok_or_error(sys_calls, :reboot, [])
-  end
-
-  def resource_update(sys_calls \\ @sys_calls, kind, id, params) do
-    ok_or_error(sys_calls, :resource_update, [kind, id, params])
   end
 
   def send_message(sys_calls \\ @sys_calls, kind, msg, channels) do

@@ -105,7 +105,7 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate named_pin(ast, env), to: Compiler.DataControl
   defdelegate point(ast, env), to: Compiler.DataControl
   defdelegate read_pin(ast, env), to: Compiler.PinControl
-  defdelegate resource_update(ast, env), to: Compiler.DataControl
+  defdelegate update_resource(ast, env), to: Compiler.UpdateResource
   defdelegate rpc_request(ast, env), to: Compiler.RPCRequest
   defdelegate sequence(ast, env), to: Compiler.Sequence
   defdelegate set_pin_io_mode(ast, env), to: Compiler.PinControl

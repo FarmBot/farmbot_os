@@ -1,0 +1,41 @@
+{
+  "args": {
+    "locals": {
+      "args": {},
+      "body": [],
+      "kind": "scope_declaration"
+    },
+    "version": -999
+  },
+  "body": [
+    {
+      "args": {
+        "resource": {
+          "args": {
+            "resource_id": 23,
+            "resource_type": "Plant"
+          },
+          "kind": "resource"
+        }
+      },
+      "body": [
+        {
+          "args": {
+            "label": "plant_stage",
+            "value": "planted"
+          },
+          "kind": "pair"
+        },
+        {
+          "args": {
+            "label": "r",
+            "value": 23
+          },
+          "kind": "pair"
+        }
+      ],
+      "kind": "update_resource"
+    }
+  ],
+  "kind": "sequence"
+}

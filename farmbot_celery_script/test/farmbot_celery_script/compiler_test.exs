@@ -355,6 +355,16 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
+  test "`update_resource`: Multiple fields of `resource` type." do
+    compiled = "test/fixtures/update_resource_multi.json"
+      |> File.read!()
+      |> Jason.decode!()
+      |> AST.decode()
+      |> compile()
+
+    assert compiled == strip_nl("?")
+  end
+
   defp compile(ast) do
     ast
     |> Compiler.compile_ast([])
