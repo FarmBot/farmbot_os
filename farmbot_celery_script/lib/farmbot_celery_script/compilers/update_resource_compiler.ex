@@ -1,24 +1,13 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  # alias FarmbotCeleryScript.Compiler
+  alias FarmbotCeleryScript.AST
 
-  def coordinate(_ast, _env) do
-    raise "TODO: coordinate"
-  end
-
-  def named_pin(_ast, _env) do
-    raise "TODO: named_pin"
-  end
-
-  def point(_ast, _env) do
-    raise "TODO: point"
-  end
-
-  def tool(_ast, _env) do
-    raise "TODO: tool"
-  end
-
-  def update_resource(_ast, _env) do
-    raise "Its here!"
+  def update_resource(ast, _env) do
+    params = destructure_pairs(ast.body, %{})
+    {id, type} = destructure_resource(Map.fetch!(ast.args, :resource))
+    IO.inspect(params)
+    IO.inspect(type)
+    IO.inspect(id)
+    raise "TODO: Convert symbolic `resource` into concrete resource"
 
     quote do
       # FarmbotCeleryScript.SysCalls.update_resource(
@@ -27,5 +16,27 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
       #   unquote(Macro.escape(params))
       # )
     end
+  end
+
+  defp destructure_resource(%AST{
+         kind: :resource,
+         args: %{
+           resource_id: id,
+           resource_type: type
+         }
+       }) do
+    {type, id}
+  end
+
+  defp destructure_pairs([pair | rest], acc) do
+    IO.puts("TODO: Need to apply handlebars to `value`s.")
+    key = Map.fetch!(pair.args, :label)
+    val = Map.fetch!(pair.args, :value)
+    next_acc = Map.merge(acc, %{key => val})
+    destructure_pairs(rest, next_acc)
+  end
+
+  defp destructure_pairs([], acc) do
+    acc
   end
 end

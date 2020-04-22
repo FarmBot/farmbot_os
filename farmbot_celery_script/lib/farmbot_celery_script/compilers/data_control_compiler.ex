@@ -40,35 +40,4 @@ defmodule FarmbotCeleryScript.Compiler.DataControl do
       )
     end
   end
-
-  def resource_update(
-        %{
-          args: %{
-            resource_type: kind,
-            resource_id: id,
-            label: label,
-            value: value
-          },
-          body: body
-        },
-        env
-      ) do
-    initial = %{label => value}
-    # Technically now body isn't supported by this node.
-    extra =
-      Map.new(body, fn %{args: %{label: label, data_value: value}} ->
-        {label, value}
-      end)
-
-    # Make sure the initial stuff higher most priority
-    params = Map.merge(extra, initial)
-
-    quote do
-      FarmbotCeleryScript.SysCalls.resource_update(
-        unquote(Compiler.compile_ast(kind, env)),
-        unquote(Compiler.compile_ast(id, env)),
-        unquote(Macro.escape(params))
-      )
-    end
-  end
 end
