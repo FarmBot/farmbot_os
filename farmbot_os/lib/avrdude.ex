@@ -17,7 +17,6 @@ defmodule Avrdude do
 
     _ = File.stat!(hex_path)
 
-    # STEP 1: Is the UART in use?
     args = [
       "-patmega2560",
       "-cwiring",
@@ -25,16 +24,23 @@ defmodule Avrdude do
       "-b#{@uart_speed}",
       "-D",
       "-V",
+      "-v",
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    # call the function for resetting the line before executing avrdude.
+    FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
+
     call_reset_fun(reset_fun)
 
-    MuonTrap.cmd("avrdude", args,
-      into: IO.stream(:stdio, :line),
-      stderr_to_stdout: true
-    )
+    result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
+
+    if is_tuple(result) do
+      {a, exit_code} = result
+      FarmbotCore.Logger.info(3, inspect(a))
+      FarmbotCore.Logger.info(3, "Exit code #{exit_code}")
+    end
+
+    result
   end
 
   def call_reset_fun(reset_fun) do
