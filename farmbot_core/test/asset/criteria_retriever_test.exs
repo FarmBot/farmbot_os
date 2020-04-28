@@ -530,8 +530,8 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     days_ago2 = Timex.shift(@now, days: -2)
     expect(Timex, :now, fn -> @now end)
 
-    point!(%{ id: 1, pointer_type: "Plant", created_at: days_ago4 })
-    p2 = point!(%{ id: 2, pointer_type: "Plant", created_at: days_ago2 })
+    point!(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
+    p2 = point!(%{id: 2, pointer_type: "Plant", created_at: days_ago2})
 
     pg1 = %PointGroup{
       id: 212,
@@ -541,7 +541,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       point_ids: [],
       sort_type: "yx_descending",
       criteria: %{
-        day: %{ "op" => "<", "days_ago" => 3 },
+        day: %{"op" => "<", "days_ago" => 3},
         string_eq: %{},
         number_eq: %{},
         number_lt: %{},
