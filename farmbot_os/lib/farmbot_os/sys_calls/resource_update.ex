@@ -12,7 +12,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
   @point_kinds ~w(Plant GenericPointer)
 
-  def resource_update("Device", 0, params) do
+  def update_resource("Device", 0, params) do
     params
     |> do_handlebars()
     |> Asset.update_device!()
@@ -21,12 +21,12 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     :ok
   end
 
-  def resource_update(kind, id, params) when kind in @point_kinds do
+  def update_resource(kind, id, params) when kind in @point_kinds do
     params = do_handlebars(params)
-    point_resource_update(kind, id, params)
+    point_update_resource(kind, id, params)
   end
 
-  def resource_update(kind, id, _params) do
+  def update_resource(kind, id, _params) do
     {:error,
      """
      Unknown resource: #{kind}.#{id}
@@ -34,7 +34,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   end
 
   @doc false
-  def point_resource_update(type, id, params) do
+  def point_update_resource(type, id, params) do
     with %{} = point <- Asset.get_point(pointer_type: type, id: id),
          {:ok, point} <- Asset.update_point(point, params) do
       _ = Private.mark_dirty!(point)
@@ -59,7 +59,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
           _ ->
             Logger.warn(
-              "failed to render #{key} => #{value} for resource_update"
+              "failed to render #{key} => #{value} for update_resource"
             )
 
             {key, value}

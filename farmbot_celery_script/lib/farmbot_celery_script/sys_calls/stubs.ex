@@ -144,6 +144,10 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
     do: error(:write_pin, [pin_num, pin_mode, pin_value])
 
   @impl true
+  def update_resource(kind, id, params),
+    do: error(:update_resource, [kind, id, params])
+
+  @impl true
   def zero(axis), do: error(:zero, [axis])
 
   @impl true

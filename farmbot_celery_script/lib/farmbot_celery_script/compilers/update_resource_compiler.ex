@@ -1,10 +1,15 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  def update_resource(ast, _env) do
+  alias FarmbotCeleryScript.Compiler
+
+  def update_resource(ast, env) do
+    resource = Map.fetch!(ast.args, :resource)
+
     quote do
-      FarmbotCeleryScript.SysCalls.update_resource(
-        unquote(Map.fetch!(ast.args, :resource)),
-        unquote(destructure_pairs(ast.body, %{}))
-      )
+      p = unquote(destructure_pairs(ast.body, %{}))
+      IO.inspect(p, label: "params")
+      result = Compiler.compile_ast(unquote(resource), unquote(env))
+
+      FarmbotCeleryScript.SysCalls.update_resource(result.kind, result.id, p)
     end
   end
 

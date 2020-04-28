@@ -84,7 +84,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate set_servo_angle(pin, angle), to: PinControl
 
   @impl true
-  defdelegate resource_update(kind, id, params), to: ResourceUpdate
+  defdelegate update_resource(kind, id, params), to: ResourceUpdate
 
   @impl true
   defdelegate get_current_x(), to: Movement

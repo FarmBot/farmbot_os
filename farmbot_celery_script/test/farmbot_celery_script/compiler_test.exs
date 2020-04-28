@@ -355,6 +355,17 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
+  test "`update_resource`: " do
+    compiled =
+      "test/fixtures/mark_variable_removed.json"
+      |> File.read!()
+      |> Jason.decode!()
+      |> AST.decode()
+      |> compile()
+
+    assert compiled == strip_nl("?")
+  end
+
   test "`update_resource`: Multiple fields of `resource` type." do
     compiled =
       "test/fixtures/update_resource_multi.json"
@@ -362,28 +373,8 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> Jason.decode!()
       |> AST.decode()
       |> compile()
-    assert compiled == strip_nl("""
-    [
-      fn params ->
-        _ = inspect(params)
 
-        [
-          fn ->
-            FarmbotCeleryScript.SysCalls.update_resource(
-              %FarmbotCeleryScript.AST{
-                args: %{resource_id: 23, resource_type: "Plant"},
-                body: [],
-                comment: nil,
-                kind: :resource,
-                meta: nil
-              },
-              %{"plant_stage" => "planted", "r" => 23}
-            )
-          end
-        ]
-      end
-    ]
-    """)
+    assert compiled == strip_nl("?")
   end
 
   defp compile(ast) do

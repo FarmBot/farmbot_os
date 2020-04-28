@@ -94,27 +94,27 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate assertion(ast, env), to: Compiler.Assertion
   defdelegate calibrate(ast, env), to: Compiler.AxisControl
   defdelegate coordinate(ast, env), to: Compiler.DataControl
-  defdelegate execute(ast, env), to: Compiler.Execute
   defdelegate execute_script(ast, env), to: Compiler.Farmware
+  defdelegate execute(ast, env), to: Compiler.Execute
   defdelegate find_home(ast, env), to: Compiler.AxisControl
   defdelegate home(ast, env), to: Compiler.AxisControl
-  defdelegate unquote(:_if)(ast, env), to: Compiler.If
   defdelegate install_first_party_farmware(ast, env), to: Compiler.Farmware
   defdelegate move_absolute(ast, env), to: Compiler.AxisControl
   defdelegate move_relative(ast, env), to: Compiler.AxisControl
   defdelegate named_pin(ast, env), to: Compiler.DataControl
   defdelegate point(ast, env), to: Compiler.DataControl
   defdelegate read_pin(ast, env), to: Compiler.PinControl
-  defdelegate update_resource(ast, env), to: Compiler.UpdateResource
   defdelegate rpc_request(ast, env), to: Compiler.RPCRequest
   defdelegate sequence(ast, env), to: Compiler.Sequence
   defdelegate set_pin_io_mode(ast, env), to: Compiler.PinControl
   defdelegate set_servo_angle(ast, env), to: Compiler.PinControl
   defdelegate set_user_env(ast, env), to: Compiler.Farmware
   defdelegate take_photo(ast, env), to: Compiler.Farmware
-  defdelegate tool(ast, env), to: Compiler.DataControl
   defdelegate toggle_pin(ast, env), to: Compiler.PinControl
+  defdelegate tool(ast, env), to: Compiler.DataControl
+  defdelegate unquote(:_if)(ast, env), to: Compiler.If
   defdelegate update_farmware(ast, env), to: Compiler.Farmware
+  defdelegate update_resource(ast, env), to: Compiler.UpdateResource
   defdelegate variable_declaration(ast, env), to: Compiler.VariableDeclaration
   defdelegate write_pin(ast, env), to: Compiler.PinControl
   defdelegate zero(ast, env), to: Compiler.AxisControl
@@ -287,6 +287,6 @@ defmodule FarmbotCeleryScript.Compiler do
     |> Code.format_string!()
     |> IO.puts()
 
-    IO.puts("========\n\n")
+    IO.puts("--------\n\n")
   end
 end
