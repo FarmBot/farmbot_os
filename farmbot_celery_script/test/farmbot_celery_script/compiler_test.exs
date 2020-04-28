@@ -362,8 +362,28 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> Jason.decode!()
       |> AST.decode()
       |> compile()
+    assert compiled == strip_nl("""
+    [
+      fn params ->
+        _ = inspect(params)
 
-    assert compiled == strip_nl("?")
+        [
+          fn ->
+            FarmbotCeleryScript.SysCalls.update_resource(
+              %FarmbotCeleryScript.AST{
+                args: %{resource_id: 23, resource_type: "Plant"},
+                body: [],
+                comment: nil,
+                kind: :resource,
+                meta: nil
+              },
+              %{"plant_stage" => "planted", "r" => 23}
+            )
+          end
+        ]
+      end
+    ]
+    """)
   end
 
   defp compile(ast) do
