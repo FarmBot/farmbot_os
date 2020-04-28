@@ -523,7 +523,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     assert Enum.count(ids) == 1
   end
 
-  test "edge case: Retrieves " do
+  test "edge case: Retrieves by `day` criteria only" do
     Repo.delete_all(PointGroup)
     Repo.delete_all(Point)
     days_ago4 = Timex.shift(@now, days: -4)
