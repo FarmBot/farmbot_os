@@ -124,8 +124,6 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     expect(Timex, :now, fn -> @now end)
     pg = point_group_with_fake_points()
 
-    # This one is _almost_ a perfect match,
-    # but the meta field is a miss.
     point!(%{
       id: 888,
       created_at: @five_days_ago,
@@ -523,6 +521,37 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     ids = CriteriaRetriever.run(pg) |> Enum.map(fn p -> p.id end)
     assert Enum.member?(ids, ok.id)
     assert Enum.count(ids) == 1
+  end
+
+  test "edge case: Retrieves " do
+    Repo.delete_all(PointGroup)
+    Repo.delete_all(Point)
+    days_ago4 = Timex.shift(@now, days: -4)
+    days_ago2 = Timex.shift(@now, days: -2)
+    expect(Timex, :now, fn -> @now end)
+
+    point!(%{ id: 1, pointer_type: "Plant", created_at: days_ago4 })
+    p2 = point!(%{ id: 2, pointer_type: "Plant", created_at: days_ago2 })
+
+    pg1 = %PointGroup{
+      id: 212,
+      created_at: Timex.shift(@now, hours: -1),
+      updated_at: Timex.shift(@now, hours: -1),
+      name: "Less than 2 days ago",
+      point_ids: [],
+      sort_type: "yx_descending",
+      criteria: %{
+        day: %{ "op" => "<", "days_ago" => 3 },
+        string_eq: %{},
+        number_eq: %{},
+        number_lt: %{},
+        number_gt: %{}
+      }
+    }
+
+    ids = CriteriaRetriever.run(pg1) |> Enum.map(fn p -> p.id end)
+    assert Enum.count(ids) == 1
+    assert Enum.member?(ids, p2.id)
   end
 
   test "edge case: Filter by slot direction" do
