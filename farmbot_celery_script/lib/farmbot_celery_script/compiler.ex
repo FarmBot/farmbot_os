@@ -65,11 +65,12 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   def compile(%AST{kind: kind} = ast, env) when kind in @valid_entry_points do
+    raise "This is the entrypoint to everything... Figure out where :name, :x, :y, :z come from..."
     compile_entry_point(compile_ast(ast, env), env, [])
   end
 
-  def compile_entry_point([{_, new_env, _} = compiled | rest], env, acc) do
-    env = Keyword.merge(env, new_env)
+  def compile_entry_point([{_, new_env, _} = compiled | rest], old_env, acc) do
+    env = Keyword.merge(old_env, new_env)
     debug_mode?() && print_compiled_code(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
@@ -104,6 +105,7 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate named_pin(ast, env), to: Compiler.DataControl
   defdelegate point(ast, env), to: Compiler.DataControl
   defdelegate read_pin(ast, env), to: Compiler.PinControl
+  defdelegate resource(ast, env), to: Compiler.DataControl
   defdelegate rpc_request(ast, env), to: Compiler.RPCRequest
   defdelegate sequence(ast, env), to: Compiler.Sequence
   defdelegate set_pin_io_mode(ast, env), to: Compiler.PinControl
