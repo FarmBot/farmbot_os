@@ -8,8 +8,18 @@ defmodule FarmbotOS.SysCalls.PointLookup do
 
   def point(kind, id) do
     case Asset.get_point(id: id) do
-      nil -> {:error, "#{kind || "point?"} #{id} not found"}
-      %{name: name, x: x, y: y, z: z} -> %{name: name, x: x, y: y, z: z}
+      nil ->
+        {:error, "#{kind || "point?"} #{id} not found"}
+
+      %{name: name, x: x, y: y, z: z} ->
+        %{
+          name: name,
+          resource_type: "Point",
+          resource_id: id,
+          x: x,
+          y: y,
+          z: z
+        }
     end
   end
 
