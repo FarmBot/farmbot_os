@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  alias FarmbotCeleryScript.{Compiler, AST}
+  alias FarmbotCeleryScript.{Compiler, AST, DotProps}
 
   def update_resource(%AST{args: args, body: body}, env) do
     quote do
@@ -31,7 +31,7 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
     IO.puts("TODO: Need to apply handlebars to `value`s.")
     key = Map.fetch!(pair.args, :label)
     val = Map.fetch!(pair.args, :value)
-    next_acc = Map.merge(acc, %{key => val})
+    next_acc = Map.merge(acc, DotProps.create(key, val))
     unpair(rest, next_acc)
   end
 
