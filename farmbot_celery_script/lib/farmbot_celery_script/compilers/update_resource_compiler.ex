@@ -14,8 +14,8 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
   def do_update(%AST{kind: :identifier} = res, update, env) do
     {name, environ, nil} = Compiler.compile_ast(res, env)
     value = Keyword.fetch!(environ, name)
-    IO.inspect(%{res: res, update: update, value: value}, label: "QQQ")
-    raise "Update sequence compiler. `value` missing resource kind / ID"
+    %{resource_id: id, resource_type: kind} = value
+    FarmbotCeleryScript.SysCalls.update_resource(kind, id, update)
   end
 
   def do_update(%AST{kind: :resource} = res, update, _) do

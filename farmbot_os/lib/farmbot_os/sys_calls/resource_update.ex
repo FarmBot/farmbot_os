@@ -10,7 +10,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
   alias FarmbotOS.SysCalls.SendMessage
 
-  @point_kinds ~w(Plant GenericPointer)
+  @point_kinds ~w(Plant GenericPointer ToolSlot Weed)
 
   def update_resource("Device", 0, params) do
     params

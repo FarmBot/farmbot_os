@@ -11,15 +11,18 @@ defmodule FarmbotOS.SysCalls.PointLookup do
       nil ->
         {:error, "#{kind || "point?"} #{id} not found"}
 
-      %{name: name, x: x, y: y, z: z} ->
+      %{name: name, x: x, y: y, z: z, pointer_type: type} ->
         %{
           name: name,
-          resource_type: "Point",
+          resource_type: type,
           resource_id: id,
           x: x,
           y: y,
           z: z
         }
+
+      other ->
+        Logger.debug("Point error: Please notify support #{inspect(other)}")
     end
   end
 
