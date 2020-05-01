@@ -72,7 +72,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     FarmbotCore.Logger.debug(2, "AVR flash returned #{inspect(result)}")
   end
 
-  defp find_tty() do
+  def find_tty() do
     case FirmwareTTYDetector.tty() do
       nil ->
         {:error,
@@ -85,12 +85,12 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
     end
   end
 
-  defp find_reset_fun("express_k10") do
+  def find_reset_fun("express_k10") do
     FarmbotCore.Logger.debug(3, "Using special express reset function")
     {:ok, fn -> express_reset_fun() end}
   end
 
-  defp find_reset_fun(_) do
+  def find_reset_fun(_) do
     FarmbotCore.Logger.debug(3, "Using default reset function")
     {:ok, &FarmbotFirmware.NullReset.reset/0}
   end
