@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
-  expected_names: ["ttyUSB0", "ttyAMA0"]
-
 config :farmbot_firmware, FarmbotFirmware,
   reset: FarmbotOS.Platform.Target.FirmwareReset.GPIO
 

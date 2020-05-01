@@ -1,5 +1,3 @@
-Application.get_env(:farmbot, FarmbotOS.SysCalls.FlashFirmware, [])[:gpio]
-
 defmodule FarmbotOS.SysCalls.FlashFirmware do
   @moduledoc false
 

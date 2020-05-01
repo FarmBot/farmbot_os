@@ -1,5 +1,11 @@
 # Changelog
 
+# 10.0.0
+
+ * Deprecate `resource_update` RPC
+ * Introduce `update_resource` RPC, which allows users to modify variables from the sequence editor.
+ * Allow Express users to upgrade from RPi0 => RPi3 (require ribbon cable and USB adapter).
+
 # 9.2.2
 
  * Fix firmware locking error ("Can't perform X in Y state")

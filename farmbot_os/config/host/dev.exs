@@ -36,11 +36,6 @@ config :farmbot,
     FarmbotCore.Asset.Repo
   ]
 
-config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
-  expected_names: [
-    System.get_env("FARMBOT_TTY")
-  ]
-
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,

@@ -46,8 +46,6 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
       "beta"
     )
 
-config :farmbot_core, FarmbotCore.FirmwareTTYDetector, expected_names: []
-
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5
 
 config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset

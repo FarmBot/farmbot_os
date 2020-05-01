@@ -3,16 +3,13 @@ defmodule FarmbotCore.FirmwareTTYDetector do
   require Logger
   alias Circuits.UART
 
-  @expected_names Application.get_env(:farmbot_core, __MODULE__)[:expected_names]
-  @expected_names ||
-    Mix.raise("""
-    Please configure `expected_names` for TTYDetector.
-
-        config :farmbot_core, FarmbotCore.FirmwareTTYDetector,
-          expected_names: ["ttyS0", "ttyNotReal"]
-    """)
-
   @error_retry_ms 5_000
+
+  if System.get_env("FARMBOT_TTY") do
+    @expected_names [System.get_env("FARMBOT_TTY")]
+  else
+    @expected_names ["ttyUSB0", "ttyAMA0", "ttyACM0"]
+  end
 
   @doc "Gets the detected TTY"
   def tty(server \\ __MODULE__) do

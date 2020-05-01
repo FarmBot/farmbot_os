@@ -35,7 +35,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       y: 3.4,
       z: 5.6,
       resource_id: 555,
-      resource_type: "Point"
+      resource_type: "GenericPointer"
     }
 
     p = point(expected)

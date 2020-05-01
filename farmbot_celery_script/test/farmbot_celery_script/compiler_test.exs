@@ -363,7 +363,33 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> AST.decode()
       |> compile()
 
-    assert compiled == strip_nl("?")
+    assert compiled ==
+             strip_nl("""
+             [
+               fn params ->
+                 _ = inspect(params)
+
+                 unsafe_cGFyZW50 =
+                   Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
+
+                 [
+                   fn ->
+                     FarmbotCeleryScript.Compiler.UpdateResource.do_update(
+                       %FarmbotCeleryScript.AST{
+                         args: %{label: "parent"},
+                         body: [],
+                         comment: nil,
+                         kind: :identifier,
+                         meta: nil
+                       },
+                       %{"plant_stage" => "removed"},
+                       []
+                     )
+                   end
+                 ]
+               end
+             ]
+             """)
   end
 
   test "`update_resource`: Multiple fields of `resource` type." do
@@ -374,7 +400,30 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> AST.decode()
       |> compile()
 
-    assert compiled == strip_nl("?")
+    assert compiled ==
+             strip_nl("""
+             [
+               fn params ->
+                 _ = inspect(params)
+
+                 [
+                   fn ->
+                     FarmbotCeleryScript.Compiler.UpdateResource.do_update(
+                       %FarmbotCeleryScript.AST{
+                         args: %{resource_id: 23, resource_type: "Plant"},
+                         body: [],
+                         comment: nil,
+                         kind: :resource,
+                         meta: nil
+                       },
+                       %{"plant_stage" => "planted", "r" => 23},
+                       []
+                     )
+                   end
+                 ]
+               end
+             ]
+             """)
   end
 
   defp compile(ast) do
