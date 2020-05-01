@@ -42,7 +42,7 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
          _ <-
            FarmbotCore.Logger.debug(
              3,
-             "closing firmware transport before flash"
+             "Closing the firmware transport before flash"
            ),
          :ok <- FarmbotFirmware.close_transport(),
          _ <- FarmbotCore.Logger.debug(3, "starting firmware flash"),
