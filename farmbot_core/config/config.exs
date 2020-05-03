@@ -56,7 +56,3 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
 import_config "ecto.exs"
 import_config "logger.exs"
 import_config "#{Mix.env()}.exs"
-
-unless Mix.target() == :host do
-  config :farmbot_core, FarmbotCore.FirmwareResetter, gpio: Circuits.GPIO
-end

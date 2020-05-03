@@ -1,5 +1,9 @@
 defmodule FarmbotCore.FirmwareResetter do
-  @gpio Application.get_env(:farmbot_core, __MODULE__, [])[:gpio]
+  if Code.ensure_compiled?(Circuits.GPIO) do
+    @gpio Circuits.GPIO
+  else
+    @gpio nil
+  end
   alias FarmbotCore.Asset
   require FarmbotCore.Logger
 
