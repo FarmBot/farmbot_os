@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :farmbot_firmware, FarmbotFirmware,
-  reset: FarmbotOS.Platform.Target.FirmwareReset.GPIO
-
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [
     FarmbotOS.Platform.Target.RTCWorker
