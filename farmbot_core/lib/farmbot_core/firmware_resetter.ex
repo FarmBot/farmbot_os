@@ -1,18 +1,5 @@
 defmodule FarmbotCore.FirmwareResetter do
-  defmodule Stub do
-    require FarmbotCore.Logger
-
-    def fail do
-      m = "Reset function NOT FOUND. Please notify FarmBot support."
-      FarmbotCore.Logger.error(3, m)
-      {:error, m}
-    end
-
-    def open(_, _), do: fail()
-    def write(_, _), do: fail()
-  end
-
-  @gpio Application.get_env(:farmbot_core, __MODULE__, [])[:gpio] || Stub
+  @gpio Application.get_env(:farmbot_core, __MODULE__, [])[:gpio]
   alias FarmbotCore.Asset
   require FarmbotCore.Logger
 
@@ -24,8 +11,15 @@ defmodule FarmbotCore.FirmwareResetter do
   end
 
   def find_reset_fun("express_k10") do
-    FarmbotCore.Logger.debug(3, "Using special express reset function")
-    {:ok, fn -> express_reset_fun() end}
+    # TODO: Remove this conditional after we determine
+    #       why @gpio is `nil`. -RC 3 MAY 2020
+    if @gpio do
+      FarmbotCore.Logger.debug(3, "Using special express reset function")
+      {:ok, fn -> express_reset_fun() end}
+    else
+      FarmbotCore.Logger.debug(3, "@gpio unavailable. Using default reset fn.")
+      find_reset_fun(nil)
+    end
   end
 
   def find_reset_fun(_) do
@@ -35,12 +29,13 @@ defmodule FarmbotCore.FirmwareResetter do
 
   def express_reset_fun() do
     try do
+      gpio_module = @gpio
       FarmbotCore.Logger.debug(3, "Begin MCU reset")
-      {:ok, gpio} = @gpio.open(19, :output)
-      :ok = @gpio.write(gpio, 0)
-      :ok = @gpio.write(gpio, 1)
+      {:ok, gpio} = gpio_module.open(19, :output)
+      :ok = gpio.write(gpio, 0)
+      :ok = gpio.write(gpio, 1)
       Process.sleep(1000)
-      :ok = @gpio.write(gpio, 0)
+      :ok = gpio.write(gpio, 0)
       FarmbotCore.Logger.debug(3, "Finish MCU Reset")
       :ok
     rescue
