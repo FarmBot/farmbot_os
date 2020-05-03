@@ -12,7 +12,7 @@ defmodule FarmbotCore.FirmwareResetter do
     def write(_, _), do: fail()
   end
 
-  @gpio Application.get_env(:farmbot, __MODULE__, [])[:gpio] || Stub
+  @gpio Application.get_env(:farmbot_core, __MODULE__, [])[:gpio] || Stub
   alias FarmbotCore.Asset
   require FarmbotCore.Logger
 
