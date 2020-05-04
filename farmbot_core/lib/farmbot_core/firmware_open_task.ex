@@ -9,14 +9,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   require FarmbotCore.Logger
   alias FarmbotFirmware.{UARTTransport, StubTransport}
   alias FarmbotCore.{Asset, Config}
-  @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold]
-  @attempt_threshold || Mix.raise """
-  Firmware open attempt threshold not configured:
-
-  config :farmbot_core, FarmbotCore.FirmwareOpenTask, [
-    attempt_threshold: 10
-  ]
-  """
+  @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold] || 5
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
