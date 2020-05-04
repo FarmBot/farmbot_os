@@ -1,6 +1,6 @@
 use Mix.Config
 
-config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
+config :farmbot_firmware, FarmbotFirmware, reset: FarmbotCore.FirmwareResetter
 
 config :farmbot, FarmbotOS.Init.Supervisor,
   init_children: [

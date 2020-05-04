@@ -45,9 +45,9 @@ defmodule FarmbotCore.FirmwareResetter do
     rescue
       ex ->
         message = Exception.message(ex)
-        msg = "Could not reset express firmware: #{message}"
+        msg = "Express reset failed #{message}"
         FarmbotCore.Logger.error(3, msg)
-        :express_reset_error
+        {:error, msg}
     end
   end
 end
