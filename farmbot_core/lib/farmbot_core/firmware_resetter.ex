@@ -15,15 +15,8 @@ defmodule FarmbotCore.FirmwareResetter do
   end
 
   def find_reset_fun("express_k10") do
-    # TODO: Remove this conditional after we determine
-    #       why @gpio is `nil`. -RC 3 MAY 2020
-    if @gpio do
-      FarmbotCore.Logger.debug(3, "Using special express reset function")
-      {:ok, fn -> express_reset_fun() end}
-    else
-      FarmbotCore.Logger.debug(3, "@gpio unavailable. Using default reset fn.")
-      find_reset_fun(nil)
-    end
+    FarmbotCore.Logger.debug(3, "Using special express reset function")
+    {:ok, fn -> express_reset_fun() end}
   end
 
   def find_reset_fun(_) do
