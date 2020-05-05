@@ -18,7 +18,10 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
   @doc false
   def swap_transport(tty) do
-    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: UARTTransport, device: tty)
+    Application.put_env(:farmbot_firmware, FarmbotFirmware,
+    transport: UARTTransport,
+    device: tty,
+    reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
     _ = FarmbotFirmware.close_transport()
@@ -26,7 +29,9 @@ defmodule FarmbotCore.FirmwareOpenTask do
   end
 
   def unswap_transport() do
-    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: StubTransport)
+    Application.put_env(:farmbot_firmware, FarmbotFirmware,
+    transport: StubTransport,
+    reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
     _ = FarmbotFirmware.close_transport()
@@ -39,7 +44,16 @@ defmodule FarmbotCore.FirmwareOpenTask do
     firmware_path = Asset.fbos_config(:firmware_path)
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     if firmware_path && firmware_hardware do
+      IO.inspect(%{
+        firmware_path: firmware_path,
+        firmware_hardware: firmware_hardware,
+      }, label: "=== INIT FIRMWARE OPEN TASK (needs open)")
       Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
+    else
+      IO.inspect(%{
+        firmware_path: firmware_path,
+        firmware_hardware: firmware_hardware,
+      }, label: "=== INIT FIRMWARE OPEN TASK (does NOT need open)")
     end
     {:ok, %{timer: nil, attempts: 0, threshold: @attempt_threshold}}
   end
