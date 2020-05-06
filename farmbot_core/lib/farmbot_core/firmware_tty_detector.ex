@@ -50,7 +50,6 @@ defmodule FarmbotCore.FirmwareTTYDetector do
     if farmbot_tty?(name) do
       {:noreply, name}
     else
-      Logger.warn("#{name} is not an expected Farmbot Firmware TTY")
       {:noreply, state, {:continue, rest}}
     end
   end
