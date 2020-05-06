@@ -12,7 +12,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
   @point_kinds ~w(Plant GenericPointer ToolSlot Weed)
 
-  def update_resource("Device", 0, params) do
+  def update_resource("Device", _, params) do
     params
     |> do_handlebars()
     |> Asset.update_device!()
@@ -29,7 +29,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   def update_resource(kind, id, _params) do
     {:error,
      """
-     Unknown resource: #{kind}.#{id}
+     Unknown resource: #{inspect({kind,id})}
      """}
   end
 
