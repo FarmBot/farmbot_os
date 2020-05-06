@@ -11,16 +11,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   alias FarmbotCore.{Asset.FbosConfig, BotState, Config}
   import FarmbotFirmware.PackageUtils, only: [package_to_string: 1]
 
-  @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold]
+  @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold] || 5
   @firmware_flash_timeout Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_timeout] || 5000
   @disable_firmware_io_logs_timeout Application.get_env(:farmbot_core, __MODULE__)[:disable_firmware_io_logs_timeout] || 300000
-  @firmware_flash_attempt_threshold || Mix.raise """
-  Firmware open attempt threshold not configured:
-
-  config :farmbot_core, #{__MODULE__}, [
-    firmware_flash_attempt_threshold: :infinity
-  ]
-  """
 
   @impl FarmbotCore.AssetWorker
   def preload(%FbosConfig{}), do: []

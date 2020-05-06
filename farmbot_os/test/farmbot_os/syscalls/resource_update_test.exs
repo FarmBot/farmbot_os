@@ -31,7 +31,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
     params = %{name: "Updated to {{ x }}"}
     assert :ok == ResourceUpdate.update_resource("Plant", 555, params)
     next_plant = PointLookup.point("Plant", 555)
-    assert "Updated to " == next_plant.name
+    assert String.contains?(next_plant.name, "Updated to ")
 
     bad_result1 = ResourceUpdate.update_resource("Plant", 0, params)
     error = "Plant.0 is not currently synced, so it could not be updated"

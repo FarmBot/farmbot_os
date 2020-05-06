@@ -6,7 +6,7 @@ defmodule FarmbotCore.FirmwareTTYDetector do
   @error_retry_ms 5_000
 
   if System.get_env("FARMBOT_TTY") do
-    @expected_names [System.get_env("FARMBOT_TTY")]
+    @expected_names ["ttyUSB0", "ttyAMA0", "ttyACM0", System.get_env("FARMBOT_TTY")]
   else
     @expected_names ["ttyUSB0", "ttyAMA0", "ttyACM0"]
   end
@@ -50,7 +50,7 @@ defmodule FarmbotCore.FirmwareTTYDetector do
     if farmbot_tty?(name) do
       {:noreply, name}
     else
-      # Logger.warn("#{name} is not an expected Farmbot Firmware TTY")
+      Logger.warn("#{name} is not an expected Farmbot Firmware TTY")
       {:noreply, state, {:continue, rest}}
     end
   end
