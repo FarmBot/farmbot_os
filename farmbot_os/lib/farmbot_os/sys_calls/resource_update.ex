@@ -29,7 +29,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   def update_resource(kind, id, _params) do
     {:error,
      """
-     Unknown resource: #{inspect({kind,id})}
+     Unknown resource: #{kind}.#{id}
      """}
   end
 

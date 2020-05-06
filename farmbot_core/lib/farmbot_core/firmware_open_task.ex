@@ -44,16 +44,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
     firmware_path = Asset.fbos_config(:firmware_path)
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     if firmware_path && firmware_hardware do
-      IO.inspect(%{
-        firmware_path: firmware_path,
-        firmware_hardware: firmware_hardware,
-      }, label: "=== INIT FIRMWARE OPEN TASK (needs open)")
       Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
-    else
-      IO.inspect(%{
-        firmware_path: firmware_path,
-        firmware_hardware: firmware_hardware,
-      }, label: "=== INIT FIRMWARE OPEN TASK (does NOT need open)")
     end
     {:ok, %{timer: nil, attempts: 0, threshold: @attempt_threshold}}
   end
