@@ -68,8 +68,8 @@ defmodule FarmbotCeleryScript.Compiler do
     compile_entry_point(compile_ast(ast, env), env, [])
   end
 
-  def compile_entry_point([{_, new_env, _} = compiled | rest], old_env, acc) do
-    env = Keyword.merge(old_env, new_env)
+  def compile_entry_point([{_, new_env, _} = compiled | rest], env, acc) do
+    env = Keyword.merge(env, new_env)
     debug_mode?() && print_compiled_code(compiled)
     # entry points must be evaluated once more with the calling `env`
     # to return a list of compiled `steps`
@@ -77,9 +77,7 @@ defmodule FarmbotCeleryScript.Compiler do
     # TODO: investigate why i have to turn this to a string
     # before eval ing it?
     # case Code.eval_quoted(compiled, [], __ENV__) do
-    result = Macro.to_string(compiled) |> Code.eval_string(new_env, __ENV__)
-
-    case result do
+    case Macro.to_string(compiled) |> Code.eval_string(new_env, __ENV__) do
       {fun, new_env} when is_function(fun, 1) ->
         env = Keyword.merge(env, new_env)
         compile_entry_point(rest, env, acc ++ apply(fun, [env]))

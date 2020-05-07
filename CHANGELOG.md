@@ -4,7 +4,6 @@
 
  * Deprecate `resource_update` RPC
  * Introduce `update_resource` RPC, which allows users to modify variables from the sequence editor.
- * Allow Express users to upgrade from RPi0 => RPi3 (requires 40 pin ribbon cable and USB adapter).
  * Genesis v1.5 and Express v1.0 firmware updates.
 
 # 9.2.2
