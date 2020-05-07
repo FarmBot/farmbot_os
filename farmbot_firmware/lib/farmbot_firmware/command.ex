@@ -111,8 +111,7 @@ defmodule FarmbotFirmware.Command do
   end
 
   def debug?() do
-    # Set this to `true` when debugging celeryscript issues.
-    false
+    Application.get_env(:farmbot_firmware, __MODULE__)[:debug_log] || false
   end
 
   def debug_log(msg), do: if(debug?(), do: Logger.debug(msg), else: :ok)
