@@ -21,7 +21,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   @doc "Returns current debug mode value"
   def debug_mode?() do
-    Application.get_env(:farmbot_celery_script, __MODULE__)[:debug] || false
+    true
   end
 
   @valid_entry_points [:sequence, :rpc_request]
@@ -281,13 +281,13 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   defp print_compiled_code(compiled) do
-    IO.puts("========")
+    IO.puts("=== START ===")
 
     compiled
     |> Macro.to_string()
     |> Code.format_string!()
     |> IO.puts()
 
-    IO.puts("--------\n\n")
+    IO.puts("=== END ===\n\n")
   end
 end
