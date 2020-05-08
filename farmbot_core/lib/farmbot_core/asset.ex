@@ -251,8 +251,15 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_point(point, params) do
-    point
-    |> Point.changeset(params)
+    # TODO: RC 8 MAY 20202 - We need to hard refresh the point.
+    #       The CSVM appears to be caching resources. This leads
+    #       to problems when a user runs a sequence that has two
+    #       MARK AS steps.
+    # NOTE: Updating the `meta` attribute is a _replace_ action
+    #       by default, not a merge action.
+    meta = Map.merge(point.meta || %{}, params["meta"] || %{})
+    Repo.get_by(Point, id: point.id)
+    |> Point.changeset(Map.merge(params, %{"meta" => meta}))
     |> Repo.update()
   end
 
