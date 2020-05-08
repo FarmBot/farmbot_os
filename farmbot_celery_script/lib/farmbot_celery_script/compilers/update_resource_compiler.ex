@@ -2,12 +2,12 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
   alias FarmbotCeleryScript.{Compiler, AST, DotProps}
 
   def update_resource(%AST{args: args, body: body}, _env) do
-    quote do
-      unquote(__MODULE__).do_update_resource(
-        unquote(Map.fetch!(args, :resource)),
-        unquote(unpair(body, %{})),
-        params
-      )
+    quote location: :keep do
+      mod = unquote(__MODULE__)
+      resource = unquote(Map.fetch!(args, :resource))
+      update = unquote(unpair(body, %{}))
+
+      mod.do_update_resource(resource, update, params)
     end
   end
 
