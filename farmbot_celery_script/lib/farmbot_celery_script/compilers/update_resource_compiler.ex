@@ -1,35 +1,31 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
   alias FarmbotCeleryScript.{Compiler, AST, DotProps}
 
-  def update_resource(%AST{args: args, body: body}, _env) do
+  def update_resource(%AST{args: args, body: body}, env) do
     quote location: :keep do
-      mod = unquote(__MODULE__)
-      resource = unquote(Map.fetch!(args, :resource))
+      me = unquote(__MODULE__)
+      variable = unquote(Map.fetch!(args, :resource))
       update = unquote(unpair(body, %{}))
 
-      mod.do_update_resource(resource, update, params)
+      case variable do
+        %AST{kind: :identifier} ->
+          {name, environ, nil} = Compiler.compile_ast(variable, params)
+          me.do_update(Keyword.fetch!(environ, name), update)
+
+        %AST{kind: :resource} ->
+          me.do_update(variable.args, update)
+
+        res ->
+          raise "Resource error. Please notfiy support: #{inspect(res)}"
+      end
     end
   end
 
-  def do_update_resource(%AST{kind: :identifier} = variable, update, env) do
-    {name, environ, nil} = Compiler.compile_ast(variable, env)
-    value = Keyword.fetch!(environ, name)
-    run_update_syscall(value, update)
-  end
-
-  def do_update_resource(%AST{kind: :resource} = res, update, _) do
-    run_update_syscall(res.args, update)
-  end
-
-  def do_update_resource(res, _, _) do
-    raise "update_resource error. Please notfiy support: #{inspect(res)}"
-  end
-
-  defp run_update_syscall(%{resource_id: id, resource_type: kind}, update_params) do
+  def do_update(%{resource_id: id, resource_type: kind}, update_params) do
     FarmbotCeleryScript.SysCalls.update_resource(kind, id, update_params)
   end
 
-  defp run_update_syscall(other, update) do
+  def do_update(other, update) do
     raise String.trim("""
     MARK AS can only be used to mark resources like plants and devices.
     It cannot be used on things like coordinates.
