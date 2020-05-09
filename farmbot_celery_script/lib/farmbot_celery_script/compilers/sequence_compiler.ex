@@ -112,6 +112,18 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     end
   end
 
+  def create_better_params(body) do
+    Enum.reduce(body, %{}, fn ast, map ->
+      case ast do
+        %{kind: :variable_declaration} ->
+          args = Map.fetch!(ast, :args)
+          Map.put(map, Map.fetch!(args, :label), Map.fetch!(args, :data_value))
+        hmm ->
+          raise "Unexpected kind #{inspect(hmm)}"
+      end
+    end)
+  end
+
   def compile_sequence(
         %{args: %{locals: %{body: params}} = args, body: block, meta: meta},
         env
@@ -137,6 +149,8 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
         end
       end)
 
+    better_params = create_better_params(body)
+
     {:__block__, env, assignments} = compile_block(body, env)
     sequence_name = meta[:sequence_name] || args[:sequence_name]
     steps = compile_block(block, env) |> decompose_block_to_steps()
@@ -153,7 +167,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
           # parent = Keyword.fetch!(params, :parent)
           unquote_splicing(params_fetch)
           unquote_splicing(assignments)
-
+          better_params = unquote(better_params)
           # Unquote the remaining sequence steps.
           unquote(steps)
         end

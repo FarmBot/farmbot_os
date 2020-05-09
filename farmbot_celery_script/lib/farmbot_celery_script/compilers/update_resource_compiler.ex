@@ -1,7 +1,7 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  alias FarmbotCeleryScript.{Compiler, AST, DotProps}
+  alias FarmbotCeleryScript.{ AST, DotProps}
 
-  def update_resource(%AST{args: args, body: body}, env) do
+  def update_resource(%AST{args: args, body: body}, _env) do
     quote location: :keep do
       me = unquote(__MODULE__)
       variable = unquote(Map.fetch!(args, :resource))
@@ -9,8 +9,10 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
 
       case variable do
         %AST{kind: :identifier} ->
-          {name, environ, nil} = Compiler.compile_ast(variable, params)
-          me.do_update(Keyword.fetch!(environ, name), update)
+          args = Map.fetch!(variable, :args)
+          label = Map.fetch!(args, :label)
+          resource = Map.fetch!(better_params, label)
+          me.do_update(resource, update)
 
         %AST{kind: :resource} ->
           me.do_update(variable.args, update)
