@@ -30,43 +30,13 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
         iterable_ast,
         %{
           args:
-            %{
-              locals:
-                %{
-                  body: params
-                } = locals
-            } = sequence_args,
+            %{ locals: %{ body: _ } = locals } = sequence_args,
           meta: sequence_meta
         } = sequence_ast,
         env
       ) do
     sequence_name =
       sequence_meta[:sequence_name] || sequence_args[:sequence_name]
-
-    # remove the iterable from the parameter applications,
-    # since it will be injected after this.
-    _params =
-      Enum.reduce(params, [], fn
-        # Remove point_group from parameter appls
-        %{
-          kind: :parameter_application,
-          args: %{data_value: %{kind: :point_group}}
-        },
-        acc ->
-          acc
-
-        # Remove every_point from parameter appls
-        %{
-          kind: :parameter_application,
-          args: %{data_value: %{kind: :every_point}}
-        },
-        acc ->
-          acc
-
-        # Everything else gets added back
-        ast, acc ->
-          acc ++ [ast]
-      end)
 
     # will be a point_group or every_point node
     group_ast = iterable_ast.args.data_value
