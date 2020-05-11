@@ -112,15 +112,21 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     end
   end
 
-  def create_better_params(body) do
+  def create_better_params(body, env) do
     Enum.reduce(body, %{}, fn ast, map ->
+      args = Map.fetch!(ast, :args)
+      label = Map.fetch!(args, :label)
       case ast do
         %{kind: :variable_declaration} ->
-          args = Map.fetch!(ast, :args)
-          Map.put(map, Map.fetch!(args, :label), Map.fetch!(args, :data_value))
-        hmm ->
-          raise "Unexpected kind #{inspect(hmm)}"
-      end
+          Map.put(map, label, Map.fetch!(args, :data_value))
+
+        %{kind: :parameter_declaration} ->
+          IO.inspect(ast, label: "######### AST")
+          Map.put(map, label, compile_param_declaration(ast, env))
+
+        _ ->
+          raise "How do I compile this? #{inspect(Map.fetch!(ast, :args))}"
+        end
     end)
   end
 
@@ -132,6 +138,9 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     # The `params` side gets turned into
     # a keyword list. These `params` are passed in from a previous sequence.
     # The `body` side declares variables in _this_ scope.
+    # === DON'T USE THIS IN NEW CODE.
+    #     SCHEDULED FOR DEPRECATION.
+    #     USE `better_params` INSTEAD.
     {params_fetch, body} =
       Enum.reduce(params, {[], []}, fn ast, {params, body} = _acc ->
         case ast do
@@ -149,13 +158,13 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
         end
       end)
 
-    better_params = create_better_params(body)
-
     {:__block__, env, assignments} = compile_block(body, env)
     sequence_name = meta[:sequence_name] || args[:sequence_name]
     steps = compile_block(block, env) |> decompose_block_to_steps()
 
     steps = add_sequence_init_and_complete_logs(steps, sequence_name)
+
+    better_params = create_better_params(params, env)
 
     [
       quote location: :keep do
