@@ -257,9 +257,19 @@ defmodule FarmbotCore.Asset do
     #       MARK AS steps.
     # NOTE: Updating the `meta` attribute is a _replace_ action
     #       by default, not a merge action.
-    meta = Map.merge(point.meta || %{}, params[:meta] || %{})
+    # MORE NOTES: Mixed keys (symbol vs. string) will crash this FN.
+    #             Let's just stringify everything...
+    new_meta     = params[:meta] || params["meta"] || %{}
+    old_meta     = point.meta || %{}
+    updated_meta = Map.merge(old_meta, new_meta)
+    clean_params = params
+    |> Map.merge(%{meta: updated_meta})
+    |> Enum.map(fn {k, v} -> {"#{k}", v} end)
+    |> Map.new()
+
+    IO.inspect(clean_params, label: "####### HMMMM")
     Repo.get_by(Point, id: point.id)
-    |> Point.changeset(Map.merge(params, %{meta: meta}))
+    |> Point.changeset(clean_params)
     |> Repo.update()
   end
 

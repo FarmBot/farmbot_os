@@ -14,7 +14,7 @@ defmodule FarmbotCeleryScript.Compiler do
   @doc "Returns current debug mode value"
   def debug_mode?() do
     # Set this to `true` when debuging.
-    true
+    false
   end
 
   @valid_entry_points [:sequence, :rpc_request]
