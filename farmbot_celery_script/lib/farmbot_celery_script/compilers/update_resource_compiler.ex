@@ -12,15 +12,17 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
           args = Map.fetch!(variable, :args)
           label = Map.fetch!(args, :label)
           resource = Map.fetch!(better_params, label)
-          me.do_update(resource, update)
+          me.do_update(resource.args, update)
 
-        %AST{kind: :resource} ->
-          me.do_update(variable.args, update)
-
-        res ->
-          raise "Resource error. Please notfiy support: #{inspect(res)}"
+        %AST{kind: :point} -> me.do_update(variable.args, update)
+        %AST{kind: :resource} -> me.do_update(variable.args, update)
+        res -> raise "Resource error. Please notfiy support: #{inspect(res)}"
       end
     end
+  end
+
+  def do_update(%{pointer_id: id, pointer_type: kind}, update_params) do
+    FarmbotCeleryScript.SysCalls.update_resource(kind, id, update_params)
   end
 
   def do_update(%{resource_id: id, resource_type: kind}, update_params) do

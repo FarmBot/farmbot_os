@@ -1,5 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Sequence do
   import FarmbotCeleryScript.Compiler.Utils
+  alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
 
   @iterables [:point_group, :every_point]
 
@@ -113,19 +114,25 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   end
 
   def create_better_params(body, env) do
-    Enum.reduce(body, %{}, fn ast, map ->
+    parameter_declarations = Enum.reduce(env, %{}, fn
+      {key, value}, map ->
+        encoded_label = "#{key}"
+        if String.starts_with?(encoded_label, "unsafe_") do
+          Map.put(map, IdentifierSanitizer.to_string(encoded_label), value)
+        else
+          map
+        end
+    end)
+
+    Enum.reduce(body, parameter_declarations, fn ast, map ->
       args = Map.fetch!(ast, :args)
       label = Map.fetch!(args, :label)
       case ast do
         %{kind: :variable_declaration} ->
           Map.put(map, label, Map.fetch!(args, :data_value))
 
-        %{kind: :parameter_declaration} ->
-          IO.inspect(ast, label: "######### AST")
-          Map.put(map, label, compile_param_declaration(ast, env))
-
-        _ ->
-          raise "How do I compile this? #{inspect(Map.fetch!(ast, :args))}"
+        %{kind: :parameter_declaration} -> map
+        _ -> raise "How do I compile this? #{inspect(Map.fetch!(ast, :args))}"
         end
     end)
   end
