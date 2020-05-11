@@ -12,8 +12,7 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
           args = Map.fetch!(variable, :args)
           label = Map.fetch!(args, :label)
           resource = Map.fetch!(better_params, label)
-          me.do_update(resource.args, update)
-
+          me.do_update(resource, update)
         %AST{kind: :point} -> me.do_update(variable.args, update)
         %AST{kind: :resource} -> me.do_update(variable.args, update)
         res -> raise "Resource error. Please notfiy support: #{inspect(res)}"

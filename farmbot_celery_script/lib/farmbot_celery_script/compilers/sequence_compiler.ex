@@ -125,14 +125,14 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     end)
 
     Enum.reduce(body, parameter_declarations, fn ast, map ->
-      args = Map.fetch!(ast, :args)
-      label = Map.fetch!(args, :label)
       case ast do
         %{kind: :variable_declaration} ->
+          args = Map.fetch!(ast, :args)
+          label = Map.fetch!(args, :label)
           Map.put(map, label, Map.fetch!(args, :data_value))
 
         %{kind: :parameter_declaration} -> map
-        _ -> raise "How do I compile this? #{inspect(Map.fetch!(ast, :args))}"
+        _ -> raise "How do I compile this? #{inspect(ast)}"
         end
     end)
   end
