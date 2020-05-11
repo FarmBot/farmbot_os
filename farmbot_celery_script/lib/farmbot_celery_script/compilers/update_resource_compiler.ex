@@ -39,7 +39,7 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
     MARK AS can only be used to mark resources like plants and devices.
     It cannot be used on things like coordinates.
     Ensure that your sequences and farm events us MARK AS on plants and not
-    coordinates. Tried updating #{inspect(other)} to #{inspect(update)}
+    coordinates (#{inspect(other)} / #{inspect(update)})
     """)
   end
 

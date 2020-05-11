@@ -267,7 +267,6 @@ defmodule FarmbotCore.Asset do
     |> Enum.map(fn {k, v} -> {"#{k}", v} end)
     |> Map.new()
 
-    IO.inspect(clean_params, label: "####### HMMMM")
     Repo.get_by(Point, id: point.id)
     |> Point.changeset(clean_params)
     |> Repo.update()
