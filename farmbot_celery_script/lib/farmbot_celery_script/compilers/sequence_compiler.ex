@@ -30,8 +30,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   def compile_sequence_iterable(
         iterable_ast,
         %{
-          args:
-            %{ locals: %{ body: _ } = locals } = sequence_args,
+          args: %{locals: %{body: _} = locals} = sequence_args,
           meta: sequence_meta
         } = sequence_ast,
         env
@@ -114,26 +113,33 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   end
 
   def create_better_params(body, env) do
-    parameter_declarations = Enum.reduce(env, %{}, fn
-      {key, value}, map ->
-        encoded_label = "#{key}"
-        if String.starts_with?(encoded_label, "unsafe_") do
-          Map.put(map, IdentifierSanitizer.to_string(encoded_label), value)
-        else
-          map
-        end
-    end)
+    parameter_declarations =
+      Enum.reduce(env, %{}, fn
+        {key, value}, map ->
+          encoded_label = "#{key}"
+
+          if String.starts_with?(encoded_label, "unsafe_") do
+            Map.put(map, IdentifierSanitizer.to_string(encoded_label), value)
+          else
+            map
+          end
+      end)
 
     Enum.reduce(body, parameter_declarations, fn ast, map ->
       case ast do
+        %{kind: :parameter_application} ->
+          args = Map.fetch!(ast, :args)
+          label = Map.fetch!(args, :label)
+          Map.put(map, label, Map.fetch!(args, :data_value))
+
         %{kind: :variable_declaration} ->
           args = Map.fetch!(ast, :args)
           label = Map.fetch!(args, :label)
           Map.put(map, label, Map.fetch!(args, :data_value))
 
-        %{kind: :parameter_declaration} -> map
-        _ -> raise "How do I compile this? #{inspect(ast)}"
-        end
+        %{kind: :parameter_declaration} ->
+          map
+      end
     end)
   end
 

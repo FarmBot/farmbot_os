@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  alias FarmbotCeleryScript.{ AST, DotProps}
+  alias FarmbotCeleryScript.{AST, DotProps}
 
   def update_resource(%AST{args: args, body: body}, _env) do
     quote location: :keep do
@@ -13,11 +13,15 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
           label = Map.fetch!(args, :label)
           resource = Map.fetch!(better_params, label)
           me.do_update(resource, update)
+
         %AST{kind: :point} ->
           me.do_update(variable.args, update)
+
         %AST{kind: :resource} ->
           me.do_update(variable.args, update)
-        res -> raise "Resource error. Please notfiy support: #{inspect(res)}"
+
+        res ->
+          raise "Resource error. Please notfiy support: #{inspect(res)}"
       end
     end
   end
@@ -36,11 +40,11 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
 
   def do_update(other, update) do
     raise String.trim("""
-    MARK AS can only be used to mark resources like plants and devices.
-    It cannot be used on things like coordinates.
-    Ensure that your sequences and farm events us MARK AS on plants and not
-    coordinates (#{inspect(other)} / #{inspect(update)})
-    """)
+          MARK AS can only be used to mark resources like plants and devices.
+          It cannot be used on things like coordinates.
+          Ensure that your sequences and farm events us MARK AS on plants and not
+          coordinates (#{inspect(other)} / #{inspect(update)})
+          """)
   end
 
   defp unpair([pair | rest], acc) do

@@ -35,9 +35,10 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
   @doc false
   def point_update_resource(type, id, params) do
-    with %{} = point <- Asset.get_point(pointer_type: type, id: id),
+    with %{} = point <- Asset.get_point(id: id),
          {:ok, point} <- Asset.update_point(point, params) do
       _ = Private.mark_dirty!(point)
+      IO.puts("Updated point #{id}: #{inspect(params)}")
       :ok
     else
       nil ->
