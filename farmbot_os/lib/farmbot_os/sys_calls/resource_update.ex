@@ -2,6 +2,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   @moduledoc false
 
   require Logger
+  require FarmbotCore.Logger
 
   alias FarmbotCore.{
     Asset,
@@ -11,8 +12,37 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   alias FarmbotOS.SysCalls.SendMessage
 
   @point_kinds ~w(Plant GenericPointer ToolSlot Weed)
+  @friendly_names %{
+    "gantry_mounted" => "`gantry mounted` property",
+    "mounted_tool_id" => "mounted tool ID",
+    "openfarm_slug" => "Openfarm slug",
+    "ota_hour" => "OTA hour",
+    "plant_stage" => "plant stage",
+    "planted_at" => "planted at time",
+    "pullout_direction" => "pullout direction",
+    "tool_id" => "tool ID",
+    "tz_offset_hrs" => "timezone offset hours",
+    "x" => "X axis",
+    "y" => "Y axis",
+    "z" => "Z axis",
+    "Device" => "device",
+    "Plant" => "plant",
+    "GenericPointer" => "map point",
+    "ToolSlot" => "tool slot",
+    "Weed" => "weed"
+  }
 
-  def update_resource("Device", _, params) do
+  def notify_user_of_updates(kind, params) do
+    Enum.map(params, fn {k, v} ->
+      name = @friendly_names[kind] || kind
+      property = @friendly_names["#{k}"] || k
+      msg = "Setting #{name} #{property} to '#{v}'"
+      FarmbotCore.Logger.info(3, msg)
+    end)
+  end
+
+  def update_resource("Device" = kind, _, params) do
+    notify_user_of_updates(kind, params)
     params
     |> do_handlebars()
     |> Asset.update_device!()
@@ -22,6 +52,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   end
 
   def update_resource(kind, id, params) when kind in @point_kinds do
+    notify_user_of_updates(kind, params)
     params = do_handlebars(params)
     point_update_resource(kind, id, params)
   end
