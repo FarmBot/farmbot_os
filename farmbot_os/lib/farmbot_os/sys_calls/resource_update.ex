@@ -36,13 +36,14 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     Enum.map(params, fn {k, v} ->
       name = @friendly_names[kind] || kind
       property = @friendly_names["#{k}"] || k
-      msg = "Setting #{name} #{property} to '#{v}'"
+      msg = "Setting #{name} #{property} to #{inspect(v)}"
       FarmbotCore.Logger.info(3, msg)
     end)
   end
 
   def update_resource("Device" = kind, _, params) do
     notify_user_of_updates(kind, params)
+
     params
     |> do_handlebars()
     |> Asset.update_device!()

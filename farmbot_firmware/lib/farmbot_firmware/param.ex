@@ -553,6 +553,6 @@ defmodule FarmbotFirmware.Param do
   def format_bool(val) when val == 1, do: true
   def format_bool(val) when val == 0, do: false
 
-  def format_high_low_inverted(val) when val == 0, do: "HIGH"
-  def format_high_low_inverted(val) when val == 1, do: "LOW"
+  def format_high_low_inverted(val) when val == 0, do: "ON"
+  def format_high_low_inverted(val) when val == 1, do: "OFF"
 end
