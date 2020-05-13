@@ -74,11 +74,16 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
       :ok
     else
       nil ->
-        {:error,
-         "#{type}.#{id} is not currently synced, so it could not be updated"}
+        msg = "#{type}.#{id} is not currently synced. Please re-sync."
+        FarmbotCore.Logger.error(3, msg)
+        {:error, msg}
 
       {:error, _changeset} ->
-        {:error, "Failed to update #{type}.#{id}"}
+        msg =
+          "Failed update (#{type}.#{id}): Ensure the data is properly formatted"
+
+        FarmbotCore.Logger.error(3, msg)
+        {:error, msg}
     end
   end
 

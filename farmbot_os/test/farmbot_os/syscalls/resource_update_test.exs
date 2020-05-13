@@ -34,7 +34,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
     assert String.contains?(next_plant.name, "Updated to ")
 
     bad_result1 = ResourceUpdate.update_resource("Plant", 0, params)
-    error = "Plant.0 is not currently synced, so it could not be updated"
+    error = "Plant.0 is not currently synced. Please re-sync."
     assert {:error, error} == bad_result1
   end
 
