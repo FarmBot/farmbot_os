@@ -47,7 +47,7 @@ defmodule FarmbotCore.Asset.Private do
     try do
       result =  Repo.insert_or_update!(changeset)
       %FarmbotCore.Asset.Private.LocalMeta{} = result
-      FarmbotCore.Logger.debug(3, "#mark_dirty!/2: #{result.table}##{result.id}")
+      FarmbotCore.Logger.info(3, "#mark_dirty!/2: #{result.table}##{result.id}")
       result
     catch
       :error,  %Sqlite.DbConnection.Error{
