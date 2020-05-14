@@ -40,17 +40,20 @@ defmodule FarmbotCore.Asset.Private do
     # Because sqlite can't test unique constraints before a transaction, if this function gets called for
     # the same asset more than once asyncronously, the asset can be marked dirty twice at the same time
     # causing the `unique constraint` error to happen in either `ecto` OR `sqlite`. I've
-    # caught both errors here as they are both essentially the same thing, and can be safely 
+    # caught both errors here as they are both essentially the same thing, and can be safely
     # discarded. Doing an `insert_or_update/1` (without the bang) can still result in the sqlite
-    # error being thrown.  
+    # error being thrown.
     changeset = LocalMeta.changeset(local_meta, Map.merge(params, %{table: table, status: "dirty"}))
     try do
-      Repo.insert_or_update!(changeset)
+      result =  Repo.insert_or_update!(changeset)
+      %FarmbotCore.Asset.Private.LocalMeta{} = result
+      FarmbotCore.Logger.debug(3, "#mark_dirty!/2: #{result.table}##{result.id}")
+      result
     catch
       :error,  %Sqlite.DbConnection.Error{
-        message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id", 
+        message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id",
         sqlite: %{code: :constraint}
-      } -> 
+      } ->
         Logger.warn """
         Caught race condition marking data as dirty (sqlite)
         table: #{inspect(table)}
@@ -59,10 +62,10 @@ defmodule FarmbotCore.Asset.Private do
         Ecto.Changeset.apply_changes(changeset)
       :error, %Ecto.InvalidChangesetError{
         changeset: %{
-          action: :insert, 
+          action: :insert,
           errors: [
             table: {"LocalMeta already exists.", [
-              validation: :unsafe_unique, 
+              validation: :unsafe_unique,
               fields: [:table, :asset_local_id]
             ]}
           ]}
@@ -73,7 +76,7 @@ defmodule FarmbotCore.Asset.Private do
         id: #{inspect(asset.local_id)}
         """
         Ecto.Changeset.apply_changes(changeset)
-      type, reason -> 
+      type, reason ->
         FarmbotCore.Logger.error 1, """
         Caught unexpected error marking data as dirty
         table: #{inspect(table)}

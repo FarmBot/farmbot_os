@@ -70,7 +70,6 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     with %{} = point <- Asset.get_point(id: id),
          {:ok, point} <- Asset.update_point(point, params) do
       _ = Private.mark_dirty!(point)
-      IO.puts("Updated point #{id}: #{inspect(params)}")
       :ok
     else
       nil ->
@@ -84,6 +83,9 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
         FarmbotCore.Logger.error(3, msg)
         {:error, msg}
+
+      err ->
+        {:error, "Unknown error. Please notify support. #{inspect(err)}"}
     end
   end
 

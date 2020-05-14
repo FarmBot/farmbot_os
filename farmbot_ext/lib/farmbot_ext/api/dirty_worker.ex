@@ -6,8 +6,6 @@ defmodule FarmbotExt.API.DirtyWorker do
   import API.View, only: [render: 2]
 
   require Logger
-  require FarmbotCore.Logger
-
   use GenServer
   @timeout 10000
 
@@ -36,7 +34,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   @impl GenServer
   def init(args) do
-    # FarmbotCore.Logger.disable(self())
     module = Keyword.fetch!(args, :module)
     timeout = Keyword.get(args, :timeout, @timeout)
     {:ok, %{module: module, timeout: timeout}, timeout}
@@ -55,27 +52,15 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def handle_continue([dirty | rest], %{module: module} = state) do
-    FarmbotCore.Logger.info(
-      3,
-      "[#{module} #{dirty.local_id} #{inspect(self())}] Handling dirty data"
-    )
 
     case http_request(dirty, state) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-        FarmbotCore.Logger.debug(
-          3,
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} ok"
-        )
 
         dirty |> module.changeset(body) |> handle_changeset(rest, state)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
-        FarmbotCore.Logger.debug(
-          3,
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error+body"
-        )
 
         changeset = module.changeset(dirty)
 
@@ -86,10 +71,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
-        FarmbotCore.Logger.debug(
-          3,
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP request complete: #{s} error"
-        )
 
         module.changeset(dirty)
         |> Map.put(:valid?, false)
@@ -97,8 +78,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # HTTP Error. (500, network error, timeout etc.)
       error ->
-        FarmbotCore.Logger.error(
-          3,
+        Logger.error(
           "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{state.module} #{
             inspect(error)
           }"
@@ -110,7 +90,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # If the changeset was valid, update the record.
   def handle_changeset(%{valid?: true} = changeset, rest, state) do
-    # FarmbotCore.Logger.info("Successfully synced: #{state.module}")
 
     Repo.update!(changeset)
     |> Private.mark_clean!()
@@ -128,27 +107,23 @@ defmodule FarmbotExt.API.DirtyWorker do
       end)
       |> Enum.join("\n")
 
-    FarmbotCore.Logger.error(3, "Failed to sync: #{state.module} \n #{message}")
     _ = Repo.delete!(data)
     {:noreply, state, {:continue, rest}}
   end
 
   defp http_request(%{id: nil} = dirty, state) do
-    FarmbotCore.Logger.debug(3, "#{state.module} clean request (post)")
     path = state.module.path()
     data = render(state.module, dirty)
     API.post(API.client(), path, data)
   end
 
   defp http_request(dirty, %{module: module} = state) when module in @singular do
-    FarmbotCore.Logger.debug(3, "#{state.module} dirty request (patch)")
     path = path = state.module.path()
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
   end
 
   defp http_request(dirty, state) do
-    FarmbotCore.Logger.debug(3, "#{state.module} dirty request (patch)")
     path = Path.join(state.module.path(), to_string(dirty.id))
     data = render(state.module, dirty)
     API.patch(API.client(), path, data)
