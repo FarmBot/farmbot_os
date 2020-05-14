@@ -36,7 +36,8 @@ defmodule FarmbotExt.API.DirtyWorker do
   def init(args) do
     module = Keyword.fetch!(args, :module)
     timeout = Keyword.get(args, :timeout, @timeout)
-    {:ok, %{module: module, timeout: timeout}, timeout}
+    timer = Process.send_after(self(), :timeout, timeout)
+    {:ok, %{module: module, timeout: timeout, timer: timer}}
   end
 
   @impl GenServer
@@ -48,20 +49,18 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   @impl GenServer
   def handle_continue([], state) do
-    {:noreply, state, state.timeout}
+    timer = Process.send_after(self(), :timeout, state.timeout)
+    {:noreply, %{state | timer: timer}}
   end
 
   def handle_continue([dirty | rest], %{module: module} = state) do
-
     case http_request(dirty, state) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-
         dirty |> module.changeset(body) |> handle_changeset(rest, state)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
-
         changeset = module.changeset(dirty)
 
         Enum.reduce(body, changeset, fn {key, val}, changeset ->
@@ -71,7 +70,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
-
         module.changeset(dirty)
         |> Map.put(:valid?, false)
         |> handle_changeset(rest, state)
@@ -90,15 +88,12 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # If the changeset was valid, update the record.
   def handle_changeset(%{valid?: true} = changeset, rest, state) do
-
     Repo.update!(changeset)
     |> Private.mark_clean!()
 
     {:noreply, state, {:continue, rest}}
   end
 
-  # If the changeset was invalid, delete the record.
-  # TODO(Connor) - Update the dirty field here, upload to rollbar?
   def handle_changeset(%{valid?: false, data: data} = changeset, rest, state) do
     message =
       Enum.map(changeset.errors, fn
@@ -107,6 +102,7 @@ defmodule FarmbotExt.API.DirtyWorker do
       end)
       |> Enum.join("\n")
 
+    Logger.error("Failed to sync: #{state.module} \n #{message}")
     _ = Repo.delete!(data)
     {:noreply, state, {:continue, rest}}
   end
