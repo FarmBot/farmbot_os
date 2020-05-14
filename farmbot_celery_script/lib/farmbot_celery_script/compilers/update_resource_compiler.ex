@@ -6,7 +6,8 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
       me = unquote(__MODULE__)
       variable = unquote(Map.fetch!(args, :resource))
       update = unquote(unpair(body, %{}))
-
+      # Go easy on the API...
+      Process.sleep(1234)
       case variable do
         %AST{kind: :identifier} ->
           args = Map.fetch!(variable, :args)

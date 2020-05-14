@@ -7,7 +7,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   require Logger
   use GenServer
-  @timeout 10000
+  @timeout 4700
 
   # these resources can't be accessed by `id`.
   @singular [
