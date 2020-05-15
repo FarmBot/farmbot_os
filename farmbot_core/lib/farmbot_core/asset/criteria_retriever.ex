@@ -132,15 +132,14 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
   end
 
   defp stage_1_day_field({pg, accum}) do
-    day_criteria = pg.criteria["day"] || %{}
-    days = day_criteria["days_ago"] || 0
+    day_criteria = pg.criteria["day"] || pg.criteria[:day] || %{}
+    days = day_criteria["days_ago"] || day_criteria[:days_ago] || 0
+    op = day_criteria["op"] || day_criteria[:op] || "<"
+    time = Timex.shift(Timex.now(), days: -1 * days)
+
     if days == 0 do
       { pg, accum }
     else
-
-      op = day_criteria["op"] || "<"
-      time = Timex.shift(Timex.now(), days: -1 * days)
-
       inverted_op = if op == ">" do "<" else ">" end
 
       { pg, accum ++ [{"created_at", inverted_op, time}] }

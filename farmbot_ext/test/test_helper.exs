@@ -21,12 +21,12 @@ timeout = System.get_env("EXUNIT_TIMEOUT") || "5000"
 System.put_env("LOG_SILENCE", "true")
 
 ExUnit.start(assert_receive_timeout: String.to_integer(timeout))
+# Use this to stub out calls to `state.reset.reset()` in firmware.
+defmodule StubReset do
+  def reset(), do: :ok
+end
 
 defmodule Helpers do
-  # Maybe I don't need this?
-  # Maybe I could use `start_supervised`?
-  # https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2
-
   @wait_time 180
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)

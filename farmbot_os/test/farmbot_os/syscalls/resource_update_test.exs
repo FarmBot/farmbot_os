@@ -14,14 +14,14 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
     end)
   end
 
-  test "resource_update/3 - Device" do
+  test "update_resource/3 - Device" do
     fake_coords!()
     params = %{name: "X is {{ x }}"}
-    assert :ok == ResourceUpdate.resource_update("Device", 0, params)
+    assert :ok == ResourceUpdate.update_resource("Device", 0, params)
     assert "X is 1.2" == FarmbotCore.Asset.device().name
   end
 
-  test "resource_update/3 - Point" do
+  test "update_resource/3 - Point" do
     Repo.delete_all(Point)
 
     %Point{id: 555, pointer_type: "Plant"}
@@ -29,17 +29,17 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
     |> Repo.insert!()
 
     params = %{name: "Updated to {{ x }}"}
-    assert :ok == ResourceUpdate.resource_update("Plant", 555, params)
+    assert :ok == ResourceUpdate.update_resource("Plant", 555, params)
     next_plant = PointLookup.point("Plant", 555)
-    assert "Updated to " == next_plant.name
+    assert String.contains?(next_plant.name, "Updated to ")
 
-    bad_result1 = ResourceUpdate.resource_update("Plant", 0, params)
-    error = "Plant.0 is not currently synced, so it could not be updated"
+    bad_result1 = ResourceUpdate.update_resource("Plant", 0, params)
+    error = "Plant.0 is not currently synced. Please re-sync."
     assert {:error, error} == bad_result1
   end
 
-  test "resource_update/3 - unknown" do
-    {:error, error} = ResourceUpdate.resource_update("Foo", 0, nil)
+  test "update_resource/3 - unknown" do
+    {:error, error} = ResourceUpdate.update_resource("Foo", 0, nil)
     assert error == "Unknown resource: Foo.0\n"
   end
 end

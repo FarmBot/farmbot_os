@@ -2,6 +2,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   @moduledoc false
 
   require Logger
+  require FarmbotCore.Logger
 
   alias FarmbotCore.{
     Asset,
@@ -10,9 +11,39 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
   alias FarmbotOS.SysCalls.SendMessage
 
-  @point_kinds ~w(Plant GenericPointer)
+  @point_kinds ~w(Plant GenericPointer ToolSlot Weed)
+  @friendly_names %{
+    "gantry_mounted" => "`gantry mounted` property",
+    "mounted_tool_id" => "mounted tool ID",
+    "openfarm_slug" => "Openfarm slug",
+    "ota_hour" => "OTA hour",
+    "plant_stage" => "plant stage",
+    "planted_at" => "planted at time",
+    "pullout_direction" => "pullout direction",
+    "tool_id" => "tool ID",
+    "tz_offset_hrs" => "timezone offset hours",
+    "x" => "X axis",
+    "y" => "Y axis",
+    "z" => "Z axis",
+    "Device" => "device",
+    "Plant" => "plant",
+    "GenericPointer" => "map point",
+    "ToolSlot" => "tool slot",
+    "Weed" => "weed"
+  }
 
-  def resource_update("Device", 0, params) do
+  def notify_user_of_updates(kind, params) do
+    Enum.map(params, fn {k, v} ->
+      name = @friendly_names[kind] || kind
+      property = @friendly_names["#{k}"] || k
+      msg = "Setting #{name} #{property} to #{inspect(v)}"
+      FarmbotCore.Logger.info(3, msg)
+    end)
+  end
+
+  def update_resource("Device" = kind, _, params) do
+    notify_user_of_updates(kind, params)
+
     params
     |> do_handlebars()
     |> Asset.update_device!()
@@ -21,12 +52,13 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     :ok
   end
 
-  def resource_update(kind, id, params) when kind in @point_kinds do
+  def update_resource(kind, id, params) when kind in @point_kinds do
+    notify_user_of_updates(kind, params)
     params = do_handlebars(params)
-    point_resource_update(kind, id, params)
+    point_update_resource(kind, id, params)
   end
 
-  def resource_update(kind, id, _params) do
+  def update_resource(kind, id, _params) do
     {:error,
      """
      Unknown resource: #{kind}.#{id}
@@ -34,18 +66,26 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   end
 
   @doc false
-  def point_resource_update(type, id, params) do
-    with %{} = point <- Asset.get_point(pointer_type: type, id: id),
+  def point_update_resource(type, id, params) do
+    with %{} = point <- Asset.get_point(id: id),
          {:ok, point} <- Asset.update_point(point, params) do
       _ = Private.mark_dirty!(point)
       :ok
     else
       nil ->
-        {:error,
-         "#{type}.#{id} is not currently synced, so it could not be updated"}
+        msg = "#{type}.#{id} is not currently synced. Please re-sync."
+        FarmbotCore.Logger.error(3, msg)
+        {:error, msg}
 
       {:error, _changeset} ->
-        {:error, "Failed to update #{type}.#{id}"}
+        msg =
+          "Failed update (#{type}.#{id}): Ensure the data is properly formatted"
+
+        FarmbotCore.Logger.error(3, msg)
+        {:error, msg}
+
+      err ->
+        {:error, "Unknown error. Please notify support. #{inspect(err)}"}
     end
   end
 
@@ -59,7 +99,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
 
           _ ->
             Logger.warn(
-              "failed to render #{key} => #{value} for resource_update"
+              "failed to render #{key} => #{value} for update_resource"
             )
 
             {key, value}

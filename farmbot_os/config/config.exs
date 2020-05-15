@@ -80,8 +80,6 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
     FarmbotOS.Platform.Host.Configurator
   ]
 
-config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
-
 config :logger,
   handle_sasl_reports: false,
   handle_otp_reports: false,

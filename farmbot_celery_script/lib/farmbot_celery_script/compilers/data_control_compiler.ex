@@ -1,6 +1,19 @@
 defmodule FarmbotCeleryScript.Compiler.DataControl do
   alias FarmbotCeleryScript.Compiler
 
+  def resource(ast, _env) do
+    IO.puts("======")
+    IO.inspect(ast)
+    # %FarmbotCeleryScript.AST{
+    #   args: %{resource_id: 0, resource_type: "Device"},
+    #   body: [],
+    #   comment: nil,
+    #   kind: :resource,
+    #   meta: nil
+    # }
+    raise "TODO: Pull resource from DB?"
+  end
+
   # compiles coordinate
   # Coordinate should return a vec3
   def coordinate(%{args: %{x: x, y: y, z: z}}, env) do
@@ -37,37 +50,6 @@ defmodule FarmbotCeleryScript.Compiler.DataControl do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.get_toolslot_for_tool(
         unquote(Compiler.compile_ast(tool_id, env))
-      )
-    end
-  end
-
-  def resource_update(
-        %{
-          args: %{
-            resource_type: kind,
-            resource_id: id,
-            label: label,
-            value: value
-          },
-          body: body
-        },
-        env
-      ) do
-    initial = %{label => value}
-    # Technically now body isn't supported by this node.
-    extra =
-      Map.new(body, fn %{args: %{label: label, data_value: value}} ->
-        {label, value}
-      end)
-
-    # Make sure the initial stuff higher most priority
-    params = Map.merge(extra, initial)
-
-    quote do
-      FarmbotCeleryScript.SysCalls.resource_update(
-        unquote(Compiler.compile_ast(kind, env)),
-        unquote(Compiler.compile_ast(id, env)),
-        unquote(Macro.escape(params))
       )
     end
   end

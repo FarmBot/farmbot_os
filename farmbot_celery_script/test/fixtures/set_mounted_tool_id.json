@@ -1,0 +1,34 @@
+{
+  "args": {
+    "locals": {
+      "args": {},
+      "body": [],
+      "kind": "scope_declaration"
+    },
+    "version": -999
+  },
+  "body": [
+    {
+      "args": {
+        "resource": {
+          "args": {
+            "resource_id": 0,
+            "resource_type": "Device"
+          },
+          "kind": "resource"
+        }
+      },
+      "body": [
+        {
+          "args": {
+            "label": "mounted_tool_id",
+            "value": 12161
+          },
+          "kind": "pair"
+        }
+      ],
+      "kind": "update_resource"
+    }
+  ],
+  "kind": "sequence"
+}

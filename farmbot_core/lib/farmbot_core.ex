@@ -27,7 +27,10 @@ defmodule FarmbotCore do
       FarmbotCore.FirmwareOpenTask,
       FarmbotCore.FirmwareEstopTimer,
       # Also error handling for a transport not starting ?
-      {FarmbotFirmware, transport: FarmbotFirmware.StubTransport, side_effects: FarmbotCore.FirmwareSideEffects},
+      {FarmbotFirmware,
+      transport: FarmbotFirmware.StubTransport,
+      side_effects: FarmbotCore.FirmwareSideEffects,
+      reset: FarmbotCore.FirmwareResetter},
       FarmbotCeleryScript.Scheduler
     ]
     config = (Application.get_env(:farmbot_ext, __MODULE__) || [])

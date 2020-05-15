@@ -11,17 +11,10 @@ defmodule FarmbotCeleryScript.Compiler do
     Compiler.IdentifierSanitizer
   }
 
-  @doc "Sets debug mode for the compiler"
-  def debug_mode(bool \\ true) do
-    old = Application.get_env(:farmbot_celery_script, __MODULE__, [])
-    new = Keyword.put(old, :debug, bool)
-    Application.put_env(:farmbot_celery_script, __MODULE__, new)
-    bool
-  end
-
   @doc "Returns current debug mode value"
   def debug_mode?() do
-    Application.get_env(:farmbot_celery_script, __MODULE__)[:debug] || false
+    # Set this to `true` when debuging.
+    false
   end
 
   @valid_entry_points [:sequence, :rpc_request]
@@ -94,27 +87,28 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate assertion(ast, env), to: Compiler.Assertion
   defdelegate calibrate(ast, env), to: Compiler.AxisControl
   defdelegate coordinate(ast, env), to: Compiler.DataControl
-  defdelegate execute(ast, env), to: Compiler.Execute
   defdelegate execute_script(ast, env), to: Compiler.Farmware
+  defdelegate execute(ast, env), to: Compiler.Execute
   defdelegate find_home(ast, env), to: Compiler.AxisControl
   defdelegate home(ast, env), to: Compiler.AxisControl
-  defdelegate unquote(:_if)(ast, env), to: Compiler.If
   defdelegate install_first_party_farmware(ast, env), to: Compiler.Farmware
   defdelegate move_absolute(ast, env), to: Compiler.AxisControl
   defdelegate move_relative(ast, env), to: Compiler.AxisControl
   defdelegate named_pin(ast, env), to: Compiler.DataControl
   defdelegate point(ast, env), to: Compiler.DataControl
   defdelegate read_pin(ast, env), to: Compiler.PinControl
-  defdelegate resource_update(ast, env), to: Compiler.DataControl
+  defdelegate resource(ast, env), to: Compiler.DataControl
   defdelegate rpc_request(ast, env), to: Compiler.RPCRequest
   defdelegate sequence(ast, env), to: Compiler.Sequence
   defdelegate set_pin_io_mode(ast, env), to: Compiler.PinControl
   defdelegate set_servo_angle(ast, env), to: Compiler.PinControl
   defdelegate set_user_env(ast, env), to: Compiler.Farmware
   defdelegate take_photo(ast, env), to: Compiler.Farmware
-  defdelegate tool(ast, env), to: Compiler.DataControl
   defdelegate toggle_pin(ast, env), to: Compiler.PinControl
+  defdelegate tool(ast, env), to: Compiler.DataControl
+  defdelegate unquote(:_if)(ast, env), to: Compiler.If
   defdelegate update_farmware(ast, env), to: Compiler.Farmware
+  defdelegate update_resource(ast, env), to: Compiler.UpdateResource
   defdelegate variable_declaration(ast, env), to: Compiler.VariableDeclaration
   defdelegate write_pin(ast, env), to: Compiler.PinControl
   defdelegate zero(ast, env), to: Compiler.AxisControl
@@ -280,13 +274,13 @@ defmodule FarmbotCeleryScript.Compiler do
   end
 
   defp print_compiled_code(compiled) do
-    IO.puts("========")
+    IO.puts("=== START ===")
 
     compiled
     |> Macro.to_string()
     |> Code.format_string!()
     |> IO.puts()
 
-    IO.puts("========\n\n")
+    IO.puts("=== END ===\n\n")
   end
 end

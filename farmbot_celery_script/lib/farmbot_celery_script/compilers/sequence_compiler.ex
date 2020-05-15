@@ -1,5 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Sequence do
   import FarmbotCeleryScript.Compiler.Utils
+  alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
 
   @iterables [:point_group, :every_point]
 
@@ -29,44 +30,13 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   def compile_sequence_iterable(
         iterable_ast,
         %{
-          args:
-            %{
-              locals:
-                %{
-                  body: params
-                } = locals
-            } = sequence_args,
+          args: %{locals: %{body: _} = locals} = sequence_args,
           meta: sequence_meta
         } = sequence_ast,
         env
       ) do
     sequence_name =
       sequence_meta[:sequence_name] || sequence_args[:sequence_name]
-
-    # remove the iterable from the parameter applications,
-    # since it will be injected after this.
-    _params =
-      Enum.reduce(params, [], fn
-        # Remove point_group from parameter appls
-        %{
-          kind: :parameter_application,
-          args: %{data_value: %{kind: :point_group}}
-        },
-        acc ->
-          acc
-
-        # Remove every_point from parameter appls
-        %{
-          kind: :parameter_application,
-          args: %{data_value: %{kind: :every_point}}
-        },
-        acc ->
-          acc
-
-        # Everything else gets added back
-        ast, acc ->
-          acc ++ [ast]
-      end)
 
     # will be a point_group or every_point node
     group_ast = iterable_ast.args.data_value
@@ -142,6 +112,37 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     end
   end
 
+  def create_better_params(body, env) do
+    parameter_declarations =
+      Enum.reduce(env, %{}, fn
+        {key, value}, map ->
+          encoded_label = "#{key}"
+
+          if String.starts_with?(encoded_label, "unsafe_") do
+            Map.put(map, IdentifierSanitizer.to_string(encoded_label), value)
+          else
+            map
+          end
+      end)
+
+    Enum.reduce(body, parameter_declarations, fn ast, map ->
+      case ast do
+        %{kind: :parameter_application} ->
+          args = Map.fetch!(ast, :args)
+          label = Map.fetch!(args, :label)
+          Map.put(map, label, Map.fetch!(args, :data_value))
+
+        %{kind: :variable_declaration} ->
+          args = Map.fetch!(ast, :args)
+          label = Map.fetch!(args, :label)
+          Map.put(map, label, Map.fetch!(args, :data_value))
+
+        %{kind: :parameter_declaration} ->
+          map
+      end
+    end)
+  end
+
   def compile_sequence(
         %{args: %{locals: %{body: params}} = args, body: block, meta: meta},
         env
@@ -150,6 +151,9 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     # The `params` side gets turned into
     # a keyword list. These `params` are passed in from a previous sequence.
     # The `body` side declares variables in _this_ scope.
+    # === DON'T USE THIS IN NEW CODE.
+    #     SCHEDULED FOR DEPRECATION.
+    #     USE `better_params` INSTEAD.
     {params_fetch, body} =
       Enum.reduce(params, {[], []}, fn ast, {params, body} = _acc ->
         case ast do
@@ -173,6 +177,8 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
 
     steps = add_sequence_init_and_complete_logs(steps, sequence_name)
 
+    better_params = create_better_params(params, env)
+
     [
       quote location: :keep do
         fn params ->
@@ -183,7 +189,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
           # parent = Keyword.fetch!(params, :parent)
           unquote_splicing(params_fetch)
           unquote_splicing(assignments)
-
+          better_params = unquote(better_params)
           # Unquote the remaining sequence steps.
           unquote(steps)
         end

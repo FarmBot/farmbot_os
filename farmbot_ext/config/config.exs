@@ -2,8 +2,6 @@ use Mix.Config
 
 config :logger, handle_otp_reports: true, handle_sasl_reports: true
 
-config :farmbot_firmware, FarmbotFirmware, reset: FarmbotFirmware.NullReset
-
 # TODO(Rick) We probably don't need to use this anymore now that Mox is a thing.
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotCeleryScript.SysCalls.Stubs
