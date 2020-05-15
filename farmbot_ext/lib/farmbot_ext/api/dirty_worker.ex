@@ -6,6 +6,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   import API.View, only: [render: 2]
 
   require Logger
+  require FarmbotCore.Logger
   use GenServer
   @timeout 1500
 
@@ -53,10 +54,12 @@ defmodule FarmbotExt.API.DirtyWorker do
     case http_request(dirty, module) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
+        FarmbotCore.Logger.error(2, "HTTP #{s} OK. #{inspect(body)}")
         dirty |> module.changeset(body) |> handle_changeset(module)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
+        FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
         changeset = module.changeset(dirty)
 
         Enum.reduce(body, changeset, fn {key, val}, changeset ->
@@ -66,13 +69,14 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
+        FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
         module.changeset(dirty)
         |> Map.put(:valid?, false)
         |> handle_changeset(module)
 
       # HTTP Error. (500, network error, timeout etc.)
       error ->
-        Logger.error(
+        FarmbotCore.Logger.error(2,
           "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{
             inspect(error)
           }"
