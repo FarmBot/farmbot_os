@@ -84,7 +84,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate set_servo_angle(pin, angle), to: PinControl
 
   @impl true
-  defdelegate resource_update(kind, id, params), to: ResourceUpdate
+  defdelegate update_resource(kind, id, params), to: ResourceUpdate
 
   @impl true
   defdelegate get_current_x(), to: Movement
@@ -184,6 +184,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def firmware_reboot do
+    FarmbotCore.Logger.info(1, "Restarting firmware...")
     GenServer.stop(FarmbotFirmware, :reboot)
   end
 
@@ -204,12 +205,14 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_lock do
     _ = FarmbotFirmware.command({:command_emergency_lock, []})
+    FarmbotCore.Logger.error(1, "E-stopped")
     :ok
   end
 
   @impl true
   def emergency_unlock do
     _ = FarmbotFirmware.command({:command_emergency_unlock, []})
+    FarmbotCore.Logger.busy(1, "Unlocked")
     :ok
   end
 

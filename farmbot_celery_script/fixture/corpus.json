@@ -22,13 +22,14 @@
     {
       "name": "ALLOWED_MESSAGE_TYPES",
       "allowed_values": [
-        "success",
+        "assertion",
         "busy",
-        "warn",
+        "debug",
         "error",
-        "info",
         "fun",
-        "debug"
+        "info",
+        "success",
+        "warn"
       ]
     },
     {
@@ -53,6 +54,15 @@
       "allowed_values": [
         0,
         1
+      ]
+    },
+    {
+      "name": "ALLOWED_ASSERTION_TYPES",
+      "allowed_values": [
+        "abort",
+        "recover",
+        "abort_recover",
+        "continue"
       ]
     },
     {
@@ -89,6 +99,7 @@
       "name": "LegalSequenceKind",
       "allowed_values": [
         "_if",
+        "assertion",
         "calibrate",
         "change_ownership",
         "check_updates",
@@ -109,7 +120,6 @@
         "read_status",
         "reboot",
         "remove_farmware",
-        "resource_update",
         "send_message",
         "set_servo_angle",
         "set_user_env",
@@ -117,6 +127,7 @@
         "take_photo",
         "toggle_pin",
         "update_farmware",
+        "update_resource",
         "wait",
         "write_pin",
         "zero"
@@ -206,7 +217,8 @@
         "planned",
         "planted",
         "harvested",
-        "sprouted"
+        "sprouted",
+        "removed"
       ]
     },
     {
@@ -214,24 +226,18 @@
       "allowed_values": [
         "GenericPointer",
         "ToolSlot",
-        "Plant"
+        "Plant",
+        "Weed"
       ]
     },
     {
       "name": "resource_type",
       "allowed_values": [
         "Device",
-        "FarmEvent",
-        "Image",
-        "Log",
-        "Peripheral",
-        "Plant",
         "Point",
-        "Regimen",
-        "Sequence",
-        "Tool",
+        "Plant",
         "ToolSlot",
-        "User",
+        "Weed",
         "GenericPointer"
       ]
     },
@@ -261,11 +267,13 @@
         "z",
         "pin_type",
         "pointer_id",
+        "point_group_id",
         "pointer_type",
         "pin_mode",
         "sequence_id",
         "lhs",
         "op",
+        "priority",
         "channel_name",
         "message_type",
         "tool_id",
@@ -273,19 +281,22 @@
         "axis",
         "message",
         "speed",
-        "resource_type"
+        "resource_type",
+        "assertion_type",
+        "lua",
+        "resource"
       ]
     },
     {
       "name": "LegalKindString",
       "allowed_values": [
+        "Assertion",
         "If",
         "Calibrate",
         "ChangeOwnership",
         "Channel",
         "CheckUpdates",
         "Coordinate",
-        "DumpInfo",
         "EmergencyLock",
         "EmergencyUnlock",
         "ExecuteScript",
@@ -331,7 +342,10 @@
         "MoveAbsolute",
         "WritePin",
         "ReadPin",
-        "ResourceUpdate"
+        "ResourceUpdate",
+        "Resource",
+        "UpdateResource",
+        "PointGroup"
       ]
     }
   ],
@@ -394,6 +408,10 @@
         {
           "tag": "identifier",
           "name": "identifier"
+        },
+        {
+          "tag": "point_group",
+          "name": "point_group"
         }
       ]
     },
@@ -626,6 +644,15 @@
       ]
     },
     {
+      "name": "point_group_id",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
       "name": "pointer_type",
       "allowed_values": [
         {
@@ -671,6 +698,15 @@
         {
           "tag": "ALLOWED_OPS",
           "name": "ALLOWED_OPS"
+        }
+      ]
+    },
+    {
+      "name": "priority",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
         }
       ]
     },
@@ -745,9 +781,53 @@
           "name": "resource_type"
         }
       ]
+    },
+    {
+      "name": "assertion_type",
+      "allowed_values": [
+        {
+          "tag": "ALLOWED_ASSERTION_TYPES",
+          "name": "ALLOWED_ASSERTION_TYPES"
+        }
+      ]
+    },
+    {
+      "name": "lua",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "resource",
+      "allowed_values": [
+        {
+          "tag": "identifier",
+          "name": "identifier"
+        },
+        {
+          "tag": "resource",
+          "name": "resource"
+        }
+      ]
     }
   ],
   "nodes": [
+    {
+      "allowed_args": [
+        "assertion_type",
+        "_then",
+        "lua"
+      ],
+      "allowed_body_types": [],
+      "name": "assertion",
+      "tags": [
+        "*"
+      ],
+      "docs": ""
+    },
     {
       "allowed_args": [
         "lhs",
@@ -1151,9 +1231,11 @@
     },
     {
       "allowed_args": [
-        "label"
+        "label",
+        "priority"
       ],
       "allowed_body_types": [
+        "assertion",
         "calibrate",
         "change_ownership",
         "check_updates",
@@ -1175,7 +1257,7 @@
         "read_status",
         "reboot",
         "remove_farmware",
-        "resource_update",
+        "update_resource",
         "send_message",
         "set_servo_angle",
         "set_user_env",
@@ -1225,6 +1307,7 @@
         "locals"
       ],
       "allowed_body_types": [
+        "assertion",
         "calibrate",
         "change_ownership",
         "check_updates",
@@ -1246,7 +1329,7 @@
         "read_status",
         "reboot",
         "remove_farmware",
-        "resource_update",
+        "update_resource",
         "send_message",
         "set_servo_angle",
         "set_user_env",
@@ -1457,6 +1540,45 @@
         "function",
         "api_writer",
         "network_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "resource_type",
+        "resource_id"
+      ],
+      "allowed_body_types": [],
+      "name": "resource",
+      "tags": [
+        "network_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "resource"
+      ],
+      "allowed_body_types": [
+        "pair"
+      ],
+      "name": "update_resource",
+      "tags": [
+        "function",
+        "api_writer",
+        "network_user"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "point_group_id"
+      ],
+      "allowed_body_types": [],
+      "name": "point_group",
+      "tags": [
+        "data",
+        "list_like"
       ],
       "docs": ""
     }

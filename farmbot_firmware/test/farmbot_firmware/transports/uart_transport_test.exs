@@ -14,7 +14,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
     init_args = [
       device: :FAKE_DEVICE,
       handle_gcode: :FAKE_GCODE_HANDLER,
-      reset: :FAKE_RESETER
+      reset: StubReset
     ]
 
     {:ok, state, 0} = UARTTransport.init(init_args)

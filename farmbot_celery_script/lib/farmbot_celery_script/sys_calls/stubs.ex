@@ -120,10 +120,6 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def reboot(), do: error(:reboot, [])
 
   @impl true
-  def resource_update(kind, resource_id, data),
-    do: error(:resource_update, [kind, resource_id, data])
-
-  @impl true
   def send_message(type, message, channels),
     do: error(:send_message, [type, message, channels])
 
@@ -146,6 +142,10 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   @impl true
   def write_pin(pin_num, pin_mode, pin_value),
     do: error(:write_pin, [pin_num, pin_mode, pin_value])
+
+  @impl true
+  def update_resource(kind, id, params),
+    do: error(:update_resource, [kind, id, params])
 
   @impl true
   def zero(axis), do: error(:zero, [axis])

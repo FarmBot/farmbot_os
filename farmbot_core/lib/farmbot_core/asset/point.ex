@@ -37,6 +37,7 @@ defmodule FarmbotCore.Asset.Point do
       meta: point.meta,
       name: point.name,
       plant_stage: point.plant_stage,
+      created_at: point.created_at,
       planted_at: point.planted_at,
       pointer_type: point.pointer_type,
       radius: point.radius,

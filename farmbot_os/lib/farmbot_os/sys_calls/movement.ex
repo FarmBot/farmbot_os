@@ -98,6 +98,12 @@ defmodule FarmbotOS.SysCalls.Movement do
   # TODO(Rick): Figure out source of Error: {:ok, "ok"} logs.
   def handle_movement_error({:ok, _}), do: :ok
 
+  def handle_movement_error(:emergency_lock) do
+    msg = "Cannot execute commands while E-stopped"
+    FarmbotCore.Logger.busy(1, msg)
+    {:error, msg}
+  end
+
   def handle_movement_error(reason) do
     msg = "Movement failed. #{inspect(reason)}"
     FarmbotCore.Logger.error(1, msg)
