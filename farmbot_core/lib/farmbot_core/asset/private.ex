@@ -26,14 +26,15 @@ defmodule FarmbotCore.Asset.Private do
     Repo.all(from(data in module, join: lm in subquery(q)))
   end
 
+  def maybe_get_local_meta(asset, table) do
+    Repo.one(from(lm in LocalMeta, where: lm.asset_local_id == ^asset.local_id and lm.table == ^table))
+  end
+
   @doc "Mark a document as `dirty` by creating a `local_meta` object"
   def mark_dirty!(asset, params \\ %{}) do
     table = table(asset)
 
-    local_meta =
-      Repo.one(
-        from(lm in LocalMeta, where: lm.asset_local_id == ^asset.local_id and lm.table == ^table)
-      ) || Ecto.build_assoc(asset, :local_meta)
+    local_meta = maybe_get_local_meta(asset, table) || Ecto.build_assoc(asset, :local_meta)
 
     ## NOTE(Connor): 19/11/13
     # the try/catch here seems unneeded here, but because of how sqlite/ecto works, it is 100% needed.

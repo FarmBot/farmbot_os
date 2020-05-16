@@ -45,7 +45,6 @@ defmodule FarmbotExt.API.DirtyWorker do
     (Private.list_dirty(module) ++ Private.list_local(module))
     |> Enum.uniq()
     |> Enum.map(fn dirty -> work(dirty, module) end)
-
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
