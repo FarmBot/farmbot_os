@@ -28,3 +28,14 @@ This release uses an improved Farmware API:
 # v9
 
 FarmBot OS v8+ uses an improved Farmware API. See the [Farmware developer documentation](https://developer.farm.bot/docs/farmware) for more information.
+
+# v10
+
+FarmBot OS v10 features an improved *Mark As* step. If you have previously added *Mark As* steps to sequences, you will need to update them before they can be executed by FarmBot:
+* Open any sequences with a caution icon next to the name.
+* Click the `CONVERT` button in each old *Mark As* step.
+* Save the sequence.
+* If you have auto-sync disabled, press `SYNC NOW` once all sequences have been updated.
+* Verify that any events using the updated sequences are running as expected.
+
+FarmBot OS auto-update was disabled prior to this release.
