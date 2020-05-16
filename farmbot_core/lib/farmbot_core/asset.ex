@@ -6,27 +6,28 @@ defmodule FarmbotCore.Asset do
   """
 
   alias FarmbotCore.Asset.{
-    Repo,
+    CriteriaRetriever,
     Device,
     DeviceCert,
-    FarmwareEnv,
-    FirstPartyFarmware,
-    FarmwareInstallation,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
+    FirstPartyFarmware,
     Peripheral,
     PinBinding,
     Point,
     PointGroup,
+    Private,
     PublicKey,
     Regimen,
     RegimenInstance,
-    Sequence,
+    Repo,
     Sensor,
     SensorReading,
+    Sequence,
     Tool,
-    CriteriaRetriever
   }
 
   alias FarmbotCore.AssetSupervisor
@@ -259,7 +260,6 @@ defmodule FarmbotCore.Asset do
     #       by default, not a merge action.
     # MORE NOTES: Mixed keys (symbol vs. string) will crash this FN.
     #             Let's just stringify everything...
-    IO.inspect(params, label: "===== ORIGINAL PARAMS")
     new_meta     = params[:meta] || params["meta"] || %{}
     old_meta     = point.meta || %{}
     updated_meta = Map.merge(old_meta, new_meta)
@@ -268,7 +268,6 @@ defmodule FarmbotCore.Asset do
     |> Enum.map(fn {k, v} -> {"#{k}", v} end)
     |> Map.new()
 
-    IO.inspect(clean_params, label: "=========== CLEAN PARAMS")
     Repo.get_by(Point, id: point.id)
     |> Point.changeset(clean_params)
     |> Repo.update()

@@ -44,9 +44,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   def handle_info(:do_work, %{module: module} = state) do
     (Private.list_dirty(module) ++ Private.list_local(module))
     |> Enum.uniq()
-    |> Enum.map(fn dirty ->
-      work(dirty, module)
-    end)
+    |> Enum.map(fn dirty -> work(dirty, module) end)
 
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
@@ -71,13 +69,15 @@ defmodule FarmbotExt.API.DirtyWorker do
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
+
         module.changeset(dirty)
         |> Map.put(:valid?, false)
         |> handle_changeset(module)
 
       # HTTP Error. (500, network error, timeout etc.)
       error ->
-        FarmbotCore.Logger.error(2,
+        FarmbotCore.Logger.error(
+          2,
           "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{
             inspect(error)
           }"
@@ -99,7 +99,7 @@ defmodule FarmbotExt.API.DirtyWorker do
       end)
       |> Enum.join("\n")
 
-      FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
+    FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
     _ = Repo.delete!(data)
     :ok
   end
