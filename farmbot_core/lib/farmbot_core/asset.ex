@@ -19,7 +19,6 @@ defmodule FarmbotCore.Asset do
     PinBinding,
     Point,
     PointGroup,
-    Private,
     PublicKey,
     Regimen,
     RegimenInstance,
