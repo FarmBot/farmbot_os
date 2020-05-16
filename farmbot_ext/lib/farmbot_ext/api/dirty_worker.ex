@@ -8,7 +8,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   require Logger
   require FarmbotCore.Logger
   use GenServer
-  @timeout 1500
+  @timeout 100
 
   # these resources can't be accessed by `id`.
   @singular [
@@ -36,7 +36,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def init(args) do
     module = Keyword.fetch!(args, :module)
-    Process.send_after(self(), :do_work, 100)
+    Process.send_after(self(), :do_work, @timeout)
     {:ok, %{module: module}}
   end
 
@@ -44,7 +44,9 @@ defmodule FarmbotExt.API.DirtyWorker do
   def handle_info(:do_work, %{module: module} = state) do
     (Private.list_dirty(module) ++ Private.list_local(module))
     |> Enum.uniq()
-    |> Enum.map(fn dirty -> work(dirty, module) end)
+    |> Enum.map(fn dirty ->
+      work(dirty, module)
+    end)
 
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
@@ -54,7 +56,6 @@ defmodule FarmbotExt.API.DirtyWorker do
     case http_request(dirty, module) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-        FarmbotCore.Logger.error(2, "HTTP #{s} OK. #{inspect(body)}")
         dirty |> module.changeset(body) |> handle_changeset(module)
 
       # Invalid data
@@ -81,8 +82,6 @@ defmodule FarmbotExt.API.DirtyWorker do
             inspect(error)
           }"
         )
-
-        module
     end
   end
 
@@ -100,7 +99,7 @@ defmodule FarmbotExt.API.DirtyWorker do
       end)
       |> Enum.join("\n")
 
-    Logger.error("Failed to sync: #{module} \n #{message}")
+      FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
     _ = Repo.delete!(data)
     :ok
   end
