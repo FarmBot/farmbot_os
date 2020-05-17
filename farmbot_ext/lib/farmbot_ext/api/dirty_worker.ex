@@ -43,6 +43,19 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
     (Private.list_dirty(module) ++ Private.list_local(module))
+    |> Enum.map(fn item ->
+      if (item.id) do
+        Process.sleep(300)
+        next_item = Repo.get_by(module, id: x.id)
+        old_y = item.y
+        new_y = next_item.y
+        msg = "Y value after DB refresh: #{old_y} => #{new_y}"
+        FarmbotCore.Logger.info(2, msg)
+        next_item
+      else
+        item
+      end
+    end)
     |> Enum.uniq()
     |> Enum.map(fn dirty -> work(dirty, module) end)
 
