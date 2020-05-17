@@ -42,27 +42,30 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
-    (Private.list_dirty(module) ++ Private.list_local(module))
-    |> Enum.map(fn item ->
+    Process.sleep(1000)
+    list = Enum.uniq((Private.list_dirty(module) ++ Private.list_local(module)))
+
+    stale = Enum.find(list, fn item ->
       if (item.id) do
-        Process.sleep(300)
-        next_item = Repo.get_by(module, id: item.id)
-        if module == FarmbotCore.Asset.Point do
-          old_y = item.y
-          new_y = next_item.y
-          msg = "Y value after DB refresh: #{old_y} => #{new_y}"
-          FarmbotCore.Logger.info(2, msg)
+        if item == Repo.get_by(module, id: item.id) do
+          false
+        else
+          IO.inspect(item, label: "=== STALE RECORD DETECTED!")
+          true
         end
-        next_item
       else
-        item
+        false
       end
     end)
-    |> Enum.uniq()
-    |> Enum.map(fn dirty -> work(dirty, module) end)
 
-    Process.send_after(self(), :do_work, @timeout)
-    {:noreply, state}
+    if stale do
+      Process.send_after(self(), :do_work, @timeout)
+      {:noreply, state}
+    else
+      Enum.map(list, fn dirty -> work(dirty, module) end)
+      Process.send_after(self(), :do_work, @timeout)
+      {:noreply, state}
+    end
   end
 
   def work(dirty, module) do
