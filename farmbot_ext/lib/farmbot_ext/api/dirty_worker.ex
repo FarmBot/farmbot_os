@@ -46,7 +46,7 @@ defmodule FarmbotExt.API.DirtyWorker do
     |> Enum.map(fn item ->
       if (item.id) do
         Process.sleep(300)
-        next_item = Repo.get_by(module, id: x.id)
+        next_item = Repo.get_by(module, id: item.id)
         old_y = item.y
         new_y = next_item.y
         msg = "Y value after DB refresh: #{old_y} => #{new_y}"
