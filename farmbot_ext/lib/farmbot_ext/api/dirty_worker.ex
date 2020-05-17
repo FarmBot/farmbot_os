@@ -45,11 +45,16 @@ defmodule FarmbotExt.API.DirtyWorker do
     (Private.list_dirty(module) ++ Private.list_local(module))
     |> Enum.uniq()
     |> Enum.map(fn dirty -> work(dirty, module) end)
+
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
 
   def work(dirty, module) do
+    if module == FarmbotCore.Asset.Point do
+      FarmbotCore.Logger.info(3, "#{__module__} Point#{dirty.id}.y = #{dirty.y}")
+    end
+
     case http_request(dirty, module) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->

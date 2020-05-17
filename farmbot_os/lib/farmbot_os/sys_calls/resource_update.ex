@@ -53,16 +53,6 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   end
 
   def update_resource(kind, id, params) when kind in @point_kinds do
-    y = params["y"]
-
-    msg =
-      if y do
-        "In #{__MODULE__}, y is #{y}"
-      else
-        "#{__MODULE__} was not provided a y value"
-      end
-
-    FarmbotCore.Logger.error(3, msg)
     notify_user_of_updates(kind, params)
     params = do_handlebars(params)
     point_update_resource(kind, id, params)
@@ -79,16 +69,6 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   def point_update_resource(type, id, params) do
     with %{} = point <- Asset.get_point(id: id),
          {:ok, point} <- Asset.update_point(point, params) do
-      y = point.y
-
-      msg =
-        if y do
-          "In #{__MODULE__}, y is #{y}"
-        else
-          "#{__MODULE__} was not provided a y value"
-        end
-
-      FarmbotCore.Logger.error(3, msg)
       _ = Private.mark_dirty!(point)
       :ok
     else

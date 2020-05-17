@@ -5,7 +5,6 @@ defmodule FarmbotCore.Asset.Private do
   _are_ stored in Farmbot's database.
   """
   require Logger
-  require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Repo,
     Asset.Private.LocalMeta,
@@ -46,21 +45,7 @@ defmodule FarmbotCore.Asset.Private do
     # error being thrown.
     changeset = LocalMeta.changeset(local_meta, Map.merge(params, %{table: table, status: "dirty"}))
     try do
-      result = Repo.insert_or_update!(changeset)
-      if table == "points" do
-y = asset.y
-
-msg =
-  if y do
-    "In #{__MODULE__}, y is #{y}"
-  else
-    "#{__MODULE__} was not provided a y value"
-  end
-
-FarmbotCore.Logger.error(3, msg)
-
-      end
-      result
+      Repo.insert_or_update!(changeset)
     catch
       :error,  %Sqlite.DbConnection.Error{
         message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id",

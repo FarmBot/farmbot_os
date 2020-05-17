@@ -1,6 +1,4 @@
 defmodule FarmbotCeleryScript.Compiler.UpdateResource do
-  require FarmbotCore.Logger
-
   alias FarmbotCeleryScript.{AST, DotProps}
 
   def update_resource(%AST{args: args, body: body}, _env) do
@@ -30,16 +28,6 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
   end
 
   def do_update(%{pointer_id: id, pointer_type: kind}, update_params) do
-    y = update_params["y"]
-
-    msg =
-      if y do
-        "In #{__MODULE__}, y is #{y}"
-      else
-        "#{__MODULE__} was not provided a y value"
-      end
-
-    FarmbotCore.Logger.error(3, msg)
     FarmbotCeleryScript.SysCalls.update_resource(kind, id, update_params)
   end
 
