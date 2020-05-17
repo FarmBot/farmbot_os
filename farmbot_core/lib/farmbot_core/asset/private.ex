@@ -33,7 +33,7 @@ defmodule FarmbotCore.Asset.Private do
     list = Repo.all(from(data in module, join: lm in subquery(q)))
     Enum.map(list, fn item ->
       if module == FarmbotCore.Asset.Point do
-        msg = "list_local: Point#{item.id}.y = #{item.y || "nil"}"
+        msg = "list_dirty: Point#{item.id}.y = #{item.y || "nil"}"
         FarmbotCore.Logger.info(3, msg)
       end
       item
