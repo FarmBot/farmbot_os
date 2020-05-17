@@ -32,11 +32,11 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     "Weed" => "weed"
   }
 
-  def notify_user_of_updates(kind, params) do
+  def notify_user_of_updates(kind, params, id \\ nil) do
     Enum.map(params, fn {k, v} ->
       name = @friendly_names[kind] || kind
       property = @friendly_names["#{k}"] || k
-      msg = "Setting #{name} #{property} to #{inspect(v)}"
+      msg = "Setting #{name} #{id} #{property} to #{inspect(v)}"
       FarmbotCore.Logger.info(3, msg)
     end)
   end
@@ -53,7 +53,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   end
 
   def update_resource(kind, id, params) when kind in @point_kinds do
-    notify_user_of_updates(kind, params)
+    notify_user_of_updates(kind, params, id)
     params = do_handlebars(params)
     point_update_resource(kind, id, params)
   end

@@ -51,10 +51,6 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def work(dirty, module) do
-    if module == FarmbotCore.Asset.Point do
-      FarmbotCore.Logger.info(3, "#{__MODULE__} Point#{dirty.id}.y = #{dirty.y}")
-    end
-
     case http_request(dirty, module) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->

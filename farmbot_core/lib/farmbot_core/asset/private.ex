@@ -5,6 +5,7 @@ defmodule FarmbotCore.Asset.Private do
   _are_ stored in Farmbot's database.
   """
   require Logger
+  require FarmbotCore.Logger
 
   alias FarmbotCore.{Asset.Repo,
     Asset.Private.LocalMeta,
@@ -15,14 +16,28 @@ defmodule FarmbotCore.Asset.Private do
 
   @doc "Lists `module` objects that still need to be POSTed to the API."
   def list_local(module) do
-    Repo.all(from(data in module, where: is_nil(data.id)))
+    list = Repo.all(from(data in module, where: is_nil(data.id)))
+    Enum.map(list, fn item ->
+      if module == FarmbotCore.Asset.Point do
+        msg = "list_local: Point#{item.id}.y = #{item.y || "nil"}"
+        FarmbotCore.Logger.info(3, msg)
+      end
+      item
+    end)
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
   def list_dirty(module) do
     table = table(module)
     q = from(lm in LocalMeta, where: lm.table == ^table, select: lm.asset_local_id)
-    Repo.all(from(data in module, join: lm in subquery(q)))
+    list = Repo.all(from(data in module, join: lm in subquery(q)))
+    Enum.map(list, fn item ->
+      if module == FarmbotCore.Asset.Point do
+        msg = "list_local: Point#{item.id}.y = #{item.y || "nil"}"
+        FarmbotCore.Logger.info(3, msg)
+      end
+      item
+    end)
   end
 
   def maybe_get_local_meta(asset, table) do
