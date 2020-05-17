@@ -6,6 +6,11 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
       me = unquote(__MODULE__)
       variable = unquote(Map.fetch!(args, :resource))
       update = unquote(unpair(body, %{}))
+
+      if update["y"] do
+        IO.puts("                In update_resource_compiler y is #{inspect(update["y"])}")
+      end
+
       # Go easy on the API...
       case variable do
         %AST{kind: :identifier} ->

@@ -69,6 +69,21 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   def point_update_resource(type, id, params) do
     with %{} = point <- Asset.get_point(id: id),
          {:ok, point} <- Asset.update_point(point, params) do
+      real_y = point.y
+
+      if params["y"] do
+        {desired_y, _} = Float.parse(params["y"])
+
+        if real_y != desired_y do
+          FarmbotCore.Logger.error(3, "Y does not match up #{__MODULE__}")
+          raise "Y WAS NOT Correct #{inspect({real_y, desired_y})} @@@@"
+        else
+          IO.puts(
+            "                                       point.y = \"#{real_y}\""
+          )
+        end
+      end
+
       _ = Private.mark_dirty!(point)
       :ok
     else
