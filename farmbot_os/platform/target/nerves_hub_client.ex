@@ -542,7 +542,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
           "ota_hour = #{ota_hour || "null"} timezone = #{timezone || "null"}"
         )
 
-        true
+        !!auto_update
       end
 
     result && !currently_downloading?()

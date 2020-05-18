@@ -5,6 +5,7 @@
  * Deprecate `resource_update` RPC
  * Introduce `update_resource` RPC, which allows users to modify variables from the sequence editor.
  * Genesis v1.5 and Express v1.0 firmware updates.
+ * Fix a bug where FBOS would not honor an "AUTO UPDATE" value of "false".
 
 # 9.2.2
 
