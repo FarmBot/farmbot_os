@@ -108,6 +108,22 @@ defmodule FarmbotFirmware.UARTTransportTest do
     assert state2 == state
   end
 
+  test "handling of inbound stepper load data (Express only)" do
+    provided_data = "R89 U12 X3.4 V56 Y7.8 W910 Z9.9"
+    params = [u: 12.0, x: 3.4, v: 56.0, y: 7.8, w: 910.0, z: 9.9]
+    state = %{
+      uart: :FAKE_UART,
+      device: :FAKE_DEVICE,
+      open: false,
+      handle_gcode: fn gcode ->
+        assert gcode == {nil, {:report_load, params}}
+      end
+    }
+    info = {:circuits_uart, nil, provided_data}
+    {:noreply, state2} = UARTTransport.handle_info(info, state)
+    assert state2 == state
+  end
+
   test "writing to UART" do
     code = {nil, {:command_movement, []}}
     state = %{uart: :FAKE_UART, device: :FAKE_DEVICE, open: false}
