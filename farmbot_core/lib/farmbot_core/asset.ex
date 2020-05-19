@@ -6,15 +6,15 @@ defmodule FarmbotCore.Asset do
   """
 
   alias FarmbotCore.Asset.{
-    Repo,
+    CriteriaRetriever,
     Device,
     DeviceCert,
-    FarmwareEnv,
-    FirstPartyFarmware,
-    FarmwareInstallation,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
+    FirstPartyFarmware,
     Peripheral,
     PinBinding,
     Point,
@@ -22,11 +22,11 @@ defmodule FarmbotCore.Asset do
     PublicKey,
     Regimen,
     RegimenInstance,
-    Sequence,
+    Repo,
     Sensor,
     SensorReading,
+    Sequence,
     Tool,
-    CriteriaRetriever
   }
 
   alias FarmbotCore.AssetSupervisor
@@ -251,7 +251,7 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_point(point, params) do
-    # TODO: RC 8 MAY 20202 - We need to hard refresh the point.
+    # TODO: RC 8 MAY 2020 - We need to hard refresh the point.
     #       The CSVM appears to be caching resources. This leads
     #       to problems when a user runs a sequence that has two
     #       MARK AS steps.

@@ -6,8 +6,8 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
       me = unquote(__MODULE__)
       variable = unquote(Map.fetch!(args, :resource))
       update = unquote(unpair(body, %{}))
+
       # Go easy on the API...
-      Process.sleep(1234)
       case variable do
         %AST{kind: :identifier} ->
           args = Map.fetch!(variable, :args)
@@ -49,7 +49,6 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
   end
 
   defp unpair([pair | rest], acc) do
-    IO.puts("TODO: Need to apply handlebars to `value`s.")
     key = Map.fetch!(pair.args, :label)
     val = Map.fetch!(pair.args, :value)
     next_acc = Map.merge(acc, DotProps.create(key, val))
