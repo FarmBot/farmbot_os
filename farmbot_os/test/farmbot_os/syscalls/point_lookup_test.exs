@@ -17,7 +17,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
   test "failure cases" do
     err1 = PointLookup.point("GenericPointer", 24)
-    assert {:error, "GenericPointer not found"} == err1
+    assert {:error, "GenericPointer 24 not found"} == err1
 
     err2 = PointLookup.get_toolslot_for_tool(24)
     assert {:error, "Could not find point for tool by id: 24"} == err2
@@ -33,7 +33,9 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       name: "test suite III",
       x: 1.2,
       y: 3.4,
-      z: 5.6
+      z: 5.6,
+      resource_id: 555,
+      resource_type: "GenericPointer"
     }
 
     p = point(expected)

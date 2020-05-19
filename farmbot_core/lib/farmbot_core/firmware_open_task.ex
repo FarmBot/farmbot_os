@@ -9,14 +9,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   require FarmbotCore.Logger
   alias FarmbotFirmware.{UARTTransport, StubTransport}
   alias FarmbotCore.{Asset, Config}
-  @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold]
-  @attempt_threshold || Mix.raise """
-  Firmware open attempt threshold not configured:
-
-  config :farmbot_core, FarmbotCore.FirmwareOpenTask, [
-    attempt_threshold: 10
-  ]
-  """
+  @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold] || 5
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -25,7 +18,10 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
   @doc false
   def swap_transport(tty) do
-    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: UARTTransport, device: tty)
+    Application.put_env(:farmbot_firmware, FarmbotFirmware,
+    transport: UARTTransport,
+    device: tty,
+    reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
     _ = FarmbotFirmware.close_transport()
@@ -33,7 +29,9 @@ defmodule FarmbotCore.FirmwareOpenTask do
   end
 
   def unswap_transport() do
-    Application.put_env(:farmbot_firmware, FarmbotFirmware, transport: StubTransport)
+    Application.put_env(:farmbot_firmware, FarmbotFirmware,
+    transport: StubTransport,
+    reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
     # Close tranpsort if it is open currently.
     _ = FarmbotFirmware.close_transport()

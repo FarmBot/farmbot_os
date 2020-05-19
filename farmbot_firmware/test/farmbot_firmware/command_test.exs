@@ -6,11 +6,16 @@ defmodule FarmbotFirmware.CommandTest do
   import ExUnit.CaptureLog
   @subject FarmbotFirmware.Command
 
-  @tag :capture_log
-  test "command() runs RPCs" do
-    arg = [transport: FarmbotFirmware.StubTransport]
+  def fake_pid() do
+    arg = [transport: FarmbotFirmware.StubTransport, reset: StubReset]
     {:ok, pid} = FarmbotFirmware.start_link(arg, [])
     send(pid, :timeout)
+    pid
+  end
+
+  @tag :capture_log
+  test "command() runs RPCs" do
+    pid = fake_pid()
 
     assert {:error, :emergency_lock} ==
              FarmbotFirmware.command(pid, {:command_emergency_lock, []})
@@ -22,9 +27,7 @@ defmodule FarmbotFirmware.CommandTest do
 
   @tag :capture_log
   test "command() refuses to run RPCs in :boot state" do
-    arg = [transport: FarmbotFirmware.StubTransport]
-    {:ok, pid} = FarmbotFirmware.start_link(arg, [])
-    send(pid, :timeout)
+    pid = fake_pid()
     {:error, message} = @subject.command(pid, {:a, {:b, :c}})
     assert "Can't send command when in :boot state" == message
   end

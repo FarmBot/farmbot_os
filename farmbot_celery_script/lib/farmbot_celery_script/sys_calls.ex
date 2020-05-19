@@ -57,7 +57,6 @@ defmodule FarmbotCeleryScript.SysCalls do
               speed :: number()
             ) ::
               ok_or_error
-  # ?
   @callback named_pin(named_pin_type :: String.t(), resource_id) ::
               map() | integer | error()
   @callback nothing() :: any()
@@ -69,7 +68,6 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback toggle_pin(pin_num :: number()) :: ok_or_error
   @callback read_status() :: ok_or_error
   @callback reboot() :: ok_or_error
-  @callback resource_update(String.t(), resource_id, map()) :: ok_or_error
   @callback send_message(type :: String.t(), message :: String.t(), [atom]) ::
               ok_or_error
   @callback set_servo_angle(pin :: number(), value :: number()) :: ok_or_error
@@ -95,6 +93,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback find_points_via_group(String.t() | resource_id) :: %{
               required(:point_ids) => [resource_id]
             }
+  @callback update_resource(kind :: String.t(), resource_id, params :: map()) ::
+              ok_or_error
 
   def find_points_via_group(sys_calls \\ @sys_calls, point_group_id) do
     point_group_or_error(sys_calls, :find_points_via_group, [point_group_id])
@@ -297,10 +297,6 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :reboot, [])
   end
 
-  def resource_update(sys_calls \\ @sys_calls, kind, id, params) do
-    ok_or_error(sys_calls, :resource_update, [kind, id, params])
-  end
-
   def send_message(sys_calls \\ @sys_calls, kind, msg, channels) do
     ok_or_error(sys_calls, :send_message, [kind, msg, channels])
   end
@@ -331,6 +327,10 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def zero(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
     ok_or_error(sys_calls, :zero, [axis])
+  end
+
+  def update_resource(sys_calls \\ @sys_calls, kind, id, params) do
+    ok_or_error(sys_calls, :update_resource, [kind, id, params])
   end
 
   defp ok_or_error(sys_calls, fun, args) do

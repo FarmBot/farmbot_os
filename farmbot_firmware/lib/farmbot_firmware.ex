@@ -107,8 +107,7 @@ defmodule FarmbotFirmware do
     :command_queue,
     :caller_pid,
     :current,
-    :reset,
-    :reset_pid
+    :reset
   ]
 
   @type state :: %State{
@@ -123,8 +122,7 @@ defmodule FarmbotFirmware do
           command_queue: [{pid(), GCODE.t()}],
           caller_pid: nil | pid,
           current: nil | GCODE.t(),
-          reset: module(),
-          reset_pid: nil | pid()
+          reset: module()
         }
 
   @doc """
@@ -202,16 +200,7 @@ defmodule FarmbotFirmware do
     args = Keyword.merge(args, global)
     transport = Keyword.fetch!(args, :transport)
     side_effects = Keyword.get(args, :side_effects)
-    # This is probably the cause of
-    # https://github.com/FarmBot/farmbot_os/issues/1111
-    # FarmbotFirmware.NullReset (RPi3? Safe default?)
-    #  -OR-
-    # FarmbotOS.Platform.Target.FirmwareReset.GPIO (RPi0, RPi)
-    #  -OR-
-    # Use Application.get_env to find target?
-    # probably?
-    reset = Keyword.get(args, :reset) || FarmbotFirmware.NullReset
-
+    reset = Keyword.fetch!(args, :reset)
     # Add an anon function that transport implementations should call.
     fw = self()
     fun = fn {_, _} = code -> GenServer.cast(fw, code) end
@@ -225,7 +214,6 @@ defmodule FarmbotFirmware do
       side_effects: side_effects,
       status: :transport_boot,
       reset: reset,
-      reset_pid: nil,
       command_queue: [],
       configuration_queue: []
     }
@@ -240,24 +228,6 @@ defmodule FarmbotFirmware do
     state.transport_pid &&
       Process.alive?(state.transport_pid) &&
       GenServer.stop(state.transport_pid)
-  end
-
-  def handle_info(:timeout, %{status: :transport_boot, reset_pid: nil} = state) do
-    case GenServer.start_link(state.reset, state.transport_args,
-           name: state.reset
-         ) do
-      {:ok, pid} ->
-        {:noreply, %{state | reset_pid: pid}}
-
-      # TODO(Rick): I have no idea what's going on here.
-      {:error, {:already_started, pid}} ->
-        {:noreply, %{state | reset_pid: pid}}
-
-      error ->
-        Logger.error("Error starting Firmware Reset: #{inspect(error)}")
-        Process.send_after(self(), :timeout, @transport_init_error_retry_ms)
-        {:noreply, state}
-    end
   end
 
   # This will be the first message received right after `init/1`

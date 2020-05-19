@@ -6,15 +6,15 @@ defmodule FarmbotCore.Asset do
   """
 
   alias FarmbotCore.Asset.{
-    Repo,
+    CriteriaRetriever,
     Device,
     DeviceCert,
-    FarmwareEnv,
-    FirstPartyFarmware,
-    FarmwareInstallation,
     FarmEvent,
+    FarmwareEnv,
+    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
+    FirstPartyFarmware,
     Peripheral,
     PinBinding,
     Point,
@@ -22,11 +22,11 @@ defmodule FarmbotCore.Asset do
     PublicKey,
     Regimen,
     RegimenInstance,
-    Sequence,
+    Repo,
     Sensor,
     SensorReading,
+    Sequence,
     Tool,
-    CriteriaRetriever
   }
 
   alias FarmbotCore.AssetSupervisor
@@ -251,8 +251,24 @@ defmodule FarmbotCore.Asset do
   end
 
   def update_point(point, params) do
-    point
-    |> Point.changeset(params)
+    # TODO: RC 8 MAY 2020 - We need to hard refresh the point.
+    #       The CSVM appears to be caching resources. This leads
+    #       to problems when a user runs a sequence that has two
+    #       MARK AS steps.
+    # NOTE: Updating the `meta` attribute is a _replace_ action
+    #       by default, not a merge action.
+    # MORE NOTES: Mixed keys (symbol vs. string) will crash this FN.
+    #             Let's just stringify everything...
+    new_meta     = params[:meta] || params["meta"] || %{}
+    old_meta     = point.meta || %{}
+    updated_meta = Map.merge(old_meta, new_meta)
+    clean_params = params
+    |> Map.merge(%{meta: updated_meta})
+    |> Enum.map(fn {k, v} -> {"#{k}", v} end)
+    |> Map.new()
+
+    Repo.get_by(Point, id: point.id)
+    |> Point.changeset(clean_params)
     |> Repo.update()
   end
 

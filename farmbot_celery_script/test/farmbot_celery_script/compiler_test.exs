@@ -79,7 +79,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
   end
 
   test "identifier sanitization" do
-    label = "System.cmd(\"rm\", [\"-rf /*\"])"
+    label = "System.cmd(\"echo\", [\"lol\"])"
     value_ast = AST.Factory.new("coordinate", x: 1, y: 1, z: 1)
     identifier_ast = AST.Factory.new("identifier", label: label)
 
@@ -120,11 +120,19 @@ defmodule FarmbotCeleryScript.CompilerTest do
              [
                fn params ->
                  _ = inspect(params)
+                 unsafe_U3lzdGVtLmNtZCgiZWNobyIsIFsibG9sIl0p = FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
 
-                 #{var_name} =
-                   FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
+                 better_params = %{
+                   "System.cmd(\\"echo\\", [\\"lol\\"])" => %FarmbotCeleryScript.AST{
+                     args: %{x: 1, y: 1, z: 1},
+                     body: [],
+                     comment: nil,
+                     kind: :coordinate,
+                     meta: nil
+                   }
+                 }
 
-                 [fn -> #{var_name} end]
+                 [fn -> unsafe_U3lzdGVtLmNtZCgiZWNobyIsIFsibG9sIl0p end]
                end
              ]
              """)
@@ -352,6 +360,114 @@ defmodule FarmbotCeleryScript.CompilerTest do
              mode = "input"
              FarmbotCeleryScript.SysCalls.log("Setting pin mode: \#{pin}: \#{mode}")
              FarmbotCeleryScript.SysCalls.set_pin_io_mode(pin, mode)
+             """)
+  end
+
+  test "`update_resource`: " do
+    compiled =
+      "test/fixtures/mark_variable_removed.json"
+      |> File.read!()
+      |> Jason.decode!()
+      |> AST.decode()
+      |> compile()
+
+    assert compiled ==
+             strip_nl("""
+             [
+               fn params ->
+                 _ = inspect(params)
+
+                 unsafe_cGFyZW50 =
+                   Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
+
+                 better_params = %{}
+
+                 [
+                   fn ->
+                     me = FarmbotCeleryScript.Compiler.UpdateResource
+
+                     variable = %FarmbotCeleryScript.AST{
+                       args: %{label: "parent"},
+                       body: [],
+                       comment: nil,
+                       kind: :identifier,
+                       meta: nil
+                     }
+
+                     update = %{"plant_stage" => "removed"}
+
+                     case(variable) do
+                       %AST{kind: :identifier} ->
+                         args = Map.fetch!(variable, :args)
+                         label = Map.fetch!(args, :label)
+                         resource = Map.fetch!(better_params, label)
+                         me.do_update(resource, update)
+
+                       %AST{kind: :point} ->
+                         me.do_update(variable.args(), update)
+
+                       %AST{kind: :resource} ->
+                         me.do_update(variable.args(), update)
+
+                       res ->
+                         raise("Resource error. Please notfiy support: \#{inspect(res)}")
+                     end
+                   end
+                 ]
+               end
+             ]
+             """)
+  end
+
+  test "`update_resource`: Multiple fields of `resource` type." do
+    compiled =
+      "test/fixtures/update_resource_multi.json"
+      |> File.read!()
+      |> Jason.decode!()
+      |> AST.decode()
+      |> compile()
+
+    assert compiled ==
+             strip_nl("""
+             [
+               fn params ->
+                 _ = inspect(params)
+                 better_params = %{}
+
+                 [
+                   fn ->
+                     me = FarmbotCeleryScript.Compiler.UpdateResource
+
+                     variable = %FarmbotCeleryScript.AST{
+                       args: %{resource_id: 23, resource_type: "Plant"},
+                       body: [],
+                       comment: nil,
+                       kind: :resource,
+                       meta: nil
+                     }
+
+                     update = %{"plant_stage" => "planted", "r" => 23}
+
+                     case(variable) do
+                       %AST{kind: :identifier} ->
+                         args = Map.fetch!(variable, :args)
+                         label = Map.fetch!(args, :label)
+                         resource = Map.fetch!(better_params, label)
+                         me.do_update(resource, update)
+
+                       %AST{kind: :point} ->
+                         me.do_update(variable.args(), update)
+
+                       %AST{kind: :resource} ->
+                         me.do_update(variable.args(), update)
+
+                       res ->
+                         raise("Resource error. Please notfiy support: \#{inspect(res)}")
+                     end
+                   end
+                 ]
+               end
+             ]
              """)
   end
 

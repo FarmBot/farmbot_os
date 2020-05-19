@@ -47,8 +47,8 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
     canary_actual = :crypto.hash(:sha, Macro.to_string(result))
 
     canary_expected =
-      <<157, 69, 5, 38, 188, 78, 10, 183, 154, 99, 151, 193, 214, 208, 187, 130,
-        183, 73, 13, 48>>
+      <<136, 140, 48, 226, 216, 155, 178, 103, 244, 88, 225, 146, 130, 216, 125,
+        72, 113, 195, 65, 1>>
 
     # READ THE NOTE ABOVE IF THIS TEST FAILS!!!
     assert canary_expected == canary_actual
