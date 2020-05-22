@@ -16,6 +16,7 @@ defmodule FarmbotFirmware.CommandTest do
   @tag :capture_log
   test "command() runs RPCs" do
     pid = fake_pid()
+
     assert {:error, :emergency_lock} ==
              FarmbotFirmware.command(pid, {:command_emergency_lock, []})
 
