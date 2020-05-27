@@ -1,5 +1,5 @@
 defmodule FarmbotFirmware.PackageUtils do
-  @doc "Returns the absolute path to the hex file assosiated with `package`"
+  @doc "Returns the absolute path to the hex file associated with `package`"
   def find_hex_file(package)
 
   def find_hex_file("arduino") do

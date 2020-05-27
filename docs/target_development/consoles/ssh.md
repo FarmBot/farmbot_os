@@ -15,7 +15,7 @@ then your SSH key will be automatically added to the device.
 
 ## Connecting
 
-From the same machine that owns the `id_rsa.pub` key and assosiated private key
+From the same machine that owns the `id_rsa.pub` key and associated private key
 you can simply `ssh <ip address>`. If your machine supports `mdns`, you can also
 do `ssh farmbot-<node_name>` where `node_name` can be found in the `Device` panel
 on the FarmBot web app.
