@@ -59,7 +59,7 @@ defmodule FarmbotFirmware.GCODE.Encoder do
 
   def do_encode(:report_emergency_lock, []), do: "R87"
   def do_encode(:report_no_config, []), do: "R88"
-  def do_encode(:report_load, xyz), do: "R89 " <> encode_floats(xyz)
+  def do_encode(:report_load, uxvywz), do: "R89 " <> encode_uxvywz(uxvywz)
   def do_encode(:report_debug_message, [message]), do: "R99 " <> message
 
   def do_encode(:command_movement, xyzs), do: "G00 " <> encode_floats(xyzs)
@@ -154,6 +154,16 @@ defmodule FarmbotFirmware.GCODE.Encoder do
     param_id = Param.encode(param)
     binary_float = :erlang.float_to_binary(value, decimals: 2)
     "P#{param_id} V#{binary_float}"
+  end
+
+  def encode_uxvywz([u_value, x_value, v_value, y_value, w_value, z_value]) do
+    u_int = to_string(u_value)
+    x_int = to_string(x_value)
+    v_int = to_string(v_value)
+    y_int = to_string(y_value)
+    w_int = to_string(w_value)
+    z_int = to_string(z_value)
+    "U#{u_int} X#{x_int} V#{v_int} Y#{y_int} W#{w_int} Z#{z_int}"
   end
 
   defp encode_error(error) do

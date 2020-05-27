@@ -12,11 +12,15 @@ defmodule FarmbotFirmware.GCODE.DecoderTest do
     assert [param_config_ok: 3.0] == Decoder.decode_pv(["P2", "V3"])
   end
 
+  test "Decoder.decode_uxvywz" do
+    assert [1, 2, 3, 4, 5, 6] ==
+             Decoder.decode_uxvywz(["U1", "X2", "V3", "Y4", "W5", "Z6"])
+  end
+
   # NOTE: Theese values are totally random and may
   # not represent real-world use of the GCode.
   test "Decoder.decode_floats" do
     assert {:command_movement, []} == Decoder.do_decode("G00", ["XA0.0"])
-    assert {:report_load, [x: 0.0]} == Decoder.do_decode("R89", ["X0.0"])
     assert {:report_encoders_raw, [x: 0.0]} == Decoder.do_decode("R85", ["X0"])
     assert {:report_encoders_scaled, []} == Decoder.do_decode("R84", ["XA-0.0"])
     assert {:report_position, []} == Decoder.do_decode("R82", ["XA-0"])
@@ -29,7 +33,6 @@ defmodule FarmbotFirmware.GCODE.DecoderTest do
 
     assert {:report_position_change, []} == Decoder.do_decode("R16", ["YA1"])
     assert {:command_movement, []} == Decoder.do_decode("G00", ["YB1"])
-    assert {:report_load, []} == Decoder.do_decode("R89", ["ZA1"])
     assert {:report_position, []} == Decoder.do_decode("R82", ["ZB1"])
   end
 end
