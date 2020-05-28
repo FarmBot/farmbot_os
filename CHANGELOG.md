@@ -1,5 +1,10 @@
 # Changelog
 
+# 10.1.0
+
+ * Internal upgrades to underlying OS
+ * Bug fix for DIY users on third party RAMPS boards.
+
 # 10.0.0
 
  * Deprecate `resource_update` RPC
