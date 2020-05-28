@@ -11,7 +11,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_load([u, x, v, y, w, z]) do
+  def handle_load([_u, x, _v, y, _w, z]) do
     :ok = BotState.set_load(x, y, z)
   end
 
