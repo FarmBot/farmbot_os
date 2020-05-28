@@ -28,7 +28,7 @@ defmodule Avrdude do
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
+    FarmbotCore.Logger.info(3, "Writing firmware to MCU... #{inspect(args)}")
 
     call_reset_fun(reset_fun)
 
