@@ -46,14 +46,14 @@ defmodule FarmbotCore.FirmwareTTYDetector do
     # problems while using third party boards.
     # The comparator function below always puts ttyAMA0 at the
     # end of the list to prevent problems with these baords.
-    ama0_always_last = fn
-      {"ttyAMA0", _} -> "z"
-      _ -> "a"
-    end
+    # ama0_always_last = fn
+    #   {"ttyAMA0", _} -> "z"
+    #   _ -> "a"
+    # end
 
     enumerated = UART.enumerate()
     |> Map.to_list()
-    |> Enum.sort_by(ama0_always_last)
+    # |> Enum.sort_by(ama0_always_last)
 
     {:noreply, state, {:continue, enumerated}}
   end
