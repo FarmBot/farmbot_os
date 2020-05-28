@@ -125,15 +125,15 @@ defmodule FarmbotOS.MixProject do
       {:mdns_lite, "~> 0.6.1", targets: @all_targets},
       {:busybox, "~> 0.1.4", targets: @all_targets},
       {:farmbot_system_rpi3,
-        git: "https://github.com/FarmBot/farmbot_system_rpi3.git",
-        tag: "v1.11.4-farmbot.0",
-        runtime: false,
-        targets: :rpi3},
+       git: "https://github.com/FarmBot/farmbot_system_rpi3.git",
+       tag: "v1.11.4-farmbot.0",
+       runtime: false,
+       targets: :rpi3},
       {:farmbot_system_rpi,
-        git: "https://github.com/FarmBot/farmbot_system_rpi.git",
-        tag: "v1.11.4-farmbot.0",
-        runtime: false,
-        targets: :rpi}
+       git: "https://github.com/FarmBot/farmbot_system_rpi.git",
+       tag: "v1.11.4-farmbot.0",
+       runtime: false,
+       targets: :rpi}
     ]
   end
 
