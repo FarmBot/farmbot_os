@@ -37,10 +37,11 @@ defmodule Avrdude do
     {msg, exit_code} = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
 
     if exit_code == 0 || attempts > 5 do
+      FarmbotCore.Logger.info(3, "OK")
       {msg, exit_code}
     else
       FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")
-      FarmbotCore.Logger.info(3, "inspect(msg)")
+      FarmbotCore.Logger.info(3, "#{inspect(msg)}")
       Process.sleep(attempts * 200)
       call_avr_dude(reset_fun, args, attempts + 1)
     end
