@@ -28,19 +28,23 @@ defmodule Avrdude do
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    FarmbotCore.Logger.info(3, "Writing firmware to MCU...")
+    FarmbotCore.Logger.info(3, "Writing firmware to MCU... #{inspect(args)}")
+    call_avr_dude(reset_fun, args)
+  end
 
+  def call_avr_dude(reset_fun, args, attempts \\ 0) do
     call_reset_fun(reset_fun)
+    {msg, exit_code} = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
 
-    result = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
-
-    if is_tuple(result) do
-      {a, exit_code} = result
-      FarmbotCore.Logger.info(3, inspect(a))
-      FarmbotCore.Logger.info(3, "Exit code #{exit_code}")
+    if exit_code == 0 || attempts > 5 do
+      FarmbotCore.Logger.info(3, "OK")
+      {msg, exit_code}
+    else
+      FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")
+      FarmbotCore.Logger.info(3, "#{inspect(msg)}")
+      Process.sleep(attempts * 200)
+      call_avr_dude(reset_fun, args, attempts + 1)
     end
-
-    result
   end
 
   def call_reset_fun(reset_fun) do
