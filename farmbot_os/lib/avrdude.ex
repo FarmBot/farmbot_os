@@ -51,7 +51,6 @@ defmodule Avrdude do
     else
       FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")
       FarmbotCore.Logger.info(3, "#{inspect(msg)}")
-      Process.sleep(attempts * 150)
       call_avr_dude(reset_fun, args, attempts + 1)
     end
   end
