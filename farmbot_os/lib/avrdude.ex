@@ -4,6 +4,7 @@ defmodule Avrdude do
   """
 
   @uart_speed 115_200
+  @max_attempts 10
   require FarmbotCore.Logger
 
   @spec flash(Path.t(), Path.t(), (() -> :ok)) :: {number, any()}
@@ -32,17 +33,24 @@ defmodule Avrdude do
     call_avr_dude(reset_fun, args)
   end
 
-  def call_avr_dude(reset_fun, args, attempts \\ 0) do
+  def call_avr_dude(reset_fun, args, attempts \\ @max_attempts) do
     call_reset_fun(reset_fun)
     {msg, exit_code} = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
+    give_up? = attempts > @max_attempts
 
-    if exit_code == 0 || attempts > 5 do
-      FarmbotCore.Logger.info(3, "OK")
+    if exit_code == 0 || give_up? do
+      if give_up? do
+        FarmbotCore.Logger.info(3, "Failed after #{attempts} attempts.")
+      else
+        FarmbotCore.Logger.info(3, "Firmware Flash OK")
+      end
+
+      FarmbotCore.Logger.info(3, inspect(msg))
       {msg, exit_code}
     else
       FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")
       FarmbotCore.Logger.info(3, "#{inspect(msg)}")
-      Process.sleep(attempts * 200)
+      Process.sleep(400)
       call_avr_dude(reset_fun, args, attempts + 1)
     end
   end

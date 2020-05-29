@@ -29,10 +29,16 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
            ),
          :ok <- FarmbotFirmware.close_transport(),
          _ <- FarmbotCore.Logger.debug(3, "starting firmware flash"),
-         _ <- finish_flashing(Avrdude.flash(hex_file, tty, fun)) do
-      %{firmware_path: tty}
-      |> Asset.update_fbos_config!()
-      |> Private.mark_dirty!(%{})
+         result <- finish_flashing(Avrdude.flash(hex_file, tty, fun)) do
+      case result do
+        {_, 0} ->
+          %{firmware_path: tty}
+          |> Asset.update_fbos_config!()
+          |> Private.mark_dirty!(%{})
+
+        _ ->
+          {:error, "Unable to flash firmware."}
+      end
 
       :ok
     else
