@@ -57,6 +57,8 @@ defmodule Avrdude do
 
   def call_reset_fun(reset_fun) do
     try do
+      # MAYBE REMOVE THIS EXPERIMENT (rc)
+      FarmbotCore.FirmwareOpenTask.unswap_transport()
       reset_fun.()
     catch
       error_type, error ->
