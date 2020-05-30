@@ -4,7 +4,7 @@ defmodule Avrdude do
   """
 
   @uart_speed 115_200
-  @max_attempts 10
+  @max_attempts 4
   require FarmbotCore.Logger
 
   @spec flash(Path.t(), Path.t(), (() -> :ok)) :: {number, any()}
@@ -57,8 +57,6 @@ defmodule Avrdude do
 
   def call_reset_fun(reset_fun) do
     try do
-      # MAYBE REMOVE THIS EXPERIMENT (rc)
-      FarmbotCore.FirmwareOpenTask.unswap_transport()
       reset_fun.()
     catch
       error_type, error ->
