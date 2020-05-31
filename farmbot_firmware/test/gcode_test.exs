@@ -448,9 +448,9 @@ defmodule FarmbotFirmware.GCODETest do
       assert "R85 X1.40 Y2.30 Z3.20" ==
                GCODE.encode({nil, {:report_encoders_raw, params}})
 
-      params = [x: 1.4, y: 2.3, z: 3.2]
+      params = [1, 2, 3, 4, 5, 6]
 
-      assert "R89 X1.40 Y2.30 Z3.20" ==
+      assert "R89 U1 X2 V3 Y4 W5 Z6" ==
                GCODE.encode({nil, {:report_load, params}})
 
       assert "G00 X0.00" ==
