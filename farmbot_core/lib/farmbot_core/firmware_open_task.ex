@@ -2,7 +2,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   @moduledoc """
   Will open the UART interface after it's been successfully flashed .
   Must configure in application env: `attempt_threshold`. It can be an integer
-  or `:infinity` in which case it will try opening it indefinately.
+  or `:infinity` in which case it will try opening it indefinitely.
   """
 
   use GenServer
@@ -23,7 +23,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
     device: tty,
     reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
-    # Close tranpsort if it is open currently.
+    # Close transport if it is open currently.
     _ = FarmbotFirmware.close_transport()
     FarmbotFirmware.open_transport(UARTTransport, device: tty)
   end
@@ -33,7 +33,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
     transport: StubTransport,
     reset: FarmbotCore.FirmwareResetter)
     # Swap transport on FW module.
-    # Close tranpsort if it is open currently.
+    # Close transport if it is open currently.
     _ = FarmbotFirmware.close_transport()
     FarmbotFirmware.open_transport(StubTransport, [])
   end
@@ -104,7 +104,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
         FarmbotCore.Logger.debug 3, """
         Unknown firmware open state:
         firmware needs flash?: #{needs_flash?}
-        firwmare needs open?: #{needs_open?}
+        firmware needs open?: #{needs_open?}
         firmware path: #{firmware_path}
         """
         timer = Process.send_after(self(), :open, 5000)
