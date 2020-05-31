@@ -4,11 +4,7 @@ defmodule FarmbotFirmware.UARTTransport do
   This is the mechanism that official Farmbot's communicate with
   official Farmbot-Arduino-Firmware's over.
   """
-  alias FarmbotFirmware.{
-    GCODE,
-    UartDefaultAdapter
-  }
-
+  alias FarmbotFirmware.{GCODE, UartDefaultAdapter}
   use GenServer
   require Logger
 
@@ -18,8 +14,7 @@ defmodule FarmbotFirmware.UARTTransport do
     device = Keyword.fetch!(args, :device)
     handle_gcode = Keyword.fetch!(args, :handle_gcode)
     reset = Keyword.fetch!(args, :reset)
-    # {:ok, uart} = UartDefaultAdapter.start_link()
-    uart = %{}
+    {:ok, uart} = UartDefaultAdapter.start_link()
 
     {:ok,
      %{
@@ -31,10 +26,8 @@ defmodule FarmbotFirmware.UARTTransport do
      }, 0}
   end
 
-  # def terminate(_, %{uart: uart}) do
-  def terminate(_, _) do
-    # UartDefaultAdapter.stop(uart)
-    :ok
+  def terminate(_, %{uart: uart}) do
+    UartDefaultAdapter.stop(uart)
   end
 
   def handle_info(:timeout, %{open: false} = state) do
@@ -60,10 +53,9 @@ defmodule FarmbotFirmware.UARTTransport do
     {:noreply, state}
   end
 
-  def handle_call(_code, _from, state) do
-    # str = GCODE.encode(code)
-    r = :ok
-    # r = UartDefaultAdapter.write(state.uart, str)
+  def handle_call(code, _from, state) do
+    str = GCODE.encode(code)
+    r = UartDefaultAdapter.write(state.uart, str)
     {:reply, r, state}
   end
 
@@ -75,8 +67,7 @@ defmodule FarmbotFirmware.UARTTransport do
     end
   end
 
-  def open(_uart_pid, _device_path, _opts) do
-    # UartDefaultAdapter.open(uart_pid, device_path, opts)
-    :ok
+  def open(uart_pid, device_path, opts) do
+    UartDefaultAdapter.open(uart_pid, device_path, opts)
   end
 end
