@@ -31,8 +31,9 @@ defmodule FarmbotCore.FirmwareResetter do
       {:ok, gpio} = gpio_module.open(19, :output)
       :ok         = gpio_module.write(gpio, 0)
       :ok         = gpio_module.write(gpio, 1)
-      Process.sleep(1000)
+      Process.sleep(1100)
       :ok = gpio_module.write(gpio, 0)
+      gpio_module.close(gpio)
       FarmbotCore.Logger.debug(3, "Finish MCU Reset")
       :ok
     rescue
