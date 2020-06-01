@@ -13,7 +13,7 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     end
 
     def open(_, _) do
-      {:ok, ref}
+      {:ok, %{stub: :yep}}
     end
 
     def set_pull_mode(_, _) do
