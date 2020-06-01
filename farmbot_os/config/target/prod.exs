@@ -67,8 +67,7 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
   ssh_handler: FarmbotOS.Platform.Target.SSHConsole
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler,
-  # gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
+  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
 config :farmbot_core, FarmbotCore.Leds,

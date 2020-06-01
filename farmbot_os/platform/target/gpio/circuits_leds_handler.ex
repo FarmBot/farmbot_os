@@ -1,10 +1,24 @@
 defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   @moduledoc "Circuits gpio handler for LEDS"
 
-  alias Circuits.GPIO
+  # alias Circuits.GPIO
   use GenServer
   @behaviour FarmbotCore.Leds.Handler
   alias FarmbotCore.Leds.StubHandler
+
+  defmodule GPIO do
+    def write(_, _) do
+      :ok
+    end
+
+    def open(_, _) do
+      :ok
+    end
+
+    def set_pull_mode(_, _) do
+      :ok
+    end
+  end
 
   @slow_blink_speed 1000
   @fast_blink_speed 250
