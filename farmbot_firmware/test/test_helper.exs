@@ -1,5 +1,3 @@
 Application.ensure_all_started(:mimic)
-Mimic.copy(FarmbotFirmware.UartDefaultAdapter)
-Mimic.copy(Circuits.UART)
 Mimic.copy(File)
 ExUnit.start()

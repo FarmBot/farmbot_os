@@ -7,7 +7,7 @@ defmodule FarmbotFirmware.CommandTest do
   @subject FarmbotFirmware.Command
 
   def fake_pid() do
-    arg = [transport: FarmbotFirmware.StubTransport, reset: StubReset]
+    arg = [reset: StubReset]
     {:ok, pid} = FarmbotFirmware.start_link(arg, [])
     send(pid, :timeout)
     pid

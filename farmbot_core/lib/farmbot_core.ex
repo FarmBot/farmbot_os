@@ -24,7 +24,6 @@ defmodule FarmbotCore do
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.StorageSupervisor,
       FarmbotCore.FirmwareTTYDetector,
-      FarmbotCore.FirmwareOpenTask,
       FarmbotCore.FirmwareEstopTimer,
       # Also error handling for a transport not starting ?
       {FarmbotFirmware,
