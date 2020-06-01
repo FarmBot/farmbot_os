@@ -18,6 +18,10 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     def set_pull_mode(_, _) do
       :ok
     end
+
+    def set_interrupts(_, _) do
+      :ok
+    end
   end
 
   @slow_blink_speed 1000

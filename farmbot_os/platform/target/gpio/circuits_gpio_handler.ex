@@ -19,6 +19,10 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
     def set_pull_mode(_, _) do
       :ok
     end
+
+    def set_interrupts(_, _) do
+      :ok
+    end
   end
 
   def start_link(pin_number, fun) do

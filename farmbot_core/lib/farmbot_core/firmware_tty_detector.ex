@@ -12,7 +12,7 @@ defmodule FarmbotCore.FirmwareTTYDetector do
   end
 
   @doc "Sets a TTY as detected by some other means"
-  def set_tty(server \\ __MODULE__, tty) when is_binary(tty) do
+  def set_tty(_server \\ __MODULE__, tty) when is_binary(tty) do
     :ok
   end
 
