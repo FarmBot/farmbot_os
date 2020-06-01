@@ -12,7 +12,7 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
     end
 
     def open(_, _) do
-      :ok
+      {:ok, ref}
     end
 
     def set_pull_mode(_, _) do

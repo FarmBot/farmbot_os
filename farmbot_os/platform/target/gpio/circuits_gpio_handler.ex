@@ -8,12 +8,12 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   @debounce_timeout_ms 1000
 
   defmodule GPIO do
-    def open(_, _) do
+    def write(_, _) do
       :ok
     end
 
-    def set_interrupts(_, _) do
-      :ok
+    def open(_, _) do
+      {:ok, ref}
     end
 
     def set_pull_mode(_, _) do
