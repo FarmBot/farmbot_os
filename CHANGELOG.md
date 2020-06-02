@@ -1,5 +1,9 @@
 # Changelog
 
+# 10.0.1
+
+ * Fix for Genesis v1.5 firmware bug.
+
 # 10.0.0
 
  * Deprecate `resource_update` RPC
