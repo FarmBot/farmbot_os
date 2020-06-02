@@ -1,6 +1,6 @@
 # Changelog
 
-# 10.1.0
+# 10.0.1
 
  * Fix for Genesis v1.5 firmware bug.
 
