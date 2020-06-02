@@ -73,11 +73,11 @@ defmodule FarmbotOS.Configurator.RouterTest do
   @tag :capture_log
   test "celeryscript requests don't get listed as last reset reason" do
     FarmbotOS.Configurator.ConfigDataLayer
-    |> expect(:load_last_reset_reason, fn -> "CeleryScript request." end)
+    |> expect(:load_last_reset_reason, fn -> "Factory reset requested" end)
 
     conn = conn(:get, "/")
     conn = Router.call(conn, @opts)
-    refute conn.resp_body =~ "CeleryScript request."
+    refute conn.resp_body =~ "Factory reset requested"
   end
 
   @tag :capture_log

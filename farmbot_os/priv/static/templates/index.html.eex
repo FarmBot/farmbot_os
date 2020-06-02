@@ -77,7 +77,7 @@
               <div id="envDetails" class="env-details" hidden>
                 <script>
                   var all = "<%= javascript_escape(last_reset_reason) %>";
-                  var envDetails = all.split("<hr>")[1];
+                  var envDetails = all.split("<hr>")[1] || "No additional details.";
                   document.write(envDetails)
                 </script>
               </div>

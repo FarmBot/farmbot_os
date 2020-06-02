@@ -16,7 +16,7 @@ defmodule FarmbotCore.FirmwareResetter do
 
   def find_reset_fun("express_k10") do
     FarmbotCore.Logger.debug(3, "Using special express reset function")
-    {:ok, fn -> express_reset_fun() end}
+    {:ok, fn -> express_reset_fun(@gpio) end}
   end
 
   def find_reset_fun(_) do
@@ -24,15 +24,20 @@ defmodule FarmbotCore.FirmwareResetter do
     {:ok, fn -> :ok end}
   end
 
-  def express_reset_fun() do
+  defp express_reset_fun(nil) do
+    FarmbotCore.Logger.debug(3, "GPIO module not found; Skipping firmware reset.")
+    :ok
+  end
+
+  defp express_reset_fun(gpio_module) do
     try do
-      gpio_module = @gpio
       FarmbotCore.Logger.debug(3, "Begin MCU reset")
       {:ok, gpio} = gpio_module.open(19, :output)
       :ok         = gpio_module.write(gpio, 0)
       :ok         = gpio_module.write(gpio, 1)
-      Process.sleep(1000)
+      Process.sleep(1100)
       :ok = gpio_module.write(gpio, 0)
+      gpio_module.close(gpio)
       FarmbotCore.Logger.debug(3, "Finish MCU Reset")
       :ok
     rescue

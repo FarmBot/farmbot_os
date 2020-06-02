@@ -20,7 +20,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     1b) if not, goto 2.
   2) check for Farmbot `DeviceCert`.
     2a) if available update tags. goto 3.
-    2b) if not avialable, create. goto 3.
+    2b) if not available, create. goto 3.
   3) Wait for Farmbot API to dispatch nerves_hub `cert` and `key`.
   4) When `cert` and `key` is available, try to connect to `nerves_hub`.
 
@@ -688,7 +688,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
     if currently_downloading?() do
       FarmbotCore.Logger.error(
         1,
-        "Can't perform OTA. OTA alread in progress. Restart device if problem persists."
+        "Can't perform OTA. OTA already in progress. Restart device if problem persists."
       )
     else
       FarmbotCore.Logger.success(1, "OTA started.")
