@@ -67,7 +67,8 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
   ssh_handler: FarmbotOS.Platform.Target.SSHConsole
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
+  gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler,
+  # gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
   error_retry_time_ms: 30_000
 
 config :farmbot_core, FarmbotCore.Leds,
@@ -119,6 +120,8 @@ config :nerves_hub,
   public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
 
 config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
+
+config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5_000_000
 
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
   firmware_flash_attempt_threshold: :infinity

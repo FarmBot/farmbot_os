@@ -4,7 +4,7 @@ defmodule Avrdude do
   """
 
   @uart_speed 115_200
-  @max_attempts 4
+  @max_attempts 3
   require FarmbotCore.Logger
 
   @spec flash(Path.t(), Path.t(), (() -> :ok)) :: {number, any()}

@@ -4,26 +4,9 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
   require Logger
   use GenServer
+  alias Circuits.GPIO
 
   @debounce_timeout_ms 1000
-
-  defmodule GPIO do
-    def write(_, _) do
-      :ok
-    end
-
-    def open(_, _) do
-      {:ok, %{stub: :yep}}
-    end
-
-    def set_pull_mode(_, _) do
-      :ok
-    end
-
-    def set_interrupts(_, _) do
-      :ok
-    end
-  end
 
   def start_link(pin_number, fun) do
     GenServer.start_link(__MODULE__, [pin_number, fun], name: name(pin_number))

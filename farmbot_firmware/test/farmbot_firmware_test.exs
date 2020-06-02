@@ -11,7 +11,7 @@ defmodule FarmbotFirmwareTest do
   end
 
   def firmware_server do
-    arg = [reset: StubReset]
+    arg = [transport: FarmbotFirmware.StubTransport, reset: StubReset]
     {:ok, pid} = FarmbotFirmware.start_link(arg, [])
     send(pid, :timeout)
     try_command(pid, {nil, {:command_emergency_lock, []}})
