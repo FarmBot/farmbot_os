@@ -80,7 +80,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         |> execute(state)
 
       nil ->
-        FarmbotCore.Logger.error(1, "Failed to find assosiated Sequence for: #{pin_binding}")
+        FarmbotCore.Logger.error(1, "Failed to find associated Sequence for: #{pin_binding}")
         {:noreply, state}
     end
   end

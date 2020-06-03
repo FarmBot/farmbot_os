@@ -118,7 +118,7 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
 
   @impl FarmbotOS.Configurator.DataLayer
   def load_last_reset_reason() do
-    file_path = Path.join(FileSystem.data_path(), "last_reset_reason")
+    file_path = Path.join(FileSystem.data_path(), "last_shutdown_reason")
 
     case File.read(file_path) do
       {:ok, data} -> data

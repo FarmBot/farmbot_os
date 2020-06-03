@@ -55,7 +55,7 @@ defmodule FarmbotOS.Configurator.Router do
 
     case load_last_reset_reason() do
       reason when is_binary(reason) ->
-        if String.contains?(reason, "CeleryScript request.") do
+        if String.contains?(reason, "Factory reset requested") do
           redir(conn, "/network")
         else
           render_page(conn, "index",

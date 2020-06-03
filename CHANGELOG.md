@@ -1,5 +1,11 @@
 # Changelog
 
+# 10.1.0
+
+ * Internal upgrades to underlying OS
+ * Bug fix for DIY users on third party RAMPS boards.
+ * Genesis v1.5 and Express v1.0 firmware updates.
+
 # 10.0.1
 
  * Fix for Genesis v1.5 firmware bug.
