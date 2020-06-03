@@ -3,8 +3,8 @@
 # 10.1.0
 
  * Internal upgrades to underlying OS
- * Bug fix for DIY users on third party RAMPS boards.
  * Genesis v1.5 and Express v1.0 firmware updates.
+ * Bug fix where to prevent firmware reset when MCU becomes unresponsive
 
 # 10.0.1
 
