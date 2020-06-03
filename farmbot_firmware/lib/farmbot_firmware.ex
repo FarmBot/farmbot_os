@@ -168,7 +168,13 @@ defmodule FarmbotFirmware do
   the `:transport_boot` state.
   """
   def close_transport(server \\ __MODULE__) do
-    _ = command(server, {nil, {:command_emergency_lock, []}})
+    # Make a best effort to E-lock before swapping.
+    # Don't crash if e-stop fails.
+    spawn(fn ->
+      command(server, {nil, {:command_emergency_lock, []}})
+    end)
+
+    Process.sleep(1000)
     GenServer.call(server, :close_transport)
   end
 
