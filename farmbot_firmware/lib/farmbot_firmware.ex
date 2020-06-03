@@ -173,6 +173,7 @@ defmodule FarmbotFirmware do
     spawn(fn ->
       command(server, {nil, {:command_emergency_lock, []}})
     end)
+
     Process.sleep(1000)
     GenServer.call(server, :close_transport)
   end
