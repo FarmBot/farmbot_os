@@ -4,7 +4,7 @@
 
  * Internal upgrades to underlying OS
  * Genesis v1.5 and Express v1.0 firmware updates.
- * Bug fix where to prevent firmware reset when MCU becomes unresponsive
+ * Bug fix to prevent firmware reset issues when MCU becomes unresponsive
 
 # 10.0.1
 
