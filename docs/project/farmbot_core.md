@@ -18,7 +18,7 @@ Most device specific REST resources are mirrored here.
 
 ## Asset Worker subsystem
 
-All assets that need to have a process assosiated with it will be found
+All assets that need to have a process associated with it will be found
 in this subsystem. Examples of this include:
 
 * FarmEvent scheduling

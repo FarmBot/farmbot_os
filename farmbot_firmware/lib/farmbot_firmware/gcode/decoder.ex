@@ -57,7 +57,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
 
   def do_decode("R87", []), do: {:report_emergency_lock, []}
   def do_decode("R88", []), do: {:report_no_config, []}
-  def do_decode("R89", xyz), do: {:report_load, decode_floats(xyz)}
+  def do_decode("R89", uxvywz), do: {:report_load, decode_uxvywz(uxvywz)}
 
   def do_decode("R99", debug),
     do: {:report_debug_message, [Enum.join(debug, " ")]}
@@ -198,6 +198,23 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     param = Param.decode(String.to_integer(param_id))
     {value, ""} = Float.parse(value)
     [{param, value}]
+  end
+
+  def decode_uxvywz([
+        "U" <> u_value,
+        "X" <> x_value,
+        "V" <> v_value,
+        "Y" <> y_value,
+        "W" <> w_value,
+        "Z" <> z_value
+      ]) do
+    {u, ""} = Integer.parse(u_value)
+    {x, ""} = Integer.parse(x_value)
+    {v, ""} = Integer.parse(v_value)
+    {y, ""} = Integer.parse(y_value)
+    {w, ""} = Integer.parse(w_value)
+    {z, ""} = Integer.parse(z_value)
+    [u, x, v, y, w, z]
   end
 
   def decode_ints(pvm, acc \\ [])

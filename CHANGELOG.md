@@ -1,5 +1,11 @@
 # Changelog
 
+# 10.1.0
+
+ * Internal upgrades to underlying OS
+ * Genesis v1.5 and Express v1.0 firmware updates.
+ * Bug fix to prevent firmware reset issues when MCU becomes unresponsive
+
 # 10.0.1
 
  * Fix for Genesis v1.5 firmware bug.
