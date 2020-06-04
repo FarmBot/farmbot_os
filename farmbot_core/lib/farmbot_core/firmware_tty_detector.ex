@@ -42,7 +42,15 @@ defmodule FarmbotCore.FirmwareTTYDetector do
   end
 
   def handle_info(:timeout, state) do
-    enumerated = UART.enumerate() |> Map.to_list()
+    # This function exists to help users of DIY setups.
+    # Some boards expose mutliple serial ports, which leads to
+    # unpredictable behavior. Putting ttyAMA0 at the end helps
+    # prevent the issue.
+    enumerated = UART.enumerate() |> Map.to_list() |> Enum.sort_by(fn
+      "ttyAMA0" -> 1
+      _ -> 0
+    end)
+
     {:noreply, state, {:continue, enumerated}}
   end
 
