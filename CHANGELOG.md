@@ -1,9 +1,14 @@
 # Changelog
 
+# 10.1.1
+
+ * Genesis v1.5 and Express v1.0 firmware updates.
+ * Changes to TTY to allow use of DIY boards
+ * Upgrade underlying OS for RPi3 Nerves system (`ERL_CRASH_DUMP_SECONDS=-1`)
+
 # 10.1.0
 
  * Internal upgrades to underlying OS
- * Genesis v1.5 and Express v1.0 firmware updates.
  * Bug fix to prevent firmware reset issues when MCU becomes unresponsive
 
 # 10.0.1
