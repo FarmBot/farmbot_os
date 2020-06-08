@@ -62,6 +62,12 @@ defmodule FarmbotExt.API.DirtyWorker do
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
         dirty |> module.changeset(body) |> handle_changeset(module)
 
+      # Stale data
+      {:ok, %{status: s, body: %{} = body}} when s == 409 ->
+        b = inspect(body)
+        msg = "FBOS Encountered stale data (#{module}). Resync required. #{b}"
+        FarmbotCore.Logger.error(2, msg)
+
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
