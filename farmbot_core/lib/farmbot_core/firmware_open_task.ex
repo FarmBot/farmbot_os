@@ -61,7 +61,6 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
     needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
     needs_open? = Config.get_config_value(:bool, "settings", "firmware_needs_open")
-    firmware_path = Asset.fbos_config(:firmware_path)
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     cond do
       needs_flash? ->
@@ -69,7 +68,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, increment_attempts(%{state | timer: timer})}
 
-      is_nil(firmware_path) ->
+      is_nil(firmware_path()) ->
         FarmbotCore.Logger.debug 3, "Firmware path not detected. Not opening"
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, increment_attempts(%{state | timer: timer})}
@@ -83,7 +82,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
       needs_open? ->
         FarmbotCore.Logger.debug 3, "Opening firmware..."
-        case swap_transport(firmware_path) do
+        case swap_transport(firmware_path()) do
           :ok ->
             Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
             timer = Process.send_after(self(), :open, 5000)
@@ -105,7 +104,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
         Unknown firmware open state:
         firmware needs flash?: #{needs_flash?}
         firwmare needs open?: #{needs_open?}
-        firmware path: #{firmware_path}
+        firmware path: #{firmware_path()}
         """
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, %{state | timer: timer, attempts: 0}}
@@ -118,5 +117,15 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
   defp increment_attempts(%{attempts: at} = state) do
     %{state | attempts: at + 1}
+  end
+
+  # There is a bug where `firmware_path` is set to `nil` unexpectedly.
+  # In those cases, it is important to find a fallback value.
+  # I am suspicious this is related to a stale data / clobbering issue.
+  # It may be possible to remove the fallback value later when the data
+  # storage layer is more stable / less susceptible to caching problems.
+  # - RC 8 JUN 2020
+  def firmware_path() do
+    Asset.fbos_config(:firmware_path) || FarmbotCore.FirmwareTTYDetector.tty()
   end
 end
