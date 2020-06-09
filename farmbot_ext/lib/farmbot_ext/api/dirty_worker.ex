@@ -9,7 +9,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   require FarmbotCore.Logger
   use GenServer
   @timeout 500
-
+  @stale_flag :YES_IT_IS_STALE
   # these resources can't be accessed by `id`.
   @singular [
     FarmbotCore.Asset.Device,
@@ -45,8 +45,13 @@ defmodule FarmbotExt.API.DirtyWorker do
     Process.sleep(@timeout)
     list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
 
-    unless has_race_condition?(module, list) do
+    results = unless has_race_condition?(module, list) do
       Enum.map(list, fn dirty -> work(dirty, module) end)
+    end
+
+    if Enum.find(results, fn result -> result == @stale_flag end) do
+      FarmbotCeleryScript.SysCalls.sync()
+      raise "STALE RECORD WHOAH"
     end
 
     Process.send_after(self(), :do_work, @timeout)
@@ -63,10 +68,11 @@ defmodule FarmbotExt.API.DirtyWorker do
         dirty |> module.changeset(body) |> handle_changeset(module)
 
       # Stale data
-      {:ok, %{status: s, body: %{} = body}} when s == 409 ->
-        b = inspect(body)
-        msg = "FBOS Encountered stale data (#{module}). Resync required. #{b}"
-        FarmbotCore.Logger.error(2, msg)
+      {:ok, %{status: s}} when s == 409 ->
+        # msg = "Resync and retry required. Abandoning changes to stale data (#{module})."
+        # FarmbotCore.Logger.error(2, msg)
+        # IO.inspect(handle_changeset(dirty, module), label: "==== RESULT OF mark_clean?")
+        @stale_flag
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
