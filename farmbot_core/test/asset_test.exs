@@ -21,4 +21,13 @@ defmodule FarmbotCore.AssetTest do
     assert %FarmbotCore.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
     assert 17 == Asset.device(:ota_hour)
   end
+
+  describe "firmware config" do
+    test "retrieves a single field" do
+      conf = Asset.firmware_config()
+      refute 1.23 == Asset.firmware_config(:movement_steps_acc_dec_x)
+      Asset.update_firmware_config!(conf, %{movement_steps_acc_dec_x: 1.23})
+      assert 1.23 == Asset.firmware_config(:movement_steps_acc_dec_x)
+    end
+  end
 end
