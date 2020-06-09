@@ -2,7 +2,7 @@
 
 # 10.1.2
 
- * Genesis v1.5 and Express v1.0 firmware updates.
+ * Express v1.0 firmware updates.
  * Regimen Farm Event scheduler fixes.
 
 # 10.1.1
