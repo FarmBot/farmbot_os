@@ -3,6 +3,7 @@
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
+*.coverdata
 
 # The directory Mix downloads your dependencies sources to.
 /deps/

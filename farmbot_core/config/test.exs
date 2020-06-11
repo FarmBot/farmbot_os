@@ -1,5 +1,6 @@
 use Mix.Config
-config :logger, level: :warn
+config :logger, level: :debug
+config :logger, :console, level: :warn
 
 # must be lower than other timers
 # To ensure other timers have time to timeout
