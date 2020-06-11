@@ -6,4 +6,6 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 
 Mimic.copy(FarmbotCeleryScript.SysCalls.Stubs)
 Mimic.copy(Timex)
+Mimic.copy(FarmbotCore.Asset)
+Mimic.copy(FarmbotCeleryScript)
 ExUnit.start()

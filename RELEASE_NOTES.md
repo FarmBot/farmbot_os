@@ -38,4 +38,4 @@ FarmBot OS v10 features an improved *Mark As* step. If you have previously added
 * If you have auto-sync disabled, press `SYNC NOW` once all sequences have been updated.
 * Verify that any events using the updated sequences are running as expected.
 
-FarmBot OS auto-update was disabled prior to this release.
+FarmBot OS auto-update was disabled prior to this release. If you would like to continue receiving automatic updates, please re-enable auto-update.
