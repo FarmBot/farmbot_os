@@ -47,7 +47,7 @@ defmodule FarmbotCore.FirmwareTTYDetector do
     # unpredictable behavior. Putting ttyAMA0 at the end helps
     # prevent the issue.
     enumerated = UART.enumerate() |> Map.to_list() |> Enum.sort_by(fn
-      "ttyAMA0" -> 1
+	 {"ttyAMA0", _} -> 1
       _ -> 0
     end)
 
