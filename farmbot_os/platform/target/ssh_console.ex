@@ -80,7 +80,8 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   end
 
   defp stop_ssh(ssh) do
-    ssh && :ssh.stop_daemon(ssh)
+    erland_ssh_mod = :ssh
+    ssh && erland_ssh_mod.stop_daemon(ssh)
   end
 
   defp start_ssh(port, decoded_authorized_keys)
@@ -97,7 +98,8 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
 
     # Reuse the system_dir as well to allow for auth to work with the shared
     # keys.
-    :ssh.daemon(port, [
+    ssh = :ssh
+    ssh.daemon(port, [
       {:id_string, :random},
       {:key_cb, {Nerves.Firmware.SSH.Keys, cb_opts}},
       {:system_dir, Nerves.Firmware.SSH.Application.system_dir()},

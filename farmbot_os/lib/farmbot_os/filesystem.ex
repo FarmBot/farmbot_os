@@ -10,4 +10,8 @@ defmodule FarmbotOS.FileSystem do
 
   @doc "helper that always returns #{@data_path}"
   def data_path, do: @data_path
+
+  def shutdown_reason_path do
+    Path.join(@data_path, "last_shutdown_reason")
+  end
 end
