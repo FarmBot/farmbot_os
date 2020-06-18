@@ -9,7 +9,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   require FarmbotCore.Logger
   use GenServer
   @timeout 500
-
+  @stale_flag :YES_IT_IS_STALE
   # these resources can't be accessed by `id`.
   @singular [
     FarmbotCore.Asset.Device,
@@ -57,6 +57,11 @@ defmodule FarmbotExt.API.DirtyWorker do
       Enum.map(list, fn dirty -> work(dirty, module) end)
     end
 
+    if Enum.find(results, fn result -> result == @stale_flag end) do
+      FarmbotCeleryScript.SysCalls.sync()
+      raise "STALE RECORD WHOAH"
+    end
+
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
@@ -70,6 +75,16 @@ defmodule FarmbotExt.API.DirtyWorker do
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
         dirty |> module.changeset(body) |> handle_changeset(module)
 
+<<<<<<< HEAD
+=======
+      # Stale data
+      {:ok, %{status: s}} when s == 409 ->
+        # msg = "Resync and retry required. Abandoning changes to stale data (#{module})."
+        # FarmbotCore.Logger.error(2, msg)
+        # IO.inspect(handle_changeset(dirty, module), label: "==== RESULT OF mark_clean?")
+        @stale_flag
+
+>>>>>>> row_locks
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")

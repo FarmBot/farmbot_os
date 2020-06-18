@@ -118,6 +118,7 @@ defmodule FarmbotCore.Asset.FirmwareConfig do
   view firmware_config do
     %{
       id: firmware_config.id,
+      updated_at: firmware_config.updated_at,
       api_migrated: firmware_config.api_migrated,
       param_e_stop_on_mov_err: firmware_config.param_e_stop_on_mov_err,
       param_mov_nr_retry: firmware_config.param_mov_nr_retry,
