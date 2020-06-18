@@ -2,6 +2,7 @@ Application.ensure_all_started(:farmbot)
 
 [
   AMQP.Channel,
+  FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
   FarmbotCore.Asset.Query,
@@ -13,7 +14,8 @@ Application.ensure_all_started(:farmbot)
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
-  FarmbotExt.API.Preloader
+  FarmbotExt.API.Preloader,
+  FarmbotExt.Bootstrap.Authorization
 ]
 |> Enum.map(&Mimic.copy/1)
 

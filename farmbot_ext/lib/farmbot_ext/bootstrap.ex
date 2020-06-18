@@ -56,8 +56,10 @@ defmodule FarmbotExt.Bootstrap do
          {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
+      # User types a bad password into configurator.
       er ->
-        Logger.error("password auth failed: #{inspect(er)} ")
+        Logger.error("Password auth failed: #{inspect(er)} ")
+        FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os")
         {:noreply, nil, 5000}
     end
   end
