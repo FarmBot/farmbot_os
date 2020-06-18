@@ -75,16 +75,6 @@ defmodule FarmbotExt.API.DirtyWorker do
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
         dirty |> module.changeset(body) |> handle_changeset(module)
 
-<<<<<<< HEAD
-=======
-      # Stale data
-      {:ok, %{status: s}} when s == 409 ->
-        # msg = "Resync and retry required. Abandoning changes to stale data (#{module})."
-        # FarmbotCore.Logger.error(2, msg)
-        # IO.inspect(handle_changeset(dirty, module), label: "==== RESULT OF mark_clean?")
-        @stale_flag
-
->>>>>>> row_locks
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
@@ -96,7 +86,7 @@ defmodule FarmbotExt.API.DirtyWorker do
         |> handle_changeset(module)
 
       {:ok, %{status: s}} when s == 409 ->
-        FarmbotCore.Logger.error(2, "Stale detected. Resync required.")
+        FarmbotCore.Logger.error(2, "Stale data detected. Resync required.")
         Private.mark_stale!(module.changeset(dirty))
 
       # Invalid data, but the API didn't say why
