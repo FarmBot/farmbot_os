@@ -47,6 +47,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     |> Enum.reject(fn(%{scheduled_at: scheduled_at}) ->
       Asset.get_regimen_instance_execution(regimen_instance, scheduled_at)
     end)
+    # get rid of any item that has already passed
+    |> Enum.reject(fn(%{scheduled_at: scheduled_at}) ->
+      DateTime.compare(scheduled_at, DateTime.utc_now() |> DateTime.add(-120, :second)) == :lt
+    end)
     |> Enum.each(fn(%{scheduled_at: at, sequence: sequence}) ->
       schedule_sequence(regimen_instance, sequence, at)
     end)
