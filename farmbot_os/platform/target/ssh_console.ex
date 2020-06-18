@@ -99,6 +99,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
     # Reuse the system_dir as well to allow for auth to work with the shared
     # keys.
     ssh = :ssh
+
     ssh.daemon(port, [
       {:id_string, :random},
       {:key_cb, {Nerves.Firmware.SSH.Keys, cb_opts}},

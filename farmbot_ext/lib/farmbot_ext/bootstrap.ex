@@ -9,8 +9,6 @@ defmodule FarmbotExt.Bootstrap do
   alias FarmbotExt.{Bootstrap, Bootstrap.Authorization}
   import FarmbotCore.Config, only: [update_config_value: 4, get_config_value: 3]
 
-  @bad_credentials "User provided bad account email or password."
-
   @doc false
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -60,10 +58,8 @@ defmodule FarmbotExt.Bootstrap do
     else
       # User types a bad password into configurator.
       er ->
-        path = FarmbotOS.FileSystem.shutdown_reason_path()
-        File.write!(path, @bad_credentials)
+        Logger.error("Password auth failed: #{inspect(er)} ")
         FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os")
-        Logger.error("password auth failed: #{inspect(er)} ")
         {:noreply, nil, 5000}
     end
   end

@@ -55,7 +55,7 @@
 
       <div class="widget-content">
 
-        <p> <a hidden id='hidden-logs' href="/view_logs">Download all logs</a> </p>
+        <p> <a hidden id='hidden-logs' href="/logger">View Live Device Logs</a> </p>
 
         <%= if last_reset_reason do %>
           <div class="last-shutdown-reason">
@@ -86,6 +86,14 @@
               <button id="copy-lsr-button" onClick='copyLSR()'>copy</button>
             </div>
           </div>
+          <p>
+            <b>Common reasons configuration fails:</b>
+            <ul>
+              <li>Wrong account email or password</li>
+              <li>Wrong WiFi credentials</li>
+              <li>Security software or policies are preventing FarmBot from connecting to the public internet.</li>
+            </ul>
+          </p>
         <% end %>
 
         <p>Get ready to configure your FarmBot!</p>
