@@ -13,6 +13,7 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     regimen = regimen(regimen_params)
     farm_event = regimen_event(regimen, farm_event_params)
     params = Map.merge(%{id: :rand.uniform(10000), monitor: false}, params)
+
     RegimenInstance.changeset(%RegimenInstance{}, params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
