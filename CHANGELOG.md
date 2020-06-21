@@ -1,5 +1,11 @@
 # Changelog
 
+# 10.1.3
+
+ * Genesis v1.5 and Express v1.0 firmware homing updates.
+ * Add warning to configurator credentials page.
+ * Fix bug where configurator would not restart when bad credentials were entered.
+
 # 10.1.2
 
  * Express v1.0 firmware updates.
