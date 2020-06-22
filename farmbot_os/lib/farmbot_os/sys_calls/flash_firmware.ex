@@ -32,6 +32,11 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
          result <- finish_flashing(Avrdude.flash(hex_file, tty, fun)) do
       case result do
         {_, 0} ->
+          FarmbotCore.Logger.debug(
+            3,
+            "=== Setting firmware_path to #{inspect(tty)}"
+          )
+
           %{firmware_path: tty}
           |> Asset.update_fbos_config!()
           |> Private.mark_dirty!(%{})
