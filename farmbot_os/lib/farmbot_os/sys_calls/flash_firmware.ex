@@ -47,8 +47,6 @@ defmodule FarmbotOS.SysCalls.FlashFirmware do
       "Firmware flashed successfully. Unlock FarmBot to finish initialization."
     )
 
-    FarmbotCore.Logger.debug(3, "Setting firmware_path to #{inspect(tty)}")
-
     %{firmware_path: tty}
     |> Asset.update_fbos_config!()
     |> Private.mark_dirty!(%{})

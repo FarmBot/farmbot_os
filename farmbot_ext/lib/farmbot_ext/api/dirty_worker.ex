@@ -57,25 +57,13 @@ defmodule FarmbotExt.API.DirtyWorker do
     # Go easy on the API
     Process.sleep(333)
 
-    if module == FarmbotCore.Asset.FbosConfig do
-      FarmbotCore.Logger.debug(3, "=== Updating FBOS config #{inspect(dirty)}")
-    end
-
     case http_request(dirty, module) do
       # Valid data
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-        if module == FarmbotCore.Asset.FbosConfig do
-          FarmbotCore.Logger.debug(3, "=== FBOS config OK #{s} #{inspect(body)}")
-        end
-
         dirty |> module.changeset(body) |> handle_changeset(module)
 
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
-        if module == FarmbotCore.Asset.FbosConfig do
-          FarmbotCore.Logger.debug(3, "=== FBOS config err #{s} #{inspect(body)}")
-        end
-
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
         changeset = module.changeset(dirty)
 
@@ -86,10 +74,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
-        if module == FarmbotCore.Asset.FbosConfig do
-          FarmbotCore.Logger.debug(3, "=== FBOS config error #{s}")
-        end
-
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
 
         module.changeset(dirty)
@@ -98,10 +82,6 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       # HTTP Error. (500, network error, timeout etc.)
       error ->
-        if module == FarmbotCore.Asset.FbosConfig do
-          FarmbotCore.Logger.debug(3, "=== FBOS config error: #{inspect(error)}")
-        end
-
         FarmbotCore.Logger.error(
           2,
           "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{
