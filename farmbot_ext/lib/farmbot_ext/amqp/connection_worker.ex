@@ -54,8 +54,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
          {:ok, _} <- maybe_purge(chan, chan_name, purge?),
          :ok <- Queue.bind(chan, chan_name, @exchange, routing_key: route),
          {:ok, _} <- Basic.consume(chan, chan_name, self(), no_ack: true) do
-      # link to the connection and channel because the 
-      # AMQP lib doesn't handle being disconnected form the 
+      # link to the connection and channel because the
+      # AMQP lib doesn't handle being disconnected form the
       # network very well and these pids will turn into zombies
       Process.link(conn.pid)
       Process.link(chan.pid)
@@ -173,7 +173,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
       username: bot,
       password: token,
       virtual_host: vhost,
-      connection_timeout: 10_000
+      connection_timeout: 10_000,
+      heartbeat: 0
     ]
 
     AMQP.Connection.open(opts)
