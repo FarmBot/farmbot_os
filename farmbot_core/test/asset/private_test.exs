@@ -57,13 +57,21 @@ defmodule FarmbotCore.Asset.PrivateTest do
   test "mark_dirty! / list_dirty" do
     Map.keys(@assets)
     |> Enum.map(fn mod ->
+      # INITIAL STATE: Should be empty
       destroy_assets()
       old_count = Enum.count(Private.list_dirty(mod))
       assert old_count == 0
+
+      # MARK DIRTY: Should list exactly 1 dirty resource
       asset = Map.fetch!(create_assets(), mod)
       Private.mark_dirty!(asset)
       new_count = Enum.count(Private.list_dirty(mod))
       assert new_count == 1
+
+      # MARK CLEAN: Should list 0
+      Private.mark_clean!(asset)
+      newer_count = Enum.count(Private.list_dirty(mod))
+      assert newer_count == 0
     end)
 
     reset_assets()
