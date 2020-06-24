@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.PrivateTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias FarmbotCore.Asset.{
     FbosConfig,
@@ -9,18 +9,27 @@ defmodule FarmbotCore.Asset.PrivateTest do
     Repo
   }
 
-  @assets [Point, FbosConfig, FirmwareConfig]
+  @assets %{
+    Point => %Point{gantry_mounted: false, pullout_direction: 0},
+    FbosConfig => %FbosConfig{},
+    FirmwareConfig => %FirmwareConfig{}
+  }
 
   def destroy_assets() do
-    Enum.map(@assets, &Repo.delete_all/1)
+    Map.keys(@assets) |> Enum.map(&Repo.delete_all/1)
   end
 
   def create_assets() do
     %{
-      point: Repo.insert!(%Point{gantry_mounted: false, pullout_direction: 0}),
-      fbos_config: Repo.insert!(%FbosConfig{}),
-      firmware_config: Repo.insert!(%FirmwareConfig{})
+      Point => Repo.insert!(@assets[Point]),
+      FbosConfig => Repo.insert!(@assets[FbosConfig]),
+      FirmwareConfig => Repo.insert!(@assets[FirmwareConfig])
     }
+  end
+
+  def reset_assets() do
+    destroy_assets()
+    create_assets()
   end
 
   test "list_local" do
@@ -28,18 +37,35 @@ defmodule FarmbotCore.Asset.PrivateTest do
     old_results = Private.list_local(Point)
     assert Enum.count(old_results) == 0
 
-    %{point: created_point} = create_assets()
+    %{Point => created_point} = create_assets()
     new_results = Private.list_local(Point)
     assert Enum.count(new_results) == 1
     local_point = Enum.at(new_results, 0)
     assert local_point == created_point
+    reset_assets()
   end
 
-  test "mark_stale!" do
+  test "mark_stale! / any_stale?" do
     destroy_assets()
-    %{firmware_config: firmware_config} = create_assets()
+    %{FirmwareConfig => firmware_config} = create_assets()
     refute Private.any_stale?()
     Private.mark_stale!(firmware_config)
     assert Private.any_stale?()
+    reset_assets()
+  end
+
+  test "mark_dirty! / list_dirty" do
+    Map.keys(@assets)
+    |> Enum.map(fn mod ->
+      destroy_assets()
+      old_count = Enum.count(Private.list_dirty(mod))
+      assert old_count == 0
+      asset = Map.fetch!(create_assets(), mod)
+      Private.mark_dirty!(asset)
+      new_count = Enum.count(Private.list_dirty(mod))
+      assert new_count == 1
+    end)
+
+    reset_assets()
   end
 end
