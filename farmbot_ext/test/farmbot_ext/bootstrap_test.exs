@@ -9,7 +9,7 @@ defmodule FarmbotExt.BootstrapTest do
   test "performs a factory reset if the email is wrong" do
     expect(FarmbotExt.Bootstrap.Authorization, :authorize_with_password, 1, fn
       _email, _password, _server ->
-        {:error, "Intentional failure."}
+        {:error, "Bad email or password."}
     end)
 
     expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
