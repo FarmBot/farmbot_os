@@ -9,7 +9,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   require FarmbotCore.Logger
   use GenServer
   @timeout 500
-
+  @stale_flag :YES_IT_IS_STALE
   # these resources can't be accessed by `id`.
   @singular [
     FarmbotCore.Asset.Device,
@@ -43,10 +43,23 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
     Process.sleep(@timeout)
+
+    if Private.any_stale?() do
+      FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
+      Process.sleep(@timeout * 5)
+      FarmbotCeleryScript.SysCalls.sync()
+      Process.sleep(@timeout * 5)
+    end
+
     list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
 
-    unless has_race_condition?(module, list) do
+    if race_free?(module, list) do
       Enum.map(list, fn dirty -> work(dirty, module) end)
+    end
+
+    if Enum.find(results, fn result -> result == @stale_flag end) do
+      FarmbotCeleryScript.SysCalls.sync()
+      raise "STALE RECORD WHOAH"
     end
 
     Process.send_after(self(), :do_work, @timeout)
@@ -55,7 +68,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def work(dirty, module) do
     # Go easy on the API
-    Process.sleep(333)
+    Process.sleep(@timeout)
 
     case http_request(dirty, module) do
       # Valid data
@@ -71,6 +84,10 @@ defmodule FarmbotExt.API.DirtyWorker do
           Ecto.Changeset.add_error(changeset, key, val)
         end)
         |> handle_changeset(module)
+
+      {:ok, %{status: s}} when s == 409 ->
+        FarmbotCore.Logger.error(2, "Stale data detected. Resync required.")
+        Private.mark_stale!(module.changeset(dirty))
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
@@ -130,7 +147,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # This is a fix for a race condtion. The root cause is unknown
   # as of 18 May 2020. The problem is that records are marked
-  # diry _before_ the dirty data is saved. That means that FBOS
+  # dirty _before_ the dirty data is saved. That means that FBOS
   # knows a record has changed, but for a brief moment, it only
   # has the old copy of the record (not the changes).
   # Because of this race condtion,
@@ -145,7 +162,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   # This function PREVENTS CORRUPTION OF API DATA. It can be
   # removed once the root cause of the data race is determined.
   #   - RC 18 May 2020
-  def has_race_condition?(module, list) do
+  def race_free?(module, list) do
     Enum.find(list, fn item ->
       if item.id do
         if item == Repo.get_by(module, id: item.id) do
