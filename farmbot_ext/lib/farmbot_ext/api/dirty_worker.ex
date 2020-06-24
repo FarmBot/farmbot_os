@@ -9,7 +9,6 @@ defmodule FarmbotExt.API.DirtyWorker do
   require FarmbotCore.Logger
   use GenServer
   @timeout 500
-  @stale_flag :YES_IT_IS_STALE
   # these resources can't be accessed by `id`.
   @singular [
     FarmbotCore.Asset.Device,
@@ -46,20 +45,15 @@ defmodule FarmbotExt.API.DirtyWorker do
 
     if Private.any_stale?() do
       FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
-      Process.sleep(@timeout * 5)
+      Process.sleep(@timeout * 2)
       FarmbotCeleryScript.SysCalls.sync()
-      Process.sleep(@timeout * 5)
+      Process.sleep(@timeout * 8)
     end
 
     list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
 
     if race_free?(module, list) do
       Enum.map(list, fn dirty -> work(dirty, module) end)
-    end
-
-    if Enum.find(results, fn result -> result == @stale_flag end) do
-      FarmbotCeleryScript.SysCalls.sync()
-      raise "STALE RECORD WHOAH"
     end
 
     Process.send_after(self(), :do_work, @timeout)
@@ -75,6 +69,10 @@ defmodule FarmbotExt.API.DirtyWorker do
       {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
         dirty |> module.changeset(body) |> handle_changeset(module)
 
+      {:ok, %{status: s}} when s == 409 ->
+        FarmbotCore.Logger.error(3, "Stale data detected. Sync required.")
+        Private.mark_stale!(module.changeset(dirty))
+
       # Invalid data
       {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
         FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
@@ -84,10 +82,6 @@ defmodule FarmbotExt.API.DirtyWorker do
           Ecto.Changeset.add_error(changeset, key, val)
         end)
         |> handle_changeset(module)
-
-      {:ok, %{status: s}} when s == 409 ->
-        FarmbotCore.Logger.error(2, "Stale data detected. Resync required.")
-        Private.mark_stale!(module.changeset(dirty))
 
       # Invalid data, but the API didn't say why
       {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
