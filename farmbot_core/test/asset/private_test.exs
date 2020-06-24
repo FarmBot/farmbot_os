@@ -34,4 +34,12 @@ defmodule FarmbotCore.Asset.PrivateTest do
     local_point = Enum.at(new_results, 0)
     assert local_point == created_point
   end
+
+  test "mark_stale!" do
+    destroy_assets()
+    %{firmware_config: firmware_config} = create_assets()
+    refute Private.any_stale?
+    Private.mark_stale!(firmware_config)
+    assert Private.any_stale?
+  end
 end

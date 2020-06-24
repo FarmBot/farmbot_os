@@ -27,8 +27,13 @@ defmodule FarmbotCore.Asset.CommandTest do
     :ok = Command.update(FirmwareConfig, 23, Map.from_struct(config))
   end
 
+  def reset_configs!() do
+    FarmbotCore.Asset.Repo.delete_all(FarmbotCore.Asset.FbosConfig)
+  end
+
   @tag :capture_log
   test "update / destroy fbos config" do
+    reset_configs!()
     params = %{id: 23, update_channel: "whatever"}
     :ok = Command.update(FbosConfig, 23, params)
     config = Enum.at(Asset.Repo.all(FbosConfig), 0)
