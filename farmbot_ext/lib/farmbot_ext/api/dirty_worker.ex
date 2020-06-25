@@ -42,20 +42,8 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
     Process.sleep(@timeout)
-
-    if Private.any_stale?() do
-      FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
-      Process.sleep(@timeout * 2)
-      FarmbotCeleryScript.SysCalls.sync()
-      Process.sleep(@timeout * 8)
-    end
-
-    list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
-
-    if race_free?(module, list) do
-      Enum.map(list, fn dirty -> work(dirty, module) end)
-    end
-
+    maybe_resync()
+    maybe_upload(module)
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
@@ -70,7 +58,7 @@ defmodule FarmbotExt.API.DirtyWorker do
         dirty |> module.changeset(body) |> handle_changeset(module)
 
       {:ok, %{status: s}} when s == 409 ->
-        FarmbotCore.Logger.error(3, "Stale data detected. Sync required.")
+        FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
         Private.mark_stale!(module.changeset(dirty))
 
       # Invalid data
@@ -175,5 +163,22 @@ defmodule FarmbotExt.API.DirtyWorker do
         false
       end
     end)
+  end
+
+  def maybe_resync() do
+    if Private.any_stale?() do
+      FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
+      Process.sleep(@timeout * 2)
+      FarmbotCeleryScript.SysCalls.sync()
+      Process.sleep(@timeout * 8)
+    end
+  end
+
+  def maybe_upload(module) do
+    list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
+
+    if race_free?(module, list) do
+      Enum.map(list, fn dirty -> work(dirty, module) end)
+    end
   end
 end

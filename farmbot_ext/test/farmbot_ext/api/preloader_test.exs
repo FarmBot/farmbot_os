@@ -2,11 +2,7 @@ defmodule FarmbotExt.API.PreloaderTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.{
-    # Asset,
-    # Asset.Query,
-    Asset.Sync
-  }
+  alias FarmbotCore.Asset.Sync
 
   alias FarmbotExt.{API, API.Preloader}
   setup :verify_on_exit!
