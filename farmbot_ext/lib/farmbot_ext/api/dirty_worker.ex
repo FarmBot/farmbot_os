@@ -51,62 +51,8 @@ defmodule FarmbotExt.API.DirtyWorker do
   def work(dirty, module) do
     # Go easy on the API
     Process.sleep(@timeout)
-
-    case http_request(dirty, module) do
-      # Valid data
-      {:ok, %{status: s, body: body}} when s > 199 and s < 300 ->
-        dirty |> module.changeset(body) |> handle_changeset(module)
-
-      {:ok, %{status: s}} when s == 409 ->
-        FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
-        Private.mark_stale!(module.changeset(dirty))
-
-      # Invalid data
-      {:ok, %{status: s, body: %{} = body}} when s > 399 and s < 500 ->
-        FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
-        changeset = module.changeset(dirty)
-
-        Enum.reduce(body, changeset, fn {key, val}, changeset ->
-          Ecto.Changeset.add_error(changeset, key, val)
-        end)
-        |> handle_changeset(module)
-
-      # Invalid data, but the API didn't say why
-      {:ok, %{status: s, body: _body}} when s > 399 and s < 500 ->
-        FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
-
-        module.changeset(dirty)
-        |> Map.put(:valid?, false)
-        |> handle_changeset(module)
-
-      # HTTP Error. (500, network error, timeout etc.)
-      error ->
-        FarmbotCore.Logger.error(
-          2,
-          "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{
-            inspect(error)
-          }"
-        )
-    end
-  end
-
-  # If the changeset was valid, update the record.
-  def handle_changeset(%{valid?: true} = changeset, _module) do
-    Private.mark_clean!(Repo.update!(changeset))
-    :ok
-  end
-
-  def handle_changeset(%{valid?: false, data: data} = changeset, module) do
-    message =
-      Enum.map(changeset.errors, fn
-        {key, {msg, _meta}} when is_binary(key) -> "\t#{key}: #{msg}"
-        {key, msg} when is_binary(key) -> "\t#{key}: #{msg}"
-      end)
-      |> Enum.join("\n")
-
-    FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
-    _ = Repo.delete!(data)
-    :ok
+    response = http_request(dirty, module)
+    handle_http_response(dirty, module, response)
   end
 
   defp http_request(%{id: nil} = dirty, module) do
@@ -165,12 +111,15 @@ defmodule FarmbotExt.API.DirtyWorker do
     end)
   end
 
-  def maybe_resync() do
+  def maybe_resync(timeout \\ @timeout) do
     if Private.any_stale?() do
       FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
-      Process.sleep(@timeout * 2)
+      Process.sleep(timeout * 2)
       FarmbotCeleryScript.SysCalls.sync()
-      Process.sleep(@timeout * 8)
+      Process.sleep(timeout * 8)
+      true
+    else
+      false
     end
   end
 
@@ -180,5 +129,68 @@ defmodule FarmbotExt.API.DirtyWorker do
     if race_free?(module, list) do
       Enum.map(list, fn dirty -> work(dirty, module) end)
     end
+  end
+
+  # Valid data
+  def handle_http_response(dirty, module, {:ok, %{status: s, body: body}})
+      when s > 199 and
+             s < 300 do
+    dirty |> module.changeset(body) |> finalize(module)
+  end
+
+  def handle_http_response(dirty, module, {:ok, %{status: s}}) when s == 409 do
+    FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
+    Private.mark_stale!(module.changeset(dirty))
+  end
+
+  # Invalid data
+  def handle_http_response(dirty, module, {:ok, %{status: s, body: %{} = body}})
+      when s > 399 and
+             s < 500 do
+    FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
+    changeset = module.changeset(dirty)
+
+    Enum.reduce(body, changeset, fn {key, val}, changeset ->
+      Ecto.Changeset.add_error(changeset, key, val)
+    end)
+    |> finalize(module)
+  end
+
+  # Invalid data, but the API didn't say why
+  def handle_http_response(dirty, module, {:ok, %{status: s, body: _body}})
+      when s > 399 and
+             s < 500 do
+    FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
+
+    module.changeset(dirty)
+    |> Map.put(:valid?, false)
+    |> finalize(module)
+  end
+
+  # HTTP Error. (500, network error, timeout etc.)
+  def handle_http_response(dirty, module, error) do
+    FarmbotCore.Logger.error(
+      2,
+      "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{inspect(error)}"
+    )
+  end
+
+  # If the changeset was valid, update the record.
+  def finalize(%{valid?: true} = changeset, _module) do
+    Private.mark_clean!(Repo.update!(changeset))
+    :ok
+  end
+
+  def finalize(%{valid?: false, data: data} = changeset, module) do
+    message =
+      Enum.map(changeset.errors, fn
+        {key, {msg, _meta}} when is_binary(key) -> "\t#{key}: #{msg}"
+        {key, msg} when is_binary(key) -> "\t#{key}: #{msg}"
+      end)
+      |> Enum.join("\n")
+
+    FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
+    _ = Repo.delete!(data)
+    :ok
   end
 end

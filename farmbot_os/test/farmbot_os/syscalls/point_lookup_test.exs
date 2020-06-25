@@ -27,7 +27,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   end
 
   test "PointLookup.point/2" do
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     expected = %{
       name: "test suite III",
@@ -44,7 +44,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   end
 
   test "PointLookup.get_toolslot_for_tool/1 (gantry mounted tool)" do
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
     Repo.delete_all(Tool)
     expect(FarmbotOS.SysCalls.Movement, :get_current_x, 1, fn -> 9.99 end)
 
@@ -72,7 +72,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   end
 
   test "PointLookup.get_toolslot_for_tool/1" do
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
     Repo.delete_all(Tool)
 
     t = tool(%{name: "moisture probe"})
@@ -96,7 +96,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
   test "PointLookup.get_point_group/1 - int" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     pg = point_group(%{point_ids: [1, 2, 3]})
 
@@ -106,7 +106,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   @tag :capture_log
   test "PointLookup.get_point_group/1 - string" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     point(%{pointer_type: "ToolSlot", id: 601})
     point(%{pointer_type: "Plant", id: 602})
