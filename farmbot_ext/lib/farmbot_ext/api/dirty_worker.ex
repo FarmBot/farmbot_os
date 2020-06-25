@@ -113,7 +113,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def maybe_resync(timeout \\ @timeout) do
     if Private.any_stale?() do
-      FarmbotCore.Logger.error(2, "Need to sync stale data before continuing")
+      FarmbotCore.Logger.error(4, "Stale data detected. This may be related to a slow internet connection.")
       Private.recover_from_row_lock_failure()
       Process.sleep(timeout * 2)
       FarmbotCeleryScript.SysCalls.sync()
