@@ -5,6 +5,8 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
   alias FarmbotCore.Asset.Point
   alias FarmbotCore.Asset.Private
   alias FarmbotExt.API.DirtyWorker
+  alias FarmbotCore.Asset.Private.LocalMeta
+  alias FarmbotCore.Asset.Repo
 
   setup :verify_on_exit!
 
@@ -30,14 +32,15 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
-  # test "maybe_resync does not run when there is *NOT* stale data" do
-  #   Helpers.delete_all_points()
+  test "maybe_resync does not run when there is *NOT* stale data" do
+    Helpers.delete_all_points()
+    Repo.delete_all(LocalMeta)
 
-  #   stub(FarmbotCeleryScript.SysCalls, :sync, fn ->
-  #     flunk("Never should call sync")
-  #   end)
+    stub(FarmbotCeleryScript.SysCalls, :sync, fn ->
+      flunk("Never should call sync")
+    end)
 
-  #   refute(Private.any_stale?())
-  #   refute(DirtyWorker.maybe_resync(0))
-  # end
+    refute(Private.any_stale?())
+    refute(DirtyWorker.maybe_resync(0))
+  end
 end

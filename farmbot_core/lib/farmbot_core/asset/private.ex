@@ -7,9 +7,8 @@ defmodule FarmbotCore.Asset.Private do
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{Asset.Repo,
-    Asset.Private.LocalMeta,
-  }
+  alias FarmbotCore.{Asset.Repo, Asset.Private.LocalMeta }
+  alias FarmbotCore.Asset.{ FbosConfig, FirmwareConfig }
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
@@ -53,6 +52,11 @@ defmodule FarmbotCore.Asset.Private do
       nil -> nil
       local_meta -> Repo.delete!(local_meta)
     end
+  end
+
+  def recover_from_row_lock_failure() do
+    list_dirty(FbosConfig) ++ list_dirty(FirmwareConfig)
+    |> Enum.map(&mark_clean!/1)
   end
 
   defp table(%module{}), do: table(module)
