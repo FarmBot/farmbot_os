@@ -30,14 +30,14 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
-  test "maybe_resync does not run when there is *NOT* stale data" do
-    Helpers.delete_all_points()
+  # test "maybe_resync does not run when there is *NOT* stale data" do
+  #   Helpers.delete_all_points()
 
-    stub(FarmbotCeleryScript.SysCalls, :sync, fn ->
-      flunk("Never should call sync")
-    end)
+  #   stub(FarmbotCeleryScript.SysCalls, :sync, fn ->
+  #     flunk("Never should call sync")
+  #   end)
 
-    refute(Private.any_stale?())
-    refute(DirtyWorker.maybe_resync(0))
-  end
+  #   refute(Private.any_stale?())
+  #   refute(DirtyWorker.maybe_resync(0))
+  # end
 end

@@ -470,10 +470,31 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   test "edge case: Filter by crop type" do
     Repo.delete_all(PointGroup)
     Helpers.delete_all_points()
-    ok = Helpers.create_point(%{id: 1, pointer_type: "Plant", openfarm_slug: "spinach"})
-    Helpers.create_point(%{id: 2, pointer_type: "Plant", openfarm_slug: "beetroot"})
-    Helpers.create_point(%{id: 3, pointer_type: "Weed", openfarm_slug: "thistle"})
-    Helpers.create_point(%{id: 4, pointer_type: "Weed", openfarm_slug: "spinach"})
+
+    ok =
+      Helpers.create_point(%{
+        id: 1,
+        pointer_type: "Plant",
+        openfarm_slug: "spinach"
+      })
+
+    Helpers.create_point(%{
+      id: 2,
+      pointer_type: "Plant",
+      openfarm_slug: "beetroot"
+    })
+
+    Helpers.create_point(%{
+      id: 3,
+      pointer_type: "Weed",
+      openfarm_slug: "thistle"
+    })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "Weed",
+      openfarm_slug: "spinach"
+    })
 
     pg = %PointGroup{
       :id => 241,
@@ -506,7 +527,13 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     expect(Timex, :now, fn -> @now end)
 
     Helpers.create_point(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
-    p2 = Helpers.create_point(%{id: 2, pointer_type: "Plant", created_at: days_ago2})
+
+    p2 =
+      Helpers.create_point(%{
+        id: 2,
+        pointer_type: "Plant",
+        created_at: days_ago2
+      })
 
     pg1 = %PointGroup{
       id: 212,
@@ -533,10 +560,26 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     Repo.delete_all(PointGroup)
     Helpers.delete_all_points()
 
-    ok = Helpers.create_point(%{id: 1, pointer_type: "ToolSlot", pullout_direction: 3})
+    ok =
+      Helpers.create_point(%{
+        id: 1,
+        pointer_type: "ToolSlot",
+        pullout_direction: 3
+      })
+
     Helpers.create_point(%{id: 2, pointer_type: "Weed", pullout_direction: 3})
-    Helpers.create_point(%{id: 3, pointer_type: "ToolSlot", pullout_direction: 4})
-    Helpers.create_point(%{id: 4, pointer_type: "GenericPointer", pullout_direction: 2})
+
+    Helpers.create_point(%{
+      id: 3,
+      pointer_type: "ToolSlot",
+      pullout_direction: 4
+    })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "GenericPointer",
+      pullout_direction: 2
+    })
 
     pg = %PointGroup{
       :id => 242,
