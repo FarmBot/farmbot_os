@@ -41,6 +41,7 @@ defmodule Helpers do
       plant_stage: "planted",
       created_at: ~U[2222-12-10 02:22:22.222222Z],
       pointer_type: "Plant",
+      pullout_direction: 2,
       radius: 10.0,
       tool_id: nil,
       discarded_at: nil,

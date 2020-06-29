@@ -43,4 +43,14 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     refute(Private.any_stale?())
     refute(DirtyWorker.maybe_resync(0))
   end
+
+  test "race condition detector: has_race_condition?(module, list)" do
+    Helpers.delete_all_points()
+    Repo.delete_all(LocalMeta)
+    ok = Helpers.create_point(%{id: 1})
+    no = Map.merge(ok, %{pullout_direction: 0})
+    refute DirtyWorker.has_race_condition?(Point, [ok])
+    assert DirtyWorker.has_race_condition?(Point, [no])
+    refute DirtyWorker.has_race_condition?(Point, [])
+  end
 end

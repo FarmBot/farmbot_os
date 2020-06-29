@@ -82,32 +82,31 @@ defmodule FarmbotExt.API.DirtyWorker do
   # The race condition:
   #
   # * Is nondeterministic
-  # * Happens frequently when running many MARK AS steps in one go.
+  # * Happens frequently when running many MARK AS steps in
+  #   one go.
   # * Happens frequently when Erlang VM only has one thread
   #    * Ie: `iex --erl '+S 1 +A 1' -S mix`
   # * Happens frequently when @timeout is decreased to `1`.
   #
   # This function PREVENTS CORRUPTION OF API DATA. It can be
-  # removed once the root cause of the data race is determined.
+  # removed once the root cause of the data race is
+  # determined.
+  #
   #   - RC 18 May 2020
   def has_race_condition?(module, list) do
-    Enum.find(list, fn item ->
-      if item.id do
-        if item == Repo.get_by(module, id: item.id) do
-          # This item is OK - no race condition.
-          true
-        else
-          # There was a race condtion. We probably can't trust
-          # any of the data in this list. We need to wait and
-          # try again later.
-          Process.sleep(@timeout * 3)
-          true
-        end
-      else
-        # This item only exists on the FBOS side.
-        # It will never be affected by the data race
-        # condtion.
+    Enum.find_value(list, fn item ->
+      # If we query the data and it is not an exact match
+      # of the data we have, something is wrong.
+      race? = item != Repo.get_by(module, local_id: item.local_id)
+
+      if race? do
+        # Pause until the race condition goes away.
+        Process.sleep(@timeout * 8)
         true
+      else
+        # This is OK! We expect the data to equal itself.
+        # There is no race condition here.
+        false
       end
     end)
   end
