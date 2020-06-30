@@ -15,6 +15,7 @@ defmodule FarmbotExt.API.DirtyWorker do
     FarmbotCore.Asset.FirmwareConfig,
     FarmbotCore.Asset.FbosConfig
   ]
+  @stale_warning "Stale data detected. Please check internet connection and re-sync."
 
   @doc false
   def child_spec(module) when is_atom(module) do
@@ -113,11 +114,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def maybe_resync(timeout \\ @timeout) do
     if Private.any_stale?() do
-      FarmbotCore.Logger.error(
-        4,
-        "Stale data detected. Please check internet onnection and re-sync."
-      )
-
+      FarmbotCore.Logger.error(4, @stale_warning)
       Private.recover_from_row_lock_failure()
       Process.sleep(timeout * 2)
       FarmbotCeleryScript.SysCalls.sync()
@@ -138,8 +135,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # Valid data
   def handle_http_response(dirty, module, {:ok, %{status: s, body: body}})
-      when s > 199 and
-             s < 300 do
+      when s > 199 and s < 300 do
     dirty |> module.changeset(body) |> finalize(module)
   end
 
@@ -150,8 +146,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # Invalid data
   def handle_http_response(dirty, module, {:ok, %{status: s, body: %{} = body}})
-      when s > 399 and
-             s < 500 do
+      when s > 399 and s < 500 do
     FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
     changeset = module.changeset(dirty)
 
@@ -163,8 +158,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # Invalid data, but the API didn't say why
   def handle_http_response(dirty, module, {:ok, %{status: s, body: _body}})
-      when s > 399 and
-             s < 500 do
+      when s > 399 and s < 500 do
     FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
 
     module.changeset(dirty)

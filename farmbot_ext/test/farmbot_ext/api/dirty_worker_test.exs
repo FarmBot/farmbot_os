@@ -32,6 +32,11 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
+  test "Private.any_stale?() returns false when there are not stale records" do
+    Repo.delete_all(LocalMeta)
+    refute Private.any_stale?()
+  end
+
   test "maybe_resync does not run when there is *NOT* stale data" do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
