@@ -32,11 +32,6 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
-  test "Private.any_stale?() returns false when there are not stale records" do
-    Repo.delete_all(LocalMeta)
-    refute Private.any_stale?()
-  end
-
   test "maybe_resync does not run when there is *NOT* stale data" do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
@@ -57,5 +52,21 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     refute DirtyWorker.has_race_condition?(Point, [ok])
     assert DirtyWorker.has_race_condition?(Point, [no])
     refute DirtyWorker.has_race_condition?(Point, [])
+  end
+
+  test "finalize/2" do
+    stub_data = %{valid?: true, anything: :rand.uniform(100)}
+
+    expect(Repo, :update!, 1, fn data ->
+      assert data == stub_data
+      data
+    end)
+
+    expect(Private, :mark_clean!, 1, fn data ->
+      assert data == stub_data
+      data
+    end)
+
+    assert :ok == DirtyWorker.finalize(stub_data, Point)
   end
 end

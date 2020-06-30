@@ -76,4 +76,9 @@ defmodule FarmbotCore.Asset.PrivateTest do
 
     reset_assets()
   end
+
+  test "Private.any_stale?() returns false when there are not stale records" do
+    Repo.delete_all(FarmbotCore.Asset.Private.LocalMeta)
+    refute Private.any_stale?()
+  end
 end

@@ -7,6 +7,8 @@ Application.ensure_all_started(:mimic)
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
   FarmbotCore.Asset.Query,
+  FarmbotCore.Asset.Repo,
+  FarmbotCore.Asset.Private,
   FarmbotCore.BotState,
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
