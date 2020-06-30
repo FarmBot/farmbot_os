@@ -15,6 +15,7 @@ defmodule FarmbotExt.API.DirtyWorker do
     FarmbotCore.Asset.FirmwareConfig,
     FarmbotCore.Asset.FbosConfig
   ]
+  @stale_warning "Stale data detected. Please check internet connection and re-sync."
 
   @doc false
   def child_spec(module) when is_atom(module) do
@@ -82,30 +83,30 @@ defmodule FarmbotExt.API.DirtyWorker do
   # The race condition:
   #
   # * Is nondeterministic
-  # * Happens frequently when running many MARK AS steps in one go.
+  # * Happens frequently when running many MARK AS steps in
+  #   one go.
   # * Happens frequently when Erlang VM only has one thread
   #    * Ie: `iex --erl '+S 1 +A 1' -S mix`
   # * Happens frequently when @timeout is decreased to `1`.
   #
   # This function PREVENTS CORRUPTION OF API DATA. It can be
-  # removed once the root cause of the data race is determined.
+  # removed once the root cause of the data race is
+  # determined.
+  #
   #   - RC 18 May 2020
-  def race_free?(module, list) do
-    Enum.find(list, fn item ->
-      if item.id do
-        if item == Repo.get_by(module, id: item.id) do
-          # This item is OK - no race condition.
-          false
-        else
-          # There was a race condtion. We probably can't trust
-          # any of the data in this list. We need to wait and
-          # try again later.
-          Process.sleep(@timeout * 3)
-          true
-        end
+  def has_race_condition?(module, list) do
+    Enum.find_value(list, fn item ->
+      # If we query the data and it is not an exact match
+      # of the data we have, something is wrong.
+      race? = item != Repo.get_by(module, local_id: item.local_id)
+
+      if race? do
+        # Pause until the race condition goes away.
+        Process.sleep(@timeout * 8)
+        true
       else
-        # This item only exists on the FBOS side.
-        # It will never be affected by the data race condtion.
+        # This is OK! We expect the data to equal itself.
+        # There is no race condition here.
         false
       end
     end)
@@ -113,7 +114,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def maybe_resync(timeout \\ @timeout) do
     if Private.any_stale?() do
-      FarmbotCore.Logger.error(4, "Stale data detected. This may be related to a slow internet connection.")
+      FarmbotCore.Logger.error(4, @stale_warning)
       Private.recover_from_row_lock_failure()
       Process.sleep(timeout * 2)
       FarmbotCeleryScript.SysCalls.sync()
@@ -127,15 +128,14 @@ defmodule FarmbotExt.API.DirtyWorker do
   def maybe_upload(module) do
     list = Enum.uniq(Private.list_dirty(module) ++ Private.list_local(module))
 
-    if race_free?(module, list) do
+    unless has_race_condition?(module, list) do
       Enum.map(list, fn dirty -> work(dirty, module) end)
     end
   end
 
   # Valid data
   def handle_http_response(dirty, module, {:ok, %{status: s, body: body}})
-      when s > 199 and
-             s < 300 do
+      when s > 199 and s < 300 do
     dirty |> module.changeset(body) |> finalize(module)
   end
 
@@ -146,8 +146,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # Invalid data
   def handle_http_response(dirty, module, {:ok, %{status: s, body: %{} = body}})
-      when s > 399 and
-             s < 500 do
+      when s > 399 and s < 500 do
     FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
     changeset = module.changeset(dirty)
 
@@ -159,8 +158,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   # Invalid data, but the API didn't say why
   def handle_http_response(dirty, module, {:ok, %{status: s, body: _body}})
-      when s > 399 and
-             s < 500 do
+      when s > 399 and s < 500 do
     FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
 
     module.changeset(dirty)

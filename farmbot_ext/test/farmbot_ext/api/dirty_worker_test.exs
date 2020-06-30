@@ -43,4 +43,30 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     refute(Private.any_stale?())
     refute(DirtyWorker.maybe_resync(0))
   end
+
+  test "race condition detector: has_race_condition?(module, list)" do
+    Helpers.delete_all_points()
+    Repo.delete_all(LocalMeta)
+    ok = Helpers.create_point(%{id: 1})
+    no = Map.merge(ok, %{pullout_direction: 0})
+    refute DirtyWorker.has_race_condition?(Point, [ok])
+    assert DirtyWorker.has_race_condition?(Point, [no])
+    refute DirtyWorker.has_race_condition?(Point, [])
+  end
+
+  test "finalize/2" do
+    stub_data = %{valid?: true, anything: :rand.uniform(100)}
+
+    expect(Repo, :update!, 1, fn data ->
+      assert data == stub_data
+      data
+    end)
+
+    expect(Private, :mark_clean!, 1, fn data ->
+      assert data == stub_data
+      data
+    end)
+
+    assert :ok == DirtyWorker.finalize(stub_data, Point)
+  end
 end
