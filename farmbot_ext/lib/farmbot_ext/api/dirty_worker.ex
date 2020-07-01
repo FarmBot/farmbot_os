@@ -112,13 +112,18 @@ defmodule FarmbotExt.API.DirtyWorker do
     end)
   end
 
+  def do_stale_recovery(timeout) do
+    Process.sleep(timeout * 8)
+    FarmbotCore.Logger.error(4, @stale_warning)
+    Private.recover_from_row_lock_failure()
+    FarmbotCeleryScript.SysCalls.sync()
+    Process.sleep(timeout * 2)
+    true
+  end
+
   def maybe_resync(timeout \\ @timeout) do
     if Private.any_stale?() do
-      FarmbotCore.Logger.error(4, @stale_warning)
-      Private.recover_from_row_lock_failure()
-      Process.sleep(timeout * 2)
-      FarmbotCeleryScript.SysCalls.sync()
-      Process.sleep(timeout * 8)
+      do_stale_recovery(timeout)
       true
     else
       false
@@ -140,8 +145,9 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def handle_http_response(dirty, module, {:ok, %{status: s}}) when s == 409 do
-    FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
     Private.mark_stale!(module.changeset(dirty))
+    do_stale_recovery(@timeout)
+    FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
   end
 
   # Invalid data
