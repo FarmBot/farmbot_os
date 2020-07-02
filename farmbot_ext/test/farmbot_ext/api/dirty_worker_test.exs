@@ -2,8 +2,6 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
   use ExUnit.Case
   use Mimic
 
-  import ExUnit.CaptureLog
-
   alias FarmbotCore.Asset.{
     FbosConfig,
     Point,
