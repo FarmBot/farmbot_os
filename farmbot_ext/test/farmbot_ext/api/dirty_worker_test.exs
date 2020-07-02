@@ -2,11 +2,17 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Asset.Point
-  alias FarmbotCore.Asset.Private
+  import ExUnit.CaptureLog
+
+  alias FarmbotCore.Asset.{
+    FbosConfig,
+    Point,
+    Private,
+    Private.LocalMeta,
+    Repo
+  }
+
   alias FarmbotExt.API.DirtyWorker
-  alias FarmbotCore.Asset.Private.LocalMeta
-  alias FarmbotCore.Asset.Repo
 
   setup :verify_on_exit!
 
@@ -30,6 +36,27 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     end)
 
     DirtyWorker.maybe_resync(0)
+  end
+
+  test "handle_http_response - 409 resposne" do
+    Helpers.delete_all_points()
+    Repo.delete_all(LocalMeta)
+    Repo.delete_all(FbosConfig)
+
+    conf =
+      FarmbotCore.Asset.fbos_config()
+      |> FbosConfig.changeset()
+      |> Repo.insert!()
+
+    expect(FarmbotCeleryScript.SysCalls, :sync, 1, fn ->
+      "I expect a 409 response to trigger a sync."
+    end)
+
+    expect(Private, :recover_from_row_lock_failure, 1, fn ->
+      "I expect a 409 response to trigger a row lock failure recovery."
+    end)
+
+    DirtyWorker.handle_http_response(conf, FbosConfig, {:ok, %{status: 409}})
   end
 
   test "maybe_resync does not run when there is *NOT* stale data" do
