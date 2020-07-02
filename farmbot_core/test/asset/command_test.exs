@@ -9,6 +9,20 @@ defmodule FarmbotCore.Asset.CommandTest do
     Asset.Command
   }
 
+  def reset_configs!() do
+    assets = [
+      FarmbotCore.Asset.Private.LocalMeta,
+      FarmbotCore.Asset.FbosConfig,
+      FarmbotCore.Asset.FirmwareConfig,
+      FarmbotCore.Asset.Sequence,
+      FarmbotCore.Asset.RegimenInstance,
+      FarmbotCore.Asset.Regimen,
+      FarmbotCore.Asset.FarmEvent
+    ]
+
+    Enum.map(assets, &FarmbotCore.Asset.Repo.delete_all/1)
+  end
+
   test "update / destroy firmware config" do
     params = %{
       id: 23,
@@ -29,6 +43,7 @@ defmodule FarmbotCore.Asset.CommandTest do
 
   @tag :capture_log
   test "update / destroy fbos config" do
+    reset_configs!()
     params = %{id: 23, update_channel: "whatever"}
     :ok = Command.update(FbosConfig, 23, params)
     config = Enum.at(Asset.Repo.all(FbosConfig), 0)

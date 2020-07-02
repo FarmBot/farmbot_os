@@ -51,6 +51,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
   view fbos_config do
     %{
       id: fbos_config.id,
+      updated_at: fbos_config.updated_at,
       arduino_debug_messages: fbos_config.arduino_debug_messages,
       auto_sync: fbos_config.auto_sync,
       beta_opt_in: fbos_config.beta_opt_in,

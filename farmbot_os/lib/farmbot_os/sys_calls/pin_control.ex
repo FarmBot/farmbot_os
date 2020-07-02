@@ -282,8 +282,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   # Peripheral analog
-  def write_pin(%Peripheral{pin: pin, label: _label}, 1, _value) do
-    do_write_pin(pin, 0, 0)
+  def write_pin(%Peripheral{pin: pin, label: _label}, 1, value) do
+    do_write_pin(pin, 1, value)
   end
 
   def write_pin(%Sensor{pin: _pin}, _mode, _value) do

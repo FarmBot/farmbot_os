@@ -24,6 +24,7 @@ defmodule FarmbotCore.AssetTest do
 
   describe "firmware config" do
     test "retrieves a single field" do
+      FarmbotCore.Asset.Repo.delete_all(FarmbotCore.Asset.FirmwareConfig)
       conf = Asset.firmware_config()
       refute 1.23 == Asset.firmware_config(:movement_steps_acc_dec_x)
       Asset.update_firmware_config!(conf, %{movement_steps_acc_dec_x: 1.23})

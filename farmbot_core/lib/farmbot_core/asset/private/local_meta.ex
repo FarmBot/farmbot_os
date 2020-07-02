@@ -149,7 +149,7 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     local_meta
     |> cast(params, [:table, :status])
     |> validate_required([:asset_local_id, :table])
-    |> validate_inclusion(:status, ~w(dirty))
+    |> validate_inclusion(:status, ~w(dirty stale))
     |> validate_inclusion(:table, [
       "devices",
       "device_certs",

@@ -1,6 +1,6 @@
 defmodule FarmbotCore.RegimenInstanceAssetWorkerTest do
   use ExUnit.Case
-  alias FarmbotCore.{Asset.RegimenInstance, AssetWorker}
+  alias FarmbotCore.{AssetWorker}
   alias Farmbot.TestSupport.AssetFixtures
   use Mimic
 
