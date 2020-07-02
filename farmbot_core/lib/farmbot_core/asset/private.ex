@@ -28,6 +28,16 @@ defmodule FarmbotCore.Asset.Private do
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
+  def list_stale(module) do
+    IO.puts("=== RICK: DRY This function up and write tests after QA.")
+    table = table(module)
+    q = from(lm in LocalMeta,
+            where: lm.table == ^table and lm.status == "stale",
+            select: lm.asset_local_id)
+    Repo.all(from(data in module, join: lm in subquery(q)))
+  end
+
+  @doc "Lists `module` objects that have a `local_meta` object"
   def any_stale?() do
     q = from(lm in LocalMeta, where: lm.status == "stale", select: lm.asset_local_id)
     Repo.aggregate(q, :count, :id) != 0
@@ -55,7 +65,10 @@ defmodule FarmbotCore.Asset.Private do
   end
 
   def recover_from_row_lock_failure() do
-    list_dirty(FbosConfig) ++ list_dirty(FirmwareConfig)
+    list_dirty(FbosConfig)
+    ++ list_dirty(FirmwareConfig)
+    ++ list_stale(FbosConfig)
+    ++ list_stale(FirmwareConfig)
     |> Enum.map(&mark_clean!/1)
   end
 
