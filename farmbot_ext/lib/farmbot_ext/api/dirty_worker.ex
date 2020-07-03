@@ -113,12 +113,10 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def do_stale_recovery(timeout) do
-    Process.sleep(timeout * 8)
     FarmbotCore.Logger.error(4, @stale_warning)
     Private.recover_from_row_lock_failure()
-    IO.puts("FIXME: The line below needs to be uncommented.")
-    # FarmbotCeleryScript.SysCalls.sync()
-    Process.sleep(timeout * 2)
+    FarmbotCeleryScript.SysCalls.sync()
+    Process.sleep(timeout * 10)
     true
   end
 
