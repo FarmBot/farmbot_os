@@ -516,7 +516,7 @@ defmodule FarmbotOS.Platform.Target.NervesHubClient do
         # check that now.hour == device.ota_hour
         case Timex.Timezone.convert(now, timezone) do
           %{hour: ^ota_hour} -> auto_update
-          %{hour: now_hour} -> false
+          %{hour: _} -> false
         end
       else
         # ota_hour or timezone are nil
