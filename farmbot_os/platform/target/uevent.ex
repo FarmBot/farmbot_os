@@ -25,7 +25,7 @@ defmodule FarmbotOS.Platform.Target.Uevent do
   require Logger
   require FarmbotCore.Logger
   require FarmbotTelemetry
-  alias FarmbotCore.{Config, FirmwareTTYDetector, FirmwareNeeds}
+  alias FarmbotCore.{FirmwareTTYDetector, FirmwareNeeds}
 
   @doc false
   def start_link(args) do
