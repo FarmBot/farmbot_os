@@ -35,7 +35,7 @@ defmodule FarmbotCore.FirmwareNeeds do
   end
 
   def handle_call({:set, key, value}, _from, state) do
-    next_keys = Map.put(state.keys, key, value)
+    next_keys = Map.put(state[:keys], key, value)
     next_state = Map.merge(state, %{keys: next_keys})
 
     {:reply, next_state, state}
