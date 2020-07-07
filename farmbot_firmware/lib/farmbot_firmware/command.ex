@@ -60,7 +60,7 @@ defmodule FarmbotFirmware.Command do
             :no_error -> {:ok, "ok"}
             :emergency_lock -> {:error, "emergency lock"}
             :timeout -> {:error, "timeout"}
-            :calibration_error -> {:error, "calibration error"}
+            :calibration_error -> {:error, "length determination error"}
             :invalid_command -> {:error, "invalid command"}
             :no_config -> {:error, "no configuration"}
             :stall_detected_x -> {:error, "X axis stall detected"}
