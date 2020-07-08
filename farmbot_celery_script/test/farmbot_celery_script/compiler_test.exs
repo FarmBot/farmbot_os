@@ -177,7 +177,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              package = "take-photo"
              env = %{"a" => "123"}
-             FarmbotCeleryScript.SysCalls.log("Executing Farmware: \#{package}", true)
+             FarmbotCeleryScript.SysCalls.log(format_log(package), true)
              FarmbotCeleryScript.SysCalls.execute_script(package, env)
              """)
   end

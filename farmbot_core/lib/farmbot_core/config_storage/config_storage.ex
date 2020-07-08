@@ -2,8 +2,13 @@ defmodule FarmbotCore.Config do
   @moduledoc "API for accessing config data."
 
   alias FarmbotCore.Config.{
+    BoolValue,
+    Config,
+    FloatValue,
+    Group,
+    NetworkInterface,
     Repo,
-    Config, Group, BoolValue, FloatValue, StringValue, NetworkInterface
+    StringValue
   }
 
   import Ecto.Query, only: [from: 2]
@@ -91,6 +96,39 @@ defmodule FarmbotCore.Config do
 
   def update_config_value(type, _, _, _) do
     raise "Unsupported type: #{type}"
+  end
+
+  def get_bool_value(group_name, key_name) do
+    group_id = get_group_id(group_name)
+
+    case from(
+           c in Config,
+           where: c.group_id == ^group_id and c.key == ^key_name,
+           select: c.bool_value_id
+         )
+         |> Repo.all() do
+      [type_id] ->
+        [val] = from(v in BoolValue, where: v.id == ^type_id, select: v) |> Repo.all()
+        val
+
+      [] ->
+        raise "no such key #{key_name}"
+    end
+  end
+
+  def get_float_value(group_name, key_name) do
+    group_id = get_group_id(group_name)
+
+    [type_id] =
+      from(
+        c in Config,
+        where: c.group_id == ^group_id and c.key == ^key_name,
+        select: c.float_value_id
+      )
+      |> Repo.all()
+
+    [val] = from(v in FloatValue, where: v.id == ^type_id, select: v) |> Repo.all()
+    val
   end
 
   def get_string_value(group_name, key_name) do
