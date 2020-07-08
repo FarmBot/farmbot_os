@@ -57,3 +57,4 @@ nerves-hub
 *.db
 *.db-journal
 *.lua
+*screenlog*
