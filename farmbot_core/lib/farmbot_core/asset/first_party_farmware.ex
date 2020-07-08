@@ -1,7 +1,7 @@
 defmodule FarmbotCore.Asset.FirstPartyFarmware do
   @moduledoc """
   Exactly the same as FarmwareInstallation
-  but for for first party installations
+  but for first party installations
   """
 
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest

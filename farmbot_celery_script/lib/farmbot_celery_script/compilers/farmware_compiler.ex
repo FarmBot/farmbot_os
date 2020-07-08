@@ -21,7 +21,7 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
 
   def install_first_party_farmware(_, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
+      FarmbotCeleryScript.SysCalls.log("Installing dependencies...")
       FarmbotCeleryScript.SysCalls.install_first_party_farmware()
     end
   end

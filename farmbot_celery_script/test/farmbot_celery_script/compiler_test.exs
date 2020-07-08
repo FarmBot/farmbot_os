@@ -210,7 +210,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
+             FarmbotCeleryScript.SysCalls.log("Installing dependencies...")
              FarmbotCeleryScript.SysCalls.install_first_party_farmware()
              """)
   end
