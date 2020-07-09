@@ -141,7 +141,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
   # Expands zero(all) into three zero/1 calls
   def zero(%{args: %{axis: "all"}}, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Finding home on all axes", true)
+      FarmbotCeleryScript.SysCalls.log("Setting home for all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.zero("z"),
            :ok <- FarmbotCeleryScript.SysCalls.zero("y") do
@@ -156,7 +156,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.compile_ast(axis, env)) do
         FarmbotCeleryScript.SysCalls.log(
-          "Finding home for the #{String.upcase(axis)} axis",
+          "Setting home for the #{String.upcase(axis)} axis",
           true
         )
 
@@ -171,7 +171,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
   # Expands calibrate(all) into three calibrate/1 calls
   def calibrate(%{args: %{axis: "all"}}, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Finding length for all axes", true)
+      FarmbotCeleryScript.SysCalls.log("Finding length of all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.calibrate("z"),
            :ok <- FarmbotCeleryScript.SysCalls.calibrate("y") do
