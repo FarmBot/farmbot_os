@@ -177,8 +177,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
            :ok <- FarmbotCeleryScript.SysCalls.calibrate("y") do
         FarmbotCeleryScript.SysCalls.calibrate("x")
       else
-        {:error, reason} ->
-          {:error, reason}
+        {:error, reason} -> {:error, reason}
       end
     end
   end
@@ -188,15 +187,11 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.compile_ast(axis, env)) do
-        FarmbotCeleryScript.SysCalls.log(
-          "Calibrating the #{String.upcase(axis)} axis",
-          true
-        )
-
+        msg = "Determining length of the #{String.upcase(axis)} axis"
+        FarmbotCeleryScript.SysCalls.log(msg, true)
         FarmbotCeleryScript.SysCalls.calibrate(axis)
       else
-        {:error, reason} ->
-          {:error, reason}
+        {:error, reason} -> {:error, reason}
       end
     end
   end

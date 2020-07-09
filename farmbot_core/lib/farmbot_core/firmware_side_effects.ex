@@ -68,6 +68,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   @impl FarmbotFirmware.SideEffects
   def handle_parameter_calibration_value([{param, value}]) do
+    FarmbotCore.Logger.info(3, "=== Calibration value: #{inspect({param, value})}")
     %{param => value}
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
