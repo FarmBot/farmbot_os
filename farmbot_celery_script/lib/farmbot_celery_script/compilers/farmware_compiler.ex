@@ -14,7 +14,7 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
     quote location: :keep do
       package = unquote(Compiler.compile_ast(package, env))
       env = unquote(Macro.escape(Map.new(env)))
-      FarmbotCeleryScript.SysCalls.log(format_log(package), true)
+      FarmbotCeleryScript.SysCalls.log(unquote(format_log(package)), true)
       FarmbotCeleryScript.SysCalls.execute_script(package, env)
     end
   end
