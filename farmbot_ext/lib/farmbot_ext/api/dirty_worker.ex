@@ -144,9 +144,9 @@ defmodule FarmbotExt.API.DirtyWorker do
     dirty |> module.changeset(body) |> finalize(module)
   end
 
-  def handle_http_response(dirty, _module, {:ok, %{status: s}}) when s == 409 do
+  def handle_http_response(dirty, module, {:ok, %{status: s}}) when s == 409 do
     Private.mark_stale!(dirty)
-    do_stale_recovery(@timeout)
+    do_stale_recovery(@timeout, module)
   end
 
   # Invalid data
