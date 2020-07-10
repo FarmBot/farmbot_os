@@ -328,4 +328,9 @@ defmodule FarmbotCore.Asset.FirmwareConfig do
     ])
     |> validate_required([])
   end
+
+  def hard_refresh() do
+    {:ok, changeset} = FarmbotExt.API.get_changeset(__MODULE__)
+    FarmbotCore.Asset.Command.update(__MODULE__, nil, changeset.changes)
+  end
 end
