@@ -63,6 +63,11 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   defp http_request(dirty, module) when module in @singular do
+    FarmbotCore.Logger.debug(
+      3,
+      "=== Dirty Worker Updating #{inspect(module)}. #{inspect(dirty)}"
+    )
+
     path = path = module.path()
     data = render(module, dirty)
     API.patch(API.client(), path, data)
@@ -114,7 +119,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def do_stale_recovery(timeout, module) do
     FarmbotCore.Logger.error(4, @stale_warning)
-    IO.inspect(Private.list_stale(module), label: "STALE")
+    FarmbotCore.Logger.info(4, "=== " <> inspect(Private.list_stale(module)))
     Private.recover_from_row_lock_failure()
     FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(timeout * 10)
