@@ -66,9 +66,9 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_config(param, value)
   end
 
+  # def handle_parameter_calibration_value([{param, 0.0}]), do: :ok
+  # def handle_parameter_calibration_value([{param, 0}]), do: :ok
   @impl FarmbotFirmware.SideEffects
-  def handle_parameter_calibration_value([{param, 0.0}]), do: :ok
-  def handle_parameter_calibration_value([{param, 0}]), do: :ok
   def handle_parameter_calibration_value([{param, value}]) do
     # BUILD A DEBOUNCED SYNC MODULE THAT CAN BE CALLED CARELESSLY
     # WITHOUT CONSEQUENCES.
