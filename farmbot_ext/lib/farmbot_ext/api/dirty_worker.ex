@@ -43,7 +43,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
     Process.sleep(@timeout)
-    maybe_resync()
+    maybe_resync(module)
     maybe_upload(module)
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
@@ -112,17 +112,18 @@ defmodule FarmbotExt.API.DirtyWorker do
     end)
   end
 
-  def do_stale_recovery(timeout) do
+  def do_stale_recovery(timeout, module) do
     FarmbotCore.Logger.error(4, @stale_warning)
+    IO.inspect(Repo.list_stale(), label: "STALE")
     Private.recover_from_row_lock_failure()
     FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(timeout * 10)
     true
   end
 
-  def maybe_resync(timeout \\ @timeout) do
+  def maybe_resync(module, timeout \\ @timeout) do
     if Private.any_stale?() do
-      do_stale_recovery(timeout)
+      do_stale_recovery(timeout, module)
       true
     else
       false
