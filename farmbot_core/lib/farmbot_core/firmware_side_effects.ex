@@ -72,8 +72,8 @@ defmodule FarmbotCore.FirmwareSideEffects do
   def handle_parameter_calibration_value([{param, value}]) do
     # BUILD A DEBOUNCED SYNC MODULE THAT CAN BE CALLED CARELESSLY
     # WITHOUT CONSEQUENCES.
-    FarmbotCore.Logger.info(3, "=== Calibration value: #{inspect({param, value})}")
-    FarmbotCore.Logger.info(3, "=== Performing hard reset")
+    FarmbotCore.Logger.debug(3, "=== Calibration value: #{inspect({param, value})}")
+    FarmbotCore.Logger.debug(3, "=== Performing hard reset")
     FarmbotCore.Asset.FirmwareConfig.hard_refresh()
     %{param => value}
     |> Asset.update_firmware_config!()
