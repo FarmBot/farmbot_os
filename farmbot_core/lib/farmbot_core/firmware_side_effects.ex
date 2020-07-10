@@ -70,11 +70,10 @@ defmodule FarmbotCore.FirmwareSideEffects do
   # def handle_parameter_calibration_value([{param, 0}]), do: :ok
   @impl FarmbotFirmware.SideEffects
   def handle_parameter_calibration_value([{param, value}]) do
-    # BUILD A DEBOUNCED SYNC MODULE THAT CAN BE CALLED CARELESSLY
-    # WITHOUT CONSEQUENCES.
     FarmbotCore.Logger.debug(3, "=== Calibration value: #{inspect({param, value})}")
     FarmbotCore.Logger.debug(3, "=== Performing hard reset")
-    FarmbotCore.Asset.FirmwareConfig.hard_refresh()
+    FarmbotCeleryScript.hard_refresh(FarmbotCore.Asset.FirmwareConfig)
+
     %{param => value}
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
