@@ -114,7 +114,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
   def do_stale_recovery(timeout, module) do
     FarmbotCore.Logger.error(4, @stale_warning)
-    IO.inspect(Repo.list_stale(), label: "STALE")
+    IO.inspect(Private.list_stale(module), label: "STALE")
     Private.recover_from_row_lock_failure()
     FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(timeout * 10)
