@@ -3,7 +3,6 @@ defmodule FarmbotFirmware.StubSideEffects do
   @behaviour SideEffects
 
   @impl SideEffects
-  require FarmbotCore.Logger
 
   def load_params do
     [
@@ -132,14 +131,7 @@ defmodule FarmbotFirmware.StubSideEffects do
   def handle_parameter_value(_), do: :noop
 
   @impl SideEffects
-  def handle_parameter_calibration_value(_) do
-    FarmbotCore.Logger.info(
-      3,
-      "== Calling stub handle_parameter_calibration_value"
-    )
-
-    :noop
-  end
+  def handle_parameter_calibration_value(_), do: :noop
 
   @impl SideEffects
   def handle_end_stops(_), do: :noop
