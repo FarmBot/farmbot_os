@@ -69,10 +69,11 @@ defmodule FarmbotCore.FirmwareSideEffects do
   # def handle_parameter_calibration_value([{param, 0.0}]), do: :ok
   # def handle_parameter_calibration_value([{param, 0}]), do: :ok
   @impl FarmbotFirmware.SideEffects
+  def handle_parameter_calibration_value([{_, 0}]), do: :ok
+  def handle_parameter_calibration_value([{_, 0.0}]), do: :ok
   def handle_parameter_calibration_value([{param, value}]) do
     FarmbotCore.Logger.debug(3, "=== Calibration value: #{inspect({param, value})}")
     FarmbotCore.Logger.debug(3, "=== Performing hard reset")
-    FarmbotCeleryScript.hard_refresh(FarmbotCore.Asset.FirmwareConfig)
 
     %{param => value}
     |> Asset.update_firmware_config!()

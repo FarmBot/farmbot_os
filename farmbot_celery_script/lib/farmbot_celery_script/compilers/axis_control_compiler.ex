@@ -185,6 +185,15 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
   # compiles calibrate
   def calibrate(%{args: %{axis: axis}}, env) do
     quote location: :keep do
+      # WHY: If you are holding on to old data when you calibrate,
+      #      the calibration will not stick because the API
+      #      will return a 409 (row lock) error at save time.
+      #      To avoid this, you need to ensure you have the
+      #      freshest possible data.
+      fwc = FarmbotCore.Asset.FirmwareConfig
+      {:ok, changeset} = FarmbotExt.API.get_changeset(fwc)
+      FarmbotCore.Asset.Command.update(fwc, nil, changeset.changes)
+
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.compile_ast(axis, env)) do
         msg = "Determining length of the #{String.upcase(axis)} axis"
