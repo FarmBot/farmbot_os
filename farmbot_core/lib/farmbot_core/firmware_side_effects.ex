@@ -66,15 +66,19 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_config(param, value)
   end
 
-  # def handle_parameter_calibration_value([{param, 0.0}]), do: :ok
-  # def handle_parameter_calibration_value([{param, 0}]), do: :ok
   @impl FarmbotFirmware.SideEffects
   def handle_parameter_calibration_value([{_, 0}]), do: :ok
   def handle_parameter_calibration_value([{_, 0.0}]), do: :ok
   def handle_parameter_calibration_value([{param, value}]) do
     FarmbotCore.Logger.debug(3, "=== Calibration value: #{inspect({param, value})}")
-    FarmbotCore.Logger.debug(3, "=== Performing hard reset")
-
+    FarmbotCore.Logger.debug(3, "=== Performing sync")
+    # WHY: If you are holding on to old data when you calibrate,
+    #      the calibration will not stick because the API
+    #      will return a 409 (row lock) error at save time.
+    #      To avoid this, you need to ensure you have the
+    #      freshest possible data.
+    FarmbotCeleryScript.SysCalls.sync()
+    Process.sleep(500)
     %{param => value}
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
