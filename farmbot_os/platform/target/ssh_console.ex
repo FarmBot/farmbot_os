@@ -80,8 +80,8 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   end
 
   defp stop_ssh(ssh) do
-    erland_ssh_mod = :ssh
-    ssh && erland_ssh_mod.stop_daemon(ssh)
+    erlang_ssh_mod = :ssh
+    ssh && erlang_ssh_mod.stop_daemon(ssh)
   end
 
   defp start_ssh(port, decoded_authorized_keys)
