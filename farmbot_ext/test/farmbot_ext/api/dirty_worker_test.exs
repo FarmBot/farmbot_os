@@ -33,7 +33,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
       Private.mark_clean!(p)
     end)
 
-    DirtyWorker.maybe_resync(FbosConfig, 0)
+    DirtyWorker.maybe_resync(0)
   end
 
   test "handle_http_response - 409 resposne" do
@@ -66,7 +66,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     end)
 
     refute(Private.any_stale?())
-    refute(DirtyWorker.maybe_resync(FbosConfig, 0))
+    refute(DirtyWorker.maybe_resync(0))
   end
 
   test "race condition detector: has_race_condition?(module, list)" do
