@@ -151,7 +151,6 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
         0
 
-      # Just in case
       {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
         FarmbotCore.Logger.info(
           2,

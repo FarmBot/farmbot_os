@@ -14,14 +14,14 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
     quote location: :keep do
       package = unquote(Compiler.compile_ast(package, env))
       env = unquote(Macro.escape(Map.new(env)))
-      FarmbotCeleryScript.SysCalls.log("Executing Farmware: #{package}", true)
+      FarmbotCeleryScript.SysCalls.log(unquote(format_log(package)), true)
       FarmbotCeleryScript.SysCalls.execute_script(package, env)
     end
   end
 
   def install_first_party_farmware(_, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
+      FarmbotCeleryScript.SysCalls.log("Installing dependencies...")
       FarmbotCeleryScript.SysCalls.install_first_party_farmware()
     end
   end
@@ -49,4 +49,11 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
       FarmbotCeleryScript.SysCalls.update_farmware(package)
     end
   end
+
+  def format_log("camera-calibration"), do: "Calibrating camera"
+  def format_log("historical-camera-calibration"), do: "Calibrating camera"
+  def format_log("historical-plant-detection"), do: "Running weed detector"
+  def format_log("plant-detection"), do: "Running weed detector"
+  def format_log("take-photo"), do: "Taking photo"
+  def format_log(package), do: "Executing #{package}"
 end

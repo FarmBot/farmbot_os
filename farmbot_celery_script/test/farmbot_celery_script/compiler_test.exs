@@ -177,7 +177,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
              strip_nl("""
              package = "take-photo"
              env = %{"a" => "123"}
-             FarmbotCeleryScript.SysCalls.log("Executing Farmware: \#{package}", true)
+             FarmbotCeleryScript.SysCalls.log(\"Taking photo\", true)
              FarmbotCeleryScript.SysCalls.execute_script(package, env)
              """)
   end
@@ -210,7 +210,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCeleryScript.SysCalls.log("Installing first party Farmware")
+             FarmbotCeleryScript.SysCalls.log("Installing dependencies...")
              FarmbotCeleryScript.SysCalls.install_first_party_farmware()
              """)
   end

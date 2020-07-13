@@ -2,8 +2,13 @@ defmodule FarmbotCore.Config do
   @moduledoc "API for accessing config data."
 
   alias FarmbotCore.Config.{
+    BoolValue,
+    Config,
+    FloatValue,
+    Group,
+    NetworkInterface,
     Repo,
-    Config, Group, BoolValue, FloatValue, StringValue, NetworkInterface
+    StringValue
   }
 
   import Ecto.Query, only: [from: 2]

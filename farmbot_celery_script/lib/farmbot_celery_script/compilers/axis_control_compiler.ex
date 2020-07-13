@@ -1,5 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.AxisControl do
   alias FarmbotCeleryScript.Compiler
+
   # Compiles move_absolute
   def move_absolute(
         %{args: %{location: location, offset: offset, speed: speed}},
@@ -141,7 +142,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
   # Expands zero(all) into three zero/1 calls
   def zero(%{args: %{axis: "all"}}, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Zeroing all axes", true)
+      FarmbotCeleryScript.SysCalls.log("Setting home for all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.zero("z"),
            :ok <- FarmbotCeleryScript.SysCalls.zero("y") do
@@ -156,7 +157,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.compile_ast(axis, env)) do
         FarmbotCeleryScript.SysCalls.log(
-          "Zeroing the #{String.upcase(axis)} axis",
+          "Setting home for the #{String.upcase(axis)} axis",
           true
         )
 
@@ -171,14 +172,13 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
   # Expands calibrate(all) into three calibrate/1 calls
   def calibrate(%{args: %{axis: "all"}}, _env) do
     quote location: :keep do
-      FarmbotCeleryScript.SysCalls.log("Calibrating all axes", true)
+      FarmbotCeleryScript.SysCalls.log("Finding length of all axes", true)
 
       with :ok <- FarmbotCeleryScript.SysCalls.calibrate("z"),
            :ok <- FarmbotCeleryScript.SysCalls.calibrate("y") do
         FarmbotCeleryScript.SysCalls.calibrate("x")
       else
-        {:error, reason} ->
-          {:error, reason}
+        {:error, reason} -> {:error, reason}
       end
     end
   end
@@ -188,15 +188,11 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.compile_ast(axis, env)) do
-        FarmbotCeleryScript.SysCalls.log(
-          "Calibrating the #{String.upcase(axis)} axis",
-          true
-        )
-
+        msg = "Determining length of the #{String.upcase(axis)} axis"
+        FarmbotCeleryScript.SysCalls.log(msg, true)
         FarmbotCeleryScript.SysCalls.calibrate(axis)
       else
-        {:error, reason} ->
-          {:error, reason}
+        {:error, reason} -> {:error, reason}
       end
     end
   end

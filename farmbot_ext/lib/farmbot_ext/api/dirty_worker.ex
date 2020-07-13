@@ -43,7 +43,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
     Process.sleep(@timeout)
-    maybe_resync()
+    maybe_resync(module)
     maybe_upload(module)
     Process.send_after(self(), :do_work, @timeout)
     {:noreply, state}
@@ -113,12 +113,10 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   def do_stale_recovery(timeout) do
-    Process.sleep(timeout * 8)
     FarmbotCore.Logger.error(4, @stale_warning)
     Private.recover_from_row_lock_failure()
-    IO.puts("FIXME: The line below needs to be uncommented.")
-    # FarmbotCeleryScript.SysCalls.sync()
-    Process.sleep(timeout * 2)
+    FarmbotCeleryScript.SysCalls.sync()
+    Process.sleep(timeout * 10)
     true
   end
 
@@ -148,7 +146,6 @@ defmodule FarmbotExt.API.DirtyWorker do
   def handle_http_response(dirty, _module, {:ok, %{status: s}}) when s == 409 do
     Private.mark_stale!(dirty)
     do_stale_recovery(@timeout)
-    FarmbotCore.Logger.error(2, "Stale data detected. Sync required.")
   end
 
   # Invalid data

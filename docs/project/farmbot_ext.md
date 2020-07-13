@@ -13,7 +13,7 @@ the bare minimum resources to get up and running.
 
 ## HTTP/Sync subsystem
 
-This is the subsystem that syncronizes FarmBot with the remote API.
+This is the subsystem that synchronizes FarmBot with the remote API.
 It uses HTTP to download an index of all the data FarmBot cares about,
 and compares timestamps to determine who has the most up to date data.
 The basic flow is whoever has the most recent `updated_at` field will
@@ -22,7 +22,7 @@ FarmBot will do an HTTP PUT of it's data. If the remote resource does not
 exist, FarmBot will do an HTTP POST of it's data. If the remote data has a more
 recent `updated_at` field, FarmBot will do an HTTP GET and replace it's own data.
 
-## AMQP/MQTT substem
+## AMQP/MQTT subsystem
 
 FarmBot maintains a connection to the API for real time communication. This
 real time communication connection is multiplexed over multiple `channel`s.
@@ -31,9 +31,9 @@ Below is a description of the channels:
 * bot_state - pushes a JSON encoded version of the `bot_state`
   process (from `farmbot_core`)
 * celery_script - receives/sends JSON encoded celery_script.
-  Used for controling FarmBot externally
+  Used for controlling FarmBot externally
 * log - sends log messages from `farmbot_core`'s logger
-* ping/pong - echos everything received. used for detecting active conncetion
+* ping/pong - echos everything received. used for detecting active connection
 * auto_sync - the API dispatches every REST resource change on this channel.
   Used to speed up HTTP requests
 * telemetry - similar to the log channel, but sends consumable events,
