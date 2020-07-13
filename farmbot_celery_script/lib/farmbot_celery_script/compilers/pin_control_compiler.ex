@@ -11,7 +11,11 @@ defmodule FarmbotCeleryScript.Compiler.PinControl do
       value = unquote(Compiler.compile_ast(value, env))
 
       with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
-        FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
+        if mode == 0 do
+          FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
+        else
+          FarmbotCeleryScript.SysCalls.log("Pin #{pin} is #{value} (analog)")
+        end
       end
     end
   end
