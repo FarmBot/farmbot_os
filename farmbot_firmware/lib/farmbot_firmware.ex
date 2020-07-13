@@ -698,10 +698,6 @@ defmodule FarmbotFirmware do
   end
 
   def handle_report({:report_calibration_parameter_value, param} = _code, state) do
-    Logger.info(
-      "=== {:report_calibration_parameter_value, param} = _code, state"
-    )
-
     to_process = [{:parameter_write, param}]
     side_effects(state, :handle_parameter_value, [param])
     side_effects(state, :handle_parameter_calibration_value, [param])

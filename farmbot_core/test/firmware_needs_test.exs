@@ -2,7 +2,7 @@ defmodule FarmbotCore.FirmwareNeedsTest do
   use ExUnit.Case, async: true
   alias FarmbotCore.FirmwareNeeds
 
-  test "subscribes to bot state updates" do
+  test "tracks firmware needs in memory" do
     {:ok, pid} = FirmwareNeeds.start_link([], [])
 
     assert FirmwareNeeds.open?(pid)
