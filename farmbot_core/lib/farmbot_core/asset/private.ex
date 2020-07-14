@@ -18,24 +18,19 @@ defmodule FarmbotCore.Asset.Private do
     Repo.all(from(data in module, where: is_nil(data.id)))
   end
 
-  @doc "Lists `module` objects that have a `local_meta` object"
-  def list_dirty(module) do
+  def list_meta_status(status, module) do
     table = table(module)
     q = from(lm in LocalMeta,
-            where: lm.table == ^table and lm.status == "dirty",
+            where: lm.table == ^table and lm.status == ^status,
             select: lm.asset_local_id)
     Repo.all(from(data in module, join: lm in subquery(q)))
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
-  def list_stale(module) do
-    IO.puts("=== RICK: DRY This function up and write tests after QA.")
-    table = table(module)
-    q = from(lm in LocalMeta,
-            where: lm.table == ^table and lm.status == "stale",
-            select: lm.asset_local_id)
-    Repo.all(from(data in module, join: lm in subquery(q)))
-  end
+  def list_dirty(module), do: list_meta_status("dirty", module)
+
+  @doc "Lists `module` objects that have a `local_meta` object"
+  def list_stale(module), do: list_meta_status("stale", module)
 
   @doc "Lists `module` objects that have a `local_meta` object"
   def any_stale?() do
