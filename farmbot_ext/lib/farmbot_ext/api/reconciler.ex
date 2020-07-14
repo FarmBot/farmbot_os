@@ -85,7 +85,6 @@ defmodule FarmbotExt.API.Reconciler do
 
     sync_changeset =
       Enum.reduce(ids_that_were_deleted, sync_changeset, fn id, sync_changeset ->
-        # Logger.info("delete: #{module} #{inspect(id)}")
         Command.update(module, id, nil)
         sync_changeset
       end)

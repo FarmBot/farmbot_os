@@ -13,8 +13,6 @@ defmodule FarmbotOS.System do
   @system_tasks Application.get_env(:farmbot, __MODULE__)[:system_tasks]
   @system_tasks || Mix.raise(error_msg)
 
-  @data_path FarmbotOS.FileSystem.data_path()
-
   @doc "Restarts the machine."
   @callback reboot() :: any
 
@@ -43,9 +41,7 @@ defmodule FarmbotOS.System do
 
   @doc "Reads the last shutdown is there was one."
   def last_shutdown_reason do
-    file = Path.join(@data_path, "last_shutdown_reason")
-
-    case File.read(file) do
+    case File.read(FarmbotOS.FileSystem.shutdown_reason_path()) do
       {:ok, data} -> data
       _ -> nil
     end
@@ -56,7 +52,7 @@ defmodule FarmbotOS.System do
   def factory_reset(reason, force \\ false) do
     if force || should_factory_reset?() do
       try_lock_fw()
-      write_file(reason)
+      set_shutdown_reason(reason)
       _ = FarmbotCore.EctoMigrator.drop()
       reboot(reason)
       :ok
@@ -70,7 +66,7 @@ defmodule FarmbotOS.System do
   @spec reboot(any) :: no_return
   def reboot(reason) do
     try_lock_fw()
-    write_file(reason)
+    set_shutdown_reason(reason)
     @system_tasks.reboot()
   end
 
@@ -78,13 +74,13 @@ defmodule FarmbotOS.System do
   @spec shutdown(any) :: no_return
   def shutdown(reason) do
     try_lock_fw()
-    write_file(reason)
+    set_shutdown_reason(reason)
     @system_tasks.shutdown()
   end
 
-  defp write_file(reason) do
+  def set_shutdown_reason(reason) do
     FarmbotCore.Logger.debug(3, "power down event: #{inspect(reason)}")
-    file = Path.join(@data_path, "last_shutdown_reason")
+    file = FarmbotOS.FileSystem.shutdown_reason_path()
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end
 

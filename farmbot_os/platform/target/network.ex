@@ -160,7 +160,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         {VintageNet, ["interface", ifname, "lower_up"], _old, false, _meta},
         state
       ) do
-    FarmbotCore.Logger.error(
+    FarmbotCore.Logger.debug(
       1,
       "Interface #{ifname} disconnected from access point"
     )

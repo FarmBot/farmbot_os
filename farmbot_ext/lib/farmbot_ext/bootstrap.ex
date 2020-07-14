@@ -4,7 +4,9 @@ defmodule FarmbotExt.Bootstrap do
   a token, secret, or password for logging into an account
   """
 
+  # FarmbotExt.Bootstrap.Authorization.authorize_with_password(email, password, server)
   use GenServer
+  require FarmbotCore.Logger
   require Logger
   alias FarmbotExt.{Bootstrap, Bootstrap.Authorization}
   import FarmbotCore.Config, only: [update_config_value: 4, get_config_value: 3]
@@ -56,8 +58,19 @@ defmodule FarmbotExt.Bootstrap do
          {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
+      # Changing the error message on the API
+      # will break this handler. Hmm...
+      {:error, "Bad email or password."} ->
+        msg = "Password auth failed! Check again and reconfigurate."
+        Logger.error(msg)
+        FarmbotCore.Logger.debug(3, msg)
+        FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os")
+        {:noreply, nil, 5000}
+
       er ->
-        Logger.error("password auth failed: #{inspect(er)} ")
+        msg = "Bootstrap try_auth: #{inspect(er)} "
+        Logger.error(msg)
+        FarmbotCore.Logger.debug(3, msg)
         {:noreply, nil, 5000}
     end
   end

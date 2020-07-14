@@ -23,14 +23,14 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   def init(fwi) do
     {:ok, %{fwi: fwi, backoff: 0}, 0}
   end
-  
+
   def handle_cast(:update, state) do
     FarmbotCore.Logger.debug(3, "Will attempt Farmware update")
     {:noreply, state, 0}
   end
 
   def handle_info(:timeout, %{fwi: %{manifest: nil} = fwi} = state) do
-    FarmbotCore.Logger.busy(3, "Installing Farmware... ([source URL](#{fwi.url}))")
+    FarmbotCore.Logger.busy(3, "Installing dependencies... ([source URL](#{fwi.url}))")
 
     with {:ok, %{} = manifest} <- get_manifest_json(fwi),
          %{valid?: true} = changeset <- FWI.changeset(fwi, %{manifest: manifest}),
@@ -39,7 +39,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
          :ok <- install_zip(updated, zip_binary),
          :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
-      FarmbotCore.Logger.success(1, "Installed Farmware: #{updated.manifest.package}")
+      FarmbotCore.Logger.success(1, "Installed dependency: #{updated.manifest.package}")
       # TODO(Connor) -> No reason to keep this process alive?
       BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
       {:noreply, %{state | backoff: 0}}
@@ -57,10 +57,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   #   * update farmbot os, a previously installed farmware may be incompatible
   #   * update farmbot os, a previously installed farmware may be using backwards
   #     incompatible APIS in farmware tools (because farmware tools wasn't updated)
-  #   * update farmware, it uses a more recent version of farmware tools that has a
-  #     yet to be implemented APIs (due to out of date farmbot os)
-  #   * update farmware tools, it uses an API that doesn't exist yet (due to
-  #     not updating farmbot os)
   def handle_info(:timeout, %{fwi: %FWI{} = fwi} = state) do
     with {:ok, %{} = i_manifest} <- load_manifest_json(fwi),
          %{valid?: true} = d_changeset <- FWI.changeset(fwi, %{manifest: i_manifest}),

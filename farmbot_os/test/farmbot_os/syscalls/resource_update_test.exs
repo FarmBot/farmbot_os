@@ -22,7 +22,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   end
 
   test "update_resource/3 - Point" do
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     %Point{id: 555, pointer_type: "Plant"}
     |> Point.changeset()

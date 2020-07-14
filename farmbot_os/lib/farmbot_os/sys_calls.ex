@@ -130,10 +130,6 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   defdelegate point(kind, id), to: PointLookup
 
-  # TODO(RICK) This may not be used anymore by CSRT.
-  # @impl true
-  # defdelegate get_point_group(type_or_id), to: PointLookup
-
   @impl true
   defdelegate find_points_via_group(id), to: Asset
 

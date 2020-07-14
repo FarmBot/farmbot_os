@@ -29,8 +29,7 @@ if Mix.env() == :test do
     FarmbotCore.StorageSupervisor,
     FarmbotCore.Asset.Supervisor,
     FarmbotCore.BotState.Supervisor,
-    FarmbotCore.Config.Supervisor,
-    FarmbotCore.Logger.Supervisor
+    FarmbotCore.Config.Supervisor
   ]
 
   Enum.map(list, mapper)

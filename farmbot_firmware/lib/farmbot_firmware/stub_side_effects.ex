@@ -3,6 +3,7 @@ defmodule FarmbotFirmware.StubSideEffects do
   @behaviour SideEffects
 
   @impl SideEffects
+
   def load_params do
     [
       movement_home_spd_z: 200.0,

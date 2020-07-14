@@ -92,7 +92,8 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
         "telemetry_memory_usage" => metrics.memory_usage,
         "telemetry_disk_usage" => metrics.disk_usage,
         "telemetry_scheduler_usage" => metrics.scheduler_usage,
-        "telemetry_cpu_usage" => metrics.cpu_usage
+        "telemetry_cpu_usage" => metrics.cpu_usage,
+        "telemetry_target" => metrics.target
       })
 
     Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)

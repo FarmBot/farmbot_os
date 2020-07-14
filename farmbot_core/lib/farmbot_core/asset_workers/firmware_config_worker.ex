@@ -1,6 +1,6 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   @moduledoc """
-  This asset worker does not get restarted. It inistead responds to GenServer
+  This asset worker does not get restarted. It instead responds to GenServer
   calls.
   """
 
@@ -9,7 +9,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   alias FarmbotFirmware
   alias FarmbotFirmware.Param
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
-
+  @nr_steps [
+    :movement_axis_nr_steps_z,
+    :movement_axis_nr_steps_y,
+    :movement_axis_nr_steps_z
+  ]
   def preload(%FirmwareConfig{}), do: []
 
   def tracks_changes?(%FirmwareConfig{}), do: true
@@ -33,13 +37,12 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
     {:noreply, new_fw_config}
   end
 
-  defp do_write_read(calib_param, value)
-      when calib_param in [:movement_axis_nr_steps_z, :movement_axis_nr_steps_y, :movement_axis_nr_steps_z]
-  do
+  defp do_write_read(calib_param, value) when calib_param in @nr_steps do
     {human, units, value_str} = Param.to_human(calib_param, value)
     case FarmbotFirmware.command({:parameter_write, [{calib_param, value}]}) do
-      {:error, :configuration} -> 
-        FarmbotCore.Logger.warn 3, "Firmware parameter edge case (calibration): #{human}: #{value_str} #{units}"
+      {:error, :configuration} ->
+        msg = "Firmware parameter edge case (calibration): #{human}: #{value_str} #{units}"
+        FarmbotCore.Logger.warn 3, msg
         :ok
 
       :ok ->

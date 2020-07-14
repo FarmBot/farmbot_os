@@ -10,7 +10,7 @@
     <h1>Configuration Complete</h1>
     <div class="widget">
     <div class="widget-header">
-      <h5>You're all set!</h5>
+      <h5>You're almost done!</h5>
     </div>
     <div class="widget-content">
       FarmBot will now reboot to apply the configuration.

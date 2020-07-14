@@ -48,34 +48,9 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   @n 1000
   def rand, do: Enum.random(0..@n) / 1
 
-  def point!(%{id: id} = params) do
-    point =
-      Map.merge(
-        %Point{
-          id: id,
-          name: "point #{id}",
-          meta: %{},
-          plant_stage: "planted",
-          created_at: @now,
-          pointer_type: "Plant",
-          radius: 10.0,
-          tool_id: nil,
-          discarded_at: nil,
-          gantry_mounted: false,
-          x: 0.0,
-          y: 0.0,
-          z: 0.0
-        },
-        params
-      )
-
-    Repo.insert!(point)
-    point
-  end
-
   def point_group_with_fake_points do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     whitelist = [
       %Point{id: 1, x: rand(), y: rand(), z: rand()},
@@ -109,12 +84,12 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "direct match on `pointer_type` via `string_eq`" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
-    point!(%{id: 1, pointer_type: "Plant"})
-    point!(%{id: 2, pointer_type: "Weed"})
-    point!(%{id: 3, pointer_type: "ToolSlot"})
-    point!(%{id: 4, pointer_type: "GenericPointer"})
+    Helpers.create_point(%{id: 1, pointer_type: "Plant"})
+    Helpers.create_point(%{id: 2, pointer_type: "Weed"})
+    Helpers.create_point(%{id: 3, pointer_type: "ToolSlot"})
+    Helpers.create_point(%{id: 4, pointer_type: "GenericPointer"})
 
     result = CriteriaRetriever.run(@simple_point_group)
     assert Enum.count(result) == 1
@@ -124,7 +99,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     expect(Timex, :now, fn -> @now end)
     pg = point_group_with_fake_points()
 
-    point!(%{
+    Helpers.create_point(%{
       id: 888,
       created_at: @five_days_ago,
       openfarm_slug: "five",
@@ -135,7 +110,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     })
 
     perfect_match =
-      point!(%{
+      Helpers.create_point(%{
         id: 999,
         created_at: @five_days_ago,
         openfarm_slug: "five",
@@ -154,11 +129,11 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
   @tag :capture_log
   test "point group that does not define criteria" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
     whitelist = [88457, 88455]
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:39.176321Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -177,7 +152,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:39.413318Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -196,7 +171,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:39.610901Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -215,7 +190,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:39.824048Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -234,7 +209,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:40.012075Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -253,7 +228,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:40.202385Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -272,7 +247,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:40.402777Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -291,7 +266,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:40.776337Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -310,7 +285,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:40.960424Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -329,7 +304,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:41.171967Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -348,7 +323,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:41.393021Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -367,7 +342,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-02-21 01:41:07.714000Z],
       discarded_at: nil,
       gantry_mounted: true,
@@ -386,7 +361,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: -20.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-02-21 18:30:56.301000Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -405,7 +380,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-02-21 18:47:45.170000Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -424,7 +399,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-02-21 20:01:59.960000Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -447,7 +422,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       z: 0.0
     })
 
-    point!(%{
+    Helpers.create_point(%{
       created_at: ~U[2020-02-29 21:08:40.934000Z],
       discarded_at: nil,
       gantry_mounted: false,
@@ -494,11 +469,32 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "edge case: Filter by crop type" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
-    ok = point!(%{id: 1, pointer_type: "Plant", openfarm_slug: "spinach"})
-    point!(%{id: 2, pointer_type: "Plant", openfarm_slug: "beetroot"})
-    point!(%{id: 3, pointer_type: "Weed", openfarm_slug: "thistle"})
-    point!(%{id: 4, pointer_type: "Weed", openfarm_slug: "spinach"})
+    Helpers.delete_all_points()
+
+    ok =
+      Helpers.create_point(%{
+        id: 1,
+        pointer_type: "Plant",
+        openfarm_slug: "spinach"
+      })
+
+    Helpers.create_point(%{
+      id: 2,
+      pointer_type: "Plant",
+      openfarm_slug: "beetroot"
+    })
+
+    Helpers.create_point(%{
+      id: 3,
+      pointer_type: "Weed",
+      openfarm_slug: "thistle"
+    })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "Weed",
+      openfarm_slug: "spinach"
+    })
 
     pg = %PointGroup{
       :id => 241,
@@ -525,13 +521,19 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "edge case: Retrieves by `day` criteria only" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
     days_ago4 = Timex.shift(@now, days: -4)
     days_ago2 = Timex.shift(@now, days: -2)
     expect(Timex, :now, fn -> @now end)
 
-    point!(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
-    p2 = point!(%{id: 2, pointer_type: "Plant", created_at: days_ago2})
+    Helpers.create_point(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
+
+    p2 =
+      Helpers.create_point(%{
+        id: 2,
+        pointer_type: "Plant",
+        created_at: days_ago2
+      })
 
     pg1 = %PointGroup{
       id: 212,
@@ -556,12 +558,28 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
 
   test "edge case: Filter by slot direction" do
     Repo.delete_all(PointGroup)
-    Repo.delete_all(Point)
+    Helpers.delete_all_points()
 
-    ok = point!(%{id: 1, pointer_type: "ToolSlot", pullout_direction: 3})
-    point!(%{id: 2, pointer_type: "Weed", pullout_direction: 3})
-    point!(%{id: 3, pointer_type: "ToolSlot", pullout_direction: 4})
-    point!(%{id: 4, pointer_type: "GenericPointer", pullout_direction: 2})
+    ok =
+      Helpers.create_point(%{
+        id: 1,
+        pointer_type: "ToolSlot",
+        pullout_direction: 3
+      })
+
+    Helpers.create_point(%{id: 2, pointer_type: "Weed", pullout_direction: 3})
+
+    Helpers.create_point(%{
+      id: 3,
+      pointer_type: "ToolSlot",
+      pullout_direction: 4
+    })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "GenericPointer",
+      pullout_direction: 2
+    })
 
     pg = %PointGroup{
       :id => 242,

@@ -7,9 +7,8 @@ defmodule FarmbotCore.Asset.Private do
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCore.{Asset.Repo,
-    Asset.Private.LocalMeta,
-  }
+  alias FarmbotCore.{Asset.Repo, Asset.Private.LocalMeta }
+  alias FarmbotCore.Asset.{ FbosConfig, FirmwareConfig }
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
@@ -19,15 +18,58 @@ defmodule FarmbotCore.Asset.Private do
     Repo.all(from(data in module, where: is_nil(data.id)))
   end
 
-  @doc "Lists `module` objects that have a `local_meta` object"
-  def list_dirty(module) do
+  def list_meta_status(status, module) do
     table = table(module)
-    q = from(lm in LocalMeta, where: lm.table == ^table, select: lm.asset_local_id)
+    q = from(lm in LocalMeta,
+            where: lm.table == ^table and lm.status == ^status,
+            select: lm.asset_local_id)
     Repo.all(from(data in module, join: lm in subquery(q)))
+  end
+
+  @doc "Lists `module` objects that have a `local_meta` object"
+  def list_dirty(module), do: list_meta_status("dirty", module)
+
+  @doc "Lists `module` objects that have a `local_meta` object"
+  def list_stale(module), do: list_meta_status("stale", module)
+
+  @doc "Lists `module` objects that have a `local_meta` object"
+  def any_stale?() do
+    q = from(lm in LocalMeta, where: lm.status == "stale", select: lm.asset_local_id)
+    Repo.aggregate(q, :count, :id) != 0
   end
 
   @doc "Mark a document as `dirty` by creating a `local_meta` object"
   def mark_dirty!(asset, params \\ %{}) do
+    set_status!(asset, params, "dirty")
+  end
+
+  @doc "Mark a document as `stale` by creating a `local_meta` object"
+  def mark_stale!(asset, params \\ %{}) do
+    set_status!(asset, params, "stale")
+  end
+
+  @doc "Remove the `local_meta` record from an object."
+  @spec mark_clean!(map) :: nil | map()
+  def mark_clean!(data) do
+    Repo.preload(data, :local_meta)
+    |> Map.fetch!(:local_meta)
+    |> case do
+      nil -> nil
+      local_meta -> Repo.delete!(local_meta)
+    end
+  end
+
+  def recover_from_row_lock_failure() do
+    list_dirty(FbosConfig)
+    ++ list_dirty(FirmwareConfig)
+    ++ list_stale(FbosConfig)
+    ++ list_stale(FirmwareConfig)
+    |> Enum.map(&mark_clean!/1)
+  end
+
+  defp table(%module{}), do: table(module)
+  defp table(module), do: module.__schema__(:source)
+  defp set_status!(asset, params, status) do
     table = table(asset)
 
     local_meta =
@@ -43,7 +85,7 @@ defmodule FarmbotCore.Asset.Private do
     # caught both errors here as they are both essentially the same thing, and can be safely
     # discarded. Doing an `insert_or_update/1` (without the bang) can still result in the sqlite
     # error being thrown.
-    changeset = LocalMeta.changeset(local_meta, Map.merge(params, %{table: table, status: "dirty"}))
+    changeset = LocalMeta.changeset(local_meta, Map.merge(params, %{table: table, status: status}))
     try do
       Repo.insert_or_update!(changeset)
     catch
@@ -84,18 +126,4 @@ defmodule FarmbotCore.Asset.Private do
         Ecto.Changeset.apply_changes(changeset)
     end
   end
-
-  @doc "Remove the `local_meta` record from an object."
-  @spec mark_clean!(map) :: nil | map()
-  def mark_clean!(data) do
-    Repo.preload(data, :local_meta)
-    |> Map.fetch!(:local_meta)
-    |> case do
-      nil -> nil
-      local_meta -> Repo.delete!(local_meta)
-    end
-  end
-
-  defp table(%module{}), do: table(module)
-  defp table(module), do: module.__schema__(:source)
 end

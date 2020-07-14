@@ -8,7 +8,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotFirmware.{UARTTransport, StubTransport}
-  alias FarmbotCore.{Asset, Config}
+  alias FarmbotCore.{Asset, FirmwareNeeds}
   @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold] || 5
 
   @doc false
@@ -44,7 +44,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
     firmware_path = Asset.fbos_config(:firmware_path)
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     if firmware_path && firmware_hardware do
-      Config.update_config_value(:bool, "settings", "firmware_needs_open", true)
+      FirmwareNeeds.open(true)
     end
     {:ok, %{timer: nil, attempts: 0, threshold: @attempt_threshold}}
   end
@@ -59,8 +59,8 @@ defmodule FarmbotCore.FirmwareOpenTask do
   def handle_info(:open, state) do
     if state.timer, do: Process.cancel_timer(state.timer)
 
-    needs_flash? = Config.get_config_value(:bool, "settings", "firmware_needs_flash")
-    needs_open? = Config.get_config_value(:bool, "settings", "firmware_needs_open")
+    needs_flash? = FirmwareNeeds.flash?()
+    needs_open? =  FirmwareNeeds.open?()
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     cond do
       needs_flash? ->
@@ -76,7 +76,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
       firmware_hardware == "none" && needs_open? ->
         FarmbotCore.Logger.debug 3, "Closing firmware..."
         unswap_transport()
-        Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+        FirmwareNeeds.open(false)
         timer = Process.send_after(self(), :open, 5000)
         {:noreply, %{state | timer: timer, attempts: 0}}
 
@@ -84,7 +84,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
         FarmbotCore.Logger.debug 3, "Opening firmware..."
         case swap_transport(firmware_path()) do
           :ok ->
-            Config.update_config_value(:bool, "settings", "firmware_needs_open", false)
+            FirmwareNeeds.open(false)
             timer = Process.send_after(self(), :open, 5000)
             {:noreply, %{state | timer: timer, attempts: 0}}
           other ->
