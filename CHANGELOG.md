@@ -2,7 +2,7 @@
 
 # 10.2.0
 
- * Change AMQP `heartbeat` value to `0` (CC: @FuzzyNickel)
+ * Change AMQP `heartbeat` value to `60` (CC: @FuzzyNickel)
 
 # 10.1.3
 
