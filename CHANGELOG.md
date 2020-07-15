@@ -1,5 +1,9 @@
 # Changelog
 
+# 10.2.0
+
+ * Change AMQP `heartbeat` value to `0` (CC: @FuzzyNickel)
+
 # 10.1.3
 
  * Express v1.0 firmware homing updates.

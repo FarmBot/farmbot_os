@@ -173,6 +173,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
       username: bot,
       password: token,
       virtual_host: vhost,
+      heartbeat: 0,
       connection_timeout: 10_000
     ]
 
