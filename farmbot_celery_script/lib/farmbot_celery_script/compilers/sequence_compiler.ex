@@ -190,6 +190,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
           unquote_splicing(params_fetch)
           unquote_splicing(assignments)
           better_params = unquote(better_params)
+          _ = inspect(better_params)
           # Unquote the remaining sequence steps.
           unquote(steps)
         end

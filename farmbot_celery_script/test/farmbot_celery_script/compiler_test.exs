@@ -113,7 +113,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> Code.format_string!()
       |> IO.iodata_to_binary()
 
-    var_name = Compiler.IdentifierSanitizer.to_variable(label)
+    # var_name = Compiler.IdentifierSanitizer.to_variable(label)
 
     assert elixir_code =~
              strip_nl("""
@@ -132,6 +132,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                    }
                  }
 
+                 _ = inspect(better_params)
                  [fn -> unsafe_U3lzdGVtLmNtZCgiZWNobyIsIFsibG9sIl0p end]
                end
              ]
@@ -385,6 +386,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                    Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
 
                  better_params = %{}
+                 _ = inspect(better_params)
 
                  [
                    fn ->
@@ -437,6 +439,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
                fn params ->
                  _ = inspect(params)
                  better_params = %{}
+                 _ = inspect(better_params)
 
                  [
                    fn ->
