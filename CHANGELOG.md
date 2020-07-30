@@ -1,5 +1,14 @@
 # Changelog
 
+# 10.1.5
+
+ * Remove unused variable warning from SSH logs.
+ * Fix bug affecting OTAs of Express devices.
+
+# 10.1.4
+
+ * See changelog for 10.1.5
+
 # 10.1.3
 
  * Express v1.0 firmware homing updates.
