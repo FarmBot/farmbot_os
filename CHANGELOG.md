@@ -1,5 +1,9 @@
 # Changelog
 
+# 10.1.6
+
+ * Add colors and labels to configurator WiFi signal strengths.
+
 # 10.1.5
 
  * Remove unused variable warning from SSH logs.
