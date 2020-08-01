@@ -33,6 +33,18 @@ defmodule FarmbotOS.Configurator.FakeNetworkLayer do
         bssid: "ba:ad:fo:od",
         level: 50,
         security: "NONE"
+      },
+      %{
+        ssid: "test none gray",
+        bssid: "ba:df:oo:d1",
+        level: 10,
+        security: "NONE"
+      },
+      %{
+        ssid: "test unknown yellow",
+        bssid: "ba:df:oo:d2",
+        level: 75,
+        security: "UNKNOWN"
       }
     ]
   end
