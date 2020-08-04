@@ -101,7 +101,6 @@ config :farmbot_telemetry,
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
-    FarmbotOS.Platform.Target.NervesHubClient,
     FarmbotOS.Platform.Target.Network.Supervisor,
     FarmbotOS.Platform.Target.SSHConsole,
     FarmbotOS.Platform.Target.Uevent.Supervisor,
@@ -113,13 +112,6 @@ config :farmbot, FarmbotOS.Configurator,
 
 config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
-
-config :nerves_hub,
-  client: FarmbotOS.Platform.Target.NervesHubClient,
-  remote_iex: true,
-  public_keys: [File.read!("priv/staging.pub"), File.read!("priv/prod.pub")]
-
-config :nerves_hub, NervesHub.Socket, reconnect_interval: 30_000
 
 config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5_000_000
 

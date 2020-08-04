@@ -20,7 +20,6 @@ defmodule FarmbotCore.AssetHelpers do
       alias Asset.{
         Repo,
         Device,
-        DeviceCert,
         FarmwareEnv,
         FarmwareInstallation,
         FirstPartyFarmware,

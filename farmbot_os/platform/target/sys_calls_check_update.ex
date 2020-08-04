@@ -1,11 +1,9 @@
 defmodule FarmbotOS.SysCalls.CheckUpdate do
   @moduledoc false
 
-  alias FarmbotOS.Platform.Target.NervesHubClient
-
   @doc false
   def check_update do
-    _ = NervesHubClient.check_update()
+    raise "This needs to be changed"
     :ok
   end
 end

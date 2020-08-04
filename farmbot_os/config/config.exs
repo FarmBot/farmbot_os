@@ -27,9 +27,7 @@ config :farmbot_core, FarmbotCore.JSON,
 
 # Customize non-Elixir parts of the firmware.  See
 # https://hexdocs.pm/nerves/advanced-configuration.html for details.
-config :nerves, :firmware,
-  rootfs_overlay: "rootfs_overlay",
-  provisioning: :nerves_hub
+config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
 config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 5_000
 

@@ -9,7 +9,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
   alias FarmbotCore.Asset.{
     Repo,
     Device,
-    DeviceCert,
     FarmEvent,
     FarmwareEnv,
     FarmwareInstallation,
@@ -33,13 +32,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     field(:monitor, :boolean, default: true)
 
     belongs_to(:device, Device,
-      foreign_key: :asset_local_id,
-      type: :binary_id,
-      references: :local_id,
-      define_field: false
-    )
-
-    belongs_to(:device_cert, DeviceCert,
       foreign_key: :asset_local_id,
       type: :binary_id,
       references: :local_id,
@@ -152,7 +144,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     |> validate_inclusion(:status, ~w(dirty stale))
     |> validate_inclusion(:table, [
       "devices",
-      "device_certs",
       "tools",
       "peripherals",
       "sensors",
