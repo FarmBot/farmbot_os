@@ -79,6 +79,15 @@ defmodule AutoSyncChannelTest do
     GenServer.stop(pid, :normal)
   end
 
+  test "init / terminate - preload error" do
+    expect(Preloader, :preload_all, 1, fn -> {:error, "part of a test"} end)
+    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
+
+    pid = generate_pid()
+    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
+    GenServer.stop(pid, :normal)
+  end
+
   test "delivery of auto sync messages" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
 
