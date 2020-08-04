@@ -11,7 +11,6 @@ defmodule AutoSyncAssetHandlerTest do
 
   import ExUnit.CaptureLog
 
-  def auto_sync_off, do: expect(Asset.Query, :auto_sync?, fn -> false end)
   def auto_sync_on, do: expect(Asset.Query, :auto_sync?, fn -> true end)
 
   def expect_sync_status_to_be(status),
@@ -19,13 +18,6 @@ defmodule AutoSyncAssetHandlerTest do
 
   def expect_green_leds(status),
     do: expect(Leds, :green, 1, fn ^status -> :ok end)
-
-  test "handling of deleted assets when auto_sync is disabled" do
-    auto_sync_off()
-    expect_sync_status_to_be("sync_now")
-    expect_green_leds(:slow_blink)
-    AutoSyncAssetHandler.handle_asset("Point", 23, nil)
-  end
 
   test "Handles @no_cache_kinds" do
     id = 64
@@ -41,7 +33,6 @@ defmodule AutoSyncAssetHandlerTest do
   end
 
   test "handling of deleted assets when auto_sync is enabled" do
-    auto_sync_on()
     expect_sync_status_to_be("syncing")
     expect_sync_status_to_be("synced")
     expect_green_leds(:really_fast_blink)

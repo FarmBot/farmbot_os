@@ -64,7 +64,6 @@ defmodule AutoSyncChannelTest do
 
   test "init / terminate - auto_sync enabled" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
-    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> true end)
     expect(FarmbotCore.BotState, :set_sync_status, 1, fn "synced" -> :ok end)
 
     expect(FarmbotCore.Leds, :green, 2, fn
@@ -75,49 +74,8 @@ defmodule AutoSyncChannelTest do
         :ok
     end)
 
-    # Helpers.expect_log("Failed to connect to AutoSync channel: :whatever")
-    # Helpers.expect_log("Disconnected from AutoSync channel: :normal")
-    pid = generate_pid()
-    IO.puts("   =====RICK: This test blinks and you should fix it.")
-    assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
-    GenServer.stop(pid, :normal)
-  end
-
-  test "init / terminate - auto_sync disabled" do
-    expect(Preloader, :preload_all, 1, fn -> :ok end)
-    expect(FarmbotCore.Asset.Query, :auto_sync?, 1, fn -> false end)
-    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_now" -> :ok end)
-
-    expect(FarmbotCore.Leds, :green, 2, fn
-      :slow_blink ->
-        :ok
-
-      :really_fast_blink ->
-        :ok
-    end)
-
-    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: true} == AutoSyncChannel.network_status(pid)
-    GenServer.stop(pid, :normal)
-  end
-
-  test "init / terminate - auto_sync error" do
-    Helpers.expect_log("Error preloading. #{inspect("a test example")}")
-    Helpers.expect_log("Disconnected from AutoSync channel: :normal")
-    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
-    expect(Preloader, :preload_all, 1, fn -> {:error, "a test example"} end)
-
-    expect(FarmbotCore.Leds, :green, 2, fn
-      :slow_blink ->
-        :ok
-
-      :really_fast_blink ->
-        :ok
-    end)
-
-    pid = generate_pid()
-    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
     GenServer.stop(pid, :normal)
   end
 

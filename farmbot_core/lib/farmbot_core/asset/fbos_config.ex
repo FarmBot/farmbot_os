@@ -26,9 +26,6 @@ defmodule FarmbotCore.Asset.FbosConfig do
     # stateful
     field(:firmware_path, :string)
 
-    # auto_sync_channel
-    field(:auto_sync, :boolean)
-
     # not used anymore
     field(:beta_opt_in, :boolean)
 
@@ -53,7 +50,6 @@ defmodule FarmbotCore.Asset.FbosConfig do
       id: fbos_config.id,
       updated_at: fbos_config.updated_at,
       arduino_debug_messages: fbos_config.arduino_debug_messages,
-      auto_sync: fbos_config.auto_sync,
       beta_opt_in: fbos_config.beta_opt_in,
       disable_factory_reset: fbos_config.disable_factory_reset,
       firmware_hardware: fbos_config.firmware_hardware,
@@ -75,7 +71,6 @@ defmodule FarmbotCore.Asset.FbosConfig do
     |> cast(params, [
       :id,
       :arduino_debug_messages,
-      :auto_sync,
       :beta_opt_in,
       :disable_factory_reset,
       :firmware_hardware,

@@ -29,6 +29,7 @@ defmodule FarmbotExt.API do
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
     server = get_config_value(:string, "authorization", "server")
+    IO.inspect(binary_token, label: "==== HERE IT IS??")
     {:ok, _tkn} = JWT.decode(binary_token)
 
     uri = URI.parse(server)
