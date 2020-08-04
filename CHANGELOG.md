@@ -1,5 +1,9 @@
 # Changelog
 
+# 11.0.0
+
+ * Auto sync is now mandatory.
+
 # 10.1.6
 
  * Add colors and labels to configurator WiFi signal strengths.
