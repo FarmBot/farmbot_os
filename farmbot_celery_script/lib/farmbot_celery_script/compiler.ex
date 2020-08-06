@@ -112,6 +112,7 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate variable_declaration(ast, env), to: Compiler.VariableDeclaration
   defdelegate write_pin(ast, env), to: Compiler.PinControl
   defdelegate zero(ast, env), to: Compiler.AxisControl
+  defdelegate move(ast, env), to: Compiler.Move
 
   def compile_ast(ast_or_literal, env)
 
