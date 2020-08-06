@@ -1,0 +1,127 @@
+{
+  "kind": "move",
+  "args": {},
+  "body": [
+    {
+      "kind": "axis_overwrite",
+      "args": {
+        "axis": "x",
+        "axis_operand": {
+          "kind": "numeric",
+          "args": {
+            "number": 1
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_overwrite",
+      "args": {
+        "axis": "y",
+        "axis_operand": {
+          "kind": "numeric",
+          "args": {
+            "number": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_overwrite",
+      "args": {
+        "axis": "z",
+        "axis_operand": {
+          "kind": "numeric",
+          "args": {
+            "number": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_addition",
+      "args": {
+        "axis": "x",
+        "axis_operand": {
+          "kind": "lua",
+          "args": {
+            "lua": "4+4"
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_addition",
+      "args": {
+        "axis": "y",
+        "axis_operand": {
+          "kind": "lua",
+          "args": {
+            "lua": "233"
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_addition",
+      "args": {
+        "axis": "x",
+        "axis_operand": {
+          "kind": "random",
+          "args": {
+            "variance": 23
+          }
+        }
+      }
+    },
+    {
+      "kind": "axis_addition",
+      "args": {
+        "axis": "y",
+        "axis_operand": {
+          "kind": "random",
+          "args": {
+            "variance": 95
+          }
+        }
+      }
+    },
+    {
+      "kind": "speed_overwrite",
+      "args": {
+        "speed_setting": {
+          "kind": "lua",
+          "args": {
+            "lua": "wow"
+          }
+        }
+      }
+    },
+    {
+      "kind": "speed_overwrite",
+      "args": {
+        "speed_setting": {
+          "kind": "numeric",
+          "args": {
+            "number": 23
+          }
+        }
+      }
+    },
+    {
+      "kind": "speed_overwrite",
+      "args": {
+        "speed_setting": {
+          "kind": "numeric",
+          "args": {
+            "number": 23
+          }
+        }
+      }
+    },
+    {
+      "kind": "safe_z",
+      "args": {}
+    }
+  ]
+}

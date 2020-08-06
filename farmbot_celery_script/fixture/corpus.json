@@ -11,6 +11,14 @@
       ]
     },
     {
+      "name": "ALLOWED_SPECIAL_VALUE",
+      "allowed_values": [
+        "current_location",
+        "safe_height",
+        "soil_height"
+      ]
+    },
+    {
       "name": "ALLOWED_CHANNEL_NAMES",
       "allowed_values": [
         "ticker",
@@ -113,6 +121,7 @@
         "home",
         "install_farmware",
         "install_first_party_farmware",
+        "move",
         "move_absolute",
         "move_relative",
         "power_off",
@@ -218,7 +227,9 @@
         "planted",
         "harvested",
         "sprouted",
-        "removed"
+        "active",
+        "removed",
+        "pending"
       ]
     },
     {
@@ -279,6 +290,10 @@
         "tool_id",
         "package",
         "axis",
+        "axis_operand",
+        "number",
+        "variance",
+        "speed_setting",
         "message",
         "speed",
         "resource_type",
@@ -345,7 +360,16 @@
         "ResourceUpdate",
         "Resource",
         "UpdateResource",
-        "PointGroup"
+        "PointGroup",
+        "Numeric",
+        "Lua",
+        "SpecialValue",
+        "AxisOverwrite",
+        "AxisAddition",
+        "SpeedOverwrite",
+        "SafeZ",
+        "Random",
+        "Move"
       ]
     }
   ],
@@ -756,6 +780,74 @@
       ]
     },
     {
+      "name": "axis_operand",
+      "allowed_values": [
+        {
+          "tag": "coordinate",
+          "name": "coordinate"
+        },
+        {
+          "tag": "identifier",
+          "name": "identifier"
+        },
+        {
+          "tag": "lua",
+          "name": "lua"
+        },
+        {
+          "tag": "numeric",
+          "name": "numeric"
+        },
+        {
+          "tag": "point",
+          "name": "point"
+        },
+        {
+          "tag": "random",
+          "name": "random"
+        },
+        {
+          "tag": "special_value",
+          "name": "special_value"
+        },
+        {
+          "tag": "tool",
+          "name": "tool"
+        }
+      ]
+    },
+    {
+      "name": "number",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "variance",
+      "allowed_values": [
+        {
+          "tag": "integer",
+          "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "speed_setting",
+      "allowed_values": [
+        {
+          "tag": "lua",
+          "name": "lua"
+        },
+        {
+          "tag": "numeric",
+          "name": "numeric"
+        }
+      ]
+    },
+    {
       "name": "message",
       "allowed_values": [
         {
@@ -810,6 +902,10 @@
         {
           "tag": "resource",
           "name": "resource"
+        },
+        {
+          "tag": "point",
+          "name": "point"
         }
       ]
     }
@@ -1252,6 +1348,7 @@
         "_if",
         "move_absolute",
         "move_relative",
+        "move",
         "power_off",
         "read_pin",
         "read_status",
@@ -1324,6 +1421,7 @@
         "_if",
         "move_absolute",
         "move_relative",
+        "move",
         "power_off",
         "read_pin",
         "read_status",
@@ -1579,6 +1677,110 @@
       "tags": [
         "data",
         "list_like"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "number"
+      ],
+      "allowed_body_types": [],
+      "name": "numeric",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "lua"
+      ],
+      "allowed_body_types": [],
+      "name": "lua",
+      "tags": [
+        "*"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "label"
+      ],
+      "allowed_body_types": [],
+      "name": "special_value",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "axis",
+        "axis_operand"
+      ],
+      "allowed_body_types": [],
+      "name": "axis_overwrite",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "axis",
+        "axis_operand"
+      ],
+      "allowed_body_types": [],
+      "name": "axis_addition",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "speed_setting"
+      ],
+      "allowed_body_types": [],
+      "name": "speed_overwrite",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [],
+      "name": "safe_z",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [
+        "variance"
+      ],
+      "allowed_body_types": [],
+      "name": "random",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
+      "allowed_args": [],
+      "allowed_body_types": [
+        "special_value",
+        "axis_overwrite",
+        "axis_addition",
+        "speed_overwrite",
+        "safe_z"
+      ],
+      "name": "move",
+      "tags": [
+        "function",
+        "firmware_user"
       ],
       "docs": ""
     }
