@@ -89,10 +89,11 @@
     {
       "kind": "speed_overwrite",
       "args": {
+        "axis": "z",
         "speed_setting": {
           "kind": "lua",
           "args": {
-            "lua": "wow"
+            "lua": "12 / 3"
           }
         }
       }
@@ -100,6 +101,7 @@
     {
       "kind": "speed_overwrite",
       "args": {
+        "axis": "x",
         "speed_setting": {
           "kind": "numeric",
           "args": {
@@ -111,6 +113,7 @@
     {
       "kind": "speed_overwrite",
       "args": {
+        "axis": "y",
         "speed_setting": {
           "kind": "numeric",
           "args": {

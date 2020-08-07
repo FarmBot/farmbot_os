@@ -783,10 +783,6 @@
       "name": "axis_operand",
       "allowed_values": [
         {
-          "tag": "coordinate",
-          "name": "coordinate"
-        },
-        {
           "tag": "identifier",
           "name": "identifier"
         },
@@ -809,10 +805,6 @@
         {
           "tag": "special_value",
           "name": "special_value"
-        },
-        {
-          "tag": "tool",
-          "name": "tool"
         }
       ]
     },
@@ -1739,7 +1731,8 @@
     },
     {
       "allowed_args": [
-        "speed_setting"
+        "speed_setting",
+        "axis"
       ],
       "allowed_body_types": [],
       "name": "speed_overwrite",
@@ -1771,7 +1764,6 @@
     {
       "allowed_args": [],
       "allowed_body_types": [
-        "special_value",
         "axis_overwrite",
         "axis_addition",
         "speed_overwrite",

@@ -8,16 +8,18 @@ defmodule FarmbotCeleryScript.MoveTest do
   setup :verify_on_exit!
 
   test "move" do
-    ast = "test/fixtures/move.json"
-    |> File.read!()
-    |> Jason.decode!()
-    |> AST.decode()
+    ast =
+      "test/fixtures/move.json"
+      |> File.read!()
+      |> Jason.decode!()
+      |> AST.decode()
 
     _ = compile(ast)
   end
 
   defp compile(ast) do
     IO.puts("TODO: Put this into helpers module.")
+
     ast
     |> Compiler.compile_ast([])
     |> Macro.to_string()
@@ -25,8 +27,8 @@ defmodule FarmbotCeleryScript.MoveTest do
     |> IO.iodata_to_binary()
   end
 
-  defp strip_nl(text) do
-    IO.puts("TODO: Put this into helpers module.")
-    String.trim_trailing(text, "\n")
-  end
+  # defp strip_nl(text) do
+  #   IO.puts("TODO: Put this into helpers module.")
+  #   String.trim_trailing(text, "\n")
+  # end
 end
