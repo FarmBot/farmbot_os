@@ -3,6 +3,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
 
   def move(%{body: body}, _env) do
+    calculate_movement(body)
+  end
+
+  def calculate_movement(body) do
     result = list_of_ops(body)
     IO.inspect(result, label: "=== result")
     result
@@ -10,7 +14,19 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def list_of_ops(body) do
     mapper = &FarmbotCeleryScript.Compiler.Move.mapper/1
-    initial_state() ++ Enum.map(body, mapper)
+    reducer = &FarmbotCeleryScript.Compiler.Move.reducer/2
+    list = initial_state() ++ Enum.map(body, mapper)
+    result = Enum.reduce(list, %{}, reducer)
+    IO.inspect(result, label: "=== result")
+    result
+  end
+
+  def reducer({key, :+, value}, state) do
+    Map.put(state, key, state[key] + value)
+  end
+
+  def reducer({key, :=, value}, state) do
+    Map.put(state, key, value)
   end
 
   def mapper(%{kind: k, args: a}) do

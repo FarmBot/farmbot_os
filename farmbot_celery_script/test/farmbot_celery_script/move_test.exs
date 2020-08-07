@@ -1,7 +1,12 @@
 defmodule FarmbotCeleryScript.MoveTest do
   use ExUnit.Case, async: false
   use Mimic
-  alias FarmbotCeleryScript.{AST, Compiler}
+
+  alias FarmbotCeleryScript.{
+    AST,
+    Compiler,
+    SysCalls.Stubs
+  }
 
   alias FarmbotCeleryScript.SysCalls, warn: false
 
@@ -13,6 +18,10 @@ defmodule FarmbotCeleryScript.MoveTest do
       |> File.read!()
       |> Jason.decode!()
       |> AST.decode()
+
+    expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
+    expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
+    expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
 
     _ = compile(ast)
   end
