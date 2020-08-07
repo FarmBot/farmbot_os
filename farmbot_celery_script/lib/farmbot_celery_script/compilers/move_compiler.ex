@@ -3,57 +3,51 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
 
   def move(%{body: body}, _env) do
-    starting_point = %{
-      x: SysCalls.get_current_x(),
-      y: SysCalls.get_current_y(),
-      z: SysCalls.get_current_z(),
-      speed_x: 100,
-      speed_y: 100,
-      speed_z: 100,
-      safe_z: false
-    }
+    result = list_of_ops(body)
+    IO.inspect(result, label: "=== result")
+    result
+  end
 
-    reducer = fn %{kind: k, args: a}, state ->
-      # lua, numeric
-      speed_setting = a[:speed_setting]
+  def list_of_ops(body) do
+    mapper = &FarmbotCeleryScript.Compiler.Move.mapper/1
+    initial_state() ++ Enum.map(body, mapper)
+  end
 
-      # identifier lua numeric point random special_value
-      axis_operand = a[:axis_operand]
+  def mapper(%{kind: k, args: a}) do
+    # lua, numeric
+    speed_setting = a[:speed_setting]
 
-      # STRING: "x"|"y"|"z"|"all"
-      axis = a[:axis]
+    # identifier lua numeric point random special_value
+    axis_operand = a[:axis_operand]
 
-      case k do
-        :axis_overwrite ->
-          # Has a :axis, :axis_operand
-          IO.inspect({axis, to_number(axis_operand)},
-            label: "=== TODO axis_overwrite"
-          )
+    # STRING: "x"|"y"|"z"|"all"
+    axis = a[:axis]
 
-          state
+    case k do
+      :axis_overwrite ->
+        {axis, :=, to_number(axis_operand)}
 
-        :axis_addition ->
-          # Has a :axis, :axis_operand
-          IO.inspect({axis, to_number(axis_operand)},
-            label: "=== TODO axis_addition"
-          )
+      :axis_addition ->
+        {axis, :+, to_number(axis_operand)}
 
-          state
+      :speed_overwrite ->
+        {"speed_#{axis}", :=, to_number(speed_setting)}
 
-        :speed_overwrite ->
-          # Has a :speed_setting, :axis
-          IO.inspect({axis, to_number(speed_setting)},
-            label: "=== TODO speed_overwrite"
-          )
-
-          state
-
-        :safe_z ->
-          state
-      end
+      :safe_z ->
+        {"safe_z", :=, true}
     end
+  end
 
-    Enum.reduce(body, starting_point, reducer)
+  def initial_state do
+    [
+      {"x", :=, SysCalls.get_current_x()},
+      {"y", :=, SysCalls.get_current_y()},
+      {"z", :=, SysCalls.get_current_z()},
+      {"speed_x", :=, 100},
+      {"speed_y", :=, 100},
+      {"speed_z", :=, 100},
+      {"safe_z", :=, false}
+    ]
   end
 
   defp to_number(%{args: %{number: num}, kind: :numeric}), do: num
@@ -65,8 +59,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   defp to_number(%{args: %{variance: v}, kind: :random}) do
-    IO.puts("TODO: Lua execution for real")
-    v
+    Enum.random((-1 * v)..v)
   end
 
   defp to_number(arg) do
