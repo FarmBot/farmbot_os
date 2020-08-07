@@ -3,7 +3,11 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
 
   def move(%{body: body}, _env) do
-    calculate_movement(body)
+    quote location: :keep do
+      node_body = unquote(body)
+      mod = unquote(__MODULE__)
+      mod.calculate_movement(node_body)
+    end
   end
 
   def calculate_movement(body) do

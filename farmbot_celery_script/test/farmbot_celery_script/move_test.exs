@@ -23,7 +23,7 @@ defmodule FarmbotCeleryScript.MoveTest do
     expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
     expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
 
-    _ = compile(ast)
+    IO.puts(compile(ast))
   end
 
   defp compile(ast) do
