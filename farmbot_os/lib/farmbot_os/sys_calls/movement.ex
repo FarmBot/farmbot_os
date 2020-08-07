@@ -72,6 +72,10 @@ defmodule FarmbotOS.SysCalls.Movement do
     do_move_absolute(x, y, z, speed)
   end
 
+  def move_absolute(x, y, z, speed_x, speed_y, speed_z) do
+    do_move_absolute(x, y, z, speed_x, speed_y, speed_z)
+  end
+
   defp do_move_absolute(x, y, z, speed) do
     with {:ok, speed_x} <- param_read(:movement_max_spd_x),
          {:ok, speed_y} <- param_read(:movement_max_spd_y),

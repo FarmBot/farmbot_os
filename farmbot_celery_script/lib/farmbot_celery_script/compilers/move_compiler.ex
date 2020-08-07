@@ -6,23 +6,83 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     quote location: :keep do
       node_body = unquote(body)
       mod = unquote(__MODULE__)
-      mod.calculate_movement(node_body)
+      mod.perform_movement(node_body)
     end
   end
 
-  def calculate_movement(body) do
-    result = list_of_ops(body)
-    IO.inspect(result, label: "=== result")
-    result
+  # === "private" API starts here:
+  def perform_movement(body) do
+    do_perform_movement(calculate_movement_needs(body))
   end
 
-  def list_of_ops(body) do
+  def do_perform_movement(%{"safe_z" => true} = needs) do
+    needs
+    |> retract_z()
+    |> move_xy()
+    |> extend_z()
+  end
+
+  def do_perform_movement(%{"safe_z" => false} = needs) do
+    move_xyz(needs)
+  end
+
+  def retract_z(needs) do
+    SysCalls.move_absolute(
+      needs["current_x"],
+      needs["current_y"],
+      needs["z"],
+      needs["speed_x"],
+      needs["speed_y"],
+      needs["speed_z"]
+    )
+
+    needs
+  end
+
+  def move_xy(needs) do
+    SysCalls.move_absolute(
+      needs["x"],
+      needs["y"],
+      needs["current_z"],
+      needs["speed_x"],
+      needs["speed_y"],
+      needs["speed_z"]
+    )
+
+    needs
+  end
+
+  def move_xyz(needs) do
+    SysCalls.move_absolute(
+      needs["x"],
+      needs["y"],
+      needs["z"],
+      needs["speed_x"],
+      needs["speed_y"],
+      needs["speed_z"]
+    )
+
+    needs
+  end
+
+  def extend_z(needs) do
+    SysCalls.move_absolute(
+      needs["current_x"],
+      needs["current_y"],
+      needs["z"],
+      needs["speed_x"],
+      needs["speed_y"],
+      needs["speed_z"]
+    )
+
+    needs
+  end
+
+  def calculate_movement_needs(body) do
     mapper = &FarmbotCeleryScript.Compiler.Move.mapper/1
     reducer = &FarmbotCeleryScript.Compiler.Move.reducer/2
     list = initial_state() ++ Enum.map(body, mapper)
-    result = Enum.reduce(list, %{}, reducer)
-    IO.inspect(result, label: "=== result")
-    result
+    Enum.reduce(list, %{}, reducer)
   end
 
   def reducer({key, :+, value}, state) do
@@ -43,6 +103,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     # STRING: "x"|"y"|"z"|"all"
     axis = a[:axis]
 
+    if axis == "all" do
+      raise "Not permitted"
+    end
+
     case k do
       :axis_overwrite ->
         {axis, :=, to_number(axis_operand)}
@@ -59,10 +123,17 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def initial_state do
+    x = SysCalls.get_current_x()
+    y = SysCalls.get_current_y()
+    z = SysCalls.get_current_z()
+
     [
-      {"x", :=, SysCalls.get_current_x()},
-      {"y", :=, SysCalls.get_current_y()},
-      {"z", :=, SysCalls.get_current_z()},
+      {"current_x", :=, x},
+      {"current_y", :=, y},
+      {"current_z", :=, z},
+      {"x", :=, x},
+      {"y", :=, y},
+      {"z", :=, z},
       {"speed_x", :=, 100},
       {"speed_y", :=, 100},
       {"speed_z", :=, 100},
