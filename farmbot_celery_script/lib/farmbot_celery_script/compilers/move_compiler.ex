@@ -6,7 +6,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     quote location: :keep do
       node_body = unquote(body)
       mod = unquote(__MODULE__)
-      mod.perform_movement(node_body)
+      mod.perform_movement(node_body, better_params)
     end
   end
 
