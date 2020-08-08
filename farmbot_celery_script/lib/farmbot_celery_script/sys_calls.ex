@@ -57,6 +57,14 @@ defmodule FarmbotCeleryScript.SysCalls do
               speed :: number()
             ) ::
               ok_or_error
+  @callback move_absolute(
+              x :: number(),
+              y :: number(),
+              z :: number(),
+              sx :: number(),
+              sy :: number(),
+              sz :: number()
+            ) :: ok_or_error
   @callback named_pin(named_pin_type :: String.t(), resource_id) ::
               map() | integer | error()
   @callback nothing() :: any()
@@ -255,6 +263,30 @@ defmodule FarmbotCeleryScript.SysCalls do
       when is_number(y)
       when is_number(z) do
     ok_or_error(sys_calls, :move_absolute, [x, y, z, speed])
+  end
+
+  def move_absolute(
+        sys_calls \\ @sys_calls,
+        x,
+        y,
+        z,
+        speed_x,
+        speed_y,
+        speed_z
+      )
+      when is_number(x)
+      when is_number(y)
+      when is_number(z) do
+    params = [
+      x,
+      y,
+      z,
+      speed_x,
+      speed_y,
+      speed_z
+    ]
+
+    ok_or_error(sys_calls, :move_absolute, params)
   end
 
   def named_pin(sys_calls \\ @sys_calls, type, id) do

@@ -119,6 +119,9 @@ defmodule FarmbotOS.SysCalls do
   defdelegate move_absolute(x, y, z, speed), to: Movement
 
   @impl true
+  defdelegate move_absolute(x, y, z, sx, sy, sz), to: Movement
+
+  @impl true
   defdelegate calibrate(axis), to: Movement
 
   @impl true

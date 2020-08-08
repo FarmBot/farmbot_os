@@ -88,6 +88,10 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def move_absolute(x, y, z, speed), do: error(:move_absolute, [x, y, z, speed])
 
   @impl true
+  def move_absolute(x, y, z, sx, sy, sz),
+    do: error(:move_absolute, [x, y, z, sx, sy, sz])
+
+  @impl true
   def named_pin(named_pin_type, resource_id),
     do: error(:named_pin, [named_pin_type, resource_id])
 
