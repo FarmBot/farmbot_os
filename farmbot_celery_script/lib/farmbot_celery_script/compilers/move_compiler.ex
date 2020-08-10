@@ -184,7 +184,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   # TODO: Add `safe_height` entry to FBOS Config
-  defp to_number(axis, %FarmbotCeleryScript.AST{
+  defp to_number(_axis, %FarmbotCeleryScript.AST{
          args: %{label: "safe_height"},
          kind: :special_value
        }),
