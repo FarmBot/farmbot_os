@@ -29,8 +29,10 @@ defmodule FarmbotCeleryScript.Compiler.VariableDeclaration do
     var_name = IdentifierSanitizer.to_variable(var_name)
 
     quote location: :keep do
+      # ===
       unquote({var_name, [], nil}) =
         unquote(Compiler.compile_ast(data_value_ast, env))
+        _ = inspect(unquote({var_name, [], nil}))
     end
   end
 end

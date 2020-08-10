@@ -54,8 +54,9 @@ defmodule FarmbotCeleryScript.MoveTest do
     expect(Stubs, :move_absolute, 1, fn 100.0, 200.0, 3, 23, 23, 4.0 ->
       :ok
     end)
-
-    Code.eval_string(compile(ast))
+    evaled = compile(ast)
+    # IO.puts(evaled)
+    Code.eval_string(evaled)
   end
 
   test "move to identifier" do

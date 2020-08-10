@@ -375,54 +375,60 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> Jason.decode!()
       |> AST.decode()
       |> compile()
+      IO.puts("===")
+      IO.puts(compiled)
+      IO.puts("===")
+      x = strip_nl("""
+                   [
+                    fn params ->
+                      _ = inspect(params)
 
-    assert compiled ==
-             strip_nl("""
-             [
-               fn params ->
-                 _ = inspect(params)
+                      (
+                        unsafe_cGFyZW50 =
+                          Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
 
-                 unsafe_cGFyZW50 =
-                   Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
+                        _ = unsafe_cGFyZW50
+                      )
 
-                 better_params = %{}
-                 _ = inspect(better_params)
+                      better_params = %{}
+                      _ = inspect(better_params)
 
-                 [
-                   fn ->
-                     me = FarmbotCeleryScript.Compiler.UpdateResource
+                      [
+                        fn ->
+                          me = FarmbotCeleryScript.Compiler.UpdateResource
 
-                     variable = %FarmbotCeleryScript.AST{
-                       args: %{label: "parent"},
-                       body: [],
-                       comment: nil,
-                       kind: :identifier,
-                       meta: nil
-                     }
+                          variable = %FarmbotCeleryScript.AST{
+                            args: %{label: "parent"},
+                            body: [],
+                            comment: nil,
+                            kind: :identifier,
+                            meta: nil
+                          }
 
-                     update = %{"plant_stage" => "removed"}
+                          update = %{"plant_stage" => "removed"}
 
-                     case(variable) do
-                       %AST{kind: :identifier} ->
-                         args = Map.fetch!(variable, :args)
-                         label = Map.fetch!(args, :label)
-                         resource = Map.fetch!(better_params, label)
-                         me.do_update(resource, update)
+                          case(variable) do
+                            %AST{kind: :identifier} ->
+                              args = Map.fetch!(variable, :args)
+                              label = Map.fetch!(args, :label)
+                              resource = Map.fetch!(better_params, label)
+                              me.do_update(resource, update)
 
-                       %AST{kind: :point} ->
-                         me.do_update(variable.args(), update)
+                            %AST{kind: :point} ->
+                              me.do_update(variable.args(), update)
 
-                       %AST{kind: :resource} ->
-                         me.do_update(variable.args(), update)
+                            %AST{kind: :resource} ->
+                              me.do_update(variable.args(), update)
 
-                       res ->
-                         raise("Resource error. Please notfiy support: \#{inspect(res)}")
-                     end
+                            res ->
+                              raise("Resource error. Please notfiy support: #{inspect(res)}")
+                          end
+                        end
+                      ]
                    end
                  ]
-               end
-             ]
-             """)
+                 """)
+      assert compiled == x
   end
 
   test "`update_resource`: Multiple fields of `resource` type." do
