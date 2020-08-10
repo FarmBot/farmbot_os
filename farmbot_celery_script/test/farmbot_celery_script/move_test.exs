@@ -13,10 +13,38 @@ defmodule FarmbotCeleryScript.MoveTest do
   setup :verify_on_exit!
 
   test "move" do
-    ast =
+    move_block =
       "test/fixtures/move.json"
       |> File.read!()
       |> Jason.decode!()
+
+    ast =
+      %{
+        kind: "sequence",
+        args: %{
+          locals: %{
+            kind: "scope_declaration",
+            args: %{},
+            body: [
+              %{
+                kind: "variable_declaration",
+                args: %{
+                  label: "parent",
+                  data_value: %{
+                    kind: "coordinate",
+                    args: %{
+                      x: 0,
+                      y: 0,
+                      z: 0
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        body: [move_block]
+      }
       |> AST.decode()
 
     expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
@@ -29,6 +57,7 @@ defmodule FarmbotCeleryScript.MoveTest do
 
     Code.eval_string(compile(ast))
   end
+
   test "move to identifier" do
     ast =
       "test/fixtures/move_identifier.json"
