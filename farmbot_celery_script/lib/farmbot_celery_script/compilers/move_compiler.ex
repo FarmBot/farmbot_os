@@ -138,9 +138,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def initial_state do
-    x = SysCalls.get_current_x()
-    y = SysCalls.get_current_y()
-    z = SysCalls.get_current_z()
+    %{x: x, y: y, z: z} = current_location()
 
     [
       {"current_x", :=, x},
@@ -154,6 +152,14 @@ defmodule FarmbotCeleryScript.Compiler.Move do
       {"speed_z", :=, 100},
       {"safe_z", :=, false}
     ]
+  end
+
+  defp current_location do
+    %{
+      x: SysCalls.get_current_x(),
+      y: SysCalls.get_current_y(),
+      z: SysCalls.get_current_z()
+    }
   end
 
   defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
@@ -170,6 +176,25 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   defp to_number(axis, %{kind: :coordinate} = coord) do
     Map.fetch!(coord[:args], String.to_atom(axis))
+  end
+
+  defp to_number(axis, %{resource_id: id, resource_type: t}) do
+    point = FarmbotCeleryScript.SysCalls.point(t, id)
+    Map.fetch!(point, String.to_atom(axis))
+  end
+
+  # TODO: Add `safe_height` entry to FBOS Config
+  defp to_number(axis, %FarmbotCeleryScript.AST{
+         args: %{label: "safe_height"},
+         kind: :special_value
+       }),
+       do: 0
+
+  defp to_number(axis, %FarmbotCeleryScript.AST{
+         args: %{label: "current_location"},
+         kind: :special_value
+       }) do
+    Map.fetch!(current_location(), String.to_atom(axis))
   end
 
   defp to_number(_axis, arg) do
