@@ -131,6 +131,7 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
           unquote(var_name),
           unquote(Compiler.compile_ast(default, env))
         )
+
       _ = unquote({var_name, env, __MODULE__})
     end
   end

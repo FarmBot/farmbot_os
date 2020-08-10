@@ -32,7 +32,8 @@ defmodule FarmbotCeleryScript.Compiler.VariableDeclaration do
       # ===
       unquote({var_name, [], nil}) =
         unquote(Compiler.compile_ast(data_value_ast, env))
-        _ = inspect(unquote({var_name, [], nil}))
+
+      _ = inspect(unquote({var_name, [], nil}))
     end
   end
 end

@@ -375,60 +375,13 @@ defmodule FarmbotCeleryScript.CompilerTest do
       |> Jason.decode!()
       |> AST.decode()
       |> compile()
-      IO.puts("===")
-      IO.puts(compiled)
-      IO.puts("===")
-      x = strip_nl("""
-                   [
-                    fn params ->
-                      _ = inspect(params)
 
-                      (
-                        unsafe_cGFyZW50 =
-                          Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))
+    x =
+      strip_nl(
+        "[\n  fn params ->\n    _ = inspect(params)\n\n    (\n      unsafe_cGFyZW50 =\n        Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))\n\n      _ = unsafe_cGFyZW50\n    )\n\n    better_params = %{}\n    _ = inspect(better_params)\n\n    [\n      fn ->\n        me = FarmbotCeleryScript.Compiler.UpdateResource\n\n        variable = %FarmbotCeleryScript.AST{\n          args: %{label: \"parent\"},\n          body: [],\n          comment: nil,\n          kind: :identifier,\n          meta: nil\n        }\n\n        update = %{\"plant_stage\" => \"removed\"}\n\n        case(variable) do\n          %AST{kind: :identifier} ->\n            args = Map.fetch!(variable, :args)\n            label = Map.fetch!(args, :label)\n            resource = Map.fetch!(better_params, label)\n            me.do_update(resource, update)\n\n          %AST{kind: :point} ->\n            me.do_update(variable.args(), update)\n\n          %AST{kind: :resource} ->\n            me.do_update(variable.args(), update)\n\n          res ->\n            raise(\"Resource error. Please notfiy support: \#{inspect(res)}\")\n        end\n      end\n    ]\n  end\n]"
+      )
 
-                        _ = unsafe_cGFyZW50
-                      )
-
-                      better_params = %{}
-                      _ = inspect(better_params)
-
-                      [
-                        fn ->
-                          me = FarmbotCeleryScript.Compiler.UpdateResource
-
-                          variable = %FarmbotCeleryScript.AST{
-                            args: %{label: "parent"},
-                            body: [],
-                            comment: nil,
-                            kind: :identifier,
-                            meta: nil
-                          }
-
-                          update = %{"plant_stage" => "removed"}
-
-                          case(variable) do
-                            %AST{kind: :identifier} ->
-                              args = Map.fetch!(variable, :args)
-                              label = Map.fetch!(args, :label)
-                              resource = Map.fetch!(better_params, label)
-                              me.do_update(resource, update)
-
-                            %AST{kind: :point} ->
-                              me.do_update(variable.args(), update)
-
-                            %AST{kind: :resource} ->
-                              me.do_update(variable.args(), update)
-
-                            res ->
-                              raise("Resource error. Please notfiy support: #{inspect(res)}")
-                          end
-                        end
-                      ]
-                   end
-                 ]
-                 """)
-      assert compiled == x
+    assert compiled == x
   end
 
   test "`update_resource`: Multiple fields of `resource` type." do
