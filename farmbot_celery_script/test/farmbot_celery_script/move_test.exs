@@ -12,54 +12,36 @@ defmodule FarmbotCeleryScript.MoveTest do
 
   setup :verify_on_exit!
 
-  test "move" do
+  test "move to identifier" do
     expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
     expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
     expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
 
-    expect(Stubs, :move_absolute, 1, fn 100.0, 200.0, 3, 23, 23, 4.0 ->
+    expect(Stubs, :move_absolute, 1, fn _, _, _, _, _, _ ->
       :ok
     end)
-    stringy_code = "test/fixtures/move.json"
-    |> File.read!()
-    |> Jason.decode!()
-    |> AST.decode()
-    |> compile()
 
-    eval_this = "better_params = %{}\n" <> stringy_code
-    Code.eval_string(eval_this)
+    eval_celeryscript("test/fixtures/move_identifier.json", %{
+      "parent" => %{kind: :coordinate, args: %{x: 999, y: 888, z: 777}}
+    })
   end
 
-  test "move to identifier" do
-    ast =
-      "test/fixtures/move_identifier.json"
+  defp eval_celeryscript(json_path, variables) do
+    stringy_code =
+      json_path
       |> File.read!()
       |> Jason.decode!()
       |> AST.decode()
+      |> compile()
 
-    expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
-    expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
-    expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
-
-    expect(Stubs, :move_absolute, 1, fn 100.0, 200.0, 3, 23, 23, 4.0 ->
-      :ok
-    end)
-
-    Code.eval_string(compile(ast))
+    Code.eval_string("better_params = #{inspect(variables)}\n" <> stringy_code)
   end
 
   defp compile(ast) do
-    IO.puts("TODO: Put this into helpers module.")
-
     ast
     |> Compiler.compile_ast([])
     |> Macro.to_string()
     |> Code.format_string!()
     |> IO.iodata_to_binary()
   end
-
-  # defp strip_nl(text) do
-  #   IO.puts("TODO: Put this into helpers module.")
-  #   String.trim_trailing(text, "\n")
-  # end
 end

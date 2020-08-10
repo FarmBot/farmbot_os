@@ -2,6 +2,15 @@ defmodule Helpers do
   alias FarmbotCore.Asset.{Repo, Point}
 
   @wait_time 180
+
+  def compile(ast) do
+    ast
+    |> Compiler.compile_ast([])
+    |> Macro.to_string()
+    |> Code.format_string!()
+    |> IO.iodata_to_binary()
+  end
+
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.

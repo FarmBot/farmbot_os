@@ -11,8 +11,23 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   # === "private" API starts here:
-  def perform_movement(body, _better_params) do
-    do_perform_movement(calculate_movement_needs(body))
+  def perform_movement(body, better_params) do
+    extract_variables(body, better_params)
+    |> calculate_movement_needs()
+    |> do_perform_movement()
+  end
+
+  def extract_variables(body, better_params) do
+    Enum.map(body, fn
+      %{args: %{axis_operand: %{args: %{label: label}, kind: :identifier}}} = x ->
+        new_operand = Map.fetch!(better_params, label)
+        old_args = Map.fetch!(x, :args)
+        new_args = Map.put(old_args, :axis_operand, new_operand)
+        Map.put(x, :args, new_args)
+
+      x ->
+        x
+    end)
   end
 
   def do_perform_movement(%{"safe_z" => true} = needs) do
@@ -109,13 +124,13 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
     case k do
       :axis_overwrite ->
-        {axis, :=, to_number(axis_operand)}
+        {axis, :=, to_number(axis, axis_operand)}
 
       :axis_addition ->
-        {axis, :+, to_number(axis_operand)}
+        {axis, :+, to_number(axis, axis_operand)}
 
       :speed_overwrite ->
-        {"speed_#{axis}", :=, to_number(speed_setting)}
+        {"speed_#{axis}", :=, to_number(axis, speed_setting)}
 
       :safe_z ->
         {"safe_z", :=, true}
@@ -141,19 +156,23 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     ]
   end
 
-  defp to_number(%{args: %{number: num}, kind: :numeric}), do: num
+  defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
 
-  defp to_number(%{args: %{lua: lua}, kind: :lua}) do
+  defp to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
     IO.puts("TODO: Lua execution for real")
     {result, _} = Code.eval_string(lua)
     result
   end
 
-  defp to_number(%{args: %{variance: v}, kind: :random}) do
+  defp to_number(_axis, %{args: %{variance: v}, kind: :random}) do
     Enum.random((-1 * v)..v)
   end
 
-  defp to_number(arg) do
+  defp to_number(axis, %{kind: :coordinate} = coord) do
+    Map.fetch!(coord[:args], String.to_atom(axis))
+  end
+
+  defp to_number(_axis, arg) do
     raise "Can't handle numeric conversion for " <> inspect(arg)
   end
 end
