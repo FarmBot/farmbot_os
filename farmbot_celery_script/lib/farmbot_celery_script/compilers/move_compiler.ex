@@ -11,7 +11,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   # === "private" API starts here:
-  def perform_movement(body) do
+  def perform_movement(body, _better_params) do
     do_perform_movement(calculate_movement_needs(body))
   end
 
