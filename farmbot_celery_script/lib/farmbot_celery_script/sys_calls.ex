@@ -310,7 +310,7 @@ defmodule FarmbotCeleryScript.SysCalls do
   end
 
   def raw_lua_eval(sys_calls \\ @sys_calls, expression) do
-    ok_or_error(sys_calls, :raw_lua_eval, [expression])
+    apply(sys_calls, :raw_lua_eval, [expression])
   end
 
   def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do

@@ -25,7 +25,18 @@ defmodule FarmbotOS.Lua do
   `eval_lua` evaluates Lua code. It is a more generalized
   version of `eval_assertion`.
   """
-  def raw_lua_eval(str) when is_binary(str), do: eval(init(), str)
+  def raw_lua_eval(str) when is_binary(str) do
+    str =
+      if String.contains?(str, "return") do
+        str
+      else
+        # HACK: Provide an implicit "return", since many users
+        #       will want implicit returns.
+        "return (#{str})"
+      end
+
+    eval(init(), str)
+  end
 
   @doc """
   Evaluates some Lua code. The code should

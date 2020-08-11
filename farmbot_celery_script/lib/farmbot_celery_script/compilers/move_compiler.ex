@@ -164,9 +164,19 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
 
   defp to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
-    raise "LUA: " <> inspect(SysCalls.raw_lua_eval(lua))
-    # {result, _} = Code.eval_string(lua)
-    # result
+    result = SysCalls.raw_lua_eval(lua)
+
+    case result do
+      {:ok, data} ->
+        if is_number(data) do
+          data
+        else
+          lua_fail(data, lua)
+        end
+
+      data ->
+        lua_fail(data, lua)
+    end
   end
 
   defp to_number(_axis, %{args: %{variance: v}, kind: :random}) do
@@ -174,29 +184,46 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   defp to_number(axis, %{kind: :coordinate} = coord) do
-    Map.fetch!(coord[:args], String.to_atom(axis))
+    get_coord(coord[:args], axis)
   end
 
   defp to_number(axis, %{resource_id: id, resource_type: t}) do
     point = FarmbotCeleryScript.SysCalls.point(t, id)
-    Map.fetch!(point, String.to_atom(axis))
+    get_coord(point, axis)
   end
 
   # TODO: Add `safe_height` entry to FBOS Config
-  defp to_number(_axis, %FarmbotCeleryScript.AST{
+  defp to_number(_axis, %{
          args: %{label: "safe_height"},
          kind: :special_value
        }),
        do: 0
 
-  defp to_number(axis, %FarmbotCeleryScript.AST{
+  defp to_number(axis, %{
          args: %{label: "current_location"},
          kind: :special_value
        }) do
-    Map.fetch!(current_location(), String.to_atom(axis))
+    get_coord(current_location(), axis)
+  end
+
+  # ???
+  defp to_number(axis, %{x: _, y: _, z: _} = coord) do
+    get_coord(coord, axis)
   end
 
   defp to_number(_axis, arg) do
     raise "Can't handle numeric conversion for " <> inspect(arg)
+  end
+
+  defp lua_fail(result, lua) do
+    raise "Unexpected Lua return: #{inspect(result)} #{lua}"
+  end
+
+  defp get_coord(%{x: _, y: _, z: _} = coord, axis) when is_atom(axis) do
+    get_coord(coord, axis)
+  end
+
+  defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
+    get_coord(coord, String.to_atom(axis))
   end
 end
