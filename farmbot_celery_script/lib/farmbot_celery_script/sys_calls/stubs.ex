@@ -124,6 +124,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def reboot(), do: error(:reboot, [])
 
   @impl true
+  def raw_lua_eval(expr), do: error(:raw_lua_eval, [expr])
+
+  @impl true
   def send_message(type, message, channels),
     do: error(:send_message, [type, message, channels])
 

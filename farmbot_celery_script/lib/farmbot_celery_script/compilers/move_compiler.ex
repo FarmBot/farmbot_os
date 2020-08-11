@@ -1,5 +1,4 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
-  # alias FarmbotCeleryScript.Compiler
   alias FarmbotCeleryScript.SysCalls
 
   def move(%{body: body}, _env) do
@@ -165,9 +164,9 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
 
   defp to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
-    IO.puts("TODO: Lua execution for real")
-    {result, _} = Code.eval_string(lua)
-    result
+    raise "LUA: " <> inspect(SysCalls.raw_lua_eval(lua))
+    # {result, _} = Code.eval_string(lua)
+    # result
   end
 
   defp to_number(_axis, %{args: %{variance: v}, kind: :random}) do
