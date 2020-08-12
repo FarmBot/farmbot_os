@@ -1,5 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
+  @safe_height 0
 
   def move(%{body: body}, _env) do
     quote location: :keep do
@@ -44,7 +45,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     SysCalls.move_absolute(
       SysCalls.get_current_x(),
       SysCalls.get_current_y(),
-      needs["z"],
+      @safe_height,
       needs["speed_x"],
       needs["speed_y"],
       needs["speed_z"]
@@ -194,7 +195,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
          args: %{label: "safe_height"},
          kind: :special_value
        }),
-       do: 0
+       do: @safe_height
 
   defp to_number(axis, %{
          args: %{label: "current_location"},
