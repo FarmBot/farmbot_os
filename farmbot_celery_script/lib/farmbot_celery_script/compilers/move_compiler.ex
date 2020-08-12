@@ -104,13 +104,15 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     ]
   end
 
-  defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
+  defp to_number(_axis, %{args: %{number: num}, kind: :numeric}) do
+    num
+  end
 
   defp to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
     result = SysCalls.raw_lua_eval(lua)
 
     case result do
-      {:ok, data} ->
+      {:ok, [data]} ->
         if is_number(data) do
           data
         else
@@ -135,7 +137,6 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     get_coord(point, axis)
   end
 
-  # TODO: Add `safe_height` entry to FBOS Config
   defp to_number(_axis, %{
          args: %{label: "safe_height"},
          kind: :special_value
@@ -149,7 +150,6 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     get_coord(%{x: x(), y: y(), z: z()}, axis)
   end
 
-  # ???
   defp to_number(axis, %{x: _, y: _, z: _} = coord) do
     get_coord(coord, axis)
   end
@@ -163,17 +163,27 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   defp get_coord(%{x: _, y: _, z: _} = coord, axis) when is_atom(axis) do
-    get_coord(coord, axis)
+    Map.fetch!(coord, axis)
   end
 
   defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
-    get_coord(coord, String.to_atom(axis))
+    Map.fetch!(coord, String.to_atom(axis))
   end
 
   defp move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
     SysCalls.log("Moving to (#{x},#{y},#{z}) @ speed (#{sx},#{sy},#{sz})")
     SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
+  end
+
+  defp move_abs(%{
+    "speed_x" => sx,
+    "speed_y" => sy,
+    "speed_z" => sz,
+    "x" => x,
+    "y" => y,
+    "z" => z }) do
+    move_abs(%{ speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z })
   end
 
   def x, do: SysCalls.get_current_x()
