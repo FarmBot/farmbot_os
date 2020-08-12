@@ -2,6 +2,15 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
   @safe_height 0
 
+  # Temporary workaround because NervesHub appears to be broke
+  # at the moment.
+  def install_update(url) do
+    path = "/tmp/fw#{trunc(:random.uniform * 10000)}.fw"
+    {:ok, :saved_to_file} = :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
+
+    {_, 0} = System.cmd("fwup", [ "-a", "-i", path, "-d", "/dev/mmcblk0", "-t", "upgrade"])
+  end
+
   def move(%{body: body}, _env) do
     quote location: :keep do
       node_body = unquote(body)
@@ -185,7 +194,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
       },#{sz})"
     )
 
-    SysCalls.move_absolute(x, y, z, sx, sy, sz)
+    # If we wanted to add a "forceful" mode, we could do it here.
+    :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
   end
 
