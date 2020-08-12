@@ -5,10 +5,22 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   # Temporary workaround because NervesHub appears to be broke
   # at the moment.
   def install_update(url) do
-    path = "/tmp/fw#{trunc(:random.uniform * 10000)}.fw"
-    {:ok, :saved_to_file} = :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
+    path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
 
-    {_, 0} = System.cmd("fwup", [ "-a", "-i", path, "-d", "/dev/mmcblk0", "-t", "upgrade"])
+    {:ok, :saved_to_file} =
+      :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
+
+    args = [
+      "-a",
+      "-i",
+      path,
+      "-d",
+      "/dev/mmcblk0",
+      "-t",
+      "upgrade"
+    ]
+
+    {_, 0} = System.cmd("fwup", args)
   end
 
   def move(%{body: body}, _env) do
@@ -40,17 +52,25 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def do_perform_movement(%{"safe_z" => true} = needs) do
+    SysCalls.log("Safe Z Move: #{inspect(needs)}")
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{"safe_z" => false} = n), do: move_abs(n)
+  def do_perform_movement(%{"safe_z" => false} = n) do
+    SysCalls.log("Regular Move: #{inspect(n)}")
+    move_abs(n)
+  end
 
   def retract_z(needs) do
-    %{x: cx(), y: cy(), z: @safe_height} |> Map.merge(needs) |> move_abs()
+    %{x: cx(), y: cy(), z: @safe_height}
+    |> Map.merge(needs)
+    |> move_abs()
   end
 
   def move_xy(needs) do
-    %{z: cz()} |> Map.merge(needs) |> move_abs()
+    %{z: cz()}
+    |> Map.merge(needs)
+    |> move_abs()
   end
 
   def extend_z(needs) do
