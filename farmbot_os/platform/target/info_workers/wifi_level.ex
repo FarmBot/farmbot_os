@@ -4,6 +4,8 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   power levels to the bot_state server
   """
 
+  @scan_interval 21_000
+
   use GenServer
   require FarmbotCore.Logger
   alias FarmbotCore.BotState
@@ -20,10 +22,16 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   end
 
   @impl GenServer
+  def handle_info(:scan_begin, state) do
+    _ = VintageNet.scan("wlan0")
+    _ = Process.send_after(self(), :scan_begin, @scan_interval)
+    {:noreply, state}
+  end
+
   def handle_info(:load_network_config, state) do
     if FarmbotCore.Config.get_network_config("eth0") do
       FarmbotCore.Logger.warn(3, """
-      FarmBot configured to use ethernet 
+      FarmBot configured to use ethernet
       Disabling WiFi status reporting
       """)
 
@@ -34,6 +42,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
       case FarmbotCore.Config.get_network_config("wlan0") do
         %{ssid: ssid} ->
           VintageNet.subscribe(["interface", "wlan0"])
+          _ = Process.send_after(self(), :scan_begin, @scan_interval)
           {:noreply, %{state | ssid: ssid}}
 
         nil ->
