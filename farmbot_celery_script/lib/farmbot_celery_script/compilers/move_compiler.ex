@@ -1,5 +1,4 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
-  # alias FarmbotCeleryScript.Compiler
   alias FarmbotCeleryScript.SysCalls
 
   def move(%{body: body}, _env) do
@@ -43,8 +42,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def retract_z(needs) do
     SysCalls.move_absolute(
-      needs["current_x"],
-      needs["current_y"],
+      SysCalls.get_current_x(),
+      SysCalls.get_current_y(),
       needs["z"],
       needs["speed_x"],
       needs["speed_y"],
@@ -58,7 +57,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     SysCalls.move_absolute(
       needs["x"],
       needs["y"],
-      needs["current_z"],
+      SysCalls.get_current_z(),
       needs["speed_x"],
       needs["speed_y"],
       needs["speed_z"]
@@ -82,8 +81,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def extend_z(needs) do
     SysCalls.move_absolute(
-      needs["current_x"],
-      needs["current_y"],
+      SysCalls.get_current_x(),
+      SysCalls.get_current_y(),
       needs["z"],
       needs["speed_x"],
       needs["speed_y"],
@@ -141,9 +140,6 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     %{x: x, y: y, z: z} = current_location()
 
     [
-      {"current_x", :=, x},
-      {"current_y", :=, y},
-      {"current_z", :=, z},
       {"x", :=, x},
       {"y", :=, y},
       {"z", :=, z},
