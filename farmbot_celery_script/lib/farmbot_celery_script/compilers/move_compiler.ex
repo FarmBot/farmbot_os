@@ -31,66 +31,21 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def do_perform_movement(%{"safe_z" => true} = needs) do
-    needs
-    |> retract_z()
-    |> move_xy()
-    |> extend_z()
+    needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{"safe_z" => false} = needs) do
-    move_xyz(needs)
-  end
+  def do_perform_movement(%{"safe_z" => false} = n), do: move_abs(n)
 
   def retract_z(needs) do
-    SysCalls.move_absolute(
-      SysCalls.get_current_x(),
-      SysCalls.get_current_y(),
-      @safe_height,
-      needs["speed_x"],
-      needs["speed_y"],
-      needs["speed_z"]
-    )
-
-    needs
+    %{x: x(), y: y(), z: @safe_height} |> Map.merge(needs) |> move_abs()
   end
 
   def move_xy(needs) do
-    SysCalls.move_absolute(
-      needs["x"],
-      needs["y"],
-      SysCalls.get_current_z(),
-      needs["speed_x"],
-      needs["speed_y"],
-      needs["speed_z"]
-    )
-
-    needs
-  end
-
-  def move_xyz(needs) do
-    SysCalls.move_absolute(
-      needs["x"],
-      needs["y"],
-      needs["z"],
-      needs["speed_x"],
-      needs["speed_y"],
-      needs["speed_z"]
-    )
-
-    needs
+    %{z: z()} |> Map.merge(needs) |> move_abs()
   end
 
   def extend_z(needs) do
-    SysCalls.move_absolute(
-      SysCalls.get_current_x(),
-      SysCalls.get_current_y(),
-      needs["z"],
-      needs["speed_x"],
-      needs["speed_y"],
-      needs["speed_z"]
-    )
-
-    needs
+    %{x: x(), y: y()} |> Map.merge(needs) |> move_abs()
   end
 
   def calculate_movement_needs(body) do
@@ -138,25 +93,15 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def initial_state do
-    %{x: x, y: y, z: z} = current_location()
-
     [
-      {"x", :=, x},
-      {"y", :=, y},
-      {"z", :=, z},
+      {"x", :=, x()},
+      {"y", :=, y()},
+      {"z", :=, z()},
       {"speed_x", :=, 100},
       {"speed_y", :=, 100},
       {"speed_z", :=, 100},
       {"safe_z", :=, false}
     ]
-  end
-
-  defp current_location do
-    %{
-      x: SysCalls.get_current_x(),
-      y: SysCalls.get_current_y(),
-      z: SysCalls.get_current_z()
-    }
   end
 
   defp to_number(_axis, %{args: %{number: num}, kind: :numeric}), do: num
@@ -201,7 +146,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
          args: %{label: "current_location"},
          kind: :special_value
        }) do
-    get_coord(current_location(), axis)
+    get_coord(%{x: x(), y: y(), z: z()}, axis)
   end
 
   # ???
@@ -224,4 +169,14 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
     get_coord(coord, String.to_atom(axis))
   end
+
+  defp move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
+    SysCalls.log("Moving to (#{x},#{y},#{z}) @ speed (#{sx},#{sy},#{sz})")
+    SysCalls.move_absolute(x, y, z, sx, sy, sz)
+    k
+  end
+
+  def x, do: SysCalls.get_current_x()
+  def y, do: SysCalls.get_current_y()
+  def z, do: SysCalls.get_current_z()
 end
