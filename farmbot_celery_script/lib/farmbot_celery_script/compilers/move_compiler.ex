@@ -177,13 +177,14 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   defp move_abs(%{
-    "speed_x" => sx,
-    "speed_y" => sy,
-    "speed_z" => sz,
-    "x" => x,
-    "y" => y,
-    "z" => z }) do
-    move_abs(%{ speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z })
+         "speed_x" => sx,
+         "speed_y" => sy,
+         "speed_z" => sz,
+         "x" => x,
+         "y" => y,
+         "z" => z
+       }) do
+    move_abs(%{speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z})
   end
 
   def x, do: SysCalls.get_current_x()
