@@ -37,15 +37,15 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   def do_perform_movement(%{"safe_z" => false} = n), do: move_abs(n)
 
   def retract_z(needs) do
-    %{x: x(), y: y(), z: @safe_height} |> Map.merge(needs) |> move_abs()
+    %{x: cx(), y: cy(), z: @safe_height} |> Map.merge(needs) |> move_abs()
   end
 
   def move_xy(needs) do
-    %{z: z()} |> Map.merge(needs) |> move_abs()
+    %{z: cz()} |> Map.merge(needs) |> move_abs()
   end
 
   def extend_z(needs) do
-    %{x: x(), y: y()} |> Map.merge(needs) |> move_abs()
+    %{x: cx(), y: cy()} |> Map.merge(needs) |> move_abs()
   end
 
   def calculate_movement_needs(body) do
@@ -94,9 +94,9 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def initial_state do
     [
-      {"x", :=, x()},
-      {"y", :=, y()},
-      {"z", :=, z()},
+      {"x", :=, cx()},
+      {"y", :=, cy()},
+      {"z", :=, cz()},
       {"speed_x", :=, 100},
       {"speed_y", :=, 100},
       {"speed_z", :=, 100},
@@ -132,9 +132,17 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     get_coord(coord[:args], axis)
   end
 
+  # EXHIBIT A
   defp to_number(axis, %{resource_id: id, resource_type: t}) do
+    IO.puts("EXHIBIT A: You might be able to merge these two methods together.")
     point = FarmbotCeleryScript.SysCalls.point(t, id)
     get_coord(point, axis)
+  end
+
+  # EXHIBIT B
+  defp to_number(axis, %{args: %{pointer_id: id, pointer_type: t}}) do
+    IO.puts("EXHIBIT B: You might be able to merge these two methods together.")
+    to_number(axis, %{resource_id: id, resource_type: t})
   end
 
   defp to_number(_axis, %{
@@ -147,7 +155,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
          args: %{label: "current_location"},
          kind: :special_value
        }) do
-    get_coord(%{x: x(), y: y(), z: z()}, axis)
+    get_coord(%{x: cx(), y: cy(), z: cz()}, axis)
   end
 
   defp to_number(axis, %{x: _, y: _, z: _} = coord) do
@@ -171,22 +179,28 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   defp move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
-    SysCalls.log("Moving to (#{x},#{y},#{z}) @ speed (#{sx},#{sy},#{sz})")
+    SysCalls.log(
+      "Moving from (#{cx()},#{cy()},#{cz()}) to (#{x},#{y},#{z}). speed (#{sx},#{
+        sy
+      },#{sz})"
+    )
+
     SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
   end
 
   defp move_abs(%{
-    "speed_x" => sx,
-    "speed_y" => sy,
-    "speed_z" => sz,
-    "x" => x,
-    "y" => y,
-    "z" => z }) do
-    move_abs(%{ speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z })
+         "speed_x" => sx,
+         "speed_y" => sy,
+         "speed_z" => sz,
+         "x" => x,
+         "y" => y,
+         "z" => z
+       }) do
+    move_abs(%{speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z})
   end
 
-  def x, do: SysCalls.get_current_x()
-  def y, do: SysCalls.get_current_y()
-  def z, do: SysCalls.get_current_z()
+  def cx, do: SysCalls.get_current_x()
+  def cy, do: SysCalls.get_current_y()
+  def cz, do: SysCalls.get_current_z()
 end
