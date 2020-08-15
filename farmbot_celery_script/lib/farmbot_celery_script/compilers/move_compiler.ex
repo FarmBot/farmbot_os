@@ -1,6 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
-  @safe_height 0
+  @safe_height -1
 
   # Temporary workaround because NervesHub appears to be broke
   # at the moment.
@@ -51,29 +51,43 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     end)
   end
 
-  def do_perform_movement(%{"safe_z" => true} = needs) do
-    SysCalls.log("Safe Z Move: #{inspect(needs)}")
+  def do_perform_movement(%{safe_z: true} = needs) do
+    IO.inspect(needs, label: "=== DO PERFORM MOVEMENT")
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{"safe_z" => false} = n) do
-    SysCalls.log("Regular Move: #{inspect(n)}")
+  def do_perform_movement(%{safe_z: false} = n) do
     move_abs(n)
   end
 
   def retract_z(needs) do
-    %{x: cx(), y: cy(), z: @safe_height}
-    |> Map.merge(needs)
-    |> move_abs()
+    a = %{x: cx(), y: cy(), z: @safe_height}
+    b = Map.merge(a, needs)
+    c = move_abs(b)
+
+    IO.inspect(
+      %{
+        needs: needs,
+        a: a,
+        b: b,
+        c: c
+      },
+      label: "=== retract_z"
+    )
+
+    c
   end
 
   def move_xy(needs) do
+    IO.inspect(needs, label: "=== move_xy")
+
     %{z: cz()}
     |> Map.merge(needs)
     |> move_abs()
   end
 
   def extend_z(needs) do
+    IO.inspect(needs, label: "=== extend_z")
     %{x: cx(), y: cy()} |> Map.merge(needs) |> move_abs()
   end
 
@@ -100,7 +114,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     axis_operand = a[:axis_operand]
 
     # STRING: "x"|"y"|"z"|"all"
-    axis = a[:axis]
+    axis = String.to_atom(a[:axis] || "none")
 
     if axis == "all" do
       raise "Not permitted"
@@ -114,22 +128,23 @@ defmodule FarmbotCeleryScript.Compiler.Move do
         {axis, :+, to_number(axis, axis_operand)}
 
       :speed_overwrite ->
-        {"speed_#{axis}", :=, to_number(axis, speed_setting)}
+        next_speed = String.to_atom("speed_#{axis}")
+        {next_speed, :=, to_number(axis, speed_setting)}
 
       :safe_z ->
-        {"safe_z", :=, true}
+        {:safe_z, :=, true}
     end
   end
 
   def initial_state do
     [
-      {"x", :=, cx()},
-      {"y", :=, cy()},
-      {"z", :=, cz()},
-      {"speed_x", :=, 100},
-      {"speed_y", :=, 100},
-      {"speed_z", :=, 100},
-      {"safe_z", :=, false}
+      {:x, :=, cx()},
+      {:y, :=, cy()},
+      {:z, :=, cz()},
+      {:speed_x, :=, 100},
+      {:speed_y, :=, 100},
+      {:speed_z, :=, 100},
+      {:safe_z, :=, false}
     ]
   end
 
@@ -163,14 +178,12 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   # EXHIBIT A
   defp to_number(axis, %{resource_id: id, resource_type: t}) do
-    IO.puts("EXHIBIT A: You might be able to merge these two methods together.")
     point = FarmbotCeleryScript.SysCalls.point(t, id)
     get_coord(point, axis)
   end
 
   # EXHIBIT B
   defp to_number(axis, %{args: %{pointer_id: id, pointer_type: t}}) do
-    IO.puts("EXHIBIT B: You might be able to merge these two methods together.")
     to_number(axis, %{resource_id: id, resource_type: t})
   end
 
@@ -199,35 +212,18 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     raise "Unexpected Lua return: #{inspect(result)} #{lua}"
   end
 
-  defp get_coord(%{x: _, y: _, z: _} = coord, axis) when is_atom(axis) do
+  defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
     Map.fetch!(coord, axis)
   end
 
-  defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
-    Map.fetch!(coord, String.to_atom(axis))
-  end
-
   defp move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
-    SysCalls.log(
-      "Moving from (#{cx()},#{cy()},#{cz()}) to (#{x},#{y},#{z}). speed (#{sx},#{
-        sy
-      },#{sz})"
-    )
-
     # If we wanted to add a "forceful" mode, we could do it here.
     :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
   end
 
-  defp move_abs(%{
-         "speed_x" => sx,
-         "speed_y" => sy,
-         "speed_z" => sz,
-         "x" => x,
-         "y" => y,
-         "z" => z
-       }) do
-    move_abs(%{speed_x: sx, speed_y: sy, speed_z: sz, x: x, y: y, z: z})
+  defp move_abs(other) do
+    raise "Possible string/atom issue? :" <> inspect(other)
   end
 
   def cx, do: SysCalls.get_current_x()
