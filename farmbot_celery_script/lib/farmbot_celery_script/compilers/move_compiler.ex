@@ -1,6 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
-  @safe_height -1
+  @safe_height 0
 
   # Temporary workaround because NervesHub appears to be broke
   # at the moment.
@@ -52,43 +52,28 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def do_perform_movement(%{safe_z: true} = needs) do
-    IO.inspect(needs, label: "=== DO PERFORM MOVEMENT")
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
   def do_perform_movement(%{safe_z: false} = n) do
-    move_abs(n)
+    move_abs("do_perform_movement", n)
   end
 
   def retract_z(needs) do
     a = %{x: cx(), y: cy(), z: @safe_height}
-    b = Map.merge(a, needs)
-    c = move_abs(b)
-
-    IO.inspect(
-      %{
-        needs: needs,
-        a: a,
-        b: b,
-        c: c
-      },
-      label: "=== retract_z"
-    )
-
-    c
+    b = Map.merge(needs, a)
+    move_abs("retract_z", b)
+    needs
   end
 
   def move_xy(needs) do
-    IO.inspect(needs, label: "=== move_xy")
-
-    %{z: cz()}
-    |> Map.merge(needs)
-    |> move_abs()
+    move_abs("move_xy", Map.merge(needs, %{z: cz()}))
+    needs
   end
 
   def extend_z(needs) do
-    IO.inspect(needs, label: "=== extend_z")
-    %{x: cx(), y: cy()} |> Map.merge(needs) |> move_abs()
+    move_abs("extend_z", Map.merge(needs, %{x: cx(), y: cy()}))
+    needs
   end
 
   def calculate_movement_needs(body) do
@@ -216,14 +201,18 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     Map.fetch!(coord, axis)
   end
 
-  defp move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
+  defp move_abs(
+         caller,
+         %{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k
+       ) do
+    SysCalls.log("Move_abs (#{caller}): " <> inspect(k), true)
     # If we wanted to add a "forceful" mode, we could do it here.
     :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
   end
 
-  defp move_abs(other) do
-    raise "Possible string/atom issue? :" <> inspect(other)
+  defp move_abs(caller, other) do
+    raise "Possible string/atom issue? (#{inspect(caller)}, #{inspect(other)})"
   end
 
   def cx, do: SysCalls.get_current_x()
