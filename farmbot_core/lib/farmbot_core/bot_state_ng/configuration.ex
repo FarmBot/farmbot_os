@@ -8,7 +8,6 @@ defmodule FarmbotCore.BotStateNG.Configuration do
 
   embedded_schema do
     field(:arduino_debug_messages, :boolean)
-    field(:auto_sync, :boolean)
     field(:beta_opt_in, :boolean)
     field(:disable_factory_reset, :boolean)
     field(:firmware_hardware, :string)
@@ -31,7 +30,6 @@ defmodule FarmbotCore.BotStateNG.Configuration do
   def view(configuration) do
     %{
       arduino_debug_messages: configuration.arduino_debug_messages,
-      auto_sync: configuration.auto_sync,
       beta_opt_in: configuration.beta_opt_in,
       disable_factory_reset: configuration.disable_factory_reset,
       firmware_hardware: configuration.firmware_hardware,
@@ -50,7 +48,6 @@ defmodule FarmbotCore.BotStateNG.Configuration do
     configuration
     |> cast(params, [
       :arduino_debug_messages,
-      :auto_sync,
       :beta_opt_in,
       :disable_factory_reset,
       :firmware_hardware,
