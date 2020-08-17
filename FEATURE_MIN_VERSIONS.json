@@ -5,6 +5,7 @@
   "assertion_block": "8.0.0",
   "backscheduled_regimens": "6.4.0",
   "change_ownership": "6.3.0",
+  "computed_move": "11.0.0",
   "criteria_groups": "9.2.2",
   "diagnostic_dumps": "6.4.4",
   "endstop_invert": "6.4.1",
@@ -24,5 +25,5 @@
   "sensors": "6.3.0",
   "update_resource": "10.0.0",
   "use_update_channel": "6.4.12",
-  "variables": "8.0.0"
+  "variables": "8.0.0",
 }
