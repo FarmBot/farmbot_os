@@ -57,23 +57,23 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def do_perform_movement(%{safe_z: false} = n) do
-    move_abs("do_perform_movement", n)
+    move_abs(n)
   end
 
   def retract_z(needs) do
     a = %{x: cx(), y: cy(), z: @safe_height}
     b = Map.merge(needs, a)
-    move_abs("retract_z", b)
+    move_abs(b)
     needs
   end
 
   def move_xy(needs) do
-    move_abs("move_xy", Map.merge(needs, %{z: cz()}))
+    move_abs(Map.merge(needs, %{z: cz()}))
     needs
   end
 
   def extend_z(needs) do
-    move_abs("extend_z", Map.merge(needs, %{x: cx(), y: cy()}))
+    move_abs(Map.merge(needs, %{x: cx(), y: cy()}))
     needs
   end
 
@@ -134,11 +134,11 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     ]
   end
 
-  defp to_number(_axis, %{args: %{number: num}, kind: :numeric}) do
-    num
+  def lua_fail(result, lua) do
+    raise "Unexpected Lua return: #{inspect(result)} #{inspect(lua)}"
   end
 
-  defp to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
+  def to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
     result = SysCalls.raw_lua_eval(lua)
 
     case result do
@@ -154,66 +154,50 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     end
   end
 
-  defp to_number(_axis, %{args: %{variance: v}, kind: :random}) do
+  def to_number(_axis, %{args: %{variance: v}, kind: :random}) do
     Enum.random((-1 * v)..v)
   end
 
-  defp to_number(axis, %{kind: :coordinate} = coord) do
-    get_coord(coord[:args], axis)
+  def to_number(axis, %{kind: :coordinate} = coord) do
+    to_number(axis, coord[:args])
   end
 
-  # EXHIBIT A
-  defp to_number(axis, %{resource_id: id, resource_type: t}) do
-    point = FarmbotCeleryScript.SysCalls.point(t, id)
-    get_coord(point, axis)
+  def to_number(_axis, %{args: %{number: num}, kind: :numeric}) do
+    num
   end
 
-  # EXHIBIT B
-  defp to_number(axis, %{args: %{pointer_id: id, pointer_type: t}}) do
-    to_number(axis, %{resource_id: id, resource_type: t})
+  # This usually happens when `identifier`s are converted to
+  # real values
+  def to_number(axis, %{resource_id: id, resource_type: t}) do
+    Map.fetch!(SysCalls.point(t, id), axis)
   end
 
-  defp to_number(_axis, %{
-         args: %{label: "safe_height"},
-         kind: :special_value
-       }),
-       do: @safe_height
-
-  defp to_number(axis, %{
-         args: %{label: "current_location"},
-         kind: :special_value
-       }) do
-    get_coord(%{x: cx(), y: cy(), z: cz()}, axis)
+  def to_number(axis, %{args: %{pointer_id: id, pointer_type: t}}) do
+    Map.fetch!(SysCalls.point(t, id), axis)
   end
 
-  defp to_number(axis, %{x: _, y: _, z: _} = coord) do
-    get_coord(coord, axis)
+  def to_number(_, %{args: %{label: "safe_height"}, kind: :special_value}) do
+    @safe_height
   end
 
-  defp to_number(_axis, arg) do
-    raise "Can't handle numeric conversion for " <> inspect(arg)
+  def to_number(axis, %{
+        args: %{label: "current_location"},
+        kind: :special_value
+      }) do
+    to_number(axis, %{x: cx(), y: cy(), z: cz()})
   end
 
-  defp lua_fail(result, lua) do
-    raise "Unexpected Lua return: #{inspect(result)} #{lua}"
-  end
-
-  defp get_coord(%{x: _, y: _, z: _} = coord, axis) do
+  def to_number(axis, %{x: _, y: _, z: _} = coord) do
     Map.fetch!(coord, axis)
   end
 
-  defp move_abs(
-         caller,
-         %{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k
-       ) do
-    SysCalls.log("Move_abs (#{caller}): " <> inspect(k), true)
-    # If we wanted to add a "forceful" mode, we could do it here.
-    :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
-    k
+  def to_number(_axis, arg) do
+    raise "Can't handle numeric conversion for " <> inspect(arg)
   end
 
-  defp move_abs(caller, other) do
-    raise "Possible string/atom issue? (#{inspect(caller)}, #{inspect(other)})"
+  def move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
+    :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
+    k
   end
 
   def cx, do: SysCalls.get_current_x()
