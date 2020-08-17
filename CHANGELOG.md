@@ -3,6 +3,13 @@
 # 11.0.0
 
  * Auto sync is now mandatory.
+ * Ability to use Lua expressions for movement
+ * Ability to set "variance" to movement commands
+ * Ability to use axial overrides
+ * Ability to perform axis addition
+ * "Safe Z" feature
+ * Remove CeleryScript unused variable warnings in terminal
+ * Ability to set speed for an individual axis (rather than all axes)
 
 # 10.1.6
 
