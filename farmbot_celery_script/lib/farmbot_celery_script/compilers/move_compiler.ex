@@ -102,7 +102,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     # STRING: "x"|"y"|"z"|"all"
     axis = String.to_atom(a[:axis] || "none")
 
-    if axis == "all" do
+    if axis == :all do
       raise "Not permitted"
     end
 

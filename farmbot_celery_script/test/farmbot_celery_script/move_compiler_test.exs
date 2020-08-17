@@ -16,6 +16,194 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     kind: :special_value,
     args: %{label: "current_location"}
   }
+  @fake_movment_needs %{
+    safe_z: false,
+    speed_x: 99,
+    speed_y: 98,
+    speed_z: 97,
+    x: -4,
+    y: -3,
+    z: -2
+  }
+
+  test "extract_variables" do
+    body = [
+      %{args: %{axis_operand: %{args: %{label: "q"}, kind: :identifier}}},
+      :something_else
+    ]
+
+    better_params = %{"q" => %{foo: :bar}}
+    result = Compiler.Move.extract_variables(body, better_params)
+
+    assert result == [
+             %{args: %{axis_operand: %{foo: :bar}}},
+             :something_else
+           ]
+  end
+
+  test "do_perform_movement(%{safe_z: true})" do
+    stub_current_location(1)
+
+    expect(Stubs, :move_absolute, 3, fn _, _, _, _, _, _ ->
+      :ok
+    end)
+
+    needs = Map.merge(@fake_movment_needs, %{safe_z: true})
+    Compiler.Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{safe_z: false})" do
+    expect(Stubs, :move_absolute, 1, fn _, _, _, _, _, _ ->
+      :ok
+    end)
+
+    Compiler.Move.do_perform_movement(@fake_movment_needs)
+  end
+
+  test "retract_z" do
+    {x, y, _z} = stub_current_location(1)
+    # Used by helper stub_current_location, but not needed here.
+    _ = Stubs.get_current_z()
+
+    mock = fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == x
+      assert real_y == y
+      assert real_z == 0
+      assert @fake_movment_needs[:speed_x] == sx
+      assert @fake_movment_needs[:speed_y] == sy
+      assert @fake_movment_needs[:speed_z] == sz
+      :ok
+    end
+
+    expect(Stubs, :move_absolute, mock)
+    Compiler.Move.retract_z(@fake_movment_needs)
+  end
+
+  test "move_xy" do
+    {_x, _y, z} = stub_current_location(1)
+    # Used by helper stub_current_location, but not needed here.
+    _ = Stubs.get_current_x()
+    # Used by helper stub_current_location, but not needed here.
+    _ = Stubs.get_current_y()
+
+    mock = fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == @fake_movment_needs[:x]
+      assert real_y == @fake_movment_needs[:y]
+      assert real_z == z
+      assert @fake_movment_needs[:speed_x] == sx
+      assert @fake_movment_needs[:speed_y] == sy
+      assert @fake_movment_needs[:speed_z] == sz
+      :ok
+    end
+
+    expect(Stubs, :move_absolute, mock)
+    Compiler.Move.move_xy(@fake_movment_needs)
+  end
+
+  test "extend_z" do
+    {x, y, _z} = stub_current_location(1)
+    # Used by helper stub_current_location, but not needed here.
+    _ = Stubs.get_current_z()
+
+    mock = fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == x
+      assert real_y == y
+      assert real_z == @fake_movment_needs[:z]
+      assert @fake_movment_needs[:speed_x] == sx
+      assert @fake_movment_needs[:speed_y] == sy
+      assert @fake_movment_needs[:speed_z] == sz
+      :ok
+    end
+
+    expect(Stubs, :move_absolute, mock)
+    Compiler.Move.extend_z(@fake_movment_needs)
+  end
+
+  test "calculate_movement_needs" do
+    {x, y, z} = stub_current_location(1)
+
+    assert Compiler.Move.calculate_movement_needs([]) == %{
+             safe_z: false,
+             speed_x: 100,
+             speed_y: 100,
+             speed_z: 100,
+             x: x,
+             y: y,
+             z: z
+           }
+  end
+
+  test "reducer" do
+    needs = %{speed_x: 23, y: 32}
+    result1 = Compiler.Move.reducer({:speed_x, :=, 44}, needs)
+    result2 = Compiler.Move.reducer({:y, :+, 32}, needs)
+    assert result1[:speed_x] == 44
+    assert result2[:y] == 64
+  end
+
+  test "mapper" do
+    numeric = %{kind: :numeric, args: %{number: 26}}
+    safe_z = %{kind: :safe_z, args: %{}}
+
+    axis_addition = %{
+      kind: :axis_addition,
+      args: %{axis: "y", axis_operand: numeric}
+    }
+
+    speed_overwrite = %{
+      kind: :speed_overwrite,
+      args: %{axis: "x", speed_setting: numeric}
+    }
+
+    axis_overwrite = %{
+      kind: :axis_overwrite,
+      args: %{axis: "z", axis_operand: numeric}
+    }
+
+    assert Compiler.Move.mapper(safe_z) == {:safe_z, :=, true}
+    assert Compiler.Move.mapper(speed_overwrite) == {:speed_x, :=, 26}
+    assert Compiler.Move.mapper(axis_addition) == {:y, :+, 26}
+    assert Compiler.Move.mapper(axis_overwrite) == {:z, :=, 26}
+
+    boom = fn ->
+      Compiler.Move.mapper(%{
+        kind: :axis_addition,
+        args: %{
+          axis: "all",
+          axis_operand: numeric
+        }
+      })
+    end
+
+    assert_raise RuntimeError, "Not permitted", boom
+  end
+
+  test "to_number() - Lua" do
+    expect(Stubs, :raw_lua_eval, 3, fn
+      "lol" ->
+        "Something else"
+
+      lua ->
+        {result, _} = Code.eval_string(lua)
+        {:ok, [result]}
+    end)
+
+    # Base case: Returns {:ok, [number]}
+    lua1 = %{kind: :lua, args: %{lua: "2 + 2"}}
+    Compiler.Move.to_number(:x, lua1)
+
+    # Error case: Returns {:ok, [not_a_number]}
+    lua2 = %{kind: :lua, args: %{lua: "\"Not a number\""}}
+    boom = fn -> Compiler.Move.to_number(:x, lua2) end
+    err_msg = "Unexpected Lua return: \"Not a number\" \"\\\"Not a number\\\"\""
+    assert_raise RuntimeError, err_msg, boom
+
+    # Error case: Returns some other shape of data.
+    lua3 = %{kind: :lua, args: %{lua: "lol"}}
+    boom = fn -> Compiler.Move.to_number(:x, lua3) end
+    err_msg = "Unexpected Lua return: \"Something else\" \"lol\""
+    assert_raise RuntimeError, err_msg, boom
+  end
 
   test "to_number()" do
     boom = fn -> Compiler.Move.to_number(:foo, :bar) end
@@ -48,7 +236,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       args: %{x: 202, y: 404, z: 808}
     }
 
-    fake_variance = %{ kind: :random, args: %{variance: 10} }
+    fake_variance = %{kind: :random, args: %{variance: 10}}
 
     assert Compiler.Move.to_number(:x, vec) == x
     assert Compiler.Move.to_number(:y, vec) == y
