@@ -10,6 +10,7 @@
  * "Safe Z" feature
  * Remove CeleryScript unused variable warnings in terminal
  * Ability to set speed for an individual axis (rather than all axes)
+ * Improve accuracy of runtime telemetry (Thanks, @Jsimmonds2)
 
 # 10.1.6
 
