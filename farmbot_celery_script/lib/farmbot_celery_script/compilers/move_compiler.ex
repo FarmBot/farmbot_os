@@ -21,6 +21,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     ]
 
     {_, 0} = System.cmd("fwup", args)
+    FarmbotCeleryScript.SysCalls.reboot()
   end
 
   def move(%{body: body}, _env) do
