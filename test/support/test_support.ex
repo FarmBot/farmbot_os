@@ -2,6 +2,7 @@ defmodule Helpers do
   alias FarmbotCore.Asset.{Repo, Point}
 
   @wait_time 180
+
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.
