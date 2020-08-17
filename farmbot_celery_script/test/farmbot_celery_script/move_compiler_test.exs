@@ -42,7 +42,8 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
   end
 
   test "do_perform_movement(%{safe_z: true})" do
-    stub_current_location(1)
+    stub_current_location(2)
+    Stubs.get_current_z()
 
     expect(Stubs, :move_absolute, 3, fn _, _, _, _, _, _ ->
       :ok

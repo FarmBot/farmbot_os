@@ -196,6 +196,12 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
+    x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
+    y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
+    z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
+    msg = "Moving to (#{x_str}, #{y_str}, #{z_str})"
+
+    FarmbotCeleryScript.SysCalls.log(msg, true)
     :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
     k
   end
