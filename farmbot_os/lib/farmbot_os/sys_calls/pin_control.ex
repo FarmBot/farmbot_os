@@ -314,7 +314,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def write_pin(%BoxLed{id: id}, _mode, _) do
-    {:error, "cannon write Boxled#{id} in analog mode"}
+    {:error, "cannot write Boxled#{id} in analog mode"}
   end
 
   # Generic pin digital
@@ -331,9 +331,9 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def do_write_pin(pin_number, mode, value) do
-    case FarmbotFirmware.command(
-           {:pin_write, [p: pin_number, v: value, m: mode]}
-         ) do
+    params = {:pin_write, [p: pin_number, v: value, m: mode]}
+    cmd = FarmbotFirmware.command(params)
+    case cmd do
       :ok ->
         :ok
 
