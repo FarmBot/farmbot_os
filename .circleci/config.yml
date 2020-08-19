@@ -26,13 +26,6 @@ install_arduino: &install_arduino
     name: Run setup script
     command: bash .circleci/setup-arduino.sh
 
-install_slack_helpers: &install_slack_helpers
-  run:
-    name: Install Slack Helpers
-    command: |
-      wget https://gist.githubusercontent.com/ConnorRigby/03e722be4be70f8588f5ed74420e4eaa/raw/28a51d8f52ec7d569e8f7f20b83349816ddf63cf/slack_message.ex
-      cp .circleci/fwup_meta_slack.sh /usr/bin/
-
 install_ghr: &install_ghr
   run:
     name: Install ghr (Github Releases)
@@ -142,7 +135,7 @@ build_firmware_clean_steps: &build_firmware_clean_steps
         paths:
           - "/nerves/deploy/system"
 
-deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
+deploy_ota_firmware_steps: &deploy_ota_firmware_steps
   steps:
     - checkout
     - run: git submodule update --init --recursive
@@ -158,17 +151,16 @@ deploy_nerves_hub_firmware_steps: &deploy_nerves_hub_firmware_steps
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_jq
-    - <<: *install_slack_helpers
     - run:
         name: Sign Image
         working_directory: /nerves/build/farmbot_os
         command: |
           mix deps.get
-          mix nerves_hub.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+          mix ota.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
     - run:
         name: Publish to NervesHub
         working_directory: /nerves/build/farmbot_os
-        command: mix nerves_hub.firmware publish --deploy ${NERVES_HUB_DEPLOY} ${NERVES_HUB_TTL} /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
+        command: echo /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
     - run:
         name: Send Slack Message
         command: ./.circleci/fwup_meta_slack.sh -i /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
@@ -432,8 +424,8 @@ jobs:
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi-prod-stable
-    <<: *deploy_nerves_hub_firmware_steps
+      OTA_DEPLOY: rpi-prod-stable
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                    target=rpi3 app_env=prod channel=stable                   #
@@ -444,8 +436,8 @@ jobs:
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi3-prod-stable
-    <<: *deploy_nerves_hub_firmware_steps
+      OTA_DEPLOY: rpi3-prod-stable
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                    target=rpi app_env=prod channel=beta                      #
@@ -456,9 +448,7 @@ jobs:
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi-prod-beta
-      NERVES_HUB_TTL: "--ttl 3600"
-    <<: *deploy_nerves_hub_firmware_steps
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                     target=rpi3 app_env=prod channel=beta                    #
@@ -469,9 +459,7 @@ jobs:
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi3-prod-beta
-      NERVES_HUB_TTL: "--ttl 3600"
-    <<: *deploy_nerves_hub_firmware_steps
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                     target=rpi3 app_env=prod channel=staging                 #
@@ -482,9 +470,8 @@ jobs:
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi3-prod-staging
-      NERVES_HUB_TTL: "--ttl 900"
-    <<: *deploy_nerves_hub_firmware_steps
+      OTA_DEPLOY: rpi3-prod-staging
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                     target=rpi3 app_env=prod channel=qa                      #
@@ -495,9 +482,8 @@ jobs:
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi3-prod-qa
-      NERVES_HUB_TTL: "--ttl 900"
-    <<: *deploy_nerves_hub_firmware_steps
+      OTA_DEPLOY: rpi3-prod-qa
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                     target=rpi app_env=prod channel=qa                       #
@@ -508,9 +494,8 @@ jobs:
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-      NERVES_HUB_DEPLOY: rpi-prod-qa
-      NERVES_HUB_TTL: "--ttl 900"
-    <<: *deploy_nerves_hub_firmware_steps
+      OTA_DEPLOY: rpi-prod-qa
+    <<: *deploy_ota_firmware_steps
 
 ################################################################################
 #                TARGET FIRMWARE NERVES GITHUB RELEASE BETA                    #
@@ -536,7 +521,6 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
-      - <<: *install_slack_helpers
       - <<: *install_jq
       - add_ssh_keys:
           fingerprints:
@@ -591,7 +575,6 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_ghr
-      - <<: *install_slack_helpers
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
@@ -674,7 +657,7 @@ workflows:
                 - /^qa\/.*/
 
   # master branch to staging.farmbot.io
-  nerves_hub_prod_stable_staging:
+  ota_prod_stable_staging:
     jobs:
       - build_clean_rpi_prod:
           context: farmbot-staging
@@ -698,7 +681,7 @@ workflows:
             - build_clean_rpi3_prod
 
   # master branch to my.farmbot.io
-  nerves_hub_prod_stable_production:
+  ota_prod_stable_production:
     jobs:
       - build_clean_rpi_prod:
           context: farmbot-production
@@ -727,7 +710,7 @@ workflows:
             - build_clean_rpi3_prod
 
   # any tag containint an `-rcXXX` tag to staging.farmbot.io
-  nerves_hub_prod_beta_staging:
+  ota_prod_beta_staging:
     jobs:
       - build_rpi_prod:
           context: farmbot-staging
@@ -763,7 +746,7 @@ workflows:
             - build_rpi3_prod
 
   # any tag containint an `-rcXXX` tag to my.farmbot.io
-  nerves_hub_prod_beta_production:
+  ota_prod_beta_production:
     jobs:
       - build_rpi_prod:
           context: farmbot-production
@@ -809,7 +792,7 @@ workflows:
             - build_rpi3_prod
 
   # any branch matching qa/** to staging.farmbot.io
-  nerves_hub_prod_staging_staging:
+  ota_prod_staging_staging:
     jobs:
       - build_rpi3_prod:
           context: farmbot-staging
@@ -844,7 +827,7 @@ workflows:
             - build_rpi_prod
 
   # any branch matching qa/** to production.farmbot.io
-  nerves_hub_prod_staging_production:
+  ota_prod_staging_production:
     jobs:
       - build_rpi3_prod:
           context: farmbot-production

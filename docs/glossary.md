@@ -30,9 +30,6 @@ This file contains a basic glossary of commonly used terms
 * Nerves - Framework that allows cross compilation of Elixir code
   * [More info](https://nerves-project.org/)
   * [Docs](https://hexdocs.pm/nerves/getting-started.html)
-* NervesHub - Cloud based firmware management
-  * [More info](https://www.nerves-hub.org/)
-  * [Docs](https://github.com/nerves-hub/documentation)
 * Firmware - Usually refers to the code that gets deployed onto the Raspberry Pi
 
 ## OTP Terms
