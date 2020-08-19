@@ -9,8 +9,7 @@ defmodule FarmbotOS.LuaTest do
     assert Lua.eval_assertion("Returns 'true'", "return true")
     {:error, message1} = Lua.eval_assertion("Returns 'true'", "-1")
 
-    assert message1 ==
-             "failed to parse expression (line:1): syntax error before: '-'"
+    assert message1 == "bad return value from expression evaluation"
 
     {:error, error} = Lua.eval_assertion("random error", "return (1/0)")
     assert error == :badarith

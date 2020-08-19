@@ -1,9 +1,11 @@
 defmodule FarmbotCore.BotState.SchedulerUsageReporter do
   alias FarmbotCore.BotState
-  require FarmbotTelemetry
+  require Logger
+
   use GenServer
-  @default_timeout_ms 5000
-  @schedulers [:scheduler, :dirty_cpu_scheduler]
+
+  @collect_duration 2_000
+  @report_interval 7_000
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
@@ -11,15 +13,43 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
 
   def init(_args) do
     _ = :msacc.stop()
-    _ = :msacc.reset()
-    _ = :msacc.start()
-    {:ok, %{}, @default_timeout_ms}
+    start_abs = System.monotonic_time(:millisecond)
+
+    _ =
+      Process.send_after(self(), :report, start_abs + @report_interval, [
+        {:abs, true}
+      ])
+
+    _ = Process.send_after(self(), :collect, start_abs, [{:abs, true}])
+
+    _ =
+      Process.send_after(self(), :collect_stop, start_abs + @collect_duration, [
+        {:abs, true}
+      ])
+
+    _ = :erlang.process_flag(:priority, :high)
+    {:ok, %{next_report_abs: start_abs}}
   end
 
-  def handle_info(:timeout, state) do
+  def handle_info(:collect, state) do
+    _ = :msacc.reset()
+    _ = :msacc.start()
+    {:noreply, state}
+  end
+
+  def handle_info(:collect_stop, state) do
+    _ = :msacc.stop()
+    {:noreply, state}
+  end
+
+  def handle_info(:report, state) do
+    msacc_counters = :erlang.statistics(:microstate_accounting)
+
+    average_thread_realtime =
+      :msacc.stats(:system_realtime, msacc_counters) / length(msacc_counters)
+
     scheduler_info =
       for %{
-            type: type,
             counters: %{
               aux: aux,
               check_io: check_io,
@@ -27,23 +57,52 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
               gc: gc,
               other: other,
               port: port,
-              sleep: sleep
-            }
+              sleep: _sleep
+            },
+            id: _id,
+            type: type
           }
-          when type in @schedulers <- :msacc.stats(:type, :msacc.stats()) do
-        denominator = aux + check_io + emulator + gc + other + port + sleep
-        numerator = denominator - sleep
-        {"#{type}", numerator / denominator}
+          when type in [:scheduler] <- msacc_counters do
+        aux + check_io + emulator + gc + other + port
       end
 
     sched_effort =
-      Enum.map_reduce(scheduler_info, 0, fn sched_info, acc ->
-        work = elem(sched_info, 1)
-        {work, work + acc}
+      Enum.map_reduce(scheduler_info, 0, fn runtime, acc ->
+        {runtime, acc + runtime}
       end)
 
-    _ = BotState.report_scheduler_usage(round(elem(sched_effort, 1) / length(@schedulers) * 100))
-    _ = :msacc.reset()
-    {:noreply, state, @default_timeout_ms}
+    usage =
+      elem(sched_effort, 1) / (average_thread_realtime * length(scheduler_info)) *
+        100
+
+    _ = BotState.report_scheduler_usage(round(usage))
+
+    if usage >= 99.9 do
+      Logger.debug(
+        "sched usage #{round(usage)}% : run queue lengths #{
+          inspect(:erlang.statistics(:run_queue_lengths))
+        }"
+      )
+    end
+
+    next_report_abs = state.next_report_abs + @report_interval
+
+    next_collect_abs =
+      state.next_report_abs +
+        100 *
+          :rand.uniform(round((@report_interval - @collect_duration) / 100) - 1)
+
+    _ = Process.send_after(self(), :report, next_report_abs, [{:abs, true}])
+    _ = Process.send_after(self(), :collect, next_collect_abs, [{:abs, true}])
+
+    _ =
+      Process.send_after(
+        self(),
+        :collect_stop,
+        next_collect_abs + @collect_duration,
+        [{:abs, true}]
+      )
+
+    {:noreply, %{state | next_report_abs: next_report_abs}}
   end
 end

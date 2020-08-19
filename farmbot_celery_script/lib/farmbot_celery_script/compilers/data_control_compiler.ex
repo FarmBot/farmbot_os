@@ -1,19 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.DataControl do
   alias FarmbotCeleryScript.Compiler
 
-  def resource(ast, _env) do
-    IO.puts("======")
-    IO.inspect(ast)
-    # %FarmbotCeleryScript.AST{
-    #   args: %{resource_id: 0, resource_type: "Device"},
-    #   body: [],
-    #   comment: nil,
-    #   kind: :resource,
-    #   meta: nil
-    # }
-    raise "TODO: Pull resource from DB?"
-  end
-
   # compiles coordinate
   # Coordinate should return a vec3
   def coordinate(%{args: %{x: x, y: y, z: z}}, env) do

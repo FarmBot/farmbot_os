@@ -131,6 +131,8 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
           unquote(var_name),
           unquote(Compiler.compile_ast(default, env))
         )
+
+      _ = unquote({var_name, env, __MODULE__})
     end
   end
 
@@ -183,7 +185,7 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
   def add_sequence_init_and_complete_logs(steps, sequence_name)
       when is_binary(sequence_name) do
     # This looks really weird because of the logs before and
-    # after the compiled steps 
+    # after the compiled steps
     List.flatten([
       quote do
         fn ->
@@ -210,7 +212,7 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
   def add_sequence_init_and_complete_logs_ittr(steps, sequence_name)
       when is_binary(sequence_name) do
     # This looks really weird because of the logs before and
-    # after the compiled steps 
+    # after the compiled steps
     List.flatten([
       quote do
         fn _ ->
