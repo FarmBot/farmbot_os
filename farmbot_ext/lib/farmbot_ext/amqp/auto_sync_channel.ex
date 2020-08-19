@@ -11,7 +11,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   require FarmbotCore.Logger
   require FarmbotTelemetry
 
-  alias FarmbotCore.{Asset, BotState, JSON, Leds}
+  alias FarmbotCore.{BotState, JSON, Leds}
   alias FarmbotExt.AMQP.{ConnectionWorker, AutoSyncAssetHandler}
   alias FarmbotExt.API.{EagerLoader, Preloader}
 
@@ -50,7 +50,9 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
 
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
+
     send(self(), :preload)
+
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, preloaded: false}}
   end
 
@@ -73,15 +75,11 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
     _ = Leds.green(:really_fast_blink)
 
     with :ok <- Preloader.preload_all() do
-      if Asset.Query.auto_sync?() do
-        _ = Leds.green(:solid)
-        BotState.set_sync_status("synced")
-      else
-        _ = Leds.green(:slow_blink)
-        BotState.set_sync_status("sync_now")
-      end
+      _ = Leds.green(:solid)
+      BotState.set_sync_status("synced")
 
       send(self(), :connect)
+
       {:noreply, %{state | preloaded: true}}
     else
       {:error, reason} ->
@@ -90,6 +88,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
         FarmbotTelemetry.event(:asset_sync, :preload_error, nil, error: inspect(reason))
         Process.send_after(self(), :preload, 5000)
+
         {:noreply, state}
     end
   end

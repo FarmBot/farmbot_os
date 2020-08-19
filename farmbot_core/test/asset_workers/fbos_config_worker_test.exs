@@ -11,7 +11,6 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
       fbos_config(%{
         monitor: true,
         arduino_debug_messages: true,
-        auto_sync: false,
         beta_opt_in: true,
         disable_factory_reset: false,
         firmware_hardware: nil,
@@ -31,7 +30,6 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
 
     state_conf = receive_changes(state).configuration
     assert state_conf.arduino_debug_messages == conf.arduino_debug_messages
-    assert state_conf.auto_sync == conf.auto_sync
     assert state_conf.beta_opt_in == conf.beta_opt_in
     assert state_conf.disable_factory_reset == conf.disable_factory_reset
 

@@ -178,7 +178,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
       :firmware_input_log,
       :firmware_output_log,
       :firmware_debug_log,
-      :auto_sync,
       :beta_opt_in,
       :disable_factory_reset,
       :network_not_found_timer,
@@ -203,9 +202,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
       {:firmware_debug_log, bool} ->
         FarmbotCore.Logger.success 1, "Set arduino debug messages to #{bool}"
-
-      {:auto_sync, bool} ->
-        FarmbotCore.Logger.success 1, "Set auto sync to #{bool}"
 
       {:beta_opt_in, true} ->
         FarmbotCore.Logger.success 1, "Opting into beta updates"
@@ -248,8 +244,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     :ok = BotState.set_config_value(:firmware_debug_log, fbos_config.firmware_debug_log)
 
     # firmware_hardware is set by FarmbotFirmware.SideEffects
-
-    :ok = BotState.set_config_value(:auto_sync, fbos_config.auto_sync)
     :ok = BotState.set_config_value(:beta_opt_in, fbos_config.beta_opt_in)
     :ok = BotState.set_config_value(:disable_factory_reset, fbos_config.disable_factory_reset)
     :ok = BotState.set_config_value(:network_not_found_timer, fbos_config.network_not_found_timer)

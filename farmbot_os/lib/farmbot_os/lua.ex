@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Lua do
   @moduledoc """
-  Embedded scripting language for testing, 
-  assertion, and other debugging things. 
+  Embedded scripting language for testing,
+  assertion, and other debugging things.
   """
 
   @type t() :: tuple()
@@ -22,13 +22,28 @@ defmodule FarmbotOS.Lua do
   end
 
   @doc """
+  `eval_lua` evaluates Lua code. It is a more generalized
+  version of `eval_assertion`.
+  """
+  def raw_lua_eval(str) when is_binary(str) do
+    str =
+      if String.contains?(str, "return") do
+        str
+      else
+        # HACK: Provide an implicit "return", since many users
+        #       will want implicit returns.
+        "return (#{str})"
+      end
+
+    eval(init(), str)
+  end
+
+  @doc """
   Evaluates some Lua code. The code should
   return a boolean value.
   """
   def eval_assertion(comment, str) when is_binary(str) do
-    init()
-    |> eval(str)
-    |> case do
+    case raw_lua_eval(str) do
       {:ok, [true | _]} ->
         true
 

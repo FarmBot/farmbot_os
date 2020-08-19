@@ -311,12 +311,57 @@ td {
 }
 
 .ssid_result:hover {
+  background: #eee;
+  color: black;
+}
+
+.ssid_result.selected:hover {
   background: #ccc;
   color: black;
 }
 
+.ssid_result:hover .too-weak,
+.ssid_result:hover .strength-label {
+  visibility: visible;
+}
+
 .ssid_name {
   word-break: break-word;
+}
+
+.ssid_quality {
+  position: relative;
+}
+
+.strength-label,
+.too-weak {
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.75rem;
+  margin-top: 0.8rem;
+  margin-left: 0.25rem;
+  font-style: italic;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #990000;
+}
+
+.strength-label {
+  left: 0;
+  color: #fff;
+}
+
+.strength-label.weak {
+  color: #999999;
+}
+
+.error-text {
+  color: #990000;
+  font-size: 0.8rem;
+  position: absolute;
+  bottom: 4rem;
 }
 
 .selected {
@@ -381,6 +426,18 @@ td {
   width: 1%;
   height: 1.5rem;
   background-color: #4CAF50;
+}
+
+.percent-bar.yellow {
+  background-color: #FFAA00;
+}
+
+.percent-bar.red {
+  background-color: #EE6666;
+}
+
+.percent-bar.light-gray {
+  background-color: #999999;
 }
 
 .last-shutdown-reason {

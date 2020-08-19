@@ -5,7 +5,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   onto the `pong` channel.
 
   Also has a ~15-20 minute timer that will do an `HTTP` request
-  to `/api/device`. This refreshed the `last_seen_api` field which
+  to `/api/device`. This refreshes the `last_seen_api` field which
   is required for devices that have `auto_sync` enabled as with
   that field enabled, the device would never do an HTTP request
   """
