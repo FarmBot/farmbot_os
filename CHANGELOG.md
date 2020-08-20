@@ -2,7 +2,7 @@
 
 # 11.0.1
 
- * But fix related to usage of tools in MOVE block.
+ * Bug fix related to usage of tools in MOVE block.
 
 # 11.0.0
 
