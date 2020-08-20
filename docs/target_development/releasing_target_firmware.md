@@ -88,12 +88,12 @@ done by pushing anything to the master branch:
 
 ```bash
 # update VERSION
-echo $NEW_VERSION > VERSION
+echo 11.0.1 > VERSION
 # update CHANGELOG.md
 $EDITOR CHANGELOG.md
-git checkout -b rel-$(cat VERSION)
-git commit -am 'Release v$(cat VERSION)'
-git push origin rel-$(cat VERSION)
+git checkout -b rel-11.0.1
+git commit -am 'Release v11.0.1'
+git push origin rel-11.0.1
 # open pull request
 # merge pull request
 # publish release once CI has completed
