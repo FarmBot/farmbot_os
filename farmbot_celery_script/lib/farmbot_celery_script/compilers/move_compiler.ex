@@ -2,27 +2,27 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
   @safe_height 0
 
-  # Temporary workaround because NervesHub appears to be broke
-  # at the moment.
-  def install_update(url) do
-    path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
+  # # Temporary workaround because NervesHub appears to be broke
+  # # at the moment.
+  # def install_update(url) do
+  #   path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
 
-    {:ok, :saved_to_file} =
-      :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
+  #   {:ok, :saved_to_file} =
+  #     :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
 
-    args = [
-      "-a",
-      "-i",
-      path,
-      "-d",
-      "/dev/mmcblk0",
-      "-t",
-      "upgrade"
-    ]
+  #   args = [
+  #     "-a",
+  #     "-i",
+  #     path,
+  #     "-d",
+  #     "/dev/mmcblk0",
+  #     "-t",
+  #     "upgrade"
+  #   ]
 
-    {_, 0} = System.cmd("fwup", args)
-    FarmbotCeleryScript.SysCalls.reboot()
-  end
+  #   {_, 0} = System.cmd("fwup", args)
+  #   FarmbotCeleryScript.SysCalls.reboot()
+  # end
 
   def move(%{body: body}, _env) do
     quote location: :keep do
@@ -96,7 +96,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     # lua, numeric
     speed_setting = a[:speed_setting]
 
-    # identifier lua numeric point random special_value
+    # identifier lua numeric point random special_value tool
     axis_operand = a[:axis_operand]
 
     # STRING: "x"|"y"|"z"|"all"
@@ -189,6 +189,11 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def to_number(axis, %{x: _, y: _, z: _} = coord) do
     Map.fetch!(coord, axis)
+  end
+
+  def to_number(axis, %{kind: :tool, args: %{tool_id: id}}) do
+    tool = FarmbotCeleryScript.SysCalls.get_toolslot_for_tool(id)
+    to_number(axis, tool)
   end
 
   def to_number(_axis, arg) do
