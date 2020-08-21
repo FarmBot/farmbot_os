@@ -12,7 +12,7 @@ defmodule FarmbotFirmware.GCODE do
 
   @typedoc "RXX codes. Reports information."
   @type report_kind ::
-           :report_axis_state
+          :report_axis_state
           | :report_axis_timeout
           | :report_begin
           | :report_busy
