@@ -333,6 +333,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   def do_write_pin(pin_number, mode, value) do
     params = {:pin_write, [p: pin_number, v: value, m: mode]}
     cmd = FarmbotFirmware.command(params)
+
     case cmd do
       :ok ->
         :ok
