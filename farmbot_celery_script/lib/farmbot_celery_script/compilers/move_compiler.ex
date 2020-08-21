@@ -74,7 +74,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     # lua, numeric
     speed_setting = a[:speed_setting]
 
-    # identifier lua numeric point random special_value
+    # identifier lua numeric point random special_value tool
     axis_operand = a[:axis_operand]
 
     # STRING: "x"|"y"|"z"|"all"
@@ -167,6 +167,11 @@ defmodule FarmbotCeleryScript.Compiler.Move do
 
   def to_number(axis, %{x: _, y: _, z: _} = coord) do
     Map.fetch!(coord, axis)
+  end
+
+  def to_number(axis, %{kind: :tool, args: %{tool_id: id}}) do
+    tool = FarmbotCeleryScript.SysCalls.get_toolslot_for_tool(id)
+    to_number(axis, tool)
   end
 
   def to_number(_axis, arg) do
