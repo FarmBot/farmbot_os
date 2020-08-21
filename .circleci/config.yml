@@ -157,10 +157,6 @@ deploy_ota_firmware_steps: &deploy_ota_firmware_steps
         command: |
           mix deps.get
           mix ota.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
-    - run:
-        name: Publish to NervesHub
-        working_directory: /nerves/build/farmbot_os
-        command: echo /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 jobs:
 

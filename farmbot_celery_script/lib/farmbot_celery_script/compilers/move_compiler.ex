@@ -2,8 +2,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
   @safe_height 0
 
-  # # Temporary workaround because NervesHub appears to be broke
-  # # at the moment.
+  # TODO: Add this to the `update()` RPC.
   # def install_update(url) do
   #   path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
 
