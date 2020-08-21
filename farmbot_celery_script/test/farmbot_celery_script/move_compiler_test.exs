@@ -26,6 +26,39 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     z: -2
   }
 
+  test "MOVE + `tool` node" do
+    stub_current_location(1)
+    {toolX, toolY, toolZ} = {37.3, 43.7, -34.3}
+
+    expect(Stubs, :get_toolslot_for_tool, 3, fn
+      23 -> %{gantry_mounted: false, name: "X", x: toolX, y: toolY, z: toolZ}
+      id -> raise "Wrong id: #{id}"
+    end)
+
+    expect(Stubs, :move_absolute, 1, fn requested_x,
+                                        requested_y,
+                                        requested_z,
+                                        _,
+                                        _,
+                                        _ ->
+      assert requested_x == toolX
+      assert requested_y == toolY
+      assert requested_z == toolZ
+
+      :ok
+    end)
+
+    tool = %{kind: :tool, args: %{tool_id: 23}}
+
+    body = [
+      %{kind: :axis_overwrite, args: %{axis: "x", axis_operand: tool}},
+      %{kind: :axis_overwrite, args: %{axis: "y", axis_operand: tool}},
+      %{kind: :axis_overwrite, args: %{axis: "z", axis_operand: tool}}
+    ]
+
+    Compiler.Move.perform_movement(body, %{})
+  end
+
   test "extract_variables" do
     body = [
       %{args: %{axis_operand: %{args: %{label: "q"}, kind: :identifier}}},
