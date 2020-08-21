@@ -161,9 +161,6 @@ deploy_ota_firmware_steps: &deploy_ota_firmware_steps
         name: Publish to NervesHub
         working_directory: /nerves/build/farmbot_os
         command: echo /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
-    - run:
-        name: Send Slack Message
-        command: ./.circleci/fwup_meta_slack.sh -i /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
 
 jobs:
 
@@ -544,12 +541,6 @@ jobs:
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts/
-      - run:
-          name: Slack message
-          command: |
-            export OTA_URL=$(wget https://api.github.com/repos/farmbot/farmbot_os/releases -qO- | jq '.[0].url' | sed -e 's/^"//' -e 's/"$//')
-            export SLACK_MESSAGE="New Farmbot Beta: $OTA_URL"
-            elixir slack_message.ex $SLACK_MESSAGE
 
 ################################################################################
 #               TARGET FIRMWARE NERVES GITHUB RELEASE MASTER                   #
@@ -597,9 +588,6 @@ jobs:
       - run:
           name: Publish Github Release
           command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts
-      - run:
-          name: Send Slack Message
-          command: elixir slack_message.ex "New Farmbot Prod release $(cat VERSION)"
 
 workflows:
   version: 2

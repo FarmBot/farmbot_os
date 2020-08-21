@@ -85,10 +85,4 @@ defmodule Mix.Tasks.Farmbot.Env do
   defp commit_message do
     System.cmd("git", ~w(log -1 --pretty=%B)) |> elem(0) |> String.trim()
   end
-
-  @doc false
-  def slack_token do
-    System.get_env("SLACK_TOKEN") ||
-      Mix.raise("No $SLACK_TOKEN environment variable.")
-  end
 end
