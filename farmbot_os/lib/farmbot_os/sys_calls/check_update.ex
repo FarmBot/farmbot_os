@@ -2,8 +2,9 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   @moduledoc false
   require FarmbotCore.Logger
   alias FarmbotCore.JSON
+  alias FarmbotCore.Config
 
-  @release_server "http://localhost:3000/api/releases?target="
+  @release_path "/api/releases?platform="
   @skip %{"image_url" => nil}
 
   def check_update() do
@@ -29,7 +30,11 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   end
 
   def download_meta_data(target) do
-    url = to_charlist(@release_server <> target)
+    # TODO: Hard code this value to `my.farm.bot` so that self-hosters can stay
+    #       up-to-date without managing releases.
+    server = Config.get_config_value(:string, "authorization", "server")
+    url = to_charlist(server <> @release_path <> target)
+    FarmbotCore.Logger.debug(3, "Downloading meta data from #{url}")
     http_resp = :httpc.request(:get, {to_charlist(url), []}, [], [])
     handle_http_response(http_resp)
   end
@@ -39,10 +44,10 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   end
 
   def install_update(url) do
-    path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
-
-    {:ok, :saved_to_file} =
-      :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
+    # FarmbotOS.SysCalls.CheckUpdate.install_update("http://10.11.1.235:8000/farmbot.fw")
+    FarmbotCore.Logger.debug(3, "Flashing firmware image from #{url}")
+    path = to_charlist("/tmp/fw#{trunc(:random.uniform() * 10000)}.fw")
+    {:ok, :saved_to_file} = :httpc.request(:get, {to_charlist(url), []}, [], stream: path)
 
     args = ["-a", "-i", path, "-d", "/dev/mmcblk0", "-t", "upgrade"]
 
