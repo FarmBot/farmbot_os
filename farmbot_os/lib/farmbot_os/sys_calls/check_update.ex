@@ -19,7 +19,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   def get_target() do
     # Read value set by
     try do
-      apply(Nerves.Runtime.KV, :get_active, "nerves_fw_platform")
+      apply(Nerves.Runtime.KV, :get_active, ["nerves_fw_platform"])
     rescue
       error ->
         e = inspect(error)
