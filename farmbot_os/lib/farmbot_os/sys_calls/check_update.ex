@@ -6,7 +6,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
 
   @release_path "/api/releases?platform="
   @skip %{"image_url" => nil}
-  @download_path "/root/upgrade.fw"
+  @dl_path '/root/upgrade.fw'
 
   def check_update() do
     get_target()
@@ -45,17 +45,26 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   end
 
   def install_update(url) do
-    # FarmbotOS.SysCalls.CheckUpdate.install_update("http://10.11.1.235:8000/farmbot.fw")
-    FarmbotCore.Logger.debug(3, "Flashing firmware image from #{url}")
+    FarmbotCore.Logger.debug(3, "Downloading FBOS upgrade from #{url}")
     params = {to_charlist(url), []}
 
-    {:ok, :saved_to_file} =
-      :httpc.request(:get, params, [], stream: @download_path)
+    {:ok, :saved_to_file} = :httpc.request(:get, params, [], stream: @dl_path)
 
-    args = ["-a", "-i", @download_path, "-d", "/dev/mmcblk0", "-t", "upgrade"]
+    FarmbotCore.Logger.debug(
+      3,
+      "Finished downloading upgrade. Begin installation."
+    )
+
+    path_string = to_string(@dl_path)
+    args = ["-a", "-i", path_string, "-d", "/dev/mmcblk0", "-t", "upgrade"]
 
     {_, 0} = System.cmd("fwup", args)
-    # TODO: Delete @download_path?
+
+    FarmbotCore.Logger.debug(3, "Instalation complete. Cleaning up.")
+    File.rm(path_string)
+
+    FarmbotCore.Logger.debug(3, "Going down for reboot.")
+
     FarmbotCeleryScript.SysCalls.reboot()
   end
 
