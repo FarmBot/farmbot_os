@@ -7,6 +7,14 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   @release_path "/api/releases?platform="
   @skip %{"image_url" => nil}
   @dl_path '/root/upgrade.fw'
+  @double_flash_error "A software update is already in progress. Please wait."
+
+  def prevent_double_installation!(path \\ to_string(@dl_path)) do
+    if File.exists?(path) do
+      FarmbotCore.Logger.error(3, @double_flash_error)
+      raise @double_flash_error
+    end
+  end
 
   def check_update() do
     get_target()
@@ -45,6 +53,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   end
 
   def install_update(url) do
+    prevent_double_installation!()
     FarmbotCore.Logger.debug(3, "Downloading FBOS upgrade from #{url}")
     params = {to_charlist(url), []}
 
@@ -61,7 +70,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
     {_, 0} = System.cmd("fwup", args)
 
     FarmbotCore.Logger.debug(3, "Instalation complete. Cleaning up.")
-    File.rm(path_string)
+    File.rm!(path_string)
 
     FarmbotCore.Logger.debug(3, "Going down for reboot.")
 
