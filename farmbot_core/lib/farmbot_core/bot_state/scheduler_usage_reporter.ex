@@ -77,11 +77,13 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
 
     _ = BotState.report_scheduler_usage(round(usage))
 
+    {:ok, load_average} = File.read("/proc/loadavg")
+
     if usage >= 99.9 do
       Logger.debug(
         "sched usage #{round(usage)}% : run queue lengths #{
           inspect(:erlang.statistics(:run_queue_lengths))
-        }"
+        } : load average #{load_average}"
       )
     end
 
