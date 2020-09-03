@@ -1,5 +1,9 @@
 # Changelog
 
+# 11.1.0
+
+* Migrate OTA system to in-house solution.
+
 # 11.0.1
 
  * Bug fix related to usage of tools in MOVE block.
