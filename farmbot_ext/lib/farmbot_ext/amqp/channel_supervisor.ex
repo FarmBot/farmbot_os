@@ -31,7 +31,8 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
       {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
-      {CeleryScriptChannel, [jwt: jwt]}
+      {CeleryScriptChannel, [jwt: jwt]},
+      # {TerminalChannel, [jwt: jwt]}
     ])
   end
 end
