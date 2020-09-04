@@ -30,7 +30,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
          :ok <- Basic.qos(chan, global: true),
          {:ok, _} <- Queue.declare(chan, state.jwt.bot <> "_ping", auto_delete: true),
          {:ok, _} <- Queue.purge(chan, state.jwt.bot <> "_ping"),
-         :ok <- Queue.bind(chan, state.jwt.bot <> "_ping", @exchange, routing_key: "bot.#{bot}.ping.#"),
+         :ok <- Queue.bind(chan, state.jwt.bot <> "_ping", @exchange, routing_key: "bot.device_xyz.ping.#"),
          {:ok, _tag} <- Basic.consume(chan, state.jwt.bot <> "_ping", self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to Terminal channel")
       {:noreply, %{state | conn: conn, chan: chan}}
