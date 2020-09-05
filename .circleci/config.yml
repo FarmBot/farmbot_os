@@ -151,12 +151,6 @@ deploy_ota_firmware_steps: &deploy_ota_firmware_steps
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_jq
-    - run:
-        name: Sign Image
-        working_directory: /nerves/build/farmbot_os
-        command: |
-          mix deps.get
-          mix ota.firmware sign --key notreal /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat ../VERSION).fw
 
 jobs:
 
