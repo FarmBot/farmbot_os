@@ -2,7 +2,7 @@
 
 # 11.1.0
 
-* Migrate OTA system to in-house solution.
+* Migrate OTA system to an in-house solution.
 
 # 11.0.1
 
