@@ -13,6 +13,7 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
 
   def init(_args) do
     _ = :msacc.stop()
+    {:ok, load_ave} = File.open('/proc/loadavg', [:read])
     start_abs = System.monotonic_time(:millisecond)
 
     _ =
@@ -28,7 +29,7 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
       ])
 
     _ = :erlang.process_flag(:priority, :high)
-    {:ok, %{next_report_abs: start_abs}}
+    {:ok, %{load_ave_dev: load_ave, next_report_abs: start_abs}}
   end
 
   def handle_info(:collect, state) do
@@ -77,9 +78,10 @@ defmodule FarmbotCore.BotState.SchedulerUsageReporter do
 
     _ = BotState.report_scheduler_usage(round(usage))
 
-    {:ok, load_average} = File.read("/proc/loadavg")
-
     if usage >= 99.9 do
+      :file.position(state.load_ave_dev, 0)
+      load_average = String.slice(IO.read(state.load_ave_dev, :line), 0..-2)
+
       Logger.debug(
         "sched usage #{round(usage)}% : run queue lengths #{
           inspect(:erlang.statistics(:run_queue_lengths))
