@@ -4,10 +4,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   require Logger
   require FarmbotTelemetry
   require FarmbotCore.Logger
-  alias FarmbotExt.{API, AMQP.ConnectionWorker}
-  alias FarmbotCore.Leds
-  @upper_bound_ms 1_200_000
-  @lower_bound_ms 900_000
+  alias FarmbotExt.AMQP.ConnectionWorker
   @exchange "amq.topic"
 
   defstruct [:conn, :chan, :jwt]
@@ -30,7 +27,10 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
          :ok <- Basic.qos(chan, global: true),
          {:ok, _} <- Queue.declare(chan, state.jwt.bot <> "_ping", auto_delete: true),
          {:ok, _} <- Queue.purge(chan, state.jwt.bot <> "_ping"),
-         :ok <- Queue.bind(chan, state.jwt.bot <> "_ping", @exchange, routing_key: "bot.device_xyz.ping.#"),
+         :ok <-
+           Queue.bind(chan, state.jwt.bot <> "_ping", @exchange,
+             routing_key: "bot.device_xyz.ping.#"
+           ),
          {:ok, _tag} <- Basic.consume(chan, state.jwt.bot <> "_ping", self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to Terminal channel")
       {:noreply, %{state | conn: conn, chan: chan}}

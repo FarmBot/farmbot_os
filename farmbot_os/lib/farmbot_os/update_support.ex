@@ -4,7 +4,6 @@ defmodule FarmbotOS.UpdateSupport do
   alias FarmbotCore.JSON
   alias FarmbotCore.Config
 
-  @release_path "/api/releases?platform="
   @skip %{"image_url" => nil}
   @dl_path '/root/upgrade.fw'
   @double_flash_error "A software update is already in progress. Please wait."
@@ -90,10 +89,7 @@ defmodule FarmbotOS.UpdateSupport do
   # Note that a release is a JSON objecting that contains a
   # URL to a *.fw. It is _not_ a *.fw, however.
   def download_meta_data(target) do
-    # TODO: Hard code this value to `my.farm.bot` so that self-hosters can stay
-    #       up-to-date without managing releases.
-    server = Config.get_config_value(:string, "authorization", "server")
-    url = to_charlist(server <> @release_path <> target)
+    url = calculate_url(target)
     FarmbotCore.Logger.debug(3, "Downloading meta data from #{url}")
     http_resp = :httpc.request(:get, {to_charlist(url), []}, [], [])
     handle_http_response(http_resp)
@@ -111,5 +107,12 @@ defmodule FarmbotOS.UpdateSupport do
         FarmbotCore.Logger.error(3, "Error getting target meta data: #{e}")
         "none"
     end
+  end
+
+  def calculate_url(target) do
+    server = Config.get_config_value(:string, "authorization", "server")
+    id = FarmbotCore.Asset.device().id || 0
+    string = "#{server}/api/releases?platform=#{target}&unsafe_device_id=#{id}"
+    to_charlist(string)
   end
 end
