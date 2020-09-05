@@ -44,10 +44,10 @@ defmodule FarmbotCore.Asset.CommandTest do
   @tag :capture_log
   test "update / destroy fbos config" do
     reset_configs!()
-    params = %{id: 23, update_channel: "whatever"}
+    params = %{id: 23, os_auto_update: false}
     :ok = Command.update(FbosConfig, 23, params)
     config = Enum.at(Asset.Repo.all(FbosConfig), 0)
-    assert config.update_channel == params[:update_channel]
+    assert config.os_auto_update == params[:os_auto_update]
 
     :ok = Command.update(FbosConfig, 23, nil)
     next_config = Enum.at(Asset.Repo.all(FbosConfig), 0)
