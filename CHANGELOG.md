@@ -3,6 +3,7 @@
 # 11.1.0
 
 * Migrate OTA system to in-house solution.
+ * Express v1.0 firmware updates.
 
 # 11.0.1
 
