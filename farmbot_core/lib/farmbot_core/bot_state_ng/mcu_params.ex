@@ -32,6 +32,7 @@ defmodule FarmbotCore.BotStateNG.McuParams do
     field(:movement_steps_acc_dec_x, :float)
     field(:movement_steps_acc_dec_y, :float)
     field(:movement_steps_acc_dec_z, :float)
+    field(:movement_steps_acc_dec_z2, :float)
     field(:movement_stop_at_home_x, :float)
     field(:movement_stop_at_home_y, :float)
     field(:movement_stop_at_home_z, :float)
@@ -44,12 +45,14 @@ defmodule FarmbotCore.BotStateNG.McuParams do
     field(:movement_min_spd_x, :float)
     field(:movement_min_spd_y, :float)
     field(:movement_min_spd_z, :float)
+    field(:movement_min_spd_z2, :float)
     field(:movement_home_spd_x, :float)
     field(:movement_home_spd_y, :float)
     field(:movement_home_spd_z, :float)
     field(:movement_max_spd_x, :float)
     field(:movement_max_spd_y, :float)
     field(:movement_max_spd_z, :float)
+    field(:movement_max_spd_z2, :float)
     field(:movement_invert_2_endpoints_x, :float)
     field(:movement_invert_2_endpoints_y, :float)
     field(:movement_invert_2_endpoints_z, :float)
@@ -139,6 +142,7 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       movement_steps_acc_dec_x: mcu_params.movement_steps_acc_dec_x,
       movement_steps_acc_dec_y: mcu_params.movement_steps_acc_dec_y,
       movement_steps_acc_dec_z: mcu_params.movement_steps_acc_dec_z,
+      movement_steps_acc_dec_z2: mcu_params.movement_steps_acc_dec_z2,
       movement_stop_at_home_x: mcu_params.movement_stop_at_home_x,
       movement_stop_at_home_y: mcu_params.movement_stop_at_home_y,
       movement_stop_at_home_z: mcu_params.movement_stop_at_home_z,
@@ -151,12 +155,14 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       movement_min_spd_x: mcu_params.movement_min_spd_x,
       movement_min_spd_y: mcu_params.movement_min_spd_y,
       movement_min_spd_z: mcu_params.movement_min_spd_z,
+      movement_min_spd_z2: mcu_params.movement_min_spd_z2,
       movement_home_spd_x: mcu_params.movement_home_spd_x,
       movement_home_spd_y: mcu_params.movement_home_spd_y,
       movement_home_spd_z: mcu_params.movement_home_spd_z,
       movement_max_spd_x: mcu_params.movement_max_spd_x,
       movement_max_spd_y: mcu_params.movement_max_spd_y,
       movement_max_spd_z: mcu_params.movement_max_spd_z,
+      movement_max_spd_z2: mcu_params.movement_max_spd_z2,
       movement_invert_2_endpoints_x: mcu_params.movement_invert_2_endpoints_x,
       movement_invert_2_endpoints_y: mcu_params.movement_invert_2_endpoints_y,
       movement_invert_2_endpoints_z: mcu_params.movement_invert_2_endpoints_z,
@@ -242,6 +248,7 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       :movement_steps_acc_dec_x,
       :movement_steps_acc_dec_y,
       :movement_steps_acc_dec_z,
+      :movement_steps_acc_dec_z2,
       :movement_stop_at_home_x,
       :movement_stop_at_home_y,
       :movement_stop_at_home_z,
@@ -254,12 +261,14 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       :movement_min_spd_x,
       :movement_min_spd_y,
       :movement_min_spd_z,
+      :movement_min_spd_z2,
       :movement_home_spd_x,
       :movement_home_spd_y,
       :movement_home_spd_z,
       :movement_max_spd_x,
       :movement_max_spd_y,
       :movement_max_spd_z,
+      :movement_max_spd_z2,
       :movement_invert_2_endpoints_x,
       :movement_invert_2_endpoints_y,
       :movement_invert_2_endpoints_z,
