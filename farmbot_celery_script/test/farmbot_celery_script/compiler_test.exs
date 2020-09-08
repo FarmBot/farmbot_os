@@ -306,10 +306,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
       })
 
     expected =
-      "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok " <>
-        "<- FarmbotCeleryScript.SysCalls.write_pin(" <>
-        "pin, mode, value)) do\n  conclude(pin, mod" <>
-        "e, value)\nend"
+      "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
+        "FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value))" <>
+        " do\n  me = FarmbotCeleryScript.Compiler.PinControl\n" <>
+        "  me.conclude(pin, mode, value)\nend"
 
     assert compiled == expected
   end
