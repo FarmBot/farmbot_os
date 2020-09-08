@@ -6,12 +6,13 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   alias FarmbotExt.JWT
 
   alias FarmbotExt.AMQP.{
+    AutoSyncChannel,
+    BotStateChannel,
+    CeleryScriptChannel,
     LogChannel,
     PingPongChannel,
-    BotStateChannel,
-    AutoSyncChannel,
-    CeleryScriptChannel,
-    TelemetryChannel
+    TelemetryChannel,
+    TerminalChannel,
   }
 
   def start_link(args) do
@@ -24,15 +25,14 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
 
   def children(jwt) do
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
-
     Keyword.get(config, :children, [
       {TelemetryChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
       {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
-      {CeleryScriptChannel, [jwt: jwt]}
-      # {TerminalChannel, [jwt: jwt]}
+      {CeleryScriptChannel, [jwt: jwt]},
+      {TerminalChannel, [jwt: jwt]}
     ])
   end
 end

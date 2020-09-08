@@ -21,17 +21,19 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def handle_info(:connect_amqp, state) do
+    bot = state.jwt.bot
+    name = bot <> "_terminal"
     with %{} = conn <- ConnectionWorker.connection(),
          {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
          Process.link(channel_pid),
          :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, state.jwt.bot <> "_ping", auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, state.jwt.bot <> "_ping"),
+         {:ok, _} <- Queue.declare(chan, name, auto_delete: true),
+         {:ok, _} <- Queue.purge(chan, name),
          :ok <-
-           Queue.bind(chan, state.jwt.bot <> "_ping", @exchange,
-             routing_key: "bot.device_xyz.ping.#"
+           Queue.bind(chan, name, @exchange,
+             routing_key: "bot.#{bot}.terminal_input"
            ),
-         {:ok, _tag} <- Basic.consume(chan, state.jwt.bot <> "_ping", self(), no_ack: true) do
+         {:ok, _tag} <- Basic.consume(chan, name, self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to Terminal channel")
       {:noreply, %{state | conn: conn, chan: chan}}
     else
@@ -41,7 +43,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
 
       err ->
         FarmbotCore.Logger.error(1, "Failed to connect to Terminal channel: #{inspect(err)}")
-        Process.send_after(self(), :connect_amqp, 2000)
+        Process.send_after(self(), :connect_amqp, 3000)
         {:noreply, %{state | conn: nil, chan: nil}}
     end
   end
@@ -63,8 +65,9 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def handle_info({:basic_deliver, payload, %{routing_key: routing_key}}, state) do
-    routing_key = String.replace(routing_key, "ping", "pong")
-    :ok = Basic.publish(state.chan, @exchange, routing_key, payload)
+    IO.inspect(payload, label: "== TTY: ")
+    routing_key = String.replace(routing_key, "_input", "_output")
+    :ok = Basic.publish(state.chan, @exchange, routing_key, "OK")
     {:noreply, state}
   end
 end
