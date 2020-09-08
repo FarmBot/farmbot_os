@@ -63,7 +63,7 @@ defmodule FarmbotExt.JWT do
        iss: map["iss"],
        mqtt: map["mqtt"],
        vhost: map["vhost"],
-       os_update_server: map["os_update_server"],
+       os_update_server: map["os_update_server"]
      )}
   end
 end

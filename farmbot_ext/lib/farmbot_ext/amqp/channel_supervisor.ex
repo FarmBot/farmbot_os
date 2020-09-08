@@ -12,7 +12,7 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     LogChannel,
     PingPongChannel,
     TelemetryChannel,
-    TerminalChannel,
+    TerminalChannel
   }
 
   def start_link(args) do
@@ -25,6 +25,7 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
 
   def children(jwt) do
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
+
     Keyword.get(config, :children, [
       {TelemetryChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
