@@ -40,7 +40,8 @@ defmodule FarmbotOS.UpdateSupport do
   # Downloads an arbitrary URL to @dl_path
   def download_update_image(url) do
     FarmbotCore.Logger.debug(3, "Downloading FBOS upgrade from #{url}")
-    params = {to_charlist(url), []}
+    t = FarmbotCore.Config.get_config_value(:string, "authorization", "token")
+    params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
 
     {:ok, :saved_to_file} = :httpc.request(:get, params, [], stream: @dl_path)
   end
@@ -111,8 +112,7 @@ defmodule FarmbotOS.UpdateSupport do
 
   def calculate_url(target) do
     server = Config.get_config_value(:string, "authorization", "server")
-    id = FarmbotCore.Asset.device().id || 0
-    string = "#{server}/api/releases?platform=#{target}&unsafe_device_id=#{id}"
+    string = "#{server}/api/releases?platform=#{target}"
     to_charlist(string)
   end
 end
