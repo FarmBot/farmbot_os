@@ -72,36 +72,32 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
     {:noreply, state}
   end
 
-  def handle_info({:basic_deliver, payload, %{routing_key: routing_key}}, state) do
-    IO.inspect(payload, label: "== TTY: ")
-    routing_key = String.replace(routing_key, "_input", "_output")
-    :ok = Basic.publish(state.chan, @exchange, routing_key, "OK")
-    {:noreply, state}
+  # INCOMING MESSAGE: We must lazily instantiate an IEX session
+  def handle_info({:basic_deliver, _payl, %{routing_key: _}}, %{iex_pid: nil} = state) do
+    tty_send(state, "Starting IEx...")
+    {:noreply, start_iex(state)}
   end
 
-  def handle_info({:tty_data, data}, state) do
-    tty_send(state.conn, data)
+  # INCOMING MESSAGE: IEx already running.
+  def handle_info({:basic_deliver, payload, %{routing_key: _}}, state) do
+    IO.puts("Sending " <> inspect(payload))
+    ExTTY.send_text(state.iex_pid, payload)
     {:noreply, state, @iex_timeout}
   end
 
-  # Lazily start IEX when commands come in.
-  def handle_info({:incoming_cmd, _} = msg, %{iex_pid: nil} = state) do
-    handle_info(msg, start_iex(state))
-  end
-
-  def handle_info({:incoming_cmd, data}, state) do
-    ExTTY.send_text(state.iex_pid, data)
+  def handle_info({:tty_data, data}, state) do
+    tty_send(state, data)
     {:noreply, state, @iex_timeout}
   end
 
   def handle_info(:timeout, state) do
-    tty_send(state.conn, "=== Session timeout due to inactivity ===")
+    tty_send(state, "=== Session timeout due to inactivity ===")
 
     {:noreply, stop_iex(state)}
   end
 
   def handle_info(req, state) do
-    tty_send(state.conn, "Can't hande this info - #{inspect(req)}")
+    tty_send(state, "Can't hande this info - #{inspect(req)}")
     {:noreply, state}
   end
 
@@ -129,6 +125,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   defp tty_send(state, data) do
-    :ok = AMQP.Basic.publish(state.conn, "amq.topic", "bot.device_123.from_device_stream", data)
+    chan = "bot.#{state.jwt.bot}.terminal_output"
+    :ok = AMQP.Basic.publish(state.chan, "amq.topic", chan, data)
   end
 end
