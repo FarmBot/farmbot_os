@@ -2,8 +2,9 @@
 
 # 11.1.0
 
-* Migrate OTA system to an in-house solution.
-* Express v1.0 firmware updates.
+ * Migrate OTA system to an in-house solution.
+ * Express v1.0 firmware updates.
+ * Fix bug where sequences would crash when a `coordinate` is passed as a variable (Thanks, @jsimmonds2).
 
 # 11.0.1
 
