@@ -158,8 +158,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     Enum.random((-1 * v)..v)
   end
 
-  def to_number(axis, %{kind: :coordinate} = coord) do
-    to_number(axis, coord[:args])
+  def to_number(axis, %{kind: :coordinate, args: coord}) do
+    to_number(axis, coord)
   end
 
   def to_number(_axis, %{args: %{number: num}, kind: :numeric}) do
