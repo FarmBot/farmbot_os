@@ -21,7 +21,6 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
       |> UpdateSupport.install_update()
       |> progress(100)
 
-      FarmbotCore.Logger.debug(3, "Going down for reboot.")
       FarmbotCeleryScript.SysCalls.reboot()
     after
       # If anything crashes, be sure to clean up artifacts
