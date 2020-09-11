@@ -59,6 +59,7 @@ defmodule FarmbotOS.UpdateSupport do
   # the server or if an error occurs.
   def install_update(nil) do
     FarmbotCore.Logger.debug(3, "Not downloading update.")
+    {:error, "No update available."}
   end
 
   # Upgrades the device to an arbitrary URL pointing to a
@@ -68,6 +69,9 @@ defmodule FarmbotOS.UpdateSupport do
       prevent_double_installation!()
       download_update_image(url)
       do_flash_firmware()
+      :ok
+    rescue
+      error -> error
     after
       clean_up()
     end
@@ -76,7 +80,7 @@ defmodule FarmbotOS.UpdateSupport do
   # :httpc callback when a JSON download succeeds (/api/releases?platform=foo)
   def handle_http_response({:ok, {_status_line, _response_headers, body}}) do
     {:ok, map} = JSON.decode(body)
-    FarmbotCore.Logger.debugger(3, "Fetched meta data: " <> body)
+    FarmbotCore.Logger.debug(3, "Fetched meta data: " <> body)
     map
   end
 
