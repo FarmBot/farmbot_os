@@ -1,6 +1,6 @@
 # Changelog
 
-# 11.1.0
+# 12.0.0
 
  * Migrate OTA system to an in-house solution.
  * Express v1.0 firmware updates.
