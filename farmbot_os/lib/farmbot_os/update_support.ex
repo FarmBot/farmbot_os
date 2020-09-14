@@ -92,7 +92,7 @@ defmodule FarmbotOS.UpdateSupport do
   # :httpc callback when a JSON download succeeds (/api/releases?platform=foo)
   def handle_http_response({:ok, {_status_line, _response_headers, body}}) do
     {:ok, map} = JSON.decode(body)
-    FarmbotCore.Logger.debug(3, "Fetched meta data: " <> body)
+    FarmbotCore.Logger.debug(3, "Fetched meta data: " <> inspect(body))
     map
   end
 
