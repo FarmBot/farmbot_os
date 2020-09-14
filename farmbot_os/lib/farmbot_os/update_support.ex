@@ -49,8 +49,7 @@ defmodule FarmbotOS.UpdateSupport do
   # Downloads an arbitrary URL to @dl_path
   def download_update_image(url) do
     FarmbotCore.Logger.debug(3, "Downloading FBOS upgrade from #{url}")
-    t = FarmbotCore.Config.get_config_value(:string, "authorization", "token")
-    params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
+    params = {to_charlist(url), []}
 
     {:ok, :saved_to_file} = :httpc.request(:get, params, [], stream: @dl_path)
   end
@@ -109,8 +108,9 @@ defmodule FarmbotOS.UpdateSupport do
   # URL to a *.fw. It is _not_ a *.fw, however.
   def download_meta_data(target) do
     url = calculate_url(target)
-    FarmbotCore.Logger.debug(3, "Downloading meta data from #{url}")
-    http_resp = :httpc.request(:get, {to_charlist(url), []}, [], [])
+    t = FarmbotCore.Config.get_config_value(:string, "authorization", "token")
+    params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
+    http_resp = :httpc.request(:get, params, [], [])
     handle_http_response(http_resp)
   end
 
