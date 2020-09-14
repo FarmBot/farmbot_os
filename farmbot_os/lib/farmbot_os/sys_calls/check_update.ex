@@ -43,15 +43,15 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
     FarmbotCore.Logger.debug(3, "Upgrade halted: #{inspect(error)}")
   end
 
-  defp progress(passthru, 100) do
+  def progress(passthru, 100) do
     set_progress(passthru, %Percent{percent: 100, status: "complete"})
   end
 
-  defp progress(passthru, percent) do
+  def progress(passthru, percent) do
     set_progress(passthru, %Percent{percent: percent})
   end
 
-  defp set_progress(passthru, percent) do
+  def set_progress(passthru, percent) do
     if Process.whereis(BotState) do
       BotState.set_job_progress("FBOS_OTA", percent)
     end

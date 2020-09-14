@@ -13,7 +13,14 @@ defmodule FarmbotOS.UpdateSupport do
   # side effects. We use @dl_path as a lock file to prevent
   # this. No lock file == no OTA in progress.
   def in_progress?(path \\ to_string(@dl_path)) do
-    File.exists?(path)
+    result = File.exists?(path)
+
+    FarmbotCore.Logger.debug(
+      3,
+      "File.exists?(#{inspect(path)}): #{inspect(result)}"
+    )
+
+    result
   end
 
   # Delete @dl_path so that the user can run an OTA again.
@@ -22,6 +29,8 @@ defmodule FarmbotOS.UpdateSupport do
     if in_progress?() do
       FarmbotCore.Logger.debug(3, "Cleaning up file artifacts.")
       File.rm!(to_string(@dl_path))
+    else
+      FarmbotCore.Logger.debug(3, "*NOT* Cleaning up file artifacts.")
     end
   end
 
@@ -66,13 +75,17 @@ defmodule FarmbotOS.UpdateSupport do
   # *.fw file.
   def install_update(url) do
     try do
+      FarmbotCore.Logger.debug(3, "prevent_double_installation!()")
       prevent_double_installation!()
+      FarmbotCore.Logger.debug(3, "download_update_image(url)")
       download_update_image(url)
+      FarmbotCore.Logger.debug(3, "do_flash_firmware()")
       do_flash_firmware()
       :ok
     rescue
       error -> error
     after
+      FarmbotCore.Logger.debug(3, "clean_up()")
       clean_up()
     end
   end
@@ -106,7 +119,9 @@ defmodule FarmbotOS.UpdateSupport do
   def get_target() do
     # Read value set by
     try do
-      apply(Nerves.Runtime.KV, :get_active, ["nerves_fw_platform"])
+      t = apply(Nerves.Runtime.KV, :get_active, ["nerves_fw_platform"])
+      FarmbotCore.Logger.debug(3, "Got target platform: #{t}")
+      t
     rescue
       error ->
         e = inspect(error)
