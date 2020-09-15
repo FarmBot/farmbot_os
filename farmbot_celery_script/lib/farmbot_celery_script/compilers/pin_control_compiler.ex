@@ -11,7 +11,8 @@ defmodule FarmbotCeleryScript.Compiler.PinControl do
       value = unquote(Compiler.compile_ast(value, env))
 
       with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
-        conclude(pin, mode, value)
+        me = unquote(__MODULE__)
+        me.conclude(pin, mode, value)
       end
     end
   end

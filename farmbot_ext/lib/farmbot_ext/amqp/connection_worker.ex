@@ -148,10 +148,8 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
     {:stop, :close, reply, %{state | conn: nil}}
   end
 
-  # Public function because the NervesHub channel requires it.
-  # TODO(Connor) - Fix that
   @doc false
-  def open_connection(token, email, bot, mqtt_server, vhost) do
+  defp open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
 
     # Make sure the types of these fields are correct. If they are not

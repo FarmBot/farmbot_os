@@ -9,7 +9,6 @@ defmodule FarmbotExt.API.DirtyWorker.Supervisor do
 
   alias FarmbotCore.Asset.{
     Device,
-    DeviceCert,
     FarmEvent,
     FarmwareEnv,
     FarmwareInstallation,
@@ -41,7 +40,6 @@ defmodule FarmbotExt.API.DirtyWorker.Supervisor do
 
     Keyword.get(config, :children, [
       {DirtyWorker, Device},
-      {DirtyWorker, DeviceCert},
       {DirtyWorker, FbosConfig},
       {DirtyWorker, FirmwareConfig},
       {DirtyWorker, FarmEvent},

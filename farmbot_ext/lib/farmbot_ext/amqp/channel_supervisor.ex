@@ -6,12 +6,13 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
   alias FarmbotExt.JWT
 
   alias FarmbotExt.AMQP.{
+    AutoSyncChannel,
+    BotStateChannel,
+    CeleryScriptChannel,
     LogChannel,
     PingPongChannel,
-    BotStateChannel,
-    AutoSyncChannel,
-    CeleryScriptChannel,
-    TelemetryChannel
+    TelemetryChannel,
+    TerminalChannel
   }
 
   def start_link(args) do
@@ -31,7 +32,8 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
       {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
-      {CeleryScriptChannel, [jwt: jwt]}
+      {CeleryScriptChannel, [jwt: jwt]},
+      {TerminalChannel, [jwt: jwt]}
     ])
   end
 end

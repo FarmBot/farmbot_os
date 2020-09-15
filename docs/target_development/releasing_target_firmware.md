@@ -38,9 +38,6 @@ git tag v1.2.3-rc4
 git push origin v1.2.3-rc4
 ```
 
-or call the helper script:
-`./scripts/release_candidate.sh`
-
 ### NOTE about release candidate script
 
 the helper script only **increments** the
@@ -52,7 +49,6 @@ This will fail:
 ```bash
 $ cat VERSION
 10.5.6
-./scripts/release_candidate.sh
 ```
 
 This will succeed:
@@ -60,7 +56,6 @@ This will succeed:
 ```bash
 $ cat VERSION
 10.5.6-rc44
-./scripts/release_candidate.sh
 ```
 
 ## QA OTA channel

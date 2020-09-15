@@ -2,28 +2,6 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
   @safe_height 0
 
-  # # Temporary workaround because NervesHub appears to be broke
-  # # at the moment.
-  # def install_update(url) do
-  #   path = "/tmp/fw#{trunc(:random.uniform() * 10000)}.fw"
-
-  #   {:ok, :saved_to_file} =
-  #     :httpc.request(:get, {to_charlist(url), []}, [], stream: to_charlist(path))
-
-  #   args = [
-  #     "-a",
-  #     "-i",
-  #     path,
-  #     "-d",
-  #     "/dev/mmcblk0",
-  #     "-t",
-  #     "upgrade"
-  #   ]
-
-  #   {_, 0} = System.cmd("fwup", args)
-  #   FarmbotCeleryScript.SysCalls.reboot()
-  # end
-
   def move(%{body: body}, _env) do
     quote location: :keep do
       node_body = unquote(body)
@@ -158,8 +136,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     Enum.random((-1 * v)..v)
   end
 
-  def to_number(axis, %{kind: :coordinate} = coord) do
-    to_number(axis, coord[:args])
+  def to_number(axis, %{kind: :coordinate, args: coord}) do
+    to_number(axis, coord)
   end
 
   def to_number(_axis, %{args: %{number: num}, kind: :numeric}) do

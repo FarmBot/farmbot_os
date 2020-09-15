@@ -95,7 +95,6 @@ defmodule FarmbotOS.MixProject do
 
       # Nerves stuff.
       {:nerves, "~> 1.5", runtime: false},
-      {:nerves_hub_cli, "~> 0.7", runtime: false},
       {:shoehorn, "~> 0.6"},
       {:ring_logger, "~> 0.8"},
       {:luerl, github: "rvirding/luerl"},
@@ -113,7 +112,6 @@ defmodule FarmbotOS.MixProject do
       # Target only deps
       {:nerves_runtime, "~> 0.10", targets: @all_targets},
       {:nerves_time, "~> 0.3.2", targets: @all_targets},
-      {:nerves_hub, "~> 0.7", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
       {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
       {:circuits_i2c, "~> 0.3.5", targets: @all_targets},
