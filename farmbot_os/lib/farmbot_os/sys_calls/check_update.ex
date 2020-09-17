@@ -20,7 +20,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
   end
 
   def do_check_update() do
-    update_progress = UpdateProgress.start_link([])
+    {:ok, progress_pid} = UpdateProgress.start_link([])
     # Try to find the upgrade image URL (might be `nil`)
     url_or_nil =
       UpdateSupport.get_target()
@@ -28,17 +28,17 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
       |> Map.get("image_url", nil)
 
     with :ok <- UpdateSupport.install_update(url_or_nil) do
-      UpdateProgress.set(update_progress, 100)
+      UpdateProgress.set(progress_pid, 100)
       FarmbotCeleryScript.SysCalls.reboot()
     else
-      {:error, error} -> terminate(error, update_progress)
-      error -> terminate(error, update_progress)
+      {:error, error} -> terminate(error, progress_pid)
+      error -> terminate(error, progress_pid)
     end
   end
 
-  def terminate(error, update_progress) do
+  def terminate(error, progress_pid) do
     FarmbotCore.Logger.debug(3, "Upgrade halted: #{inspect(error)}")
-    UpdateProgress.set(update_progress, 100)
+    UpdateProgress.set(progress_pid, 100)
     {:error, error}
   end
 end

@@ -1,5 +1,3 @@
-# pid = FarmbotOS.UpdateProgress.start_link([])
-# FarmbotOS.UpdateProgress.set(pid, 100)
 defmodule FarmbotOS.UpdateProgress do
   use GenServer
   require FarmbotCore.Logger
