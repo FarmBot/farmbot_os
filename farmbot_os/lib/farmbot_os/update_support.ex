@@ -13,33 +13,20 @@ defmodule FarmbotOS.UpdateSupport do
   # side effects. We use @dl_path as a lock file to prevent
   # this. No lock file == no OTA in progress.
   def in_progress?(path \\ to_string(@dl_path)) do
-    result = File.exists?(path)
-
-    FarmbotCore.Logger.debug(
-      3,
-      "File.exists?(#{inspect(path)}): #{inspect(result)}"
-    )
-
-    result
+    File.exists?(path)
   end
 
   # Delete @dl_path so that the user can run an OTA again.
   # This also conserves SD card space.
   def clean_up() do
     if in_progress?() do
-      FarmbotCore.Logger.debug(3, "Cleaning up file artifacts.")
       File.rm!(to_string(@dl_path))
-    else
-      FarmbotCore.Logger.debug(3, "*NOT* Cleaning up file artifacts.")
     end
   end
 
   # Flash the SD card parititon with the new *.fw file using
   # FWUP.
   def do_flash_firmware() do
-    msg = "Finished downloading upgrade. Begin installation."
-    FarmbotCore.Logger.debug(3, msg)
-
     path_string = to_string(@dl_path)
     args = ["-a", "-i", path_string, "-d", "/dev/mmcblk0", "-t", "upgrade"]
 
@@ -48,7 +35,6 @@ defmodule FarmbotOS.UpdateSupport do
 
   # Downloads an arbitrary URL to @dl_path
   def download_update_image(url) do
-    FarmbotCore.Logger.debug(3, "Downloading FBOS upgrade from #{url}")
     params = {to_charlist(url), []}
 
     {:ok, :saved_to_file} = :httpc.request(:get, params, [], stream: @dl_path)
@@ -66,7 +52,6 @@ defmodule FarmbotOS.UpdateSupport do
   # Bails out of an OTA early if no image URL is provided by
   # the server or if an error occurs.
   def install_update(nil) do
-    FarmbotCore.Logger.debug(3, "Not downloading update.")
     {:error, "No update available."}
   end
 
@@ -74,26 +59,28 @@ defmodule FarmbotOS.UpdateSupport do
   # *.fw file.
   def install_update(url) do
     try do
-      FarmbotCore.Logger.debug(3, "prevent_double_installation!()")
       prevent_double_installation!()
-      FarmbotCore.Logger.debug(3, "download_update_image(url)")
       download_update_image(url)
-      FarmbotCore.Logger.debug(3, "do_flash_firmware()")
       do_flash_firmware()
       :ok
     rescue
       error -> error
     after
-      FarmbotCore.Logger.debug(3, "clean_up()")
       clean_up()
     end
   end
 
   # :httpc callback when a JSON download succeeds (/api/releases?platform=foo)
-  def handle_http_response({:ok, {_status_line, _response_headers, body}}) do
+  def handle_http_response({:ok, {{_, 200, _}, _response_headers, body}}) do
     {:ok, map} = JSON.decode(body)
-    FarmbotCore.Logger.debug(3, "Fetched meta data: " <> inspect(body))
     map
+  end
+
+  # :httpc callback when a JSON download succeeds (/api/releases?platform=foo)
+  def handle_http_response({:ok, {{_, 422, _}, _response_headers, body}}) do
+    {:ok, map} = JSON.decode(body)
+    FarmbotCore.Logger.info(3, "Not updating: " <> inspect(Map.keys(map)))
+    @skip
   end
 
   # :httpc callback when a JSON download fails (/api/releases?platform=foo)
@@ -119,9 +106,7 @@ defmodule FarmbotOS.UpdateSupport do
   def get_target() do
     # Read value set by
     try do
-      t = apply(Nerves.Runtime.KV, :get_active, ["nerves_fw_platform"])
-      FarmbotCore.Logger.debug(3, "Got target platform: #{t}")
-      t
+      apply(Nerves.Runtime.KV, :get_active, ["nerves_fw_platform"])
     rescue
       error ->
         e = inspect(error)

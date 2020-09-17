@@ -1,61 +1,44 @@
 defmodule FarmbotOS.SysCalls.CheckUpdate do
   @moduledoc false
   require FarmbotCore.Logger
-  alias FarmbotOS.UpdateSupport
 
-  alias FarmbotCore.{
-    BotState.JobProgress.Percent,
-    BotState
+  alias FarmbotOS.{
+    UpdateSupport,
+    UpdateProgress
   }
 
   def check_update() do
-    # Get the progress spinner spinning...
-    progress(nil, 1)
+    if UpdateSupport.in_progress?() do
+      dont_check_update()
+    else
+      do_check_update()
+    end
+  end
 
+  def dont_check_update() do
+    {:error, "Installation already started. Please wait or reboot."}
+  end
+
+  def do_check_update() do
+    {:ok, progress_pid} = UpdateProgress.start_link([])
     # Try to find the upgrade image URL (might be `nil`)
     url_or_nil =
       UpdateSupport.get_target()
-      |> progress(25)
       |> UpdateSupport.download_meta_data()
-      |> progress(50)
       |> Map.get("image_url", nil)
-      |> progress(75)
 
-    # Attempt to download and install the image
-    try do
-      with :ok <- UpdateSupport.install_update(url_or_nil) do
-        progress(nil, 100)
-        FarmbotCeleryScript.SysCalls.reboot()
-      else
-        {:error, error} -> terminate(error)
-        error -> terminate(error)
-      end
-    after
-      # If anything crashes, be sure to clean up artifacts
-      # and progress bars.
-      progress(nil, 100)
+    with :ok <- UpdateSupport.install_update(url_or_nil) do
+      UpdateProgress.set(progress_pid, 100)
+      FarmbotCeleryScript.SysCalls.reboot()
+    else
+      {:error, error} -> terminate(error, progress_pid)
+      error -> terminate(error, progress_pid)
     end
-
-    :ok
   end
 
-  def terminate(error) do
+  def terminate(error, progress_pid) do
     FarmbotCore.Logger.debug(3, "Upgrade halted: #{inspect(error)}")
-  end
-
-  def progress(passthru, 100) do
-    set_progress(passthru, %Percent{percent: 100, status: "complete"})
-  end
-
-  def progress(passthru, percent) do
-    set_progress(passthru, %Percent{percent: percent})
-  end
-
-  def set_progress(passthru, percent) do
-    if Process.whereis(BotState) do
-      BotState.set_job_progress("FBOS_OTA", percent)
-    end
-
-    passthru
+    UpdateProgress.set(progress_pid, 100)
+    {:error, error}
   end
 end
