@@ -6,9 +6,10 @@
  * Express v1.0 firmware updates.
  * Fix bug where sequences would crash when a `coordinate` is passed as a variable (Thanks, @jsimmonds2).
 
-# 11.0.1
+# 11.1.0
 
  * Bug fix related to usage of tools in MOVE block.
+ * Interim release to transition devices to new in-house OTA system
 
 # 11.0.0
 
