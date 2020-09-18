@@ -1,5 +1,9 @@
 # Changelog
 
+# 12.0.1
+
+ * See release notes for 12.0.0
+
 # 12.0.0
 
  * Migrate OTA system to an in-house solution.
