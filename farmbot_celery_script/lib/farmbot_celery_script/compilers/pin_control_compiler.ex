@@ -1,6 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.PinControl do
   alias FarmbotCeleryScript.Compiler
-  # compiles write_pin
+
   def write_pin(
         %{args: %{pin_number: num, pin_mode: mode, pin_value: value}},
         env
@@ -11,11 +11,8 @@ defmodule FarmbotCeleryScript.Compiler.PinControl do
       value = unquote(Compiler.compile_ast(value, env))
 
       with :ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value) do
-        if mode == 0 do
-          FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
-        else
-          FarmbotCeleryScript.SysCalls.log("Pin #{pin} is #{value} (analog)")
-        end
+        me = unquote(__MODULE__)
+        me.conclude(pin, mode, value)
       end
     end
   end
@@ -59,5 +56,13 @@ defmodule FarmbotCeleryScript.Compiler.PinControl do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.toggle_pin(unquote(pin_number))
     end
+  end
+
+  def conclude(pin, 0, _value) do
+    FarmbotCeleryScript.SysCalls.read_pin(pin, 0)
+  end
+
+  def conclude(pin, _mode, value) do
+    FarmbotCeleryScript.SysCalls.log("Pin #{pin} is #{value} (analog)")
   end
 end

@@ -42,8 +42,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
     group_ast = iterable_ast.args.data_value
     # check if it's a point_group first, then fall back to every_point
     point_group_arg =
-      group_ast.args[:point_group_id] || group_ast.args[:resource_id] ||
-        group_ast.args[:every_point_type]
+      group_ast.args[:point_group_id] || group_ast.args[:resource_id]
 
     # lookup all point_groups related to this value
     case FarmbotCeleryScript.SysCalls.find_points_via_group(point_group_arg) do
@@ -56,9 +55,6 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
         {body, _} =
           Enum.reduce(point_group.point_ids, {[], 1}, fn point_id,
                                                          {acc, index} ->
-            # check if it's an every_point node first, if not fall back go generic pointer
-            pointer_type = group_ast.args[:every_point_type] || "GenericPointer"
-
             parameter_application = %FarmbotCeleryScript.AST{
               kind: :parameter_application,
               args: %{
@@ -66,13 +62,16 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
                 label: iterable_ast.args.label,
                 data_value: %FarmbotCeleryScript.AST{
                   kind: :point,
-                  args: %{pointer_type: pointer_type, pointer_id: point_id}
+                  args: %{pointer_type: "GenericPointer", pointer_id: point_id}
                 }
               }
             }
 
             sequence_name =
-              case FarmbotCeleryScript.SysCalls.point(pointer_type, point_id) do
+              case FarmbotCeleryScript.SysCalls.point(
+                     "GenericPointer",
+                     point_id
+                   ) do
                 %{name: name, x: x, y: y, z: z} when is_binary(sequence_name) ->
                   pos = FarmbotCeleryScript.FormatUtil.format_coord(x, y, z)
                   sequence_name <> " [#{index} / #{total}] - #{name} #{pos}"

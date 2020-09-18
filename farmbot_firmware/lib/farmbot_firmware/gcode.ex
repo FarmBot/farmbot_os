@@ -12,32 +12,32 @@ defmodule FarmbotFirmware.GCODE do
 
   @typedoc "RXX codes. Reports information."
   @type report_kind ::
-          :report_idle
-          | :report_begin
-          | :report_success
-          | :report_error
-          | :report_busy
-          | :report_axis_state
-          | :report_retry
-          | :report_echo
-          | :report_invalid
-          | :report_home_complete
-          | :report_position
-          | :report_load
-          | :report_position_change
-          | :report_parameters_complete
-          | :report_parameter_value
-          | :report_calibration_parameter_value
-          | :report_status_value
-          | :report_pin_value
+          :report_axis_state
           | :report_axis_timeout
-          | :report_end_stops
-          | :report_software_version
-          | :report_encoders_scaled
-          | :report_encoders_raw
-          | :report_emergency_lock
-          | :report_no_config
+          | :report_begin
+          | :report_busy
+          | :report_calibration_parameter_value
           | :report_debug_message
+          | :report_echo
+          | :report_emergency_lock
+          | :report_encoders_raw
+          | :report_encoders_scaled
+          | :report_end_stops
+          | :report_error
+          | :report_home_complete
+          | :report_idle
+          | :report_invalid
+          | :report_load
+          | :report_no_config
+          | :report_parameter_value
+          | :report_parameters_complete
+          | :report_pin_value
+          | :report_position
+          | :report_position_change
+          | :report_retry
+          | :report_software_version
+          | :report_status_value
+          | :report_success
 
   @typedoc "Movement commands"
   @type command_kind ::

@@ -158,6 +158,12 @@ defmodule FarmbotFirmware.ParamTest do
     )
 
     t(
+      :movement_min_spd_z2,
+      float_value,
+      {"minimum speed, z-axis toward home", steps_per_s, "1.2"}
+    )
+
+    t(
       :movement_home_spd_x,
       float_value,
       {"homing speed, x-axis", steps_per_s, "1.2"}
@@ -191,6 +197,12 @@ defmodule FarmbotFirmware.ParamTest do
       :movement_max_spd_z,
       float_value,
       {"max speed, z-axis", steps_per_s, "1.2"}
+    )
+
+    t(
+      :movement_max_spd_z2,
+      float_value,
+      {"max speed, z-axis toward home", steps_per_s, "1.2"}
     )
 
     t(
@@ -317,6 +329,12 @@ defmodule FarmbotFirmware.ParamTest do
       :movement_steps_acc_dec_z,
       1.0,
       {"accelerate for, z-axis", "(steps)", "1"}
+    )
+
+    t(
+      :movement_steps_acc_dec_z2,
+      1.0,
+      {"accelerate for, z-axis toward home", "(steps)", "1"}
     )
 
     t(

@@ -305,20 +305,13 @@ defmodule FarmbotCeleryScript.CompilerTest do
         args: %{pin_number: 17, pin_mode: 0, pin_value: 1}
       })
 
-    assert compiled ==
-             strip_nl("""
-             pin = 17
-             mode = 0
-             value = 1
+    expected =
+      "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
+        "FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value))" <>
+        " do\n  me = FarmbotCeleryScript.Compiler.PinControl\n" <>
+        "  me.conclude(pin, mode, value)\nend"
 
-             with(:ok <- FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value)) do
-               if(mode == 0) do
-                 FarmbotCeleryScript.SysCalls.read_pin(pin, mode)
-               else
-                 FarmbotCeleryScript.SysCalls.log("Pin \#{pin} is \#{value} (analog)")
-               end
-             end
-             """)
+    assert compiled == expected
   end
 
   test "compiles read pin" do

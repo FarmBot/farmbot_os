@@ -1,5 +1,11 @@
 # Changelog
 
+# 12.0.0
+
+ * Migrate OTA system to an in-house solution.
+ * Express v1.0 firmware updates.
+ * Fix bug where sequences would crash when a `coordinate` is passed as a variable (Thanks, @jsimmonds2).
+
 # 11.1.0
 
  * Bug fix related to usage of tools in MOVE block.

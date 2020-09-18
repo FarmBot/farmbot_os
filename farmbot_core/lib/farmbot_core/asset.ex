@@ -8,7 +8,6 @@ defmodule FarmbotCore.Asset do
   alias FarmbotCore.Asset.{
     CriteriaRetriever,
     Device,
-    DeviceCert,
     FarmEvent,
     FarmwareEnv,
     FarmwareInstallation,
@@ -700,25 +699,6 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End SensorReading
-
-  ## Begin DeviceCert
-
-  def new_device_cert(params) do
-    DeviceCert.changeset(%DeviceCert{}, params)
-    |> Repo.insert()
-  end
-
-  def get_device_cert(args) do
-    Repo.get_by(DeviceCert, args)
-  end
-
-  def update_device_cert(cert, params) do
-    cert
-    |> DeviceCert.changeset(params)
-    |> Repo.update()
-  end
-
-  ## End DeviceCert
 
   ## Begin Tool
 

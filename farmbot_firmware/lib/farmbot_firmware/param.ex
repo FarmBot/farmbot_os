@@ -35,6 +35,7 @@ defmodule FarmbotFirmware.Param do
   def decode(41), do: :movement_steps_acc_dec_x
   def decode(42), do: :movement_steps_acc_dec_y
   def decode(43), do: :movement_steps_acc_dec_z
+  def decode(44), do: :movement_steps_acc_dec_z2
   def decode(45), do: :movement_stop_at_home_x
   def decode(46), do: :movement_stop_at_home_y
   def decode(47), do: :movement_stop_at_home_z
@@ -47,12 +48,14 @@ defmodule FarmbotFirmware.Param do
   def decode(61), do: :movement_min_spd_x
   def decode(62), do: :movement_min_spd_y
   def decode(63), do: :movement_min_spd_z
+  def decode(64), do: :movement_min_spd_z2
   def decode(65), do: :movement_home_spd_x
   def decode(66), do: :movement_home_spd_y
   def decode(67), do: :movement_home_spd_z
   def decode(71), do: :movement_max_spd_x
   def decode(72), do: :movement_max_spd_y
   def decode(73), do: :movement_max_spd_z
+  def decode(74), do: :movement_max_spd_z2
   def decode(75), do: :movement_invert_2_endpoints_x
   def decode(76), do: :movement_invert_2_endpoints_y
   def decode(77), do: :movement_invert_2_endpoints_z
@@ -144,6 +147,7 @@ defmodule FarmbotFirmware.Param do
   def encode(:movement_steps_acc_dec_x), do: 41
   def encode(:movement_steps_acc_dec_y), do: 42
   def encode(:movement_steps_acc_dec_z), do: 43
+  def encode(:movement_steps_acc_dec_z2), do: 44
   def encode(:movement_stop_at_home_x), do: 45
   def encode(:movement_stop_at_home_y), do: 46
   def encode(:movement_stop_at_home_z), do: 47
@@ -156,12 +160,14 @@ defmodule FarmbotFirmware.Param do
   def encode(:movement_min_spd_x), do: 61
   def encode(:movement_min_spd_y), do: 62
   def encode(:movement_min_spd_z), do: 63
+  def encode(:movement_min_spd_z2), do: 64
   def encode(:movement_home_spd_x), do: 65
   def encode(:movement_home_spd_y), do: 66
   def encode(:movement_home_spd_z), do: 67
   def encode(:movement_max_spd_x), do: 71
   def encode(:movement_max_spd_y), do: 72
   def encode(:movement_max_spd_z), do: 73
+  def encode(:movement_max_spd_z2), do: 74
   def encode(:movement_invert_2_endpoints_x), do: 75
   def encode(:movement_invert_2_endpoints_y), do: 76
   def encode(:movement_invert_2_endpoints_z), do: 77
@@ -322,6 +328,9 @@ defmodule FarmbotFirmware.Param do
   def to_human(:movement_steps_acc_dec_z, value),
     do: {"accelerate for, z-axis", @steps, format_float(value)}
 
+  def to_human(:movement_steps_acc_dec_z2, value),
+    do: {"accelerate for, z-axis toward home", @steps, format_float(value)}
+
   def to_human(:movement_stop_at_home_x, value),
     do: {"stop at home, x-axis", nil, format_bool(value)}
 
@@ -358,6 +367,9 @@ defmodule FarmbotFirmware.Param do
   def to_human(:movement_min_spd_z, value),
     do: {"minimum speed, z-axis", @steps_per_s, format_float(value)}
 
+  def to_human(:movement_min_spd_z2, value),
+    do: {"minimum speed, z-axis toward home", @steps_per_s, format_float(value)}
+
   def to_human(:movement_home_spd_x, value),
     do: {"homing speed, x-axis", @steps_per_s, format_float(value)}
 
@@ -375,6 +387,9 @@ defmodule FarmbotFirmware.Param do
 
   def to_human(:movement_max_spd_z, value),
     do: {"max speed, z-axis", @steps_per_s, format_float(value)}
+
+  def to_human(:movement_max_spd_z2, value),
+    do: {"max speed, z-axis toward home", @steps_per_s, format_float(value)}
 
   def to_human(:movement_invert_2_endpoints_x, value),
     do: {"invert endstops, x-axis", nil, format_bool(value)}
