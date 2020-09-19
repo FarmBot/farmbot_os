@@ -1,10 +1,18 @@
 # Changelog
 
+# 12.0.1
+
+ * See release notes for 12.0.0
+
 # 12.0.0
 
  * Migrate OTA system to an in-house solution.
  * Express v1.0 firmware updates.
  * Fix bug where sequences would crash when a `coordinate` is passed as a variable (Thanks, @jsimmonds2).
+
+# 11.1.0
+
+ * Interim release to transition devices to new in-house OTA system
 
 # 11.0.1
 
