@@ -19,7 +19,8 @@ Application.ensure_all_started(:mimic)
   FarmbotOS.SysCalls,
   File,
   MuonTrap,
-  FarmbotCeleryScript.SysCalls
+  FarmbotCeleryScript.SysCalls,
+  System
 ]
 |> Enum.map(&Mimic.copy/1)
 
