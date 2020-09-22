@@ -15,30 +15,26 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def init(args) do
-    send(self(), :connect_amqp)
-    {:ok, default_state(args)}
+    {:ok, default_state(args), {:continue, {:connect_amqp, 0}}}
   end
 
   def handle_amqp_connection(state, {:ok, chan}) do
     FarmbotCore.Logger.debug(3, "Connected to terminal channel")
-    %{state | chan: chan}
+    {:noreply, %{state | chan: chan}}
   end
 
   def handle_amqp_connection(state, nil) do
-    Process.send_after(self(), :connect_amqp, 5000)
-    %{state | chan: nil}
+    {:noreply, %{state | chan: nil}, {:continue, {:connect_amqp, 4000}}}
   end
 
   def handle_amqp_connection(state, err) do
-    msg = "Terminal connection failed: #{inspect(err)}"
-    FarmbotCore.Logger.error(1, msg)
-    Process.send_after(self(), :connect_amqp, 3000)
-    %{state | chan: nil}
+    FarmbotCore.Logger.error(1, "Terminal connection failed: #{inspect(err)}")
+    {:noreply, %{state | chan: nil}, {:continue, {:connect_amqp, 4000}}}
   end
 
-  def handle_info(:connect_amqp, state) do
-    result = Support.get_channel(state.jwt.bot)
-    {:noreply, handle_amqp_connection(state, result)}
+  def handle_continue({:connect_amqp, wait}, state) do
+    Process.sleep(wait)
+    handle_amqp_connection(state, Support.get_channel(state.jwt.bot))
   end
 
   # Confirmation sent by the broker after registering this
