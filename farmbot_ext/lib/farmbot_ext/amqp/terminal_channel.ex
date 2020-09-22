@@ -1,16 +1,14 @@
 defmodule FarmbotExt.AMQP.TerminalChannel do
   use GenServer
-  use AMQP
-  require Logger
-  require FarmbotTelemetry
   require FarmbotCore.Logger
-  alias FarmbotExt.AMQP.ConnectionWorker
-  @exchange "amq.topic"
+
   # 5 minutes
   @iex_timeout 300 * 1000
 
-  defstruct [:conn, :chan, :jwt, :iex_pid]
+  defstruct [:chan, :jwt, :iex_pid]
+
   alias __MODULE__, as: State
+  alias FarmbotExt.AMQP.TerminalChannelSupport, as: Support
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -18,45 +16,33 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
 
   def init(args) do
     send(self(), :connect_amqp)
+    {:ok, default_state(args)}
+  end
 
-    state = %State{
-      chan: nil,
-      conn: nil,
-      iex_pid: nil,
-      jwt: Keyword.fetch!(args, :jwt)
-    }
+  def handle_amqp_connection(state, {:ok, chan}) do
+    FarmbotCore.Logger.debug(3, "Connected to terminal channel")
+    %{state | chan: chan}
+  end
 
-    {:ok, state}
+  def handle_amqp_connection(state, nil) do
+    Process.send_after(self(), :connect_amqp, 5000)
+    %{state | chan: nil}
+  end
+
+  def handle_amqp_connection(state, err) do
+    msg = "Terminal connection failed: #{inspect(err)}"
+    FarmbotCore.Logger.error(1, msg)
+    Process.send_after(self(), :connect_amqp, 3000)
+    %{state | chan: nil}
   end
 
   def handle_info(:connect_amqp, state) do
-    bot = state.jwt.bot
-    name = bot <> "_terminal"
-
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, name, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, name),
-         :ok <-
-           Queue.bind(chan, name, @exchange, routing_key: "bot.#{bot}.terminal_input"),
-         {:ok, _tag} <- Basic.consume(chan, name, self(), no_ack: true) do
-      FarmbotCore.Logger.debug(3, "connected to Terminal channel")
-      {:noreply, %{state | conn: conn, chan: chan}}
-    else
-      nil ->
-        Process.send_after(self(), :connect_amqp, 5000)
-        {:noreply, %{state | conn: nil, chan: nil}}
-
-      err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to Terminal channel: #{inspect(err)}")
-        Process.send_after(self(), :connect_amqp, 3000)
-        {:noreply, %{state | conn: nil, chan: nil}}
-    end
+    result = Support.get_channel(state.jwt.bot)
+    {:noreply, handle_amqp_connection(state, result)}
   end
 
-  # Confirmation sent by the broker after registering this process as a consumer
+  # Confirmation sent by the broker after registering this
+  # process as a consumer
   def handle_info({:basic_consume_ok, _}, state) do
     {:noreply, state}
   end
@@ -67,13 +53,15 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
     {:stop, :normal, state}
   end
 
-  # Confirmation sent by the broker to the consumer process after a Basic.cancel
+  # Confirmation sent by the broker to the consumer process
+  # after a Basic.cancel
   def handle_info({:basic_cancel_ok, _}, state) do
     {:noreply, state}
   end
 
-  # INCOMING MESSAGE: We must lazily instantiate an IEX session
-  def handle_info({:basic_deliver, _payl, %{routing_key: _}}, %{iex_pid: nil} = state) do
+  # INCOMING MESSAGE: We must lazily instantiate an IEX
+  # session
+  def handle_info({:basic_deliver, _, %{routing_key: _}}, %{iex_pid: nil} = state) do
     tty_send(state, "Starting IEx...")
     {:noreply, start_iex(state)}
   end
@@ -97,35 +85,30 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def handle_info(req, state) do
-    tty_send(state, "Can't hande this info - #{inspect(req)}")
+    tty_send(state, "UNKNOWN TERMINAL MSG - #{inspect(req)}")
     {:noreply, state}
   end
 
-  defp start_iex(state) do
-    shell_opts = [
-      [
-        dot_iex_path:
-          [".iex.exs", "~/.iex.exs", "/etc/iex.exs"]
-          |> Enum.map(&Path.expand/1)
-          |> Enum.find("", &File.regular?/1)
-      ]
-    ]
-
-    {:ok, iex_pid} = ExTTY.start_link(handler: self(), type: :elixir, shell_opts: shell_opts)
-
+  def start_iex(state) do
+    opts = [type: :elixir, shell_opts: Support.shell_opts(), handler: self()]
+    {:ok, iex_pid} = ExTTY.start_link(opts)
     %{state | iex_pid: iex_pid}
   end
 
-  defp stop_iex(%{iex_pid: nil} = state), do: state
+  def stop_iex(%{iex_pid: nil} = state), do: state
 
-  defp stop_iex(%{iex_pid: iex} = state) do
+  def stop_iex(%{iex_pid: iex} = state) do
     _ = Process.unlink(iex)
     :ok = GenServer.stop(iex, 10_000)
     %{state | iex_pid: nil}
   end
 
-  defp tty_send(state, data) do
+  def tty_send(state, data) do
     chan = "bot.#{state.jwt.bot}.terminal_output"
     :ok = AMQP.Basic.publish(state.chan, "amq.topic", chan, data)
+  end
+
+  def default_state(args) do
+    %State{chan: nil, iex_pid: nil, jwt: Keyword.fetch!(args, :jwt)}
   end
 end
