@@ -1,5 +1,11 @@
 Application.ensure_all_started(:mimic)
-Mimic.copy(Circuits.UART)
-Mimic.copy(FarmbotFirmware.UartDefaultAdapter)
-Mimic.copy(File)
+
+[
+  Circuits.UART,
+  FarmbotFirmware.UartDefaultAdapter,
+  File
+]
+|> Enum.map(&Mimic.copy/1)
+
+ExUnit.configure(max_cases: 1)
 ExUnit.start()
