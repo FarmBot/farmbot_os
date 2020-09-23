@@ -9,6 +9,12 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   @jwt %FarmbotExt.JWT{bot: "device_#{Enum.random(1000..100_000)}"}
   @chan %{fake_chan: true}
 
+  def tty_send(pid, data) do
+    mesg = {:basic_deliver, data, %{routing_key: "UNIT_TESTS"}}
+    send(pid, mesg)
+    pid
+  end
+
   def base_case() do
     simulate_network([{:ok, @chan}])
     {:ok, pid} = TerminalChannel.start_link([jwt: @jwt], [])
@@ -18,6 +24,20 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   def expect_log(msg) do
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == msg
+    end)
+  end
+
+  # Simulates a series of network return values for a stubbed
+  # version of TerminalChannelSupport.get_channel/1
+  def expect_response(expectations) do
+    total = Enum.count(expectations)
+    {:ok, counter} = SimpleCounter.new()
+
+    expect(Support, :tty_send, total, fn _, _, actual ->
+      current_index = SimpleCounter.bump(counter, 1) - 1
+      expected = Enum.at(expectations, current_index)
+      assert expected == actual
+      :ok
     end)
   end
 
@@ -77,5 +97,22 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
     send(pid, {:basic_cancel, %{}})
     Process.sleep(1)
     refute Process.alive?(pid)
+  end
+
+  test "execute commands over TermincalChannel" do
+    expected = [
+      "Starting IEx...",
+      "Interactive Elixir (1.9.0) - press Ctrl+C to exit (type h() ENTER for help)\r\n",
+      "iex(1)> "
+    ]
+
+    expect(Support, :tty_send, 4, fn _bot, _chan, actual ->
+      assert Enum.member?(expected, actual)
+    end)
+
+    tty_send(base_case(), "\r")
+    Process.sleep(50)
+    tty_send(base_case(), "2 + 2\r")
+    Process.sleep(50)
   end
 end

@@ -86,9 +86,21 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def start_iex(state) do
-    opts = [type: :elixir, shell_opts: Support.shell_opts(), handler: self()]
-    {:ok, iex_pid} = ExTTY.start_link(opts)
-    %{state | iex_pid: iex_pid}
+    process = Process.whereis(:ex_tty_handler_farmbot)
+
+    if process do
+      %{state | iex_pid: process}
+    else
+      opts = [
+        type: :elixir,
+        shell_opts: Support.shell_opts(),
+        handler: self(),
+        name: :ex_tty_handler_farmbot
+      ]
+
+      {:ok, iex_pid} = ExTTY.start_link(opts)
+      %{state | iex_pid: iex_pid}
+    end
   end
 
   def stop_iex(%{iex_pid: nil} = state), do: state
@@ -100,7 +112,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def tty_send(state, data) do
-    :ok = Support.tty_send(state.jwt.bot, state.chan, data)
+    FarmbotExt.AMQP.TerminalChannelSupport.tty_send(state.jwt.bot, state.chan, data)
   end
 
   def default_state(args) do
