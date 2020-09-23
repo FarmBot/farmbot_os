@@ -32,4 +32,9 @@ defmodule FarmbotExt.AMQP.TerminalChannelSupport do
       ]
     ]
   end
+
+  def tty_send(bot_name, amqp_channel, data) do
+    chan = "bot.#{bot_name}.terminal_output"
+    AMQP.Basic.publish(amqp_channel, "amq.topic", chan, data)
+  end
 end

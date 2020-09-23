@@ -100,8 +100,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def tty_send(state, data) do
-    chan = "bot.#{state.jwt.bot}.terminal_output"
-    :ok = AMQP.Basic.publish(state.chan, "amq.topic", chan, data)
+    :ok = Support.tty_send(state.jwt.bot, state.chan, data)
   end
 
   def default_state(args) do

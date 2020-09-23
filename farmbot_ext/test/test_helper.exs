@@ -35,3 +35,23 @@ ExUnit.start()
 defmodule StubReset do
   def reset(), do: :ok
 end
+
+defmodule SimpleCounter do
+  def new(starting_value \\ 0) do
+    Agent.start_link(fn -> starting_value end)
+  end
+
+  def get_count(pid) do
+    Agent.get(pid, fn count -> count end)
+  end
+
+  def incr(pid, by \\ 1) do
+    Agent.update(pid, fn count -> count + by end)
+    pid
+  end
+
+  # Increment the counter by one and get the current count.
+  def bump(pid, by \\ 1) do
+    pid |> incr(by) |> get_count()
+  end
+end
