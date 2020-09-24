@@ -81,7 +81,7 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   def schedule(sch, compiled, at, %{} = data) when is_list(compiled) do
-    GenServer.call(sch, {:schedule, compiled, at, data})
+    GenServer.call(sch, {:schedule, compiled, at, data}, 60_000)
   end
 
   def get_next(sch \\ __MODULE__) do
