@@ -159,6 +159,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_emergency_lock() do
     _ = FirmwareEstopTimer.start_timer()
+    _ = Leds.red(:fast_blink)
     _ = Leds.yellow(:slow_blink)
     :ok = BotState.set_firmware_locked()
   end
@@ -166,6 +167,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
   @impl FarmbotFirmware.SideEffects
   def handle_emergency_unlock() do
     _ = FirmwareEstopTimer.cancel_timer()
+    _ = Leds.red(:solid)
     _ = Leds.yellow(:off)
     :ok = BotState.set_firmware_unlocked()
   end
