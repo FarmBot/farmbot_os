@@ -370,8 +370,12 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :update_resource, [kind, id, params])
   end
 
-  def fbos_config(sys_calls \\ @sys_calls),
-    do: ok_or_error(sys_calls, :fbos_config, [])
+  def fbos_config(sys_calls \\ @sys_calls) do
+    case apply(sys_calls, :fbos_config, []) do
+      {:ok, conf} -> {:ok, conf}
+      error -> or_error(sys_calls, :fbos_config, [], error)
+    end
+  end
 
   defp ok_or_error(sys_calls, fun, args) do
     case apply(sys_calls, fun, args) do
