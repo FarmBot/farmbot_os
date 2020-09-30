@@ -39,6 +39,9 @@ defmodule FarmbotCore.Asset.FbosConfig do
     field(:sequence_complete_log, :boolean)
     field(:sequence_init_log, :boolean)
 
+    field(:safe_height, :float)
+    field(:soil_height, :float)
+
     # private
     field(:monitor, :boolean, default: true)
     timestamps()
@@ -60,7 +63,9 @@ defmodule FarmbotCore.Asset.FbosConfig do
       os_auto_update: fbos_config.os_auto_update,
       sequence_body_log: fbos_config.sequence_body_log,
       sequence_complete_log: fbos_config.sequence_complete_log,
-      sequence_init_log: fbos_config.sequence_init_log
+      sequence_init_log: fbos_config.sequence_init_log,
+      safe_height: fbos_config.safe_height,
+      soil_height: fbos_config.soil_height,
     }
   end
 
@@ -68,22 +73,24 @@ defmodule FarmbotCore.Asset.FbosConfig do
     fbos_config
     |> cast(params, [
       :id,
+      :created_at,
+      :updated_at,
+      :monitor,
       :arduino_debug_messages,
       :beta_opt_in,
       :disable_factory_reset,
+      :firmware_debug_log,
       :firmware_hardware,
-      :firmware_path,
       :firmware_input_log,
       :firmware_output_log,
-      :firmware_debug_log,
+      :firmware_path,
       :network_not_found_timer,
       :os_auto_update,
+      :safe_height,
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,
-      :monitor,
-      :created_at,
-      :updated_at
+      :soil_height,
     ])
     |> validate_required([])
   end

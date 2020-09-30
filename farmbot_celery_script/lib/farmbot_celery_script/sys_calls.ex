@@ -103,6 +103,7 @@ defmodule FarmbotCeleryScript.SysCalls do
             }
   @callback update_resource(kind :: String.t(), resource_id, params :: map()) ::
               ok_or_error
+  @callback fbos_config() :: ok_or_error
 
   def find_points_via_group(sys_calls \\ @sys_calls, point_group_id) do
     point_group_or_error(sys_calls, :find_points_via_group, [point_group_id])
@@ -368,6 +369,9 @@ defmodule FarmbotCeleryScript.SysCalls do
   def update_resource(sys_calls \\ @sys_calls, kind, id, params) do
     ok_or_error(sys_calls, :update_resource, [kind, id, params])
   end
+
+  def fbos_config(sys_calls \\ @sys_calls),
+    do: ok_or_error(sys_calls, :fbos_config, [])
 
   defp ok_or_error(sys_calls, fun, args) do
     case apply(sys_calls, fun, args) do

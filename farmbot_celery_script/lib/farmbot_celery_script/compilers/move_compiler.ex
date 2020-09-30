@@ -1,6 +1,6 @@
 defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
-  @safe_height 0
+  alias FarmbotCeleryScript.SpecialValue
 
   def move(%{body: body}, _env) do
     quote location: :keep do
@@ -39,7 +39,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def retract_z(needs) do
-    a = %{x: cx(), y: cy(), z: @safe_height}
+    a = %{x: cx(), y: cy(), z: SpecialValue.safe_height()}
     b = Map.merge(needs, a)
     move_abs(b)
     needs
@@ -155,7 +155,11 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def to_number(_, %{args: %{label: "safe_height"}, kind: :special_value}) do
-    @safe_height
+    SpecialValue.safe_height()
+  end
+
+  def to_number(_, %{args: %{label: "soil_height"}, kind: :special_value}) do
+    SpecialValue.soil_height()
   end
 
   def to_number(axis, %{
