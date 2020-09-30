@@ -19,7 +19,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
   FarmbotExt.API.Preloader,
-  FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.Bootstrap.Authorization
 ]
 |> Enum.map(&Mimic.copy/1)
 
