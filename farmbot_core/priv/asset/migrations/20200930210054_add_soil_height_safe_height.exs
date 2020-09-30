@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.Repo.Migrations.ResyncFirmwareConfig do
+defmodule FarmbotCore.Asset.Repo.Migrations.AddSoilHeightSafeHeight do
   use Ecto.Migration
 
   def change do
