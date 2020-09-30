@@ -9,6 +9,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Asset.Private,
   FarmbotCore.Asset.Repo,
   FarmbotCore.BotState,
+  FarmbotCore.Config,
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
   FarmbotExt.AMQP.AutoSyncAssetHandler,

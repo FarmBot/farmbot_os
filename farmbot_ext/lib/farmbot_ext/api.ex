@@ -21,10 +21,8 @@ defmodule FarmbotExt.API do
   @version Project.version()
   @target Project.target()
 
-  # adapter(Tesla.Adapter.Hackney)
   plug(Tesla.Middleware.JSON, decode: &JSON.decode/1, encode: &JSON.encode/1)
   plug(Tesla.Middleware.FollowRedirects)
-  # plug(Tesla.Middleware.Logger)
 
   def client do
     binary_token = get_config_value(:string, "authorization", "token")
@@ -165,6 +163,10 @@ defmodule FarmbotExt.API do
   @doc "helper for `GET`ing a path."
   def get_body!(path) do
     case API.get(API.client(), path) do
+      {:ok, %{status: 401}} ->
+        FarmbotExt.Bootstrap.reauth()
+        {:error, "Token is expired. Please try again."}
+
       {:ok, %{body: body, status: 200}} ->
         {:ok, body}
 
