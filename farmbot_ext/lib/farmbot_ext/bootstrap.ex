@@ -82,8 +82,6 @@ defmodule FarmbotExt.Bootstrap do
     with {:ok, tkn} <- Authorization.authorize_with_secret(email, secret, server),
          _ <- update_config_value(:string, "authorization", "token", tkn) do
       {:ok, tkn}
-    else
-      err -> err
     end
   end
 end
