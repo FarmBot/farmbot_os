@@ -1,5 +1,11 @@
 Application.ensure_all_started(:mimic)
-Mimic.copy(FarmbotCeleryScript.SpecialValue)
-Mimic.copy(FarmbotCeleryScript.SysCalls.Stubs)
+
+[
+  FarmbotCeleryScript.SysCalls,
+  FarmbotCeleryScript.SpecialValue,
+  FarmbotCeleryScript.SysCalls.Stubs
+]
+|> Enum.map(&Mimic.copy/1)
+
 ExUnit.configure(max_cases: 1)
 ExUnit.start()
