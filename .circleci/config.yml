@@ -51,13 +51,13 @@ install_libnl: &install_libnl
 
 install_mdl: &install_mdl
   run:
-    name: Install libnl
+    name: Install Ruby / mdl
     command: |
       apt-get update
       apt-get install ruby -y
       gem install mdl
 
-build_firmware_steps: &build_firmware_steps
+steps_to_build_cached_firmware: &steps_to_build_cached_firmware
   steps:
     - checkout
     - run: git submodule update --init --recursive
@@ -98,7 +98,7 @@ build_firmware_steps: &build_firmware_steps
         paths:
           - "/nerves/deploy/system"
 
-build_firmware_clean_steps: &build_firmware_clean_steps
+steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
   steps:
     - checkout
     - run: git submodule update --init --recursive
@@ -135,7 +135,7 @@ build_firmware_clean_steps: &build_firmware_clean_steps
         paths:
           - "/nerves/deploy/system"
 
-deploy_ota_firmware_steps: &deploy_ota_firmware_steps
+predeploy_setup: &predeploy_setup
   steps:
     - checkout
     - run: git submodule update --init --recursive
@@ -359,7 +359,7 @@ jobs:
           path: farmbot_os/cover
 
 ################################################################################
-#                           target=rpi app_env=prod                            #
+#                           Build the targets
 ################################################################################
 
   build_rpi_prod:
@@ -367,176 +367,52 @@ jobs:
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-    <<: *build_firmware_steps
-
-################################################################################
-#                           target=rpi3 app_env=prod                           #
-################################################################################
+    <<: *steps_to_build_cached_firmware
 
   build_rpi3_prod:
     <<: *defaults
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-    <<: *build_firmware_steps
+    <<: *steps_to_build_cached_firmware
 
-################################################################################
-#                           target=rpi app_env=prod                            #
-################################################################################
-
-  build_clean_rpi_prod:
+  build_fresh_rpi:
     <<: *defaults
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-    <<: *build_firmware_clean_steps
+    <<: *steps_to_build_fresh_firmware
 
-################################################################################
-#                           target=rpi3 app_env=prod                           #
-################################################################################
-
-  build_clean_rpi3_prod:
+  build_fresh_rpi3:
     <<: *defaults
     environment:
       MIX_TARGET: rpi3
       MIX_ENV: prod
-    <<: *build_firmware_clean_steps
+    <<: *steps_to_build_fresh_firmware
 
 ################################################################################
-#                    target=rpi app_env=prod channel=stable                    #
+#                    Release Targets
 ################################################################################
 
-  deploy_rpi_prod_stable:
+  predeploy_rpi3:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi3
+      MIX_ENV: prod
+    <<: *predeploy_setup
+
+  predeploy_rpi:
     <<: *defaults
     environment:
       MIX_TARGET: rpi
       MIX_ENV: prod
-      OTA_DEPLOY: rpi-prod-stable
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                    target=rpi3 app_env=prod channel=stable                   #
-################################################################################
-
-  deploy_rpi3_prod_stable:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi3
-      MIX_ENV: prod
-      OTA_DEPLOY: rpi3-prod-stable
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                    target=rpi app_env=prod channel=beta                      #
-################################################################################
-
-  deploy_rpi_prod_beta:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi
-      MIX_ENV: prod
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                     target=rpi3 app_env=prod channel=beta                    #
-################################################################################
-
-  deploy_rpi3_prod_beta:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi3
-      MIX_ENV: prod
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                     target=rpi3 app_env=prod channel=staging                 #
-################################################################################
-
-  deploy_rpi3_prod_staging:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi3
-      MIX_ENV: prod
-      OTA_DEPLOY: rpi3-prod-staging
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                     target=rpi3 app_env=prod channel=qa                      #
-################################################################################
-
-  deploy_rpi3_prod_qa:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi3
-      MIX_ENV: prod
-      OTA_DEPLOY: rpi3-prod-qa
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                     target=rpi app_env=prod channel=qa                       #
-################################################################################
-
-  deploy_rpi_prod_qa:
-    <<: *defaults
-    environment:
-      MIX_TARGET: rpi
-      MIX_ENV: prod
-      OTA_DEPLOY: rpi-prod-qa
-    <<: *deploy_ota_firmware_steps
-
-################################################################################
-#                TARGET FIRMWARE NERVES GITHUB RELEASE BETA                    #
-################################################################################
-
-  publish_prod_firmware_beta_release:
-    <<: *defaults
-    environment:
-      MIX_ENV: prod
-      ELIXIR_VERSION: 1.8.0
-    steps:
-      - checkout
-      - run:
-          name: Setup ENV
-          command: |
-            echo rpi3 > MIX_TARGET_RPI3
-            echo rpi > MIX_TARGET_RPI
-            echo $MIX_ENV > MIX_ENV
-      - restore_cache:
-          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - restore_cache:
-          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - <<: *install_ghr
-      - <<: *install_jq
-      - add_ssh_keys:
-          fingerprints:
-            - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
-      - run: grep -Pazo "(?s)(?<=# $(cat VERSION | cut -f1 -d"-"))[^#]+" CHANGELOG.md > RELEASE_NOTES
-      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
-      - run:
-          name: Sign rpi3 Firmware
-          command: |
-            mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img
-            sha256sum /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).sha256
-      - run:
-          name: Sign rpi Firmware
-          command: |
-            mv /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw /tmp/farmbot-rpi-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw
-            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img
-            sha256sum /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).sha256
-      - run:
-          name: Publish Github Release
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -prerelease -recreate -prerelease -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts/
+    <<: *predeploy_setup
 
 ################################################################################
 #               TARGET FIRMWARE NERVES GITHUB RELEASE MASTER                   #
 ################################################################################
 
-  publish_prod_firmware_master_release:
+  release_to_github:
     <<: *defaults
     environment:
       MIX_ENV: prod
@@ -589,252 +465,57 @@ workflows:
             branches:
               ignore:
                 - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
       - test_farmbot_firmware:
           context: org-global
           filters:
             branches:
               ignore:
                 - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
       - test_farmbot_core:
           context: org-global
           filters:
             branches:
               ignore:
                 - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
       - test_farmbot_ext:
           context: org-global
           filters:
             branches:
               ignore:
                 - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
       - test_farmbot_os:
           context: org-global
           filters:
             branches:
               ignore:
                 - master
-                - staging
-                - beta
-                - next
-                - /^qa\/.*/
-
-  # master branch to staging.farmbot.io
-  ota_prod_stable_staging:
-    jobs:
-      - build_clean_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - master
-      - build_clean_rpi3_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - master
-      - deploy_rpi_prod_stable:
-          context: farmbot-staging
-          requires:
-            - build_clean_rpi_prod
-      - deploy_rpi3_prod_stable:
-          context: farmbot-staging
-          requires:
-            - build_clean_rpi3_prod
-
   # master branch to my.farmbot.io
-  ota_prod_stable_production:
+  production_prerelease:
     jobs:
-      - build_clean_rpi_prod:
-          context: farmbot-production
+      - build_fresh_rpi:
+          context: farmbot-stable
           filters:
             branches:
               only:
                 - master
-      - build_clean_rpi3_prod:
-          context: farmbot-production
+                - /^qa\/.*/
+      - build_fresh_rpi3:
+          context: farmbot-stable
           filters:
             branches:
               only:
                 - master
-      - deploy_rpi_prod_stable:
-          context: farmbot-production
+                - /^qa\/.*/
+      - predeploy_rpi:
+          context: farmbot-stable
           requires:
-            - build_clean_rpi_prod
-      - deploy_rpi3_prod_stable:
-          context: farmbot-production
+            - build_fresh_rpi
+      - predeploy_rpi3:
+          context: farmbot-stable
           requires:
-            - build_clean_rpi3_prod
-      - publish_prod_firmware_master_release:
+            - build_fresh_rpi3
+      - release_to_github:
           context: org-global
           requires:
-            - build_clean_rpi_prod
-            - build_clean_rpi3_prod
-
-  # any tag containint an `-rcXXX` tag to staging.farmbot.io
-  ota_prod_beta_staging:
-    jobs:
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-      - build_rpi3_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-      - deploy_rpi_prod_beta:
-          context: farmbot-staging
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-          requires:
-            - build_rpi_prod
-      - deploy_rpi3_prod_beta:
-          context: farmbot-staging
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-          requires:
-            - build_rpi3_prod
-
-  # any tag containint an `-rcXXX` tag to my.farmbot.io
-  ota_prod_beta_production:
-    jobs:
-      - build_rpi_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-      - build_rpi3_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-      - deploy_rpi_prod_beta:
-          context: farmbot-production
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-          requires:
-            - build_rpi_prod
-      - deploy_rpi3_prod_beta:
-          context: farmbot-production
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-          requires:
-            - build_rpi3_prod
-      - publish_prod_firmware_beta_release:
-          context: org-global
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)-rc(0|[1-9]\d*)+?/
-          requires:
-            # - build_rpi_prod
-            - build_rpi3_prod
-
-  # any branch matching qa/** to staging.farmbot.io
-  ota_prod_staging_staging:
-    jobs:
-      - build_rpi3_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-
-      - build_rpi_prod:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-
-      - deploy_rpi3_prod_qa:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-          requires:
-            - build_rpi3_prod
-
-      - deploy_rpi_prod_qa:
-          context: farmbot-staging
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-          requires:
-            - build_rpi_prod
-
-  # any branch matching qa/** to production.farmbot.io
-  ota_prod_staging_production:
-    jobs:
-      - build_rpi3_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-
-      - build_rpi_prod:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-
-      - deploy_rpi3_prod_qa:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-          requires:
-            - build_rpi3_prod
-
-      - deploy_rpi_prod_qa:
-          context: farmbot-production
-          filters:
-            branches:
-              only:
-                - /^qa\/.*/
-          requires:
-            - build_rpi_prod
+            - build_fresh_rpi
+            - build_fresh_rpi3
