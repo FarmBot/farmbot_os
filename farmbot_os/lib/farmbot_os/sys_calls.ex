@@ -314,6 +314,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def fbos_config() do
-    {:ok, FarmbotCore.Asset.FbosConfig.render(FarmbotCore.Asset.fbos_config())}
+    conf = FarmbotCore.Asset.fbos_config()
+    output = FarmbotCore.Asset.FbosConfig.render(conf)
+    {:ok, output}
   end
 end
