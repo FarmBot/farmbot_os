@@ -12,6 +12,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
   setup :verify_on_exit!
 
   @safe_height %{args: %{label: "safe_height"}, kind: :special_value}
+  @soil_height %{args: %{label: "soil_height"}, kind: :special_value}
   @current_location %{
     kind: :special_value,
     args: %{label: "current_location"}
@@ -272,13 +273,17 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
 
     fake_variance = %{kind: :random, args: %{variance: 10}}
 
+    expect(FarmbotCeleryScript.SpecialValue, :safe_height, fn -> 1.23 end)
+    expect(FarmbotCeleryScript.SpecialValue, :soil_height, fn -> 3.45 end)
+
+    assert Compiler.Move.to_number(:z, @soil_height) == 3.45
+    assert Compiler.Move.to_number(:z, @safe_height) == 1.23
     assert Compiler.Move.to_number(:x, vec) == x
     assert Compiler.Move.to_number(:y, vec) == y
     assert Compiler.Move.to_number(:z, vec) == z
     assert Compiler.Move.to_number(:x, @current_location) == x
     assert Compiler.Move.to_number(:y, @current_location) == y
     assert Compiler.Move.to_number(:z, @current_location) == z
-    assert Compiler.Move.to_number(:z, @safe_height) == 0
     assert Compiler.Move.to_number(:x, fake_pointer) == 776.0
     assert Compiler.Move.to_number(:x, fake_resource) == 776.0
     assert Compiler.Move.to_number(:y, fake_pointer) == 633.0

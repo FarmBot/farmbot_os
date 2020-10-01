@@ -1,5 +1,10 @@
 # Changelog
 
+# 12.1.0
+
+ * `safe_height` and `soil_height` support for MOVE block.
+ * Bug fix relating to auth errors after > 40 days of uptime.
+
 # 12.0.1
 
  * See release notes for 12.0.0

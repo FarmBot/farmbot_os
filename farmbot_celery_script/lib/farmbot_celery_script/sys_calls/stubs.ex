@@ -161,6 +161,9 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def eval_assertion(comment, expression),
     do: error(:eval_assertion, [comment, expression])
 
+  @impl true
+  def fbos_config(), do: error(:fbos_config, [])
+
   defp error(fun, _args) do
     msg = """
     CeleryScript syscall stubbed: #{fun}
