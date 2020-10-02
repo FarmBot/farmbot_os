@@ -490,7 +490,7 @@ workflows:
               ignore:
                 - master
   # master branch to my.farmbot.io
-  production_prerelease:
+  create_github_release:
     jobs:
       - build_fresh_rpi:
           context: farmbot-production
