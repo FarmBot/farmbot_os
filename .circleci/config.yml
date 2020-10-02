@@ -460,31 +460,31 @@ workflows:
   test:
     jobs:
       - test_farmbot_celery_script:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               ignore:
                 - master
       - test_farmbot_firmware:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               ignore:
                 - master
       - test_farmbot_core:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               ignore:
                 - master
       - test_farmbot_ext:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               ignore:
                 - master
       - test_farmbot_os:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               ignore:
@@ -493,29 +493,29 @@ workflows:
   create_github_release:
     jobs:
       - build_fresh_rpi:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               only:
                 - master
                 - /^qa\/.*/
       - build_fresh_rpi3:
-          context: farmbot-production
+          context: org-global
           filters:
             branches:
               only:
                 - master
                 - /^qa\/.*/
       - predeploy_rpi:
-          context: farmbot-production
+          context: org-global
           requires:
             - build_fresh_rpi
       - predeploy_rpi3:
-          context: farmbot-production
+          context: org-global
           requires:
             - build_fresh_rpi3
       - release_to_github:
-          context: farmbot-production
+          context: org-global
           requires:
             - build_fresh_rpi
             - build_fresh_rpi3
