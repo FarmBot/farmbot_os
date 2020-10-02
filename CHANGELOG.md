@@ -4,6 +4,7 @@
 
  * `safe_height` and `soil_height` support for MOVE block.
  * Bug fix relating to auth errors after > 40 days of uptime.
+ * Genesis v1.5 firmware update.
 
 # 12.0.1
 
