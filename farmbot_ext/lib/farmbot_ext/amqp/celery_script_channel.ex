@@ -12,7 +12,8 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
   require Logger
 
   alias FarmbotCeleryScript.{AST, StepRunner}
-  alias FarmbotExt.AMQP.ConnectionWorker
+
+  alias FarmbotExt.AMQP.Support
 
   @exchange "amq.topic"
 
@@ -41,10 +42,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     queue_name = "#{bot}_from_clients"
     route = "bot.#{bot}.from_clients"
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
+    with {:ok, {conn, chan}} <- Support.create_channel(),
          {:ok, _} <- Queue.declare(chan, queue_name, auto_delete: true),
          {:ok, _} <- Queue.purge(chan, queue_name),
          :ok <- Queue.bind(chan, queue_name, @exchange, routing_key: route),

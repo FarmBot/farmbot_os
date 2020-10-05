@@ -3,19 +3,18 @@ defmodule FarmbotExt.AMQP.LogChannel do
   Handler for AMQP log channel
   """
 
-  use GenServer
   use AMQP
-  alias AMQP.Channel
+  use GenServer
 
-  alias FarmbotCore.{BotState, JSON}
   require FarmbotCore.Logger
   require FarmbotTelemetry
-
-  alias FarmbotExt.AMQP.ConnectionWorker
   require Logger
 
-  @exchange "amq.topic"
+  alias AMQP.Channel
+  alias FarmbotCore.{BotState, JSON}
+
   @checkup_ms 100
+  @exchange "amq.topic"
 
   defstruct [:conn, :chan, :jwt, :state_cache]
   alias __MODULE__, as: State
@@ -37,9 +36,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
   end
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true) do
+    with {:ok, {conn, chan}} <- FarmbotExt.AMQP.Support.create_channel() do
       FarmbotTelemetry.event(:amqp, :channel_open)
       initial_bot_state = BotState.subscribe()
       {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}

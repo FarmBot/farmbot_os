@@ -12,7 +12,11 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   use GenServer
   use AMQP
 
-  alias FarmbotExt.{API, AMQP.ConnectionWorker}
+  alias FarmbotExt.{
+    API,
+    AMQP.ConnectionWorker,
+    AMQP.Support
+  }
 
   require Logger
   require FarmbotCore.Logger
@@ -62,10 +66,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     ping = bot <> "_ping"
     route = "bot.#{bot}.ping"
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
+    with {:ok, {conn, chan}} <- Support.create_channel(),
          {:ok, _} <- Queue.declare(chan, ping, auto_delete: true),
          {:ok, _} <- Queue.purge(chan, ping),
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),

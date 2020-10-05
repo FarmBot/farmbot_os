@@ -9,6 +9,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
 
   alias FarmbotCore.{BotState, BotStateNG}
   alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotExt.AMQP.Support
   require FarmbotCore.Logger
   require FarmbotTelemetry
 
@@ -47,12 +48,8 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
     telemetry = bot <> "_telemetry"
-    # route = "bot.#{bot}.telemetry"
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
+    with {:ok, {conn, chan}} <- Support.create_channel(),
          {:ok, _} <- Queue.declare(chan, telemetry, auto_delete: true),
          {:ok, _} <- Queue.purge(chan, telemetry) do
       FarmbotTelemetry.event(:amqp, :channel_open)

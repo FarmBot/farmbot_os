@@ -10,7 +10,6 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
   require FarmbotCore.Logger
   require FarmbotTelemetry
   alias FarmbotCore.JSON
-  alias FarmbotExt.AMQP.ConnectionWorker
 
   alias FarmbotCore.{BotState, BotStateNG}
 
@@ -51,9 +50,7 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
 
   @impl GenServer
   def handle_info(:timeout, %{conn: nil, chan: nil} = state) do
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true) do
+    with {:ok, {conn, chan}} <- FarmbotExt.AMQP.Support.create_channel() do
       FarmbotTelemetry.event(:amqp, :channel_open)
       {:noreply, %{state | conn: conn, chan: chan}, {:continue, :dispatch}}
     else
