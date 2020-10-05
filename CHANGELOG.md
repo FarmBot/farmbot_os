@@ -1,5 +1,10 @@
 # Changelog
 
+# 12.1.0
+
+ * `safe_height` and `soil_height` support for MOVE block.
+ * Bug fix relating to auth errors after > 40 days of uptime.
+
 # 12.0.1
 
  * See release notes for 12.0.0
@@ -11,6 +16,10 @@
  * Fix bug where sequences would crash when a `coordinate` is passed as a variable (Thanks, @jsimmonds2).
 
 # 11.1.0
+
+ * Interim release to transition devices to new in-house OTA system
+
+# 11.0.1
 
  * Bug fix related to usage of tools in MOVE block.
  * Interim release to transition devices to new in-house OTA system

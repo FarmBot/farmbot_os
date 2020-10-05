@@ -1,26 +1,29 @@
 Application.ensure_all_started(:mimic)
 
 [
+  FarmbotCeleryScript.SysCalls,
+  FarmbotCore.Asset,
   FarmbotCore.Asset.Device,
   FarmbotCore.Asset.FbosConfig,
   FarmbotCore.Asset.FirmwareConfig,
-  FarmbotCore.Asset,
   FarmbotCore.BotState,
   FarmbotCore.Config,
   FarmbotCore.FarmwareRuntime,
   FarmbotCore.LogExecutor,
-  FarmbotExt.API.Reconciler,
   FarmbotExt.API,
+  FarmbotExt.API.Reconciler,
   FarmbotFirmware,
   FarmbotOS.Configurator.ConfigDataLayer,
   FarmbotOS.Configurator.DetsTelemetryLayer,
   FarmbotOS.Configurator.FakeNetworkLayer,
-  FarmbotOS.SysCalls.Movement,
   FarmbotOS.SysCalls,
+  FarmbotOS.SysCalls.Movement,
+  FarmbotOS.UpdateSupport,
   File,
   MuonTrap,
-  FarmbotCeleryScript.SysCalls
+  System
 ]
 |> Enum.map(&Mimic.copy/1)
 
+ExUnit.configure(max_cases: 1)
 ExUnit.start()

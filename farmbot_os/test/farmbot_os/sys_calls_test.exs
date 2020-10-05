@@ -144,4 +144,13 @@ defmodule FarmbotOS.SysCallsTest do
     actual = SysCalls.install_first_party_farmware()
     assert expected == actual
   end
+
+  test "fbos_config()" do
+    {:ok, conf} = SysCalls.fbos_config()
+
+    expected =
+      FarmbotCore.Asset.FbosConfig.render(FarmbotCore.Asset.fbos_config())
+
+    assert conf == expected
+  end
 end

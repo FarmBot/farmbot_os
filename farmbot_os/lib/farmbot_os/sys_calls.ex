@@ -311,4 +311,11 @@ defmodule FarmbotOS.SysCalls do
     r = inspect(reason)
     {:error, "Firmware error @ #{w}: #{r}"}
   end
+
+  @impl true
+  def fbos_config() do
+    conf = FarmbotCore.Asset.fbos_config()
+    output = FarmbotCore.Asset.FbosConfig.render(conf)
+    {:ok, output}
+  end
 end
