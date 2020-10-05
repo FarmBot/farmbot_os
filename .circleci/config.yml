@@ -409,7 +409,7 @@ jobs:
     <<: *predeploy_setup
 
 ################################################################################
-#               TARGET FIRMWARE NERVES GITHUB RELEASE MASTER                   #
+#               TARGET FIRMWARE NERVES GITHUB RELEASE main                   #
 ################################################################################
 
   release_to_github:
@@ -464,32 +464,32 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - main
       - test_farmbot_firmware:
           context: org-global
           filters:
             branches:
               ignore:
-                - master
+                - main
       - test_farmbot_core:
           context: org-global
           filters:
             branches:
               ignore:
-                - master
+                - main
       - test_farmbot_ext:
           context: org-global
           filters:
             branches:
               ignore:
-                - master
+                - main
       - test_farmbot_os:
           context: org-global
           filters:
             branches:
               ignore:
-                - master
-  # master branch to my.farmbot.io
+                - main
+  # main branch to my.farmbot.io
   create_github_release:
     jobs:
       - build_fresh_rpi:
@@ -497,14 +497,14 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^qa\/.*/
       - build_fresh_rpi3:
           context: org-global
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^qa\/.*/
       - predeploy_rpi:
           context: org-global
