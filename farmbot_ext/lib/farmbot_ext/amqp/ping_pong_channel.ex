@@ -66,9 +66,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     ping = bot <> "_ping"
     route = "bot.#{bot}.ping"
 
-    with {:ok, {conn, chan}} <- Support.create_channel(),
-         {:ok, _} <- Queue.declare(chan, ping, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, ping),
+    with {:ok, {conn, chan}} <- Support.create_queue(ping),
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
          {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
       FarmbotTelemetry.event(:amqp, :channel_open)

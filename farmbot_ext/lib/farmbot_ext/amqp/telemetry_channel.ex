@@ -49,9 +49,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
     bot = state.jwt.bot
     telemetry = bot <> "_telemetry"
 
-    with {:ok, {conn, chan}} <- Support.create_channel(),
-         {:ok, _} <- Queue.declare(chan, telemetry, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, telemetry) do
+    with {:ok, {conn, chan}} <- Support.create_queue(telemetry) do
       FarmbotTelemetry.event(:amqp, :channel_open)
       FarmbotCore.Logger.debug(3, "connected to Telemetry channel")
       send(self(), :consume_telemetry)

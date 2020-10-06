@@ -42,9 +42,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     queue_name = "#{bot}_from_clients"
     route = "bot.#{bot}.from_clients"
 
-    with {:ok, {conn, chan}} <- Support.create_channel(),
-         {:ok, _} <- Queue.declare(chan, queue_name, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, queue_name),
+    with {:ok, {conn, chan}} <- Support.create_queue(queue_name),
          :ok <- Queue.bind(chan, queue_name, @exchange, routing_key: route),
          {:ok, _tag} <- Basic.consume(chan, queue_name, self(), no_ack: true) do
       FarmbotCore.Logger.debug(3, "connected to CeleryScript channel")
