@@ -31,11 +31,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, rpc_requests: %{}}}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from CeleryScript channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan, do: AMQP.Channel.close(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "CeleryScript")
 
   def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
@@ -55,10 +51,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to CeleryScript channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        Process.send_after(self(), :connect_amqp, 2000)
-        {:noreply, %{state | conn: nil, chan: nil}}
+        Support.handle_error(state, err, "CeleryScript")
     end
   end
 

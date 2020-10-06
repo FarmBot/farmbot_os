@@ -99,22 +99,16 @@ defmodule FarmbotExt.API.Reconciler do
     local_item = Repo.one(from(d in module, where: d.id == ^item.id))
 
     case get_changeset(local_item || module, item, cached_cs) do
-      {:insert, %Changeset{} = cs} ->
-        # Logger.info("insert: #{inspect(cs)}")
-        item = module.render(Changeset.apply_changes(cs))
-        :ok = Command.update(module, item.id, item)
-        sync_changeset
-
-      {:update, %Changeset{} = cs} ->
-        # Logger.info("update: #{inspect(cs)}")
-        item = module.render(Changeset.apply_changes(cs))
-        :ok = Command.update(module, item.id, item)
-        sync_changeset
-
-      nil ->
-        # Logger.info("Local data: #{local_item.__struct__} is current.")
-        sync_changeset
+      {:insert, %Changeset{} = cs} -> handle_change(module, cs)
+      {:update, %Changeset{} = cs} -> handle_change(module, cs)
     end
+
+    sync_changeset
+  end
+
+  defp handle_change(module, cs) do
+    item = module.render(Changeset.apply_changes(cs))
+    :ok = Command.update(module, item.id, item)
   end
 
   defp get_changeset(local_item, sync_item, cached_changeset)

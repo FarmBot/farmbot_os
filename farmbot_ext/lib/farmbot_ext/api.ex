@@ -205,17 +205,7 @@ defmodule FarmbotExt.API do
   end
 
   def get_changeset(%module{} = data) do
-    get_body!(module.path() <> ".json")
-    |> case do
-      {:ok, %{} = single} ->
-        {:ok, module.changeset(data, single)}
-
-      {:ok, many} when is_list(many) ->
-        {:ok, Enum.map(many, &module.changeset(data, &1))}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
+    get_body!(module.path() <> ".json") |> unwrap(data)
   end
 
   @doc "helper for `GET`ing api resources."
@@ -239,13 +229,17 @@ defmodule FarmbotExt.API do
   end
 
   def get_changeset(%module{} = data, path) do
-    get_body!(Path.join(module.path(), to_string(path) <> ".json"))
-    |> case do
-      {:ok, %{} = single} ->
-        {:ok, module.changeset(data, single)}
+    p = Path.join(module.path(), to_string(path) <> ".json")
+    unwrap(get_body!(p), data)
+  end
 
+  def unwrap(body, %module{} = data) do
+    case body do
       {:ok, many} when is_list(many) ->
         {:ok, Enum.map(many, &module.changeset(data, &1))}
+
+      {:ok, %{} = single} ->
+        {:ok, module.changeset(data, single)}
 
       {:error, reason} ->
         {:error, reason}

@@ -14,7 +14,6 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
   alias FarmbotExt.{
     API,
-    AMQP.ConnectionWorker,
     AMQP.Support
   }
 
@@ -54,11 +53,9 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     {:ok, state}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from PingPong channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
+  def terminate(r, s) do
     _ = Leds.blue(:off)
-    if state.chan, do: ConnectionWorker.close_channel(state.chan)
+    Support.handle_termination(r, s, "PingPong")
   end
 
   def handle_info(:connect_amqp, state) do
@@ -82,10 +79,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to PingPong channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        Process.send_after(self(), :connect_amqp, 2000)
-        {:noreply, %{state | conn: nil, chan: nil}}
+        Support.handle_error(state, err, "PingPong")
     end
   end
 

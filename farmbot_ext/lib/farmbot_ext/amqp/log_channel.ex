@@ -10,8 +10,8 @@ defmodule FarmbotExt.AMQP.LogChannel do
   require FarmbotTelemetry
   require Logger
 
-  alias AMQP.Channel
   alias FarmbotCore.{BotState, JSON}
+  alias FarmbotExt.AMQP.Support
 
   @checkup_ms 100
   @exchange "amq.topic"
@@ -29,11 +29,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, state_cache: nil}, 0}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from Log channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan, do: Channel.close(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "Log")
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
     with {:ok, {conn, chan}} <- FarmbotExt.AMQP.Support.create_channel() do

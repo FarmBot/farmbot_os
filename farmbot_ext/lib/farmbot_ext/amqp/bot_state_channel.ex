@@ -5,13 +5,12 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
 
   use GenServer
   use AMQP
-  alias AMQP.Channel
 
   require FarmbotCore.Logger
   require FarmbotTelemetry
-  alias FarmbotCore.JSON
-
   alias FarmbotCore.{BotState, BotStateNG}
+  alias FarmbotCore.JSON
+  alias FarmbotExt.AMQP.Support
 
   @exchange "amq.topic"
 
@@ -36,11 +35,7 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
   end
 
   @impl GenServer
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from BotState channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan, do: Channel.close(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "BotState")
 
   @impl GenServer
   def handle_cast(:force, state) do
