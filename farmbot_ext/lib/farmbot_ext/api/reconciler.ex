@@ -101,6 +101,7 @@ defmodule FarmbotExt.API.Reconciler do
     case get_changeset(local_item || module, item, cached_cs) do
       {:insert, %Changeset{} = cs} -> handle_change(module, cs)
       {:update, %Changeset{} = cs} -> handle_change(module, cs)
+      nil -> nil
     end
 
     sync_changeset
