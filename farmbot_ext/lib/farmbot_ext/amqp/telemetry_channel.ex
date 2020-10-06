@@ -8,7 +8,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   use AMQP
 
   alias FarmbotCore.{BotState, BotStateNG}
-  alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotExt.AMQP.Support
   require FarmbotCore.Logger
   require FarmbotTelemetry
 
@@ -39,22 +39,13 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
     {:ok, state}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from Telemetry channel: #{inspect(reason)}")
-    if state.chan, do: ConnectionWorker.close_channel(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "Telemetry")
 
   def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
     telemetry = bot <> "_telemetry"
-    # route = "bot.#{bot}.telemetry"
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, telemetry, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, telemetry) do
+    with {:ok, {conn, chan}} <- Support.create_queue(telemetry) do
       FarmbotTelemetry.event(:amqp, :channel_open)
       FarmbotCore.Logger.debug(3, "connected to Telemetry channel")
       send(self(), :consume_telemetry)
@@ -66,10 +57,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to Telemetry channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        Process.send_after(self(), :connect_amqp, 2000)
-        {:noreply, %{state | conn: nil, chan: nil}}
+        Support.handle_error(state, err, "Telemetry")
     end
   end
 

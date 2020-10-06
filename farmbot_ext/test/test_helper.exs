@@ -3,6 +3,7 @@ Application.ensure_all_started(:mimic)
 
 [
   AMQP.Channel,
+  AMQP.Basic,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,

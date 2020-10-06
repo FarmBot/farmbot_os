@@ -79,7 +79,7 @@ git push origin some-feature some-feature:qa/some-featuer
 ## Stable OTA channel
 
 Publish an OTA to the `stable` OTA channel can be
-done by pushing anything to the master branch:
+done by pushing anything to the main branch:
 
 ```bash
 # update VERSION

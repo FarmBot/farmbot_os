@@ -14,6 +14,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   alias FarmbotCore.{BotState, JSON, Leds}
   alias FarmbotExt.AMQP.{ConnectionWorker, AutoSyncAssetHandler}
   alias FarmbotExt.API.{EagerLoader, Preloader}
+  alias FarmbotExt.AMQP.Support
 
   # The API dispatches messages for other resources, but these
   # are the only ones that Farmbot needs to sync.
@@ -57,11 +58,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from AutoSync channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan do
-      ConnectionWorker.close_channel(state.chan)
-    end
+    Support.handle_termination(reason, state, "Auto Sync")
 
     try do
       EagerLoader.Supervisor.drop_all_cache()
