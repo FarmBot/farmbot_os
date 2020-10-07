@@ -1,8 +1,13 @@
 defmodule FarmbotExt.API.DirtyWorker do
-  @moduledoc "Handles uploading/downloading of data from the API."
+  @moduledoc "Handles uploading/downloading of data from the APIFetcher."
   alias FarmbotCore.Asset.{Private, Repo}
 
-  alias FarmbotExt.{API, API.DirtyWorker}
+  alias FarmbotExt.{
+    API,
+    API.DirtyWorker,
+    APIFetcher
+  }
+
   import API.View, only: [render: 2]
 
   require Logger
@@ -59,19 +64,19 @@ defmodule FarmbotExt.API.DirtyWorker do
   defp http_request(%{id: nil} = dirty, module) do
     path = module.path()
     data = render(module, dirty)
-    API.post(API.client(), path, data)
+    APIFetcher.post(APIFetcher.client(), path, data)
   end
 
   defp http_request(dirty, module) when module in @singular do
     path = path = module.path()
     data = render(module, dirty)
-    API.patch(API.client(), path, data)
+    APIFetcher.patch(APIFetcher.client(), path, data)
   end
 
   defp http_request(dirty, module) do
     path = Path.join(module.path(), to_string(dirty.id))
     data = render(module, dirty)
-    API.patch(API.client(), path, data)
+    APIFetcher.patch(APIFetcher.client(), path, data)
   end
 
   # This is a fix for a race condtion. The root cause is unknown

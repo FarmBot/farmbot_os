@@ -22,7 +22,7 @@ defmodule FarmbotExt.API.ImageUploaderTest do
       File.write(f, "X")
     end)
 
-    expect(FarmbotExt.API, :upload_image, 4, fn
+    expect(FarmbotExt.APIFetcher, :upload_image, 4, fn
       "/tmp/images/d.gif", _meta -> {:error, %{status: 401, body: %{}}}
       _image_filename, _meta -> {:ok, %{status: 201, body: %{}}}
     end)
