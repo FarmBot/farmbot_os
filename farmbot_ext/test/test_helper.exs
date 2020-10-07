@@ -19,6 +19,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.AMQP.Support,
   FarmbotExt.AMQP.TerminalChannelSupport,
   FarmbotExt.API,
+  FarmbotExt.APIFetcher,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
   FarmbotExt.API.Preloader,

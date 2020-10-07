@@ -1,6 +1,13 @@
 defmodule FarmbotExt.APITest do
-  use ExUnit.Case
-  alias FarmbotExt.API
+  use ExUnit.Case, async: false
+  use Mimic
+
+  setup :verify_on_exit!
+
+  alias FarmbotExt.{
+    API,
+    APIFetcher
+  }
 
   defmodule FakeResource do
     defstruct [:foo]
@@ -35,5 +42,21 @@ defmodule FarmbotExt.APITest do
 
     assert one.valid?
     assert one.changes == fake_json
+  end
+
+  test "get_changeset" do
+    fake_changes = %{name: "Test Case"}
+
+    expect(APIFetcher, :get_body!, 1, fn path ->
+      assert path == "/api/device/15.json"
+      {:ok, fake_changes}
+    end)
+
+    device = %FarmbotCore.Asset.Device{id: 15}
+    id = device.id
+
+    {:ok, changeset} = API.get_changeset(device, id)
+    assert changeset.valid?
+    assert changeset.changes == fake_changes
   end
 end
