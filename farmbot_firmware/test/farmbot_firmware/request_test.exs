@@ -4,7 +4,7 @@ defmodule FarmbotFirmware.RequestTest do
   setup :verify_on_exit!
   alias FarmbotFirmware.Request
 
-  test "request whitelist" do
+  test "request ok" do
     boom = fn ->
       Request.request({:a, {:b, :c}})
     end

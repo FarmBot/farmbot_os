@@ -11,7 +11,7 @@ defmodule FarmbotFirmware.Request do
           {:ok, GCODE.t()}
           | {:error,
              :invalid_command | :firmware_error | FarmbotFirmware.status()}
-  @whitelist [
+  @ok [
     :parameter_read,
     :status_read,
     :pin_read,
@@ -22,7 +22,7 @@ defmodule FarmbotFirmware.Request do
   def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
-    if kind not in @whitelist do
+    if kind not in @ok do
       raise ArgumentError, "#{kind} is not a valid request."
     end
 
