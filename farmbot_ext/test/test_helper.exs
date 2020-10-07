@@ -2,8 +2,9 @@ Application.ensure_all_started(:farmbot)
 Application.ensure_all_started(:mimic)
 
 [
-  AMQP.Channel,
   AMQP.Basic,
+  AMQP.Channel,
+  AMQP.Queue,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
@@ -15,6 +16,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.LogExecutor,
   FarmbotExt.AMQP.AutoSyncAssetHandler,
   FarmbotExt.AMQP.ConnectionWorker,
+  FarmbotExt.AMQP.Support,
   FarmbotExt.AMQP.TerminalChannelSupport,
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
