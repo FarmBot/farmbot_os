@@ -239,7 +239,8 @@ defmodule FarmbotExt.API do
         {:ok, Enum.map(many, &module.changeset(data, &1))}
 
       {:ok, %{} = single} ->
-        {:ok, module.changeset(data, single)}
+        result = module.changeset(data, single)
+        {:ok, result}
 
       {:error, reason} ->
         {:error, reason}
