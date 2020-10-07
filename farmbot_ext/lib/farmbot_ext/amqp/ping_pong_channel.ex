@@ -13,7 +13,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   use AMQP
 
   alias FarmbotExt.{
-    API,
+    APIFetcher,
     AMQP.Support
   }
 
@@ -86,7 +86,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   def handle_info(:http_ping, state) do
     ms = Enum.random(@lower_bound_ms..@upper_bound_ms)
 
-    case API.get(API.client(), "/api/device") do
+    case APIFetcher.get(APIFetcher.client(), "/api/device") do
       {:ok, _} ->
         _ = Leds.blue(:solid)
         http_ping_timer = Process.send_after(self(), :http_ping, ms)

@@ -5,7 +5,7 @@ defmodule FarmbotExt.API.ImageUploader do
   alias FarmbotCore.BotState
   require FarmbotCore.Logger
 
-  alias FarmbotExt.API
+  alias FarmbotExt.APIFetcher
 
   use GenServer
 
@@ -52,7 +52,7 @@ defmodule FarmbotExt.API.ImageUploader do
   defp try_upload(image_filename) do
     %{x: x, y: y, z: z} = BotState.fetch().location_data.position
     meta = %{x: x, y: y, z: z, name: Path.rootname(image_filename)}
-    finalize(image_filename, API.upload_image(image_filename, meta))
+    finalize(image_filename, APIFetcher.upload_image(image_filename, meta))
   end
 
   defp finalize(file, {:ok, %{status: s, body: _}}) when s > 199 and s < 300 do

@@ -4,20 +4,7 @@ defmodule FarmbotExt.API do
   """
 
   alias FarmbotExt.APIFetcher
-
-  alias FarmbotCore.Asset.{
-    FbosConfig,
-    FirmwareConfig
-  }
-
-  defdelegate client(), to: APIFetcher
-  defdelegate delete!(client, path), to: APIFetcher
-  defdelegate get!(client, path), to: APIFetcher
-  defdelegate get(client, path), to: APIFetcher
-  defdelegate patch(client, path, data), to: APIFetcher
-  defdelegate post(client, path, data), to: APIFetcher
-  defdelegate put!(client, path, data), to: APIFetcher
-  defdelegate upload_image(image_filename, meta \\ %{}), to: APIFetcher
+  alias FarmbotCore.Asset.{FbosConfig, FirmwareConfig}
 
   @doc "helper for `GET`ing api resources."
   def get_changeset(module) when is_atom(module) do
