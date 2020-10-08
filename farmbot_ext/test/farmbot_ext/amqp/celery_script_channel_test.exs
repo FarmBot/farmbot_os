@@ -1,10 +1,7 @@
-defmodule FarmbotExt.AMQP.BotStateChannelTest do
+defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
   require TestHelpers
   use ExUnit.Case, async: false
   use Mimic
-
-  # alias FarmbotExt.AMQP.BotStateChannel
-  # alias FarmbotCore.BotState
 
   setup :verify_on_exit!
   setup :set_mimic_global
@@ -15,7 +12,8 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
 
   test "terminate" do
     expect(AMQP.Channel, :close, 1, fn "fake_chan_" -> :ok end)
-    TestHelpers.expect_log("Disconnected from BotState channel: \"foo\"")
-    FarmbotExt.AMQP.BotStateChannel.terminate("foo", %FakeState{})
+    TestHelpers.expect_log("Disconnected from CeleryScript channel: \"foo\"")
+
+    FarmbotExt.AMQP.CeleryScriptChannel.terminate("foo", %FakeState{})
   end
 end
