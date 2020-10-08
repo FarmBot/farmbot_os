@@ -28,16 +28,12 @@ defmodule FarmbotExt.API.Reconciler do
   * apply the Transaction.
   """
   def sync do
-    with {:ok, sync_changeset} <- API.get_changeset(Sync),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_0()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_1()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_2()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_3()),
-         %Changeset{valid?: true} <- sync_group(sync_changeset, SyncGroup.group_4()) do
+    with {:ok, sc} <- API.get_changeset(Sync),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_0()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_1()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_2()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_3()),
+         %Changeset{valid?: true} <- sync_group(sc, SyncGroup.group_4()) do
       :ok
     end
   end
@@ -67,6 +63,7 @@ defmodule FarmbotExt.API.Reconciler do
   def sync_group(%Changeset{valid?: false} = error, []), do: {:error, error}
 
   defp do_sync_group(%Changeset{} = sync_changeset, module) when is_atom(module) do
+    IO.inspect({sync_changeset, module}, inspect: "======== WOW")
     table = module.__schema__(:source) |> String.to_atom()
     # items is a list of changesets
     items = Changeset.get_field(sync_changeset, table)
