@@ -9,8 +9,10 @@ defmodule FarmbotExt.AMQP.SupervisorTest do
   test "children" do
     results = Supervisor.children()
 
+    email = System.get_env("FARMBOT_EMAIL")
+
     expected = [
-      {FarmbotExt.AMQP.ConnectionWorker, [token: nil, email: "test@test.com"]},
+      {FarmbotExt.AMQP.ConnectionWorker, [token: nil, email: email]},
       {FarmbotExt.AMQP.ChannelSupervisor, [nil]}
     ]
 
