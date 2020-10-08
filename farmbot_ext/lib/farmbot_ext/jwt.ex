@@ -41,9 +41,8 @@ defmodule FarmbotExt.JWT do
     end
   end
 
-  def decode(tkn) do
-    {:error, "Unexpected token format: #{inspect(tkn)}"}
-  end
+  def decode(nil), do: {:error, "Can't decode nil token"}
+  def decode(tkn), do: {:error, "Unexpected token format: #{inspect(tkn)}"}
 
   @doc "Decodes a token, raises if it fails."
   @spec decode!(binary) :: t | no_return

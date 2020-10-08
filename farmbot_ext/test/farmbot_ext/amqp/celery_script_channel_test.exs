@@ -1,5 +1,5 @@
 defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
-  require TestHelpers
+  require Helpers
   use ExUnit.Case, async: false
   use Mimic
 
@@ -12,7 +12,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
 
   test "terminate" do
     expect(AMQP.Channel, :close, 1, fn "fake_chan_" -> :ok end)
-    TestHelpers.expect_log("Disconnected from CeleryScript channel: \"foo\"")
+    Helpers.expect_log("Disconnected from CeleryScript channel: \"foo\"")
 
     FarmbotExt.AMQP.CeleryScriptChannel.terminate("foo", %FakeState{})
   end

@@ -63,7 +63,6 @@ defmodule FarmbotExt.API.Reconciler do
   def sync_group(%Changeset{valid?: false} = error, []), do: {:error, error}
 
   defp do_sync_group(%Changeset{} = sync_changeset, module) when is_atom(module) do
-    IO.inspect({sync_changeset, module}, inspect: "======== WOW")
     table = module.__schema__(:source) |> String.to_atom()
     # items is a list of changesets
     items = Changeset.get_field(sync_changeset, table)

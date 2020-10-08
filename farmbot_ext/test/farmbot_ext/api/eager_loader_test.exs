@@ -3,7 +3,6 @@ defmodule FarmbotExt.API.EagerLoaderTest do
   use Mimic
   setup :verify_on_exit!
 
-  alias FarmbotCore.Asset.Sync
   alias FarmbotExt.API.EagerLoader
 
   defmodule Fake do

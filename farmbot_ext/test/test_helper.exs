@@ -38,16 +38,6 @@ ExUnit.configure(
 
 ExUnit.start()
 
-defmodule TestHelpers do
-  defmacro expect_log(msg) do
-    quote do
-      expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-        assert log.message == unquote(msg)
-      end)
-    end
-  end
-end
-
 # Use this to stub out calls to `state.reset.reset()` in firmware.
 defmodule StubReset do
   def reset(), do: :ok

@@ -1,5 +1,5 @@
 defmodule FarmbotExt.AMQP.TerminalChannelTest do
-  require TestHelpers
+  require Helpers
 
   use ExUnit.Case, async: false
   use Mimic
@@ -52,7 +52,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   end
 
   test "terminal channel startup" do
-    TestHelpers.expect_log("Connected to terminal channel")
+    Helpers.expect_log("Connected to terminal channel")
     pid = base_case()
     actual = :sys.get_state(pid)
     expected = %TerminalChannel{chan: @chan, iex_pid: nil, jwt: @jwt}
@@ -61,7 +61,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   end
 
   test "terminal channel startup - nil return value" do
-    TestHelpers.expect_log("Connected to terminal channel")
+    Helpers.expect_log("Connected to terminal channel")
 
     simulate_network([nil, {:ok, @chan}])
 
@@ -73,7 +73,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   end
 
   test "terminal channel startup - return an error" do
-    TestHelpers.expect_log("Terminal connection failed: {:error, \"Try again\"}")
+    Helpers.expect_log("Terminal connection failed: {:error, \"Try again\"}")
     simulate_network([{:error, "Try again"}, {:ok, @chan}])
 
     {:ok, pid} = TerminalChannel.start_link([jwt: @jwt], [])
@@ -84,7 +84,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   end
 
   test "Connects to AMQP" do
-    TestHelpers.expect_log("Connected to terminal channel")
+    Helpers.expect_log("Connected to terminal channel")
     pid = base_case()
     previous_state = :sys.get_state(pid)
     messages = [{:basic_cancel_ok, %{}}, {:basic_consume_ok, %{}}]
