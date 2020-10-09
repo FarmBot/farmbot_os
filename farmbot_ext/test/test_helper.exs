@@ -19,10 +19,11 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.AMQP.Support,
   FarmbotExt.AMQP.TerminalChannelSupport,
   FarmbotExt.API,
-  FarmbotExt.APIFetcher,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
   FarmbotExt.API.Preloader,
+  FarmbotExt.API.SyncGroup,
+  FarmbotExt.APIFetcher,
   FarmbotExt.Bootstrap.Authorization
 ]
 |> Enum.map(&Mimic.copy/1)
@@ -36,16 +37,6 @@ ExUnit.configure(
 )
 
 ExUnit.start()
-
-defmodule TestHelpers do
-  defmacro expect_log(msg) do
-    quote do
-      expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-        assert log.message == unquote(msg)
-      end)
-    end
-  end
-end
 
 # Use this to stub out calls to `state.reset.reset()` in firmware.
 defmodule StubReset do

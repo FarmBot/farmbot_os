@@ -23,6 +23,24 @@ defmodule Helpers do
 
   def fake_jwt(), do: @fake_jwt
 
+  defmacro use_fake_jwt() do
+    quote do
+      cb = fn :string, "authorization", "token" ->
+        Helpers.fake_jwt()
+      end
+
+      expect(FarmbotCore.Config, :get_config_value, 1, cb)
+    end
+  end
+
+  defmacro expect_log(msg) do
+    quote do
+      expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+        assert log.message == unquote(msg)
+      end)
+    end
+  end
+
   # Base case: We have a pid
   def wait_for(pid) when is_pid(pid), do: check_on_mbox(pid)
   # Failure case: We failed to find a pid for a module.
@@ -43,14 +61,6 @@ defmodule Helpers do
 
   # Continue recursive loop
   defp wait(pid, {:message_queue_len, _n}), do: check_on_mbox(pid)
-
-  defmacro expect_log(message) do
-    quote do
-      expect(FarmbotCore.LogExecutor, :execute, fn log ->
-        assert log.message == unquote(message)
-      end)
-    end
-  end
 
   def delete_all_points(), do: Repo.delete_all(Point)
 

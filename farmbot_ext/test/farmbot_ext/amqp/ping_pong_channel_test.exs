@@ -1,5 +1,5 @@
 defmodule FarmbotExt.AMQP.PingPongChannelTest do
-  require TestHelpers
+  require Helpers
 
   use ExUnit.Case, async: false
   use Mimic

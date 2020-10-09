@@ -1,5 +1,5 @@
 defmodule FarmbotExt.AMQP.BotStateChannelTest do
-  require TestHelpers
+  require Helpers
   use ExUnit.Case, async: false
   use Mimic
 
@@ -15,7 +15,7 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
 
   test "terminate" do
     expect(AMQP.Channel, :close, 1, fn "fake_chan_" -> :ok end)
-    TestHelpers.expect_log("Disconnected from BotState channel: \"foo\"")
+    Helpers.expect_log("Disconnected from BotState channel: \"foo\"")
     FarmbotExt.AMQP.BotStateChannel.terminate("foo", %FakeState{})
   end
 end

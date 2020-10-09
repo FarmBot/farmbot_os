@@ -28,16 +28,12 @@ defmodule FarmbotExt.API.Reconciler do
   * apply the Transaction.
   """
   def sync do
-    with {:ok, sync_changeset} <- API.get_changeset(Sync),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_0()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_1()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_2()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_3()),
-         %Changeset{valid?: true} <- sync_group(sync_changeset, SyncGroup.group_4()) do
+    with {:ok, sc} <- API.get_changeset(Sync),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_0()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_1()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_2()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_3()),
+         %Changeset{valid?: true} <- sync_group(sc, SyncGroup.group_4()) do
       :ok
     end
   end

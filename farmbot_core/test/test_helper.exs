@@ -5,10 +5,11 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 |> FarmbotCore.Asset.Repo.insert_or_update!()
 
 [
+  FarmbotCeleryScript,
   FarmbotCeleryScript.SysCalls.Stubs,
-  Timex,
   FarmbotCore.Asset,
-  FarmbotCeleryScript
+  FarmbotCore.LogExecutor,
+  Timex
 ]
 |> Enum.map(&Mimic.copy/1)
 
