@@ -65,6 +65,12 @@ defmodule Helpers do
   def pub_key(), do: @pub_key
   def fake_jwt(), do: @fake_jwt
 
+  defmacro fake_jwt_object() do
+    quote do
+      FarmbotExt.JWT.decode!(unquote(@fake_jwt))
+    end
+  end
+
   defmacro use_fake_jwt() do
     quote do
       cb = fn :string, "authorization", "token" ->

@@ -21,4 +21,21 @@ defmodule FarmbotExt.AMQP.TelemetryChannelTest do
 
     TelemetryChannel.terminate(fake_reason, fake_state)
   end
+
+  test "init failure" do
+    expect(FarmbotExt.AMQP.Support, :create_queue, 1, fn _ ->
+      {:error, :writing_a_test}
+    end)
+
+    expect(FarmbotExt.AMQP.Support, :handle_error, 1, fn state, err, chan ->
+      assert err == {:error, :writing_a_test}
+      assert chan == "Telemetry"
+      {:noreply, %{state | conn: nil, chan: nil}}
+    end)
+
+    {:ok, pid} = TelemetryChannel.start_link([jwt: Helpers.fake_jwt_object()], [])
+    %{conn: conn, chan: chan} = :sys.get_state(pid)
+    refute conn
+    refute chan
+  end
 end
