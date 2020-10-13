@@ -35,7 +35,7 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTask do
   def drop_password(%{email: email, password: password, server: server}, state) do
     case Authorization.authorize_with_password_v2(email, password, server) do
       {:ok, {_, secret}} ->
-        FarmbotExt.Bootstrap.DropPasswordSupport.set_secret(secret)
+        DropPasswordSupport.set_secret(secret)
         {:noreply, state, :hibernate}
 
       {:error, _} ->

@@ -24,7 +24,8 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API.Preloader,
   FarmbotExt.API.SyncGroup,
   FarmbotExt.APIFetcher,
-  FarmbotExt.Bootstrap.Authorization
+  FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.Bootstrap.DropPasswordSupport
 ]
 |> Enum.map(&Mimic.copy/1)
 
