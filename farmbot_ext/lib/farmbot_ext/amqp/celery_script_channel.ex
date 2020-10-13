@@ -39,8 +39,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     route = "bot.#{bot}.from_clients"
 
     with {:ok, {conn, chan}} <- Support.create_queue(queue_name),
-         :ok <- Queue.bind(chan, queue_name, @exchange, routing_key: route),
-         {:ok, _tag} <- Basic.consume(chan, queue_name, self(), no_ack: true) do
+         :ok <- Support.bind_and_consume(chan, queue_name, @exchange, route) do
       FarmbotCore.Logger.debug(3, "connected to CeleryScript channel")
       FarmbotTelemetry.event(:amqp, :channel_open)
       FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: queue_name, routing_key: route)
@@ -101,7 +100,6 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        # label != "ping" && Logger.debug("CeleryScript success: #{label}")
         timer && Process.cancel_timer(timer)
 
         result_ast = %{

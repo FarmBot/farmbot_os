@@ -37,4 +37,13 @@ defmodule FarmbotExt.AMQP.Support do
     FarmbotCore.Logger.error(1, "Disconnected from #{name} channel: #{inspect(reason)}")
     if state.chan, do: ConnectionWorker.close_channel(state.chan)
   end
+
+  def bind_and_consume(chan, queue_name, exchange, route) do
+    with :ok <- Queue.bind(chan, queue_name, exchange, routing_key: route),
+         {:ok, _tag} <- Basic.consume(chan, queue_name, self(), no_ack: true) do
+      :ok
+    else
+      e -> e
+    end
+  end
 end
