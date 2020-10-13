@@ -20,8 +20,8 @@ defmodule FarmbotExt.AMQP.LogChannel do
   alias __MODULE__, as: State
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
@@ -32,7 +32,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
   def terminate(r, s), do: Support.handle_termination(r, s, "Log")
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
-    with {:ok, {conn, chan}} <- FarmbotExt.AMQP.Support.create_channel() do
+    with {:ok, {conn, chan}} <- Support.create_channel() do
       FarmbotTelemetry.event(:amqp, :channel_open)
       initial_bot_state = BotState.subscribe()
       {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}

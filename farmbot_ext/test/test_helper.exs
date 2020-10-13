@@ -14,6 +14,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Config,
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
+  FarmbotCore.Logger,
   FarmbotExt.AMQP.AutoSyncAssetHandler,
   FarmbotExt.AMQP.ConnectionWorker,
   FarmbotExt.AMQP.Support,
