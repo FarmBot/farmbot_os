@@ -15,7 +15,6 @@ defmodule FarmbotExt.Bootstrap.DropPasswordSupport do
   end
 
   def set_secret(secret) do
-    # Drop the password from the database
     update_config_value(:string, "authorization", "secret", secret)
     update_config_value(:string, "authorization", "password", nil)
     FarmbotCore.Logger.debug(3, "Successfully encoded secret")

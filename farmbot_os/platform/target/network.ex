@@ -55,9 +55,6 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def is_first_connect?() do
-    # email = Config.get_config_value(:string, "authorization", "email")
-    # password = Config.get_config_value(:string, "authorization", "password")
-    # server = Config.get_config_value(:string, "authorization", "server")
     token = Config.get_config_value(:string, "authorization", "token")
     is_nil(token)
   end
