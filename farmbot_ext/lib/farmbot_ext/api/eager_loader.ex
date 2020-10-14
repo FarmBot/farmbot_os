@@ -3,8 +3,7 @@ defmodule FarmbotExt.API.EagerLoader do
   alias FarmbotCore.Asset.{Repo, Sync}
 
   alias FarmbotExt.API
-  alias API.{SyncGroup, EagerLoader}
-
+  alias FarmbotExt.API.{SyncGroup, EagerLoader}
   alias Ecto.Changeset
   import Ecto.Query
   require Logger
@@ -15,31 +14,40 @@ defmodule FarmbotExt.API.EagerLoader do
   Failure in this function is less than ideal and should probably return an
   error
   """
+
   def preload(%Sync{} = sync) do
+    IO.inspect(sync, label: "========================= SYNC OBJECT")
+
     SyncGroup.all_groups()
-    |> Enum.map(fn asset_module ->
-      table = asset_module.__schema__(:source) |> String.to_existing_atom()
-      {asset_module, Map.fetch!(sync, table)}
-    end)
-    |> Enum.map(fn {asset_module, sync_items} ->
-      Enum.map(sync_items, fn sync_item ->
-        Task.async(__MODULE__, :preload, [asset_module, sync_item])
-      end)
-    end)
+    |> Enum.map(&get_sync_items(&1, sync))
+    |> Enum.map(&collect_sync_items/1)
     |> List.flatten()
     |> Enum.map(&Task.await(&1, :infinity))
-    |> Enum.reduce([], fn
-      {:ok, changeset}, errors ->
-        :ok = cache(changeset)
-        errors
+    |> Enum.reduce([], &collect_errors/2)
+    |> finish_loading()
+  end
 
-      error, errors ->
-        [error | errors]
+  def finish_loading([]), do: []
+  def finish_loading(errors), do: {:error, errors}
+
+  def collect_errors({:ok, changeset}, errors) do
+    :ok = cache(changeset)
+    errors
+  end
+
+  def collect_errors(error, errors) do
+    [error | errors]
+  end
+
+  def collect_sync_items({asset_module, sync_items}) do
+    Enum.map(sync_items, fn sync_item ->
+      Task.async(__MODULE__, :preload, [asset_module, sync_item])
     end)
-    |> case do
-      [] -> :ok
-      errors -> {:error, errors}
-    end
+  end
+
+  def get_sync_items(asset_module, sync_struct) do
+    table = asset_module.__schema__(:source) |> String.to_existing_atom()
+    {asset_module, Map.fetch!(sync_struct, table)}
   end
 
   def preload(asset_module, %{id: id}) when is_atom(asset_module) do
