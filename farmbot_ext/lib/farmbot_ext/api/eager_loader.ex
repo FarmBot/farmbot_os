@@ -16,8 +16,6 @@ defmodule FarmbotExt.API.EagerLoader do
   """
 
   def preload(%Sync{} = sync) do
-    IO.inspect(sync, label: "========================= SYNC OBJECT")
-
     SyncGroup.all_groups()
     |> Enum.map(&get_sync_items(&1, sync))
     |> Enum.map(&collect_sync_items/1)

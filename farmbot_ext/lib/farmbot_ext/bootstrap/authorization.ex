@@ -125,7 +125,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
         do: {to_charlist(url), headers},
         else: {to_charlist(url), headers, 'Application/JSON', payload}
 
-    resp = :httpc.request(method, request, [], opts)
+    resp = FarmbotExt.HTTPC.request(method, request, [], opts)
 
     case resp do
       {:ok, {{_, c, _}, _headers, body}} when c >= 200 and c <= 299 ->

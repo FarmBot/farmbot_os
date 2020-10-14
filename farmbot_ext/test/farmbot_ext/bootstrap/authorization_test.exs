@@ -36,4 +36,22 @@ defmodule FarmbotExt.Bootstrap.AuthorizationTest do
     assert password_result == password
     assert version == 1
   end
+
+  test "do_request/2" do
+    url = 'https://geocities.com'
+    headers = [{"Content-Type", "application/json"}]
+    request = {:get, url, "", headers}
+    state = %{backoff: 5000, log_dispatch_flag: false}
+
+    expect(FarmbotExt.HTTPC, :request, 1, fn method, req, opt1, opt2 ->
+      assert method == :get
+      assert req == {url, [{'Content-Type', 'application/json'}]}
+      assert opt1 == []
+      assert opt2 == [body_format: :binary]
+      {:ok, {{{}, 200, {}}, {}, "body123"}}
+    end)
+
+    result = Authorization.do_request(request, state)
+    assert {:ok, "body123"} == result
+  end
 end
