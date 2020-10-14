@@ -14,6 +14,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Config,
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
+  FarmbotCore.Logger,
   FarmbotExt.AMQP.AutoSyncAssetHandler,
   FarmbotExt.AMQP.ConnectionWorker,
   FarmbotExt.AMQP.Support,
@@ -24,7 +25,9 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API.Preloader,
   FarmbotExt.API.SyncGroup,
   FarmbotExt.APIFetcher,
-  FarmbotExt.Bootstrap.Authorization
+  FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.Bootstrap.DropPasswordSupport,
+  FarmbotExt.HTTPC
 ]
 |> Enum.map(&Mimic.copy/1)
 

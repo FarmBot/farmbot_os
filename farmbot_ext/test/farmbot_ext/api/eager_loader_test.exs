@@ -4,8 +4,12 @@ defmodule FarmbotExt.API.EagerLoaderTest do
   setup :verify_on_exit!
 
   alias FarmbotExt.API.EagerLoader
+  alias FarmbotCore.Asset.Sync
+  alias FarmbotExt.API.SyncGroup
 
   defmodule Fake do
+    def __schema__(:source), do: "tools"
+    def preload(_, _), do: {:ok, %{id: 123}}
   end
 
   test "child_spec/1" do
@@ -21,5 +25,14 @@ defmodule FarmbotExt.API.EagerLoaderTest do
     }
 
     assert actual == expected
+  end
+
+  test "preload(%Sync{})" do
+    # FarmbotCore.Asset.Tool
+    expect(SyncGroup, :all_groups, 1, fn ->
+      [Fake]
+    end)
+
+    assert [] = EagerLoader.preload(%Sync{tools: []})
   end
 end
