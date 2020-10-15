@@ -1,10 +1,8 @@
 defmodule FarmbotExt.AMQP.BotStateChannelTest do
   require Helpers
+
   use ExUnit.Case, async: false
   use Mimic
-
-  # alias FarmbotExt.AMQP.BotStateChannel
-  # alias FarmbotCore.BotState
 
   setup :verify_on_exit!
   setup :set_mimic_global

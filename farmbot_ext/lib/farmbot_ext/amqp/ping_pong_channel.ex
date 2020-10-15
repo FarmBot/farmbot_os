@@ -66,8 +66,6 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     with {:ok, {conn, chan}} <- Support.create_queue(ping),
          :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
          {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
-      FarmbotTelemetry.event(:amqp, :channel_open)
-
       FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: ping, routing_key: route <> ".#")
 
       FarmbotCore.Logger.debug(3, "connected to PingPong channel")

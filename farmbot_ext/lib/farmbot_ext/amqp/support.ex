@@ -20,6 +20,7 @@ defmodule FarmbotExt.AMQP.Support do
     with {:ok, {conn, chan}} <- create_channel(),
          {:ok, _} <- Queue.declare(chan, q_name, auto_delete: true),
          {:ok, _} <- Queue.purge(chan, q_name) do
+      FarmbotTelemetry.event(:amqp, :channel_open)
       {:ok, {conn, chan}}
     else
       err -> err
@@ -27,8 +28,7 @@ defmodule FarmbotExt.AMQP.Support do
   end
 
   def handle_error(state, err, chan_name) do
-    FarmbotCore.Logger.error(1, "Failed to connect to #{chan_name} channel: #{inspect(err)}")
-    FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
+    connect_fail(chan_name, err)
     Process.send_after(self(), :connect_amqp, 2000)
     {:noreply, %{state | conn: nil, chan: nil}}
   end
@@ -45,5 +45,10 @@ defmodule FarmbotExt.AMQP.Support do
     else
       e -> e
     end
+  end
+
+  def connect_fail(chan_name, err) do
+    FarmbotCore.Logger.error(1, "Failed to connect to #{chan_name} channel: #{inspect(err)}")
+    FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
   end
 end

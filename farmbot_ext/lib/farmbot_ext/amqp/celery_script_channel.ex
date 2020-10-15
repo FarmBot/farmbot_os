@@ -41,7 +41,6 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     with {:ok, {conn, chan}} <- Support.create_queue(queue_name),
          :ok <- Support.bind_and_consume(chan, queue_name, @exchange, route) do
       FarmbotCore.Logger.debug(3, "connected to CeleryScript channel")
-      FarmbotTelemetry.event(:amqp, :channel_open)
       FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: queue_name, routing_key: route)
       {:noreply, %{state | conn: conn, chan: chan}}
     else
