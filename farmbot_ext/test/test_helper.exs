@@ -29,7 +29,8 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.APIFetcher,
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
-  FarmbotExt.HTTPC
+  FarmbotExt.HTTPC,
+  AMQP.Connection
 ]
 |> Enum.map(&Mimic.copy/1)
 

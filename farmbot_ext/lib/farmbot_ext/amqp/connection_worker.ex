@@ -150,7 +150,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
   end
 
   @doc false
-  defp open_connection(token, email, bot, mqtt_server, vhost) do
+  def open_connection(token, email, bot, mqtt_server, vhost) do
     Logger.info("Opening new AMQP connection.")
 
     # Make sure the types of these fields are correct. If they are not
