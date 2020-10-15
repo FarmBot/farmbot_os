@@ -4,6 +4,7 @@ Application.ensure_all_started(:mimic)
 [
   AMQP.Basic,
   AMQP.Channel,
+  AMQP.Connection,
   AMQP.Queue,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
@@ -25,12 +26,12 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
   FarmbotExt.API.Preloader,
+  FarmbotExt.API.Reconciler,
   FarmbotExt.API.SyncGroup,
   FarmbotExt.APIFetcher,
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
-  FarmbotExt.HTTPC,
-  AMQP.Connection
+  FarmbotExt.HTTPC
 ]
 |> Enum.map(&Mimic.copy/1)
 
