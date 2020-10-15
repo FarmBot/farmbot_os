@@ -40,7 +40,7 @@ in this cache:
   current axis position
   encoder data
   arduino pin data
-  currently configured firmware paramaters
+  currently configured firmware parameters
 * Current configuration
   mirror of `fbos_config` asset
 * System info
