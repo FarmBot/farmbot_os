@@ -27,4 +27,12 @@ defmodule FarmbotExt.AMQP.PingPongChannelTest do
 
     PingPongChannel.terminate(fake_reason, fake_state)
   end
+
+  test "do_connect/2" do
+    Helpers.expect_log("connected to PingPong channel")
+    result = PingPongChannel.do_connect({:ok, {:conn123, :chan123}}, %{chan: 1, conn: 2})
+    {:noreply, %{conn: conn, chan: chan}} = result
+    assert conn == :conn123
+    assert chan == :chan123
+  end
 end

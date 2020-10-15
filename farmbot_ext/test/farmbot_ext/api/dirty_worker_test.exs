@@ -36,7 +36,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
-  test "handle_http_response - 409 resposne" do
+  test "handle_http_response - 409 response" do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
     Repo.delete_all(FbosConfig)

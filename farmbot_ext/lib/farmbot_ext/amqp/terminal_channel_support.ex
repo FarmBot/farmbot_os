@@ -8,8 +8,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelSupport do
     name = bot <> "_terminal"
 
     with {:ok, {_conn, chan}} <- Support.create_queue(name),
-         :ok <- Queue.bind(chan, name, @exchange, routing_key: key),
-         {:ok, _tag} <- Basic.consume(chan, name, self(), no_ack: true) do
+         :ok <- Support.bind_and_consume(chan, name, @exchange, key) do
       {:ok, chan}
     else
       error -> error

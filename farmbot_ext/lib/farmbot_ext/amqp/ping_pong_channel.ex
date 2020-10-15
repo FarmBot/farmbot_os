@@ -61,24 +61,10 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
     ping = bot <> "_ping"
-    route = "bot.#{bot}.ping"
+    route = "bot.#{bot}.ping.#"
 
-    with {:ok, {conn, chan}} <- Support.create_queue(ping),
-         :ok <- Queue.bind(chan, ping, @exchange, routing_key: route <> ".#"),
-         {:ok, _tag} <- Basic.consume(chan, ping, self(), no_ack: true) do
-      FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: ping, routing_key: route <> ".#")
-
-      FarmbotCore.Logger.debug(3, "connected to PingPong channel")
-      _ = Leds.blue(:solid)
-      {:noreply, %{state | conn: conn, chan: chan}}
-    else
-      nil ->
-        Process.send_after(self(), :connect_amqp, 5000)
-        {:noreply, %{state | conn: nil, chan: nil}}
-
-      err ->
-        Support.handle_error(state, err, "PingPong")
-    end
+    result = Support.create_bind_consume(ping, route)
+    do_connect(result, state)
   end
 
   def handle_info(:http_ping, state) do
@@ -119,5 +105,20 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
     routing_key = String.replace(routing_key, "ping", "pong")
     :ok = Basic.publish(state.chan, @exchange, routing_key, payload)
     {:noreply, state}
+  end
+
+  def do_connect({:ok, {conn, chan}}, state) do
+    FarmbotCore.Logger.debug(3, "connected to PingPong channel")
+    _ = Leds.blue(:solid)
+    {:noreply, %{state | conn: conn, chan: chan}}
+  end
+
+  def do_connect(nil, state) do
+    Process.send_after(self(), :connect_amqp, 5000)
+    {:noreply, %{state | conn: nil, chan: nil}}
+  end
+
+  def do_connect(err, state) do
+    Support.handle_error(state, err, "PingPong")
   end
 end

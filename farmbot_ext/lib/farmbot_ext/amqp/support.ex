@@ -47,6 +47,15 @@ defmodule FarmbotExt.AMQP.Support do
     end
   end
 
+  def create_bind_consume(queue_name, route) do
+    with {:ok, {_con, chan}} = ok <- create_queue(queue_name),
+         :ok <- bind_and_consume(chan, queue_name, "amq.topic", route) do
+      ok
+    else
+      err -> err
+    end
+  end
+
   def connect_fail(chan_name, err) do
     FarmbotCore.Logger.error(1, "Failed to connect to #{chan_name} channel: #{inspect(err)}")
     FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
