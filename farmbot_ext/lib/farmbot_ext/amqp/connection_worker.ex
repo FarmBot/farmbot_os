@@ -61,7 +61,6 @@ defmodule FarmbotExt.AMQP.ConnectionWorker do
       # AMQP lib doesn't handle being disconnected form the
       # network very well and these pids will turn into zombies
       Process.link(conn.pid)
-      FarmbotTelemetry.event(:amqp, :channel_open)
       FarmbotTelemetry.event(:amqp, :queue_bind, nil, queue_name: chan_name, routing_key: route)
 
       %{conn: conn, chan: chan}

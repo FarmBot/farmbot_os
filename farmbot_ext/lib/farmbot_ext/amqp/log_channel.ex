@@ -33,7 +33,6 @@ defmodule FarmbotExt.AMQP.LogChannel do
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
     with {:ok, {conn, chan}} <- Support.create_channel() do
-      FarmbotTelemetry.event(:amqp, :channel_open)
       initial_bot_state = BotState.subscribe()
       {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
     else
@@ -41,8 +40,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
         {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
+        Support.connect_fail("Log", err)
         {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
     end
   end
