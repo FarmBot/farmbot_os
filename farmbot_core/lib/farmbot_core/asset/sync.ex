@@ -61,9 +61,9 @@ defmodule FarmbotCore.Asset.Sync do
 
   view sync do
     %{
-      devices: Enum.map(sync.device, &Item.render/1),
-      fbos_configs: Enum.map(sync.fbos_config, &Item.render/1),
-      firmware_configs: Enum.map(sync.firmware_config, &Item.render/1),
+      devices: Enum.map(sync.devices, &Item.render/1),
+      fbos_configs: Enum.map(sync.fbos_configs, &Item.render/1),
+      firmware_configs: Enum.map(sync.firmware_configs, &Item.render/1),
       farm_events: Enum.map(sync.farm_events, &Item.render/1),
       farmware_envs: Enum.map(sync.farmware_envs, &Item.render/1),
       first_party_farmwares: Enum.map(sync.first_party_farmwares, &Item.render/1),

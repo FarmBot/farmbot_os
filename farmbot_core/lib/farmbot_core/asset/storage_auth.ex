@@ -41,6 +41,8 @@ defmodule FarmbotCore.Asset.StorageAuth do
 
   view storage_auth do
     %{
+      verb: storage_auth.verb,
+      url: storage_auth.url,
       form_data: %{
         key: storage_auth.form_data.key,
         acl: storage_auth.form_data.acl,
@@ -50,8 +52,6 @@ defmodule FarmbotCore.Asset.StorageAuth do
         "Content-Type": storage_auth.form_data."Content-Type",
         GoogleAccessId: storage_auth.form_data."GoogleAccessId"
       },
-      verb: storage_auth.verb,
-      url: storage_auth.url
     }
   end
 
