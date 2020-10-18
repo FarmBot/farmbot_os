@@ -46,3 +46,5 @@ FarmBot OS auto-update was disabled prior to this release. If you would like to 
 * FarmBot OS v12 uses a new over-the-air update system. Updates from FarmBot OS versions older than v11.1.0 will first upgrade to v11.1.0, after which the new update system can be used to upgrade to FarmBot OS v12 and beyond.
 
 # v12
+
+ * New OTA system

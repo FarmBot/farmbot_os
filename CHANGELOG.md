@@ -1,5 +1,9 @@
 # Changelog
 
+# 12.1.1
+
+ * Legacy component removal.
+
 # 12.1.0
 
  * `safe_height` and `soil_height` support for MOVE block.

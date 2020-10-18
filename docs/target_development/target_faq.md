@@ -31,7 +31,7 @@ There was a couple reasons for this.
 * Applying updates during farmbot os runtime can be dangerous and was leaving
   peoples bot's unusable because of broken firmwares.
 
-## Can the shell run on HDMI
+## Can the shell run on HDMI?
 
 No. Farmbot is designed to operate without the use of a monitor.
 
