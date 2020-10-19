@@ -13,7 +13,7 @@ defmodule FarmbotExt.BootstrapTest do
     end)
 
     expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
-    assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 5000}
+    assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 0}
   end
 
   test "reauthorizes as needed" do

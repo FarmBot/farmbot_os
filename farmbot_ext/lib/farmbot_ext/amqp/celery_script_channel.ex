@@ -45,7 +45,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
-        Process.send_after(self(), :connect_amqp, 5000)
+        FarmbotExt.Time.send_after(self(), :connect_amqp, 5000)
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
@@ -82,7 +82,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
     timer =
       if ast.args[:timeout] && ast.args[:timeout] > 0 do
         msg = {:step_complete, {:error, "timeout"}}
-        Process.send_after(self(), msg, ast.args[:timeout])
+        FarmbotExt.Time.send_after(self(), msg, ast.args[:timeout])
       end
 
     req = %{

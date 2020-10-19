@@ -41,7 +41,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def init(args) do
     module = Keyword.fetch!(args, :module)
-    Process.send_after(self(), :do_work, @timeout)
+    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
     {:ok, %{module: module}}
   end
 
@@ -50,7 +50,7 @@ defmodule FarmbotExt.API.DirtyWorker do
     Process.sleep(@timeout)
     maybe_resync(module)
     maybe_upload(module)
-    Process.send_after(self(), :do_work, @timeout)
+    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
 

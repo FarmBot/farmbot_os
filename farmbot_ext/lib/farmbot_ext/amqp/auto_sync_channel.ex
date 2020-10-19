@@ -84,7 +84,7 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
         _ = Leds.green(:slow_blink)
         FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
         FarmbotTelemetry.event(:asset_sync, :preload_error, nil, error: inspect(reason))
-        Process.send_after(self(), :preload, 5000)
+        FarmbotExt.Time.send_after(self(), :preload, 5000)
 
         {:noreply, state}
     end

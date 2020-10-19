@@ -39,7 +39,7 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTask do
         {:noreply, state, :hibernate}
 
       {:error, _} ->
-        timer = Process.send_after(self(), :checkup, state.backoff)
+        timer = FarmbotExt.Time.send_after(self(), :checkup, state.backoff)
         {:noreply, %{state | backoff: state.backoff + 1000, timer: timer}}
     end
   end
