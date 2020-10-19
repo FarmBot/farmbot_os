@@ -44,7 +44,7 @@ defmodule FarmbotOS.EasterEggs do
     {:reply, :ok, %{state | timer: nil}}
   end
 
-  defp load_data do
+  def load_data do
     Path.join(:code.priv_dir(:farmbot), "easter_eggs.json")
     |> File.read!()
     |> JSON.decode!()

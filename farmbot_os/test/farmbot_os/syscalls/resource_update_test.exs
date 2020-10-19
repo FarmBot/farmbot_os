@@ -5,6 +5,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotCore.Asset.{Point, Repo}
+  alias FarmbotCore.Asset
 
   setup :verify_on_exit!
 
@@ -41,5 +42,18 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
   test "update_resource/3 - unknown" do
     {:error, error} = ResourceUpdate.update_resource("Foo", 0, nil)
     assert error == "Unknown resource: Foo.0\n"
+  end
+
+  test "point_update_resource/3" do
+    expect(Asset, :get_point, 1, fn opts ->
+      assert [id: 123] == opts
+      {:error, "this is a test"}
+    end)
+
+    expected =
+      {:error, "Failed update (Foo.123): Ensure the data is properly formatted"}
+
+    actual = ResourceUpdate.point_update_resource("Foo", 123, nil)
+    assert expected == actual
   end
 end

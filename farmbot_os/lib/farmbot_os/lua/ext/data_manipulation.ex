@@ -3,14 +3,14 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  import FarmbotOS.Lua.Util
-
   alias FarmbotCore.{
     Asset,
     Asset.Device,
     Asset.FbosConfig,
     Asset.FirmwareConfig
   }
+
+  alias FarmbotOS.Lua.Util
 
   def update_device([table], lua) do
     params = Map.new(table)
@@ -25,7 +25,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
 
   def get_device(_, lua) do
     device = Asset.device() |> Device.render()
-    {[map_to_table(device)], lua}
+    {[Util.map_to_table(device)], lua}
   end
 
   def update_fbos_config([table], lua) do
@@ -41,7 +41,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
 
   def get_fbos_config(_, lua) do
     fbos_config = Asset.fbos_config() |> FbosConfig.render()
-    {[map_to_table(fbos_config)], lua}
+    {[Util.map_to_table(fbos_config)], lua}
   end
 
   def update_firmware_config([table], lua) do
@@ -57,7 +57,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
 
   def get_firmware_config(_, lua) do
     firmware_config = Asset.firmware_config() |> FirmwareConfig.render()
-    {[map_to_table(firmware_config)], lua}
+    {[Util.map_to_table(firmware_config)], lua}
   end
 
   def new_farmware_env([table], lua) do
