@@ -21,7 +21,7 @@ Installation should be fairly straight forward, you will need a computer for thi
 
 ### Windows users
 
- 1. download and install [Etcher](https://etcher.io/).
+ 1. download and install [Etcher](https://www.balena.io/etcher/).
  0. download the [latest release](#floppy_disk-latest-os-image-downloads).
  0. insert an SD Card into your PC.
  0. open Etcher, and select the `.img` file you just downloaded.

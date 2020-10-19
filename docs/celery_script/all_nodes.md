@@ -85,4 +85,4 @@ Nodes that simply contain data. They are not to be executed. This includes:
 | `explanation`| `message`| ---|
 | `identifier`| `label`| ---|
 | `nothing`| ---| ---|
-| `scope_declaration`| ---| `parameter_decleration` or `variable_decleration`|
+| `scope_declaration`| ---| `parameter_declaration` or `variable_declaration`|
