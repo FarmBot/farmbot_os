@@ -18,6 +18,10 @@ defmodule FarmbotExt.Time do
     {:noreply, state, ms(timeout)}
   end
 
+  def sleep(num) do
+    Process.sleep(ms(num))
+  end
+
   def ms(num) do
     if @disabled, do: 0, else: num
   end
