@@ -1,4 +1,6 @@
 defmodule FarmbotExt.API.DirtyWorkerTest do
+  require Helpers
+
   use ExUnit.Case
   use Mimic
 
@@ -93,5 +95,13 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     end)
 
     assert :ok == DirtyWorker.finalize(stub_data, Point)
+  end
+
+  test "init" do
+    {:ok, pid} = DirtyWorker.start_link([module: Point, timeout: 0])
+    state = :sys.get_state(pid)
+    assert state == %{module: Point}
+    Helpers.wait_for(pid)
+    GenServer.stop(pid, :normal)
   end
 end
