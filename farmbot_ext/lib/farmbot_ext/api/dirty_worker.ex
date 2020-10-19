@@ -181,6 +181,8 @@ defmodule FarmbotExt.API.DirtyWorker do
       2,
       "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{inspect(error)}"
     )
+
+    error
   end
 
   # If the changeset was valid, update the record.
