@@ -112,10 +112,12 @@ defmodule AutoSyncChannelTest do
 
   test "disconnect" do
     state = %AutoSyncChannel{jwt: Helpers.fake_jwt_object()}
+
     expect(ConnectionWorker, :maybe_connect_autosync, 1, fn jwt_dot_bot ->
       assert jwt_dot_bot == state.jwt.bot
       :error123
     end)
+
     Helpers.expect_log("Failed to connect to AutoSync channel: :error123")
     AutoSyncChannel.handle_info(:connect, state)
   end

@@ -7,7 +7,11 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
-  alias FarmbotExt.AMQP.BotStateChannel
+  alias FarmbotExt.AMQP.{
+    Support,
+    BotStateChannelSupport,
+    BotStateChannel
+  }
 
   defmodule FakeState do
     defstruct conn: %{fake: :conn}, chan: "fake_chan_", jwt: "fake_jwt_", cache: %{fake: :cache}
@@ -24,7 +28,7 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
     conn = {:ok, {:conn, :chan}}
     continue = {:continue, :dispatch}
 
-    expect(FarmbotExt.AMQP.Support, :connect_fail, 1, fn name, error ->
+    expect(Support, :connect_fail, 1, fn name, error ->
       assert name == "BotState"
       assert error == :error
       :ok
@@ -36,5 +40,23 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
     assert state2 == %{chan: nil, conn: nil}
     {:noreply, state3, 0} = BotStateChannel.do_connect(:error, state)
     assert state3 == %{chan: nil, conn: nil}
+  end
+
+  test "init" do
+    expect(Support, :create_channel, 1, fn ->
+      {:ok, {%{conn: true}, %{chan: true}}}
+    end)
+
+    expect(BotStateChannelSupport, :broadcast_state, 1, fn _, _, _ ->
+      :ok
+    end)
+
+    expect(Support, :handle_termination, 1, fn _reason, _state, _name ->
+      :normal
+    end)
+
+    {:ok, pid} = BotStateChannel.start_link([jwt: Helpers.fake_jwt_object()], [])
+
+    GenServer.stop(pid, :normal)
   end
 end
