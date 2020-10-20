@@ -1,7 +1,7 @@
 # FarmbotExt.Time.no_reply()
 defmodule FarmbotExt.Time do
   @conf Application.get_env(:farmbot_ext, __MODULE__) || []
-  @disabled Keyword.fetch(@conf, :disable_timeouts) || false
+  @disabled Keyword.get(@conf, :disable_timeouts, false)
 
   @doc """
   A wrapper around `Process.send_after` for simplified dep. injection.

@@ -13,4 +13,10 @@ defmodule FarmbotExt.APIFetcherTest do
     %module{} = APIFetcher.client()
     assert module == Tesla.Client
   end
+
+  test "get_body" do
+    Helpers.use_fake_jwt()
+    {status, _message} = APIFetcher.get_body!("/nope")
+    assert status == :error
+  end
 end
