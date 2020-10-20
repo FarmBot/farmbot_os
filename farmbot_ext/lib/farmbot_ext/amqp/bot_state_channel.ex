@@ -54,12 +54,12 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
 
   @impl GenServer
   def handle_continue(:dispatch, %{chan: nil} = state) do
-    {:noreply, state, 5000}
+    FarmbotExt.Time.no_reply(state, 5000)
   end
 
   def handle_continue(:dispatch, %{chan: chan, cache: cache} = state) do
     BotStateChannelSupport.broadcast_state(chan, state.jwt.bot, cache)
-    {:noreply, state, 5000}
+    FarmbotExt.Time.no_reply(state, 5000)
   end
 
   @impl GenServer
@@ -72,12 +72,12 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
 
   # Case: No connectivity?
   def do_connect(nil, state) do
-    {:noreply, %{state | conn: nil, chan: nil}, 5000}
+    FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil}, 5000)
   end
 
   # Case: All other errors
   def do_connect(error, state) do
     Support.connect_fail("BotState", error)
-    {:noreply, %{state | conn: nil, chan: nil}, 1000}
+    FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil}, 1000)
   end
 end

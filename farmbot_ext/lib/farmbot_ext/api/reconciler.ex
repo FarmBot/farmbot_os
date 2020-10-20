@@ -15,7 +15,6 @@ defmodule FarmbotExt.API.Reconciler do
 
   alias FarmbotCore.Asset.{Command, Repo, Sync, Sync.Item}
   import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
-  @behaviour FarmbotExt.API.ReconcilerAdapter
 
   @doc """
   Reconcile remote updates. The following steps are wrapped in a tranaction
@@ -52,7 +51,6 @@ defmodule FarmbotExt.API.Reconciler do
   * applies changeset if there was any changes from cache or http
 
   """
-  @impl FarmbotExt.API.ReconcilerAdapter
   def sync_group(%Changeset{} = sync_changeset, [module | rest]) do
     with sync_changeset <- do_sync_group(sync_changeset, module) do
       sync_group(sync_changeset, rest)

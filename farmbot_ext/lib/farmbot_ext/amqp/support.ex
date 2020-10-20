@@ -29,7 +29,7 @@ defmodule FarmbotExt.AMQP.Support do
 
   def handle_error(state, err, chan_name) do
     connect_fail(chan_name, err)
-    Process.send_after(self(), :connect_amqp, 2000)
+    FarmbotExt.Time.send_after(self(), :connect_amqp, 2000)
     {:noreply, %{state | conn: nil, chan: nil}}
   end
 

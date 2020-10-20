@@ -32,9 +32,9 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
 
     {:noreply, state1, ^continue} = BotStateChannel.do_connect(conn, state)
     assert state1 == %{chan: :chan, conn: :conn}
-    {:noreply, state2, 5000} = BotStateChannel.do_connect(nil, state)
+    {:noreply, state2, 0} = BotStateChannel.do_connect(nil, state)
     assert state2 == %{chan: nil, conn: nil}
-    {:noreply, state3, 1000} = BotStateChannel.do_connect(:error, state)
+    {:noreply, state3, 0} = BotStateChannel.do_connect(:error, state)
     assert state3 == %{chan: nil, conn: nil}
   end
 end

@@ -51,7 +51,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
-        Process.send_after(self(), :connect_amqp, 5000)
+        FarmbotExt.Time.send_after(self(), :connect_amqp, 5000)
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
@@ -83,7 +83,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
       })
 
     Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
-    Process.send_after(self(), :dispatch_metrics, @dispatch_metrics_timeout)
+    FarmbotExt.Time.send_after(self(), :dispatch_metrics, @dispatch_metrics_timeout)
     {:noreply, state}
   end
 
@@ -105,7 +105,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
           Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
       end)
 
-    _ = Process.send_after(self(), :consume_telemetry, @consume_telemetry_timeout)
+    _ = FarmbotExt.Time.send_after(self(), :consume_telemetry, @consume_telemetry_timeout)
     {:noreply, state}
   end
 end

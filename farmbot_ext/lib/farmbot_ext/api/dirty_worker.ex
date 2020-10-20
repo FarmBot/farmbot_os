@@ -41,22 +41,22 @@ defmodule FarmbotExt.API.DirtyWorker do
   @impl GenServer
   def init(args) do
     module = Keyword.fetch!(args, :module)
-    Process.send_after(self(), :do_work, @timeout)
+    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
     {:ok, %{module: module}}
   end
 
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
-    Process.sleep(@timeout)
+    FarmbotExt.Time.sleep(@timeout)
     maybe_resync(module)
     maybe_upload(module)
-    Process.send_after(self(), :do_work, @timeout)
+    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
 
   def work(dirty, module) do
     # Go easy on the API
-    Process.sleep(@timeout)
+    FarmbotExt.Time.sleep(@timeout)
     response = http_request(dirty, module)
     handle_http_response(dirty, module, response)
   end
@@ -107,7 +107,7 @@ defmodule FarmbotExt.API.DirtyWorker do
 
       if race? do
         # Pause until the race condition goes away.
-        Process.sleep(@timeout * 8)
+        FarmbotExt.Time.sleep(@timeout * 8)
         true
       else
         # This is OK! We expect the data to equal itself.
@@ -121,7 +121,7 @@ defmodule FarmbotExt.API.DirtyWorker do
     FarmbotCore.Logger.error(4, @stale_warning)
     Private.recover_from_row_lock_failure()
     FarmbotCeleryScript.SysCalls.sync()
-    Process.sleep(timeout * 10)
+    FarmbotExt.Time.sleep(timeout * 10)
     true
   end
 
@@ -181,6 +181,8 @@ defmodule FarmbotExt.API.DirtyWorker do
       2,
       "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{inspect(error)}"
     )
+
+    error
   end
 
   # If the changeset was valid, update the record.

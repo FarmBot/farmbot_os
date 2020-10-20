@@ -27,7 +27,7 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_cast(:force_checkup, state) do
-    {:noreply, state, 0}
+    FarmbotExt.Time.no_reply(state, 0)
   end
 
   def handle_info(:timeout, state) do

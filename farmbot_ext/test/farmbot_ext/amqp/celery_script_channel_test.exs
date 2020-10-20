@@ -33,4 +33,28 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
     {:ok, pid} = CeleryScriptChannel.start_link([jwt: %{bot: "my_bot_123"}], [])
     Helpers.wait_for(pid)
   end
+
+  test "handle_info(:connect_amqp, state) - nil" do
+    expect(Support, :create_queue, 1, fn _ -> nil end)
+    state = %FakeState{jwt: Helpers.fake_jwt_object(), chan: true, conn: true}
+    {:noreply, result} = CeleryScriptChannel.handle_info(:connect_amqp, state)
+    assert_receive(:connect_amqp, 100)
+    refute result.chan
+    refute result.conn
+  end
+
+  test "handle_info(:connect_amqp, state) - error" do
+    state = %FakeState{jwt: Helpers.fake_jwt_object()}
+    error = {:error, "testing"}
+    expect(Support, :create_queue, 1, fn _ -> error end)
+
+    expect(Support, :handle_error, 1, fn s, err, name ->
+      assert name == "CeleryScript"
+      assert err == error
+      assert s == state
+      {:noreply, state}
+    end)
+
+    CeleryScriptChannel.handle_info(:connect_amqp, state)
+  end
 end

@@ -34,14 +34,18 @@ defmodule FarmbotExt.AMQP.LogChannel do
   def handle_info(:timeout, %{state_cache: nil} = state) do
     with {:ok, {conn, chan}} <- Support.create_channel() do
       initial_bot_state = BotState.subscribe()
-      {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
+
+      FarmbotExt.Time.no_reply(
+        %{state | conn: conn, chan: chan, state_cache: initial_bot_state},
+        0
+      )
     else
       nil ->
-        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
+        FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil, state_cache: nil}, 5000)
 
       err ->
         Support.connect_fail("Log", err)
-        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
+        FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil, state_cache: nil}, 1000)
     end
   end
 

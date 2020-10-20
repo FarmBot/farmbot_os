@@ -109,7 +109,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
         {:error, reason}
 
       {:error, _reason} ->
-        Process.sleep(2500)
+        FarmbotExt.Time.sleep(2500)
         request_token(server, payload, tries_remaining - 1)
     end
   end
@@ -137,7 +137,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
         {:error, {:authorization, err}}
 
       {:ok, {{_, c, _}, _headers, body}} when c >= 500 and c <= 599 ->
-        Process.sleep(state.backoff)
+        FarmbotExt.Time.sleep(state.backoff)
 
         unless state.log_dispatch_flag do
           err = get_error_message(body)

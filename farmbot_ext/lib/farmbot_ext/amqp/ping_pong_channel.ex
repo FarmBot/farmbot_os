@@ -37,7 +37,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
 
   def init(args) do
     jwt = Keyword.fetch!(args, :jwt)
-    http_ping_timer = Process.send_after(self(), :http_ping, 5000)
+    http_ping_timer = FarmbotExt.Time.send_after(self(), :http_ping, 5000)
     send(self(), :connect_amqp)
 
     _ = Leds.blue(:off)
@@ -68,19 +68,20 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   end
 
   def handle_info(:http_ping, state) do
-    ms = Enum.random(@lower_bound_ms..@upper_bound_ms)
+    rand = Enum.random(@lower_bound_ms..@upper_bound_ms)
+    ms = rand
 
     case APIFetcher.get(APIFetcher.client(), "/api/device") do
       {:ok, _} ->
         _ = Leds.blue(:solid)
-        http_ping_timer = Process.send_after(self(), :http_ping, ms)
+        http_ping_timer = FarmbotExt.Time.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: 0}}
 
       error ->
         ping_fails = state.ping_fails + 1
         FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails}). #{inspect(error)}")
         _ = Leds.blue(:off)
-        http_ping_timer = Process.send_after(self(), :http_ping, ms)
+        http_ping_timer = FarmbotExt.Time.send_after(self(), :http_ping, ms)
         {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: ping_fails}}
     end
   end
@@ -114,7 +115,7 @@ defmodule FarmbotExt.AMQP.PingPongChannel do
   end
 
   def do_connect(nil, state) do
-    Process.send_after(self(), :connect_amqp, 5000)
+    FarmbotExt.Time.send_after(self(), :connect_amqp, 5000)
     {:noreply, %{state | conn: nil, chan: nil}}
   end
 
