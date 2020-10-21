@@ -70,6 +70,7 @@ defmodule AutoSyncChannelTest do
     pid = generate_pid()
     assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
     send(pid, {:basic_deliver, nil, nil})
+    Helpers.wait_for(pid)
     GenServer.stop(pid, :normal)
   end
 
