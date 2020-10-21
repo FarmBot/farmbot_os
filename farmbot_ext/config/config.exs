@@ -81,10 +81,12 @@ config :lager, :error_logger_whitelist, []
 config :lager, :crash_log, false
 config :lager, handlers: [], extra_sinks: []
 
-if Mix.env() == :test do
-  config :ex_unit, capture_logs: true
-  config :farmbot_ext, FarmbotExt.Timeout, disable_timeouts: true
+is_test? = Mix.env() == :test
 
+config :farmbot_ext, FarmbotExt.Time, disable_timeouts: is_test?
+
+if is_test? do
+  config :ex_unit, capture_logs: true
   mapper = fn mod -> config :farmbot_ext, mod, children: [] end
 
   list = [
