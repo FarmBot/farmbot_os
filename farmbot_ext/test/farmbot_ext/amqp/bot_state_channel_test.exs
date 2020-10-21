@@ -59,4 +59,39 @@ defmodule FarmbotExt.AMQP.BotStateChannelTest do
 
     GenServer.stop(pid, :normal)
   end
+
+  test "read_status" do
+    BotStateChannel.read_status(self())
+    assert_receive({:"$gen_cast", :force}, 100)
+  end
+
+  test ":timeout loop - has a channel object" do
+    state = %{chan: %{}}
+    reply = {:noreply, state, {:continue, :dispatch}}
+    assert reply == BotStateChannel.handle_info(:timeout, state)
+  end
+
+  test "handle_info({BotState, change}, state)" do
+    state = %{cache: nil}
+    change = %Ecto.Changeset{}
+    actual = BotStateChannel.handle_info({FarmbotCore.BotState, change}, state)
+    expected = {:noreply, %{cache: nil}, {:continue, :dispatch}}
+    assert expected == actual
+  end
+
+  test "handle_cast(:force, state)" do
+    state = %{cache: nil}
+    expect(FarmbotCore.BotState, :fetch, 1, fn -> true end)
+    expected = {:noreply, %{cache: true}, {:continue, :dispatch}}
+    actual = BotStateChannel.handle_cast(:force, state)
+    assert expected == actual
+  end
+
+  # Does not do much, just an empty loop
+  test "handle_continue(:dispatch, %{chan: nil} = state)" do
+    state = %{chan: nil}
+    expected = {:noreply, state, 0}
+    actual = BotStateChannel.handle_continue(:dispatch, state)
+    assert expected == actual
+  end
 end

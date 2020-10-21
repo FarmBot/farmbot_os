@@ -6,6 +6,7 @@ defmodule FarmbotExt.API.ImageUploaderTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
+  # TODO(Rick) This test blinks. 21 OCT 2020
   test "force checkup" do
     pid =
       if Process.whereis(ImageUploader) do

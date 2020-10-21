@@ -94,6 +94,10 @@ defmodule FarmbotCore.MixProject do
 
   defp aliases,
     do: [
-      test: ["ecto.drop", "ecto.migrate", "test"]
+      test: [
+        "ecto.drop",
+        "ecto.migrate",
+        "test"
+      ]
     ]
 end

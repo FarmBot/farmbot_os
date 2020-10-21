@@ -82,7 +82,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def handle_info(:timeout, %{fbos_config: %FbosConfig{} = fbos_config} = state) do
-    FarmbotCore.Logger.debug 3, "Got initial fbos config"
     set_config_to_state(fbos_config)
     send self(), {:maybe_flash_firmware, fbos_config}
     send self(), {:maybe_start_io_log_timer, fbos_config}
@@ -146,7 +145,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def maybe_flash_firmware(_state, nil, _old_hardware) do
-    FarmbotCore.Logger.warn 1, "Firmware hardware unset. Not flashing"
     :ok
   end
 

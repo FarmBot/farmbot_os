@@ -2,6 +2,7 @@ defmodule FarmbotExt.AMQP.ConnectionWorkerTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
+  import ExUnit.CaptureLog
 
   alias AMQP.Basic
   alias FarmbotExt.AMQP.ConnectionWorker
@@ -44,7 +45,11 @@ defmodule FarmbotExt.AMQP.ConnectionWorkerTest do
       :ok
     end)
 
-    ConnectionWorker.open_connection(token, email, bot, mqtt_server, vhost)
+    run_test = fn ->
+      ConnectionWorker.open_connection(token, email, bot, mqtt_server, vhost)
+    end
+
+    assert capture_log(run_test) =~ "[info]  Opening new AMQP connection."
   end
 
   test "rpc_reply" do
