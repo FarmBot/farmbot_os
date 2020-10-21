@@ -62,16 +62,24 @@ defmodule AutoSyncChannelTest do
     GenServer.stop(pid, :normal)
   end
 
-  test "init / terminate - preload error" do
-    Helpers.use_fake_jwt()
-    expect(Preloader, :preload_all, 1, fn -> {:error, "part of a test"} end)
-    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
+  test "handle_info(:preload, state) - preload error" do
+    state = %{}
+    reason = "Just a test"
 
-    pid = generate_pid()
-    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
-    send(pid, {:basic_deliver, nil, nil})
-    Helpers.wait_for(pid)
-    GenServer.stop(pid, :normal)
+    expect(Preloader, :preload_all, 1, fn ->
+      {:error, reason}
+    end)
+
+    Helpers.expect_log("Error preloading. #{inspect(reason)}")
+    assert {:noreply, state} == AutoSyncChannel.handle_info(:preload, state)
+    assert_receive(:preload, 10)
+  end
+
+  test "handle_info({:basic_deliver, _, _}, %{preloaded: false} = state)" do
+    state = %{preloaded: false}
+    msg = {:basic_deliver, 0, 0}
+    assert {:noreply, state} == AutoSyncChannel.handle_info(msg, state)
+    assert_receive(:preload, 10)
   end
 
   test "delivery of auto sync messages" do
