@@ -100,10 +100,8 @@ defmodule FarmbotOS.MixProject do
       {:luerl, github: "rvirding/luerl"},
 
       # Host/test only dependencies.
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
       {:elixir_make, "~> 0.6", runtime: false},
 
       # Data collection

@@ -33,11 +33,6 @@ defmodule FarmbotCore.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      dialyzer: [
-        plt_add_deps: :transitive,
-        plt_add_apps: [:mix],
-        flags: []
-      ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -71,14 +66,12 @@ defmodule FarmbotCore.MixProject do
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:elixir_make, "~> 0.6", runtime: false},
       {:sqlite_ecto2, "~> 2.3"},
-      {:timex, "~> 3.4"},
-      {:jason, "~> 1.1"},
+      {:timex, "~> 3.6.2"},
+      {:jason, "~> 1.2.2"},
       {:muontrap, "~> 0.5"},
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:mimic, "~> 1.1", only: [:test]},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:mimic, "~> 1.3.1", only: [:test]},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 
