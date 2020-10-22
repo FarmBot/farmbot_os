@@ -83,53 +83,42 @@ defmodule FarmbotOS.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # Farmbot stuff
-      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
+      {:vintage_net, "~> 0.7.5", targets: @all_targets},
+      {:vintage_net_wifi, "~> 0.7.0", targets: @all_targets},
+      {:vintage_net_ethernet, "~> 0.7.0", targets: @all_targets},
+      {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
+      {:toolshed, "~> 0.2", targets: @all_targets},
+      {:nerves_time, "~> 0.3.2", targets: @all_targets},
+      {:nerves_runtime, "~> 0.10", targets: @all_targets},
+      {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
+      {:mdns_lite, "~> 0.6.1", targets: @all_targets},
+      {:circuits_i2c, "~> 0.3.5", targets: @all_targets},
+      {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
+      {:busybox, "~> 0.1.4", targets: @all_targets},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
-
-      # Configurator stuff
-      {:cors_plug, "~> 2.0"},
-      {:plug_cowboy, "~> 2.1"},
-      {:phoenix_html, "~> 2.13"},
-
-      # Nerves stuff.
-      {:nerves, "~> 1.5", runtime: false},
-      {:shoehorn, "~> 0.6"},
-      {:ring_logger, "~> 0.8"},
-      {:luerl, github: "rvirding/luerl"},
-
-      # Host/test only dependencies.
-      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
-      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
-      {:elixir_make, "~> 0.6", runtime: false},
-
-      # Data collection
-      {:nimble_csv, "~> 0.6.0", runtime: false},
-
-      # Target only deps
-      {:nerves_runtime, "~> 0.10", targets: @all_targets},
-      {:nerves_time, "~> 0.3.2", targets: @all_targets},
-      {:nerves_firmware_ssh, "~> 0.4", targets: @all_targets},
-      {:circuits_gpio, "~> 0.4.3", targets: @all_targets},
-      {:circuits_i2c, "~> 0.3.5", targets: @all_targets},
-      {:toolshed, "~> 0.2", targets: @all_targets},
-      {:vintage_net, "~> 0.7.5", targets: @all_targets},
-      {:vintage_net_ethernet, "~> 0.7.0", targets: @all_targets},
-      {:vintage_net_wifi, "~> 0.7.0", targets: @all_targets},
-      {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
-      {:mdns_lite, "~> 0.6.1", targets: @all_targets},
-      {:busybox, "~> 0.1.4", targets: @all_targets},
+      {:farmbot_system_rpi,
+       git: "https://github.com/FarmBot/farmbot_system_rpi.git",
+       tag: "v1.11.4-farmbot.1",
+       runtime: false,
+       targets: :rpi},
       {:farmbot_system_rpi3,
        git: "https://github.com/FarmBot/farmbot_system_rpi3.git",
        tag: "v1.11.4-farmbot.3",
        runtime: false,
        targets: :rpi3},
-      {:farmbot_system_rpi,
-       git: "https://github.com/FarmBot/farmbot_system_rpi.git",
-       tag: "v1.11.4-farmbot.1",
-       runtime: false,
-       targets: :rpi}
+      {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
+      {:nerves, "~> 1.5", runtime: false},
+      {:cors_plug, "~> 2.0.2"},
+      {:elixir_make, "~> 0.6.1", runtime: false},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:luerl, github: "rvirding/luerl"},
+      # {:nimble_csv, "~> 0.7.0", runtime: false},
+      {:phoenix_html, "~> 2.14.2"},
+      {:plug_cowboy, "~> 2.4"},
+      {:ring_logger, "~> 0.8.1"},
+      {:shoehorn, "~> 0.7"}
     ]
   end
 
