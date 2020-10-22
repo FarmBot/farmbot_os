@@ -14,8 +14,8 @@ defmodule FarmbotCore.Asset.FarmEvent do
       foreign_key: :asset_local_id
     )
 
-    has_many(:executions, Execution, 
-      on_delete: :delete_all, 
+    has_many(:executions, Execution,
+      on_delete: :delete_all,
       on_replace: :delete)
 
     field(:end_time, :utc_datetime)
@@ -97,7 +97,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
     case :erlang.load_nif(nif_file, 0) do
       :ok -> :ok
       {:error, {:reload, _}} -> :ok
-      {:error, reason} -> Logger.warn("Failed to load nif: #{inspect(reason)}")
+      {:error, _reason} -> :ok
     end
   end
 

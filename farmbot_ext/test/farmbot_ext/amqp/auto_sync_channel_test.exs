@@ -82,6 +82,7 @@ defmodule AutoSyncChannelTest do
     assert_receive(:preload, 10)
   end
 
+  # Blinked on 21 OCT 20. TODO: Rewrite
   test "delivery of auto sync messages" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
 
