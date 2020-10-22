@@ -39,7 +39,7 @@ defmodule FarmbotOS.EasterEggs do
   end
 
   def handle_call(:force, _, state) do
-    Process.cancel_timer(state.timer)
+    FarmbotExt.Time.cancel_timer(state.timer)
     send(self(), :timer)
     {:reply, :ok, %{state | timer: nil}}
   end
