@@ -22,6 +22,9 @@ defmodule FarmbotExt.Time do
     Process.sleep(ms(num))
   end
 
+  def cancel_timer(nil), do: nil
+  def cancel_timer(ref), do: Process.cancel_timer(ref)
+
   def ms(num) do
     if @disabled, do: 0, else: num
   end
