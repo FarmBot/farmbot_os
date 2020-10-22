@@ -130,6 +130,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
     end)
 
     expected_msg = "[info]  CeleryScript ok [%{fake: :ref}]"
+
     run_test = fn ->
       {:noreply, next_state} = CeleryScriptChannel.handle_info(message, state)
       assert next_state.rpc_requests == %{}
@@ -175,6 +176,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannelTest do
     end)
 
     expected_msg = "[error] CeleryScript error [%{fake: :ref}]: \"testing123\""
+
     run_test = fn ->
       {:noreply, next_state} = CeleryScriptChannel.handle_info(message, state)
       assert next_state.rpc_requests == %{}

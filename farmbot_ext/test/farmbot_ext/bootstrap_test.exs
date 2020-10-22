@@ -14,9 +14,11 @@ defmodule FarmbotExt.BootstrapTest do
     end)
 
     expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
+
     run_test = fn ->
       assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 0}
     end
+
     expected_message = "[error] Password auth failed! Check again and reconfigurate."
 
     assert capture_log(run_test) =~ expected_message
