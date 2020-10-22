@@ -11,7 +11,6 @@ defmodule FarmbotOS.SysCallsTest do
 
   use Mimic
   setup :verify_on_exit!
-  import ExUnit.CaptureIO
 
   test "emergency_unlock" do
     expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->

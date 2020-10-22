@@ -216,7 +216,7 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   defp color_to_pin(:white5), do: 13
 
   defp cancel_timer(ref) do
-    ref && Process.cancel_timer(ref)
+    FarmbotExt.Time.cancel_timer(ref)
     :ok
   end
 
