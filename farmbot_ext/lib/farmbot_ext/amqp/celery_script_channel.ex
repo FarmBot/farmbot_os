@@ -99,7 +99,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        timer && Process.cancel_timer(timer)
+        FarmbotExt.Time.cancel_timer(timer)
 
         result_ast = %{
           kind: :rpc_ok,
@@ -122,7 +122,7 @@ defmodule FarmbotExt.AMQP.CeleryScriptChannel do
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        timer && Process.cancel_timer(timer)
+        FarmbotExt.Time.cancel_timer(timer)
 
         result_ast = %{
           kind: :rpc_error,

@@ -320,7 +320,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     )
 
     old_timer = state.network_not_found_timer
-    old_timer && Process.cancel_timer(old_timer)
+    FarmbotExt.Time.cancel_timer(old_timer)
     %{state | network_not_found_timer: nil}
   end
 
