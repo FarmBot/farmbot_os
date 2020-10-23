@@ -48,11 +48,9 @@ defmodule FarmbotTelemetry.MixProject do
   defp deps do
     [
       {:telemetry, "~> 0.4.1"},
-      {:uuid, "~> 1.1"},
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.19", only: [:dev], targets: [:host], runtime: false}
+      {:uuid, "~> 1.1.8"},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end
