@@ -47,7 +47,7 @@ defmodule FarmbotTelemetry.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:telemetry, "~> 0.4.1"},
+      {:telemetry, "~> 0.4.2"},
       {:uuid, "~> 1.1.8"},
       {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
