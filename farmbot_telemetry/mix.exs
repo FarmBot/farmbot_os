@@ -15,7 +15,7 @@ defmodule FarmbotTelemetry.MixProject do
       elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       version: "0.1.0",
-      elixir: "~> 1.9",
+      elixir: "~> 1.11.1",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
