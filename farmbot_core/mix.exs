@@ -68,7 +68,7 @@ defmodule FarmbotCore.MixProject do
       {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.6.2"},
       {:jason, "~> 1.2.2"},
-      {:muontrap, "~> 0.5"},
+      {:muontrap, "~> 0.6"},
       {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
       {:mimic, "~> 1.3.1", only: [:test]},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
