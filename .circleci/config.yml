@@ -164,7 +164,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
     steps:
       - checkout
       - restore_cache:
@@ -199,7 +199,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
     steps:
       - checkout
       - restore_cache:
@@ -234,7 +234,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
       TZ: "America/Los_Angeles"
     steps:
       - checkout
@@ -289,7 +289,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -328,7 +328,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -416,7 +416,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.8.0
+      ELIXIR_VERSION: 1.11.1
     steps:
       - checkout
       - run:
@@ -435,7 +435,6 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
-      # - run: grep -Pazo "(?s)(?<=# $(cat VERSION))[^#]+" CHANGELOG.md > RELEASE_NOTES
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign rpi3 Firmware and create image
