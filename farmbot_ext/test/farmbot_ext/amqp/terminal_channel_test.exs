@@ -98,7 +98,7 @@ defmodule FarmbotExt.AMQP.TerminalChannelTest do
   test "execute commands over TermincalChannel" do
     expected = [
       "Starting IEx...",
-      "Interactive Elixir (1.9.0) - press Ctrl+C to exit (type h() ENTER for help)\r\n",
+      "Interactive Elixir (1.10.4) - press Ctrl+C to exit (type h() ENTER for help)\r\n",
       "iex(1)> "
     ]
 
