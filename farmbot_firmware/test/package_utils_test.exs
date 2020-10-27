@@ -52,7 +52,7 @@ defmodule FarmbotFirmware.PackageUtilsTest do
     {:ok, path} = PackageUtils.find_hex_file("none")
     assert path =~ "lib/farmbot_firmware/priv/eeprom_clear.ino.hex"
 
-    assert {:error, "unknown firmware hardware: no"} ==
+    assert {:error, "unknown firmware hardware: \"no\""} ==
              PackageUtils.find_hex_file("no")
   end
 end

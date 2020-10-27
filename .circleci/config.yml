@@ -8,8 +8,8 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://repo.hex.pm/builds/elixir/v1.11.1-otp-23.zip
-      unzip -d /usr/local/elixir v1.11.1-otp-23.zip
+      wget https://repo.hex.pm/builds/elixir/v1.10.4-otp-23.zip
+      unzip -d /usr/local/elixir v1.10.4-otp-23.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives
@@ -164,7 +164,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
     steps:
       - checkout
       - restore_cache:
@@ -199,7 +199,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
     steps:
       - checkout
       - restore_cache:
@@ -234,7 +234,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
       TZ: "America/Los_Angeles"
     steps:
       - checkout
@@ -289,7 +289,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
       SKIP_ARDUINO_BUILD: 1
     steps:
       - checkout
@@ -328,7 +328,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -416,7 +416,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.11.1
+      ELIXIR_VERSION: 1.10.4
     steps:
       - checkout
       - run:

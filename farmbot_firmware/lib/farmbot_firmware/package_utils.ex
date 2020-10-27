@@ -32,10 +32,9 @@ defmodule FarmbotFirmware.PackageUtils do
     |> assert_exists()
   end
 
-  def find_hex_file(hardware) when is_binary(hardware),
-    do: {:error, "unknown firmware hardware: #{hardware}"}
-
-  def find_hex_file(hardware)
+  def find_hex_file(hardware) do
+    {:error, "unknown firmware hardware: #{inspect(hardware)}"}
+  end
 
   @doc "Returns the human readable string describing `package`"
   def package_to_string(package)
