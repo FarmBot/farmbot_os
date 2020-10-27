@@ -17,7 +17,7 @@ defmodule FarmbotOS.Platform.Target.Network.PreSetup do
       ifname: ifname,
       type: __MODULE__,
       source_config: config,
-      require_interface: false
+      required_ifnames: []
     }
   end
 
