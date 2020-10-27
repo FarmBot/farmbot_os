@@ -1,8 +1,9 @@
 # Changelog
 
-# 12.1.1
+# 12.2.0
 
  * Legacy component removal.
+ * Upgrade OS-level dependencies
 
 # 12.1.0
 
