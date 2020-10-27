@@ -68,7 +68,7 @@ defmodule FarmbotExt.API.DirtyWorker do
   end
 
   defp http_request(dirty, module) when module in @singular do
-    path = path = module.path()
+    path = module.path()
     data = render(module, dirty)
     APIFetcher.patch(APIFetcher.client(), path, data)
   end

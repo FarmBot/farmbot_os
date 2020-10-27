@@ -15,7 +15,7 @@ defmodule FarmbotTelemetry.MixProject do
       elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       version: "0.1.0",
-      elixir: "~> 1.9",
+      elixir: "~> 1.10.4",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
@@ -47,7 +47,7 @@ defmodule FarmbotTelemetry.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:telemetry, "~> 0.4.1"},
+      {:telemetry, "~> 0.4.2"},
       {:uuid, "~> 1.1.8"},
       {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
