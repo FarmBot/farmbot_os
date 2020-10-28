@@ -24,7 +24,7 @@ defmodule FarmbotCore.LogExecutor do
         else: :info
 
     unless System.get_env("LOG_SILENCE") do
-      Elixir.Logger.bare_log(logger_level, log, logger_meta)
+      Elixir.Logger.bare_log(logger_level, log.message, logger_meta)
     end
     log
   end
