@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Network.PreSetup do
   @moduledoc """
-  VintageNet technology responsible for doing nothing, 
+  VintageNet technology responsible for doing nothing,
   but isn't the NULL technology
   """
 
@@ -17,7 +17,7 @@ defmodule FarmbotOS.Platform.Target.Network.PreSetup do
       ifname: ifname,
       type: __MODULE__,
       source_config: config,
-      require_interface: false
+      required_ifnames: []
     }
   end
 

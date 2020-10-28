@@ -83,12 +83,12 @@ defmodule FarmbotOS.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:vintage_net, "~> 0.7.5", targets: @all_targets},
-      {:vintage_net_wifi, "~> 0.7.0", targets: @all_targets},
-      {:vintage_net_ethernet, "~> 0.7.0", targets: @all_targets},
-      {:vintage_net_direct, "~> 0.7.0", targets: @all_targets},
+      {:vintage_net, "~> 0.9.2", targets: @all_targets},
+      {:vintage_net_wifi, "~> 0.9.1", targets: @all_targets},
+      {:vintage_net_ethernet, "~> 0.9.0", targets: @all_targets},
+      {:vintage_net_direct, "~> 0.9.0", targets: @all_targets},
       {:toolshed, "~> 0.2.14", targets: @all_targets},
-      {:nerves_time, "~> 0.3.2", targets: @all_targets},
+      {:nerves_time, "~> 0.4.2", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.3", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:mdns_lite, "~> 0.6.5", targets: @all_targets},

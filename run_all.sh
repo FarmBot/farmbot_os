@@ -39,3 +39,16 @@ cd ../farmbot_os
 mix format
 mix deps.get --all
 mix test
+
+cd ..
+cd farmbot_os
+
+echo "######### Build RPI3 FW"
+MIX_ENV=prod MIX_TARGET=rpi3 mix deps.get
+MIX_ENV=prod MIX_TARGET=rpi3 mix compile --force
+MIX_ENV=prod MIX_TARGET=rpi3 mix firmware
+
+echo "######### Build RPI0 FW"
+MIX_ENV=prod MIX_TARGET=rpi mix deps.get
+MIX_ENV=prod MIX_TARGET=rpi mix compile --force
+MIX_ENV=prod MIX_TARGET=rpi mix firmware
