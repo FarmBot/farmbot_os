@@ -120,8 +120,8 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
 
 config :logger,
   backends: [RingLogger],
-  handle_otp_reports: true,
-  handle_sasl_reports: true
+  handle_otp_reports: false,
+  handle_sasl_reports: false
 
 config :logger, RingLogger,
   max_size: 1024,

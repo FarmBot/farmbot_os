@@ -1,6 +1,6 @@
 use Mix.Config
 
-config :logger, handle_otp_reports: true, handle_sasl_reports: true
+config :logger, handle_otp_reports: false, handle_sasl_reports: false
 
 # TODO(Rick) We probably don't need to use this anymore now that Mox is a thing.
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
