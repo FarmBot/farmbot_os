@@ -7,9 +7,9 @@ defmodule FarmbotCore.MixProject do
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD")
           |> elem(0)
           |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
-                  |> File.read!()
-                  |> String.trim()
+  # @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+  #                 |> File.read!()
+  #                 |> String.trim()
 
   defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -19,7 +19,7 @@ defmodule FarmbotCore.MixProject do
     [
       app: :farmbot_core,
       description: "The Brains of the Farmbot Project",
-      elixir: @elixir_version,
+      # elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       make_clean: ["clean"],
       make_cwd: __DIR__,
