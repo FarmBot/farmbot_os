@@ -36,10 +36,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         address: "192.168.24.1",
         netmask: "255.255.255.0"
       },
-      dnsmasq: %{
-        domain: "farmbot",
-        server: "192.168.24.1",
-        address: "192.168.24.1",
+      dhcpd: %{
         start: "192.168.24.2",
         end: "192.168.24.10"
       }

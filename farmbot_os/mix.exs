@@ -118,7 +118,8 @@ defmodule FarmbotOS.MixProject do
       {:phoenix_html, "~> 2.14.2"},
       {:plug_cowboy, "~> 2.4"},
       {:ring_logger, "~> 0.8.1"},
-      {:shoehorn, "~> 0.7"}
+      {:shoehorn, "~> 0.7"},
+      {:dns, "~> 2.1"},
     ]
   end
 
