@@ -83,5 +83,3 @@ defmodule FarmbotOS.Configurator.CaptiveDNS do
     }
   end
 end
-
-FarmbotOS.Configurator.CaptiveDNS.start_link("lo0", 4040)
