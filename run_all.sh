@@ -65,13 +65,12 @@ cd ..
 cd farmbot_os
 
 echo "######### Build RPI3 FW"
-MIX_TARGET=rpi3
-mix deps.get
-mix compile --force
-mix firmware
+
+MIX_TARGET=rpi3 MIX_ENV=prod mix deps.get
+MIX_TARGET=rpi3 MIX_ENV=prod mix compile --force
+MIX_TARGET=rpi3 MIX_ENV=prod mix firmware
 
 echo "######### Build RPI0 FW"
-MIX_TARGET=rpi
-mix deps.get
-mix compile --force
-mix firmware
+MIX_TARGET=rpi MIX_ENV=prod mix deps.get
+MIX_TARGET=rpi MIX_ENV=prod mix compile --force
+MIX_TARGET=rpi MIX_ENV=prod mix firmware
