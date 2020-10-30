@@ -62,7 +62,14 @@ defmodule FarmbotOS.Configurator.CaptiveDNS do
   end
 
   # stop recursing when qdlist is fully enumerated
+  defp handle_dns([_misc | rest], answers, state) do
+    handle_dns(rest, answers, state)
+  end
+
+  # stop recursing when qdlist is fully enumerated
   defp handle_dns([], answers, state) do
+    # IO.inspect(answers, label: "==== DNS ANSWERS")
+    # IO.inspect(answers, label: "==== DNS STATE")
     {Enum.reverse(answers), state}
   end
 

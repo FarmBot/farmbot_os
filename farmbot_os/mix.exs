@@ -119,7 +119,7 @@ defmodule FarmbotOS.MixProject do
       {:plug_cowboy, "~> 2.4"},
       {:ring_logger, "~> 0.8.1"},
       {:shoehorn, "~> 0.7"},
-      {:dns, "~> 2.1"},
+      {:dns, "~> 2.1"}
     ]
   end
 
