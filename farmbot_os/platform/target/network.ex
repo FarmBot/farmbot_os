@@ -20,6 +20,8 @@ defmodule FarmbotOS.Platform.Target.Network do
   @default_network_not_found_timer_minutes 20
 
   def host do
+    me = "192.168.24.1"
+
     %{
       type: CaptivePortal,
       vintage_net_wifi: %{
@@ -33,10 +35,11 @@ defmodule FarmbotOS.Platform.Target.Network do
       },
       ipv4: %{
         method: :static,
-        address: "192.168.24.1",
+        address: me,
         netmask: "255.255.255.0"
       },
       dhcpd: %{
+        options: %{dns: [me]},
         start: "192.168.24.2",
         end: "192.168.24.10"
       }

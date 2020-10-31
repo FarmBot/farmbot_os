@@ -4,7 +4,7 @@ defmodule FarmbotOS.Configurator.CaptiveDNS do
 
   defstruct [:dns_socket, :dns_port, :ifname]
 
-  def start_link(ifname, port) do
+  def start_link([ifname, port]) do
     GenServer.start_link(__MODULE__, [ifname, port])
   end
 
@@ -30,13 +30,14 @@ defmodule FarmbotOS.Configurator.CaptiveDNS do
   # binary dns message from the socket
   def handle_info(
         {:udp, socket, ip, port, packet},
-        %{dns_socket: socket} = state
+        %{dns_socket: socket} = last_state
       ) do
     record = DNS.Record.decode(packet)
-    {answers, state} = handle_dns(record.qdlist, [], state)
-    response = DNS.Record.encode(%{record | anlist: answers})
+    {answers, next_state} = handle_dns(record.qdlist, [], last_state)
+    unencoded = %{record | anlist: answers}
+    response = DNS.Record.encode(unencoded)
     _ = :gen_udp.send(socket, ip, port, response)
-    {:noreply, state}
+    {:noreply, next_state}
   end
 
   # recursively check for dns queries, respond to each of them with the local ip address.
@@ -61,15 +62,13 @@ defmodule FarmbotOS.Configurator.CaptiveDNS do
     handle_dns(rest, [answer | answers], state)
   end
 
-  # stop recursing when qdlist is fully enumerated
+  # Captive portal only cares about "A" records.
   defp handle_dns([_misc | rest], answers, state) do
     handle_dns(rest, answers, state)
   end
 
   # stop recursing when qdlist is fully enumerated
   defp handle_dns([], answers, state) do
-    # IO.inspect(answers, label: "==== DNS ANSWERS")
-    # IO.inspect(answers, label: "==== DNS STATE")
     {Enum.reverse(answers), state}
   end
 
