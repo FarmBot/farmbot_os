@@ -1,12 +1,11 @@
 defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   @moduledoc """
-  VintageNet Technology that handles redirecting 
+  VintageNet Technology that handles redirecting
   **all** traffic to Farmbot's configuration interface
   """
 
   @behaviour VintageNet.Technology
   require FarmbotCore.Logger
-  alias FarmbotOS.Configurator.CaptiveDNS
 
   @impl VintageNet.Technology
   def normalize(%{vintage_net_wifi: _} = config) do
@@ -25,7 +24,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
     ifname
     |> vintage_wifi(normalized, opts)
-    |> add_captive_dns()
   end
 
   def to_raw_config(ifname, config, opts) do
@@ -33,7 +31,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
 
     ifname
     |> vintage_ethernet(normalized, opts)
-    |> add_captive_dns()
   end
 
   @impl VintageNet.Technology
@@ -44,14 +41,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   @impl true
   def ioctl(ifname, ioctl, args) do
     VintageNetWiFi.ioctl(ifname, ioctl, args)
-  end
-
-  defp add_captive_dns(%{ifname: ifname} = raw_config) do
-    child_specs = [
-      {CaptiveDNS, [ifname, 53]}
-    ]
-
-    %{raw_config | child_specs: raw_config.child_specs ++ child_specs}
   end
 
   defp vintage_wifi(ifname, config, opts) do
