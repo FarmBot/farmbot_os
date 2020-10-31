@@ -21,6 +21,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def host do
     me = "192.168.24.1"
+    me_but_tuple = {192, 168, 24, 1}
 
     %{
       type: CaptivePortal,
@@ -42,7 +43,8 @@ defmodule FarmbotOS.Platform.Target.Network do
         options: %{dns: [me]},
         start: "192.168.24.2",
         end: "192.168.24.10"
-      }
+      },
+      dnsd: %{records: [{"setup.farm.bot", me_but_tuple}]}
     }
   end
 
