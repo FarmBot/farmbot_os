@@ -1,4 +1,6 @@
 A list of important changes to FarmBot OS organized by major version.
+Only includes notes about changes where user intervention is required.
+For a complete list of changes and features, see the [changelog](CHANGELOG.md).
 _This file is parsed by the FarmBot Web App._
 
 # v6
@@ -46,7 +48,3 @@ FarmBot OS auto-update was disabled prior to this release. If you would like to 
 * FarmBot OS v12 uses a new over-the-air update system. Updates from FarmBot OS versions older than v11.1.0 will first upgrade to v11.1.0, after which the new update system can be used to upgrade to FarmBot OS v12 and beyond.
 
 # v12
-
- * New OTA system
- * Routine security updates
- * Support for USB Ethernet devices on Express models
