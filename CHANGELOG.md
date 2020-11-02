@@ -3,7 +3,8 @@
 # 12.2.0
 
  * Legacy component removal.
- * Upgrade OS-level dependencies
+ * Upgrade OS-level dependencies.
+ * Add support for USB Ethernet adapters (for Express users with WiFi trouble)
 
 # 12.1.0
 
