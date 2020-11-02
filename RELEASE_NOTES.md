@@ -48,3 +48,5 @@ FarmBot OS auto-update was disabled prior to this release. If you would like to 
 # v12
 
  * New OTA system
+ * Routine security updates
+ * Support for USB Ethernet devices on Express models
