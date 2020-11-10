@@ -24,3 +24,13 @@ iex --name console --cookie democookie --remsh farmbot@farmbot-<SERIAL_NUMBER>.l
 ## Disconnecting
 
 Issuing a `ctrl+c` to the `host` terminal should disconnect you from the session.
+
+# Remote Debug / Profiling of a FarmBot
+
+1. On host machine, run: `iex --name me@TARGET_IP_HERE --cookie COOKIE_GOES_HERE`
+1. An IEx session begins.
+1. Run `:observer.start()` to start the observer GUI.
+1. A window appears. Select `Node -> Connect Node`.
+1. Enter `farmbot@DEVICE_HOSTNAME_HERE`.
+1. The node appears in the list under the `Node` menu bar. Select it: `Node -> farmbot@DEVICE_HOSTNAME_HERE`.
+1. You're ready to debug!
