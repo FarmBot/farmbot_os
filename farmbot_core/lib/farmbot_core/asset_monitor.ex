@@ -89,7 +89,6 @@ defmodule FarmbotCore.AssetMonitor do
                                         sub_state ->
       cond do
         asset.monitor == false ->
-          # Logger.debug("#{inspect(kind)} #{id} should not be monitored")
           Map.put(sub_state, id, updated_at)
 
         is_nil(sub_state[id]) ->
