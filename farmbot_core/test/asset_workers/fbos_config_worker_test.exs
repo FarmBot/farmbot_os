@@ -10,12 +10,8 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
       conf =
       fbos_config(%{
         monitor: true,
-        arduino_debug_messages: true,
-        beta_opt_in: true,
         disable_factory_reset: false,
         firmware_hardware: nil,
-        firmware_input_log: false,
-        firmware_output_log: false,
         network_not_found_timer: nil,
         os_auto_update: false,
         sequence_body_log: true,
@@ -29,16 +25,12 @@ defmodule FarmbotCore.FbosConfigWorkerTest do
     state = BotState.subscribe()
 
     state_conf = receive_changes(state).configuration
-    assert state_conf.arduino_debug_messages == conf.arduino_debug_messages
-    assert state_conf.beta_opt_in == conf.beta_opt_in
     assert state_conf.disable_factory_reset == conf.disable_factory_reset
 
     # The TTYDetector actually will set this value
     # only if the state actually changes properly.
     # assert state_conf.firmware_hardware == conf.firmware_hardware
 
-    assert state_conf.firmware_input_log == conf.firmware_input_log
-    assert state_conf.firmware_output_log == conf.firmware_output_log
     assert state_conf.network_not_found_timer == conf.network_not_found_timer
     assert state_conf.os_auto_update == conf.os_auto_update
     assert state_conf.sequence_body_log == conf.sequence_body_log
