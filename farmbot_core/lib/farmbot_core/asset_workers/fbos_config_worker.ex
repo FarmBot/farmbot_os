@@ -13,7 +13,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   @firmware_flash_attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_attempt_threshold] || 5
   @firmware_flash_timeout Application.get_env(:farmbot_core, __MODULE__)[:firmware_flash_timeout] || 5000
-  @disable_firmware_io_logs_timeout Application.get_env(:farmbot_core, __MODULE__)[:disable_firmware_io_logs_timeout] || 300000
 
   @impl FarmbotCore.AssetWorker
   def preload(%FbosConfig{}), do: []
@@ -84,7 +83,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   def handle_info(:timeout, %{fbos_config: %FbosConfig{} = fbos_config} = state) do
     set_config_to_state(fbos_config)
     send self(), {:maybe_flash_firmware, fbos_config}
-    send self(), {:maybe_start_io_log_timer, fbos_config}
     {:noreply, state}
   end
 
@@ -95,46 +93,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     {:noreply, state}
   end
 
-  def handle_info({:maybe_start_io_log_timer, old_fbos_config}, %{fbos_config: fbos_config, firmware_io_timer: nil} = state) do
-    out_logs = {old_fbos_config.firmware_output_log, fbos_config.firmware_output_log}
-    in_logs = {old_fbos_config.firmware_input_log, fbos_config.firmware_input_log}
-    # if either of the log types were enabled, start a timer
-    recently_enabled? = match?({_, true}, out_logs) || match?({_, true}, in_logs)
-    # if both of the log types are disabled, cancel the timer
-    recently_disabled? = match?({_, false}, out_logs) && match?({_, false}, in_logs)
-    cond do
-      recently_enabled? ->
-        FarmbotCore.Logger.info 2, "Firmware logs will be disabled after 5 minutes"
-        firmware_io_timer = Process.send_after(self(), :disable_firmware_io_logs, @disable_firmware_io_logs_timeout)
-        {:noreply, %{state | firmware_io_timer: firmware_io_timer}}
-      recently_disabled? ->
-        state.firmware_io_timer && Process.cancel_timer(state.firmware_io_timer)
-        {:noreply, %{state | firmware_io_timer: nil}}
-      true ->
-        {:noreply, state}
-    end
-  end
-
-  # the timer is already started
-  def handle_info({:maybe_start_io_log_timer, _}, state) do
-    {:noreply, state}
-  end
-
-  def handle_info(:disable_firmware_io_logs, state) do
-    new_fbos_config = FarmbotCore.Asset.update_fbos_config!(state.fbos_config, %{
-      firmware_output_log: false,
-      firmware_input_log: false
-    })
-    _ = FarmbotCore.Asset.Private.mark_dirty!(new_fbos_config)
-    FarmbotCore.Logger.info 2, "Automatically disabling firmware IO logs (5 minutes have elapsed)"
-    {:noreply, %{state | fbos_config: new_fbos_config, firmware_io_timer: nil}}
-  end
-
   @impl GenServer
   def handle_cast({:new_data, new_fbos_config}, %{fbos_config: %FbosConfig{} = old_fbos_config} = state) do
     _ = set_config_to_state(new_fbos_config, old_fbos_config)
     send self(), {:maybe_flash_firmware, old_fbos_config}
-    send self(), {:maybe_start_io_log_timer, old_fbos_config}
     {:noreply, %{state | fbos_config: new_fbos_config}}
   end
 
@@ -172,11 +134,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   def set_config_to_state(new_fbos_config, old_fbos_config) do
     interesting_params = [
-      :arduino_debug_messages,
-      :firmware_input_log,
-      :firmware_output_log,
-      :firmware_debug_log,
-      :beta_opt_in,
       :disable_factory_reset,
       :network_not_found_timer,
       :os_auto_update,
@@ -188,24 +145,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     old_interesting_fbos_config = Map.take(old_fbos_config, interesting_params) |> MapSet.new()
     difference = MapSet.difference(new_interesting_fbos_config, old_interesting_fbos_config)
     Enum.each(difference, fn
-      {:arduino_debug_messages, bool} ->
-        FarmbotCore.Logger.success 1, "Set arduino debug messages to #{bool}"
-
-      {:firmware_input_log, bool} ->
-        FarmbotCore.Logger.success 1, "Set arduino input logs to #{bool}"
-
-      {:firmware_output_log, bool} ->
-        FarmbotCore.Logger.success 1, "Set arduino output logs to #{bool}"
-
-      {:firmware_debug_log, bool} ->
-        FarmbotCore.Logger.success 1, "Set arduino debug messages to #{bool}"
-
-      {:beta_opt_in, true} ->
-        FarmbotCore.Logger.success 1, "Opting into beta updates"
-
-      {:beta_opt_in, false} ->
-        FarmbotCore.Logger.success 1, "Opting out of beta updates"
-
       {:os_auto_update, bool} ->
         FarmbotCore.Logger.success 1, "Set OS auto update to #{bool}"
 
@@ -231,14 +170,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def set_config_to_state(fbos_config) do
-    # firmware
-    :ok = BotState.set_config_value(:arduino_debug_messages, fbos_config.arduino_debug_messages)
-    :ok = BotState.set_config_value(:firmware_input_log, fbos_config.firmware_input_log)
-    :ok = BotState.set_config_value(:firmware_output_log, fbos_config.firmware_output_log)
-    :ok = BotState.set_config_value(:firmware_debug_log, fbos_config.firmware_debug_log)
-
     # firmware_hardware is set by FarmbotFirmware.SideEffects
-    :ok = BotState.set_config_value(:beta_opt_in, fbos_config.beta_opt_in)
     :ok = BotState.set_config_value(:disable_factory_reset, fbos_config.disable_factory_reset)
     :ok = BotState.set_config_value(:network_not_found_timer, fbos_config.network_not_found_timer)
     :ok = BotState.set_config_value(:os_auto_update, fbos_config.os_auto_update)

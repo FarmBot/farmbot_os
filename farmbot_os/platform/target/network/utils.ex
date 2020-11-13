@@ -49,7 +49,6 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
         :ok
 
       _ ->
-        FarmbotCore.Logger.debug(3, "Hacking tzdata.")
         objs_to_cp = Path.wildcard(Path.join(@tzdata_dir, "*"))
 
         for obj <- objs_to_cp do

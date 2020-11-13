@@ -14,20 +14,11 @@ defmodule FarmbotCore.Asset.FbosConfig do
       foreign_key: :asset_local_id
     )
 
-    # firmware
-    field(:arduino_debug_messages, :boolean)
-    field(:firmware_input_log, :boolean)
-    field(:firmware_output_log, :boolean)
-    field(:firmware_debug_log, :boolean)
-
     # No longer supported
     field(:firmware_hardware, :string)
 
     # stateful
     field(:firmware_path, :string)
-
-    # not used anymore
-    field(:beta_opt_in, :boolean)
 
     # system
     field(:disable_factory_reset, :boolean)
@@ -51,14 +42,9 @@ defmodule FarmbotCore.Asset.FbosConfig do
     %{
       id: fbos_config.id,
       updated_at: fbos_config.updated_at,
-      arduino_debug_messages: fbos_config.arduino_debug_messages,
-      beta_opt_in: fbos_config.beta_opt_in,
       disable_factory_reset: fbos_config.disable_factory_reset,
       firmware_hardware: fbos_config.firmware_hardware,
       firmware_path: fbos_config.firmware_path,
-      firmware_input_log: fbos_config.firmware_input_log,
-      firmware_output_log: fbos_config.firmware_output_log,
-      firmware_debug_log: fbos_config.firmware_debug_log,
       network_not_found_timer: fbos_config.network_not_found_timer,
       os_auto_update: fbos_config.os_auto_update,
       sequence_body_log: fbos_config.sequence_body_log,
@@ -76,13 +62,8 @@ defmodule FarmbotCore.Asset.FbosConfig do
       :created_at,
       :updated_at,
       :monitor,
-      :arduino_debug_messages,
-      :beta_opt_in,
       :disable_factory_reset,
-      :firmware_debug_log,
       :firmware_hardware,
-      :firmware_input_log,
-      :firmware_output_log,
       :firmware_path,
       :network_not_found_timer,
       :os_auto_update,

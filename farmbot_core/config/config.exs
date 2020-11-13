@@ -30,9 +30,7 @@ config :farmbot_core, FarmbotCore.Leds,
 config :farmbot_core, FarmbotCore.JSON,
   json_parser: FarmbotCore.JSON.JasonParser
 
-config :farmbot_core, FarmbotCore.BotState.FileSystem,
-  root_dir: "/tmp/farmbot",
-  sleep_time: 200
+config :farmbot_core, FarmbotCore.BotState.FileSystem, root_dir: "/tmp/farmbot"
 
 config :farmbot_core, FarmbotCore.EctoMigrator,
   default_firmware_io_logs: false,
