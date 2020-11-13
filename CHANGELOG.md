@@ -1,5 +1,9 @@
 # Changelog
 
+# 12.2.1
+
+ * Performance updates for Express device
+
 # 12.2.0
 
  * Legacy component removal.
