@@ -13,6 +13,8 @@ defmodule FarmbotCeleryScript.FormatUtil do
     end
   end
 
+  def format_float(other), do: inspect(other)
+
   def format_coord(x, y, z) do
     x = format_float(x)
     y = format_float(y)

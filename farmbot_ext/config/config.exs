@@ -48,9 +48,7 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstalla
 
 config :farmbot_core, FarmbotCore.FarmwareRuntime, runtime_dir: "/tmp/farmware_runtime"
 
-config :farmbot_core, FarmbotCore.BotState.FileSystem,
-  root_dir: "/tmp/farmbot_state",
-  sleep_time: 200
+config :farmbot_core, FarmbotCore.BotState.FileSystem, root_dir: "/tmp/farmbot_state"
 
 config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 30_000
 
