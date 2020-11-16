@@ -2,7 +2,7 @@
 
 # 12.2.1
 
- * Performance updates for Express device
+ * Performance updates for Express devices
 
 # 12.2.0
 
