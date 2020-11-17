@@ -95,9 +95,6 @@ defmodule FarmbotFirmware.Command do
     end
   end
 
-  # If you ever need this for dev builds,
-  # you can add custom logger logic here.
-  def debug_log(msg) do
-    Logger.debug(msg)
-  end
+  # If you ever need this for dev builds, you can add custom logger logic here.
+  def debug_log(_msg), do: nil
 end
