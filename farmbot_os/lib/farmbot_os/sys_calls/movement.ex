@@ -87,28 +87,30 @@ defmodule FarmbotOS.SysCalls.Movement do
            a: speed_x / 100 * (max_speed_x || 1),
            b: speed_y / 100 * (max_speed_y || 1),
            c: speed_z / 100 * (max_speed_z || 1)
-         ],
-         :ok <- FarmbotFirmware.command({nil, {:command_movement, params}}) do
-      :ok
+         ] do
+      result = FarmbotFirmware.command({nil, {:command_movement, params}})
+      finish_movement(result)
     else
-      {:error, reason} ->
-        handle_movement_error(reason)
-
-      reason ->
-        handle_movement_error(reason)
+      error -> finish_movement(error)
     end
   end
 
-  # TODO(Rick): Figure out source of Error: {:ok, "ok"} logs.
-  def handle_movement_error({:ok, _}), do: :ok
+  @estopped "Cannot execute commands while E-stopped"
+  def finish_movement(:ok), do: :ok
+  def finish_movement({:ok, _}), do: :ok
+  def finish_movement({:error, reason}), do: finish_movement(reason)
 
-  def handle_movement_error(:emergency_lock) do
-    msg = "Cannot execute commands while E-stopped"
-    FarmbotCore.Logger.busy(1, msg)
+  def finish_movement(:emergency_lock) do
+    finish_movement(@estopped)
+  end
+
+  def finish_movement(err) when is_binary(err) do
+    msg = "Movement failed. #{err}"
+    FarmbotCore.Logger.error(1, msg)
     {:error, msg}
   end
 
-  def handle_movement_error(reason) do
+  def finish_movement(reason) do
     msg = "Movement failed. #{inspect(reason)}"
     FarmbotCore.Logger.error(1, msg)
     {:error, msg}
