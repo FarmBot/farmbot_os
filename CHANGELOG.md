@@ -1,5 +1,10 @@
 # Changelog
 
+# 12.2.1
+
+ * Performance updates for Express devices
+ * Fix firmware bug where `report_position_change` was erroneously reported as an error.
+
 # 12.2.0
 
  * Legacy component removal.

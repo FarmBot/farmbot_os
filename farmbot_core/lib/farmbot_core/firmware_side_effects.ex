@@ -21,7 +21,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :noop
   end
 
-    @impl FarmbotFirmware.SideEffects
+  @impl FarmbotFirmware.SideEffects
   def handle_position_change([{axis, _}]) do
     FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at maximum")
     :noop
