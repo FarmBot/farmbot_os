@@ -53,6 +53,35 @@ defmodule FarmbotFirmware.CommandTest do
     assert_receive(
       {:error, :emergency_lock},
       500,
+      "Expected :emergency_lock response"
+    )
+  end
+
+  test "handle report_position_change from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_position_change, []}})
+    send(pid, {nil, {:report_error, [:no_error]}})
+    assert_receive({:ok, "ok"}, 500, "Expected OK response when :no_error")
+  end
+
+  test "handle invalid command reports from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_invalid, []}})
+
+    assert_receive(
+      {:error, :invalid_command},
+      500,
+      "Expected firmware errors to be echoed"
+    )
+  end
+
+  test "handle invalid axis timeout from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_axis_timeout, [:x]}})
+
+    assert_receive(
+      {:error, "axis timeout: x"},
+      500,
       "Expected firmware errors to be echoed"
     )
   end
