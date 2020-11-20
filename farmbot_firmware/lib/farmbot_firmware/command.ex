@@ -27,34 +27,38 @@ defmodule FarmbotFirmware.Command do
     command(firmware_server, {to_string(:rand.uniform(100)), code})
   end
 
-  defp wait_for_command_result(code) do
+  def wait_for_command_result(original_cmd) do
+    # Takes a GCode command.
+    # Sits and loops through messages until it finds the one
+    # it asked for.
+    # It will come back in the form of:
+    # {tag, {command_name, command_result}}
+
     receive do
       {_tag, {:report_begin, []}} ->
-        debug_log("#{GCODE.encode(code)} begin")
-        wait_for_command_result(code)
+        debug_log("#{GCODE.encode(original_cmd)} begin")
+        wait_for_command_result(original_cmd)
 
       {_tag, {:report_busy, []}} ->
-        debug_log("#{GCODE.encode(code)} busy")
-        wait_for_command_result(code)
+        debug_log("#{GCODE.encode(original_cmd)} busy")
+        wait_for_command_result(original_cmd)
 
       {_tag, {:report_success, []}} ->
-        debug_log("#{GCODE.encode(code)} success")
+        debug_log("#{GCODE.encode(original_cmd)} success")
         :ok
 
       {_tag, {:report_retry, []}} ->
-        debug_log("#{GCODE.encode(code)} retry")
-        wait_for_command_result(code)
+        debug_log("#{GCODE.encode(original_cmd)} retry")
+        wait_for_command_result(original_cmd)
 
-      # HOW IT WAS BEFORE:
-      # {tag, {:report_position_change, _} = error} ->
       {_tag, {:report_position_change, _}} ->
-        debug_log("#{GCODE.encode(code)} position change")
+        debug_log("#{GCODE.encode(original_cmd)} position change")
         # HOW IT WAS BEFORE:
         # wait_for_command_result(code, retries, error)
-        wait_for_command_result(code)
+        wait_for_command_result(original_cmd)
 
       {_tag, {:report_error, [error_code]}} ->
-        debug_log("#{GCODE.encode(code)} #{inspect(error_code)}")
+        debug_log("#{GCODE.encode(original_cmd)} #{inspect(error_code)}")
 
         case error_code do
           :no_error -> {:ok, "ok"}
@@ -70,27 +74,30 @@ defmodule FarmbotFirmware.Command do
         end
 
       {_tag, {:report_invalid, []}} ->
-        debug_log("#{GCODE.encode(code)} invalid command")
+        debug_log("#{GCODE.encode(original_cmd)} invalid command")
         {:error, :invalid_command}
 
       {_tag, {:report_emergency_lock, []}} ->
-        debug_log("#{GCODE.encode(code)} e stop")
+        debug_log("#{GCODE.encode(original_cmd)} e stop")
         {:error, :emergency_lock}
 
       {_tag, {:report_axis_timeout, [axis]}} ->
         {:error, "axis timeout: #{axis}"}
 
       {:error, reason} ->
-        debug_log("#{GCODE.encode(code)} unknown error")
+        debug_log("#{GCODE.encode(original_cmd)} unknown error")
         {:error, reason}
 
       {_tag, report} ->
-        debug_log("#{GCODE.encode(code)} ignored report: #{inspect(report)}")
-        wait_for_command_result(code)
+        debug_log(
+          "#{GCODE.encode(original_cmd)} ignored report: #{inspect(report)}"
+        )
+
+        wait_for_command_result(original_cmd)
     after
       30_000 ->
         raise(
-          "Firmware command: #{GCODE.encode(code)} failed to respond within 30 seconds"
+          "Firmware command: #{GCODE.encode(original_cmd)} failed to respond within 30 seconds"
         )
     end
   end

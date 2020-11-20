@@ -44,7 +44,12 @@ defmodule FarmbotOS.Platform.Target.Network do
         start: "192.168.24.2",
         end: "192.168.24.10"
       },
-      dnsd: %{records: [{"*", me_but_tuple}]}
+      dnsd: %{
+        records: [
+          {"setup.farm.bot", me_but_tuple},
+          {"*", me_but_tuple}
+        ]
+      }
     }
   end
 
