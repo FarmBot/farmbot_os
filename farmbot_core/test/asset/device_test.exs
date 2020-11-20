@@ -6,8 +6,6 @@ defmodule FarmbotCore.Asset.DeviceTest do
     :id,
     :name,
     :timezone,
-    :last_ota,
-    :last_ota_checkup,
     :ota_hour,
     :needs_reset,
     :mounted_tool_id
