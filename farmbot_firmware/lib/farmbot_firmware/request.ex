@@ -61,7 +61,7 @@ defmodule FarmbotFirmware.Request do
   # when valid data has been collected from `wait_for_request_result_process`
   # it will return that data.
   # If this function returns no data for 5 seconds, it needs to error.
-  defp wait_for_request_result(tag, code, result \\ nil) do
+  def wait_for_request_result(tag, code, result \\ nil) do
     receive do
       {tag, {:report_begin, []}} ->
         wait_for_request_result(tag, code, result)
