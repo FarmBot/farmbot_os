@@ -6,8 +6,6 @@ defmodule FarmbotCore.Logger do
   alias FarmbotCore.{Log, Logger.Repo}
   import Ecto.Query
   @log_types [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion]
-  @env (Application.get_env(:farmbot_core, FarmbotCore) || [])[:mix_env]
-  @max_dupes if (@env == :test), do: 999999, else: 5
 
   @doc "Send a debug message to log endpoints"
   defmacro debug(verbosity, message, meta \\ []) do
@@ -62,11 +60,12 @@ defmodule FarmbotCore.Logger do
     changeset = Log.changeset(%Log{}, params)
 
     try do
+      max = max_dupes()
       logs = Repo.all(Log, message: Ecto.Changeset.get_field(changeset, :message))
       logs
       |> Enum.count()
       |> case do
-        x when x < @max_dupes -> Repo.insert!(changeset)
+        x when x < max -> Repo.insert!(changeset)
         _ -> Enum.at(logs, 0)
       end
     catch
@@ -131,4 +130,12 @@ defmodule FarmbotCore.Logger do
   end
 
   def should_log?(_, _), do: false
+
+  def max_dupes do
+    (if FarmbotCore.Project.env() == :test do
+      999999
+    else
+      5
+    end) |> IO.inspect(label: "====== MAX DUPES")
+  end
 end
