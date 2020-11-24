@@ -132,10 +132,10 @@ defmodule FarmbotCore.Logger do
   def should_log?(_, _), do: false
 
   def max_dupes do
-    (if FarmbotCore.Project.env() == :test do
+    if FarmbotCore.Project.env() == :test do
       999999
     else
       5
-    end) |> IO.inspect(label: "====== MAX DUPES")
+    end
   end
 end
