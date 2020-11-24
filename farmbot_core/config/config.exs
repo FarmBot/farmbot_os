@@ -45,6 +45,7 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
     )
 
 config :farmbot_firmware, FarmbotFirmware, reset: FarmbotCore.FirmwareResetter
+config :farmbot_core, FarmbotCore, mix_env: Mix.env()
 
 import_config "ecto.exs"
 import_config "logger.exs"

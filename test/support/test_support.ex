@@ -83,12 +83,9 @@ defmodule Helpers do
 
   defmacro expect_log(msg) do
     quote do
-      message = unquote(msg)
-      IO.puts("=== UNSTUB ME " <> message)
-      # expect(FarmbotCore.LogExecutor, :execute, fn
-      #   %{ message: ^message } -> IO.puts("=== THIS FUNCTION NEEDS TO BE UNSTUBBED PRIOR TO DEPLOY")
-      #   _ -> nil
-      # end)
+      expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+        assert log.message == unquote(msg)
+      end)
     end
   end
 
