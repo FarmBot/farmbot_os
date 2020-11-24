@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-MIX_ENV=prod
+MIX_ENV=test
 
 cd farmbot_telemetry
 
@@ -12,7 +12,7 @@ cd ../farmbot_telemetry
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
@@ -21,7 +21,7 @@ cd ../farmbot_celery_script
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
@@ -30,7 +30,7 @@ cd ../farmbot_firmware
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
@@ -39,7 +39,7 @@ cd ../farmbot_core
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
@@ -48,7 +48,7 @@ cd ../farmbot_ext
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
@@ -57,7 +57,7 @@ cd ../farmbot_os
 mix deps.get --all
 mix coveralls.html
 rm -f *.coverdata
-mix compile
+MIX_ENV=test mix compile
 mix format
 mix test
 
