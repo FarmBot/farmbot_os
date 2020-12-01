@@ -60,13 +60,21 @@ defmodule FarmbotCore.Logger do
     changeset = Log.changeset(%Log{}, params)
 
     try do
-      max = max_dupes()
-      logs = Repo.all(Log, message: Ecto.Changeset.get_field(changeset, :message))
-      logs
-      |> Enum.count()
-      |> case do
-        x when x < max -> Repo.insert!(changeset)
-        _ -> Enum.at(logs, 0)
+      message = Ecto.Changeset.get_field(changeset, :message)
+
+      case Repo.get_by(Log, message: message) do
+        nil ->
+          Repo.insert!(changeset)
+
+        old ->
+          params =
+            params
+            |> Map.put(:inserted_at, DateTime.utc_now())
+            |> Map.put(:duplicates, old.duplicates + 1)
+
+          old
+          |> Log.changeset(params)
+          |> Repo.update!()
       end
     catch
       kind, err ->
@@ -130,12 +138,4 @@ defmodule FarmbotCore.Logger do
   end
 
   def should_log?(_, _), do: false
-
-  def max_dupes do
-    if FarmbotCore.Project.env() == :test do
-      999999
-    else
-      5
-    end
-  end
 end
