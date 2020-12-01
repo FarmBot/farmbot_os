@@ -13,7 +13,7 @@ defmodule FarmbotExt.AMQP.LogChannel do
   alias FarmbotCore.{BotState, JSON}
   alias FarmbotExt.AMQP.Support
 
-  @checkup_ms 1000
+  @checkup_ms 100
   @exchange "amq.topic"
 
   defstruct [:conn, :chan, :jwt, :state_cache]
