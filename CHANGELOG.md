@@ -1,5 +1,23 @@
 # Changelog
 
+# 12.2.2
+
+ * Performance updates for Express devices
+ * Fix firmware bug where `report_position_change` was erroneously reported as an error.
+ * Dependency upgrades
+ * Firmware debug log removal
+
+# 12.2.1
+
+ * Performance updates for Express devices
+ * Fix firmware bug where `report_position_change` was erroneously reported as an error.
+
+# 12.2.0
+
+ * Legacy component removal.
+ * Upgrade OS-level dependencies.
+ * Add support for USB Ethernet adapters (for Express users with WiFi trouble)
+
 # 12.1.0
 
  * `safe_height` and `soil_height` support for MOVE block.

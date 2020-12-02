@@ -52,7 +52,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     Repo.delete_all(PointGroup)
     Helpers.delete_all_points()
 
-    whitelist = [
+    ok = [
       %Point{id: 1, x: rand(), y: rand(), z: rand()},
       %Point{id: 2, x: rand(), y: rand(), z: rand()},
       %Point{id: 3, x: rand(), y: rand(), z: rand()}
@@ -75,7 +75,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       %Point{z: 8.0}
     ]
 
-    points = whitelist ++ exclusion ++ incusion
+    points = ok ++ exclusion ++ incusion
     Enum.map(points, fn p -> Repo.insert!(p) end)
     pg = %PointGroup{@fake_point_group | point_ids: [1, 2, 3]}
     Repo.insert!(pg)
@@ -131,7 +131,7 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
     Repo.delete_all(PointGroup)
     Helpers.delete_all_points()
 
-    whitelist = [88457, 88455]
+    ok = [88457, 88455]
 
     Helpers.create_point(%{
       created_at: ~U[2020-01-09 19:09:39.176321Z],
@@ -456,15 +456,15 @@ defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
       },
       id: 201,
       name: "Test (Broke?)",
-      point_ids: whitelist,
+      point_ids: ok,
       sort_type: "xy_ascending",
       updated_at: ~U[2020-03-02 21:55:26.973000Z]
     }
 
     Repo.insert!(pg)
     results = Enum.map(CriteriaRetriever.run(pg), fn p -> p.id end)
-    assert Enum.count(whitelist) == Enum.count(results)
-    Enum.map(whitelist, fn id -> assert Enum.member?(results, id) end)
+    assert Enum.count(ok) == Enum.count(results)
+    Enum.map(ok, fn id -> assert Enum.member?(results, id) end)
   end
 
   test "edge case: Filter by crop type" do

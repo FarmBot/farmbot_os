@@ -1,4 +1,6 @@
 A list of important changes to FarmBot OS organized by major version.
+Only includes notes about changes where user intervention is required.
+For a complete list of changes and features, see the [changelog](CHANGELOG.md).
 _This file is parsed by the FarmBot Web App._
 
 # v6

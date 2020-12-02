@@ -80,7 +80,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       "kaboom"
     end)
 
-    msg = "Movement failed. \"kaboom\""
+    msg = "Movement failed. kaboom"
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == msg
@@ -97,7 +97,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       {:error, "boom"}
     end)
 
-    msg = "Movement failed. \"boom\""
+    msg = "Movement failed. boom"
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == msg

@@ -11,7 +11,6 @@ defmodule FarmbotOS.SysCallsTest do
 
   use Mimic
   setup :verify_on_exit!
-  import ExUnit.CaptureIO
 
   test "emergency_unlock" do
     expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->
@@ -70,34 +69,6 @@ defmodule FarmbotOS.SysCallsTest do
 
     result6 = SysCalls.named_pin("Peripheral", 11)
     assert {:error, "Could not find peripheral by id: 11"} == result6
-  end
-
-  @tag :capture_log
-  test "sync() success" do
-    # Expect 5 calls and an :ok response.
-    expect(FarmbotExt.API.Reconciler, :sync_group, 5, fn changeset, _group ->
-      changeset
-    end)
-
-    expect(FarmbotExt.API, :get_changeset, fn module ->
-      {:ok, %{wut: module}}
-    end)
-
-    assert capture_io(fn ->
-             assert :ok == SysCalls.sync()
-           end) =~ "green really_fast_blink"
-  end
-
-  @tag :capture_log
-  test "sync() failure" do
-    # Expect 5 calls and an :ok response.
-    expect(FarmbotExt.API, :get_changeset, fn FarmbotCore.Asset.Sync ->
-      "this is a test"
-    end)
-
-    assert capture_io(fn ->
-             assert {:error, "\"this is a test\""} == SysCalls.sync()
-           end) =~ "green slow_blink"
   end
 
   test "get_sequence(id)" do

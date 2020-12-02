@@ -2,24 +2,37 @@ Application.ensure_all_started(:farmbot)
 Application.ensure_all_started(:mimic)
 
 [
+  AMQP.Basic,
   AMQP.Channel,
+  AMQP.Connection,
+  AMQP.Queue,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
   FarmbotCore.Asset.Private,
   FarmbotCore.Asset.Repo,
   FarmbotCore.BotState,
+  FarmbotCore.BotStateNG,
   FarmbotCore.Config,
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
+  FarmbotCore.Logger,
   FarmbotExt.AMQP.AutoSyncAssetHandler,
+  FarmbotExt.AMQP.BotStateChannelSupport,
   FarmbotExt.AMQP.ConnectionWorker,
+  FarmbotExt.AMQP.Support,
   FarmbotExt.AMQP.TerminalChannelSupport,
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
   FarmbotExt.API.Preloader,
-  FarmbotExt.Bootstrap.Authorization
+  FarmbotExt.API.Reconciler,
+  FarmbotExt.API.SyncGroup,
+  FarmbotExt.APIFetcher,
+  FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.Bootstrap.DropPasswordSupport,
+  FarmbotExt.HTTPC,
+  FarmbotExt.Time
 ]
 |> Enum.map(&Mimic.copy/1)
 
@@ -32,6 +45,7 @@ ExUnit.configure(
 )
 
 ExUnit.start()
+
 # Use this to stub out calls to `state.reset.reset()` in firmware.
 defmodule StubReset do
   def reset(), do: :ok

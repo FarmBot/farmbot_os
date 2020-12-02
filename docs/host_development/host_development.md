@@ -16,7 +16,7 @@ export FARMBOT_TTY=/dev/ttySomeDeviceFile
 mix compile --force
 ```
 
-If you're device moves ttys, you will have to redo this step.
+If your device moves ttys, you will have to redo this step.
 Make sure the correct firmware is selected in the frontend. This
 value is completely ignored when the `none` option is selected on
 the Devices panel.
@@ -39,7 +39,7 @@ iex()> :sys.get_state(FarmbotFirmware)
 
 ## Configurator
 
-Currently configurator does not run on the `host` enviornment. To connect to
+Currently configurator does not run on the `host` environment. To connect to
 your FarmBot account, export the following variables:
 
 ```bash

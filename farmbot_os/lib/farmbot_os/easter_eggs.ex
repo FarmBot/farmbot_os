@@ -39,12 +39,12 @@ defmodule FarmbotOS.EasterEggs do
   end
 
   def handle_call(:force, _, state) do
-    Process.cancel_timer(state.timer)
+    FarmbotExt.Time.cancel_timer(state.timer)
     send(self(), :timer)
     {:reply, :ok, %{state | timer: nil}}
   end
 
-  defp load_data do
+  def load_data do
     Path.join(:code.priv_dir(:farmbot), "easter_eggs.json")
     |> File.read!()
     |> JSON.decode!()

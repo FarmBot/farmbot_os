@@ -141,8 +141,6 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   def handle_info(:checkup, %{next: nil} = state) do
-    # Logger.debug("Scheduling next checkup with no next")
-
     state
     |> schedule_next_checkup()
     |> dispatch()
@@ -152,22 +150,12 @@ defmodule FarmbotCeleryScript.Scheduler do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
       diff_ms when diff_ms < 0 ->
-        # from_now =
-        #   DateTime.utc_now()
-        #   |> DateTime.add(abs(diff_ms), :millisecond)
-        #   |> Timex.from_now()
-        # msg = "Next execution is still #{diff_ms}ms too early (#{from_now})"
-        # Logger.info(msg)
-
         state
         |> schedule_next_checkup(abs(diff_ms))
         |> dispatch()
 
       # now is more than the grace period past schedule time
       diff_ms when diff_ms > @grace_period_ms ->
-        # from_now = Timex.from_now(at)
-        # Logger.info("Next execution is #{diff_ms}ms too late (#{from_now})")
-
         state
         |> pop_next()
         |> index_next()
@@ -220,13 +208,11 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   defp schedule_next_checkup(%{checkup_timer: timer} = state, offset_ms)
        when is_reference(timer) do
-    # Logger.debug("canceling checkup timer")
     Process.cancel_timer(timer)
     schedule_next_checkup(%{state | checkup_timer: nil}, offset_ms)
   end
 
   defp schedule_next_checkup(state, :default) do
-    # Logger.debug("Scheduling next checkup in 15 seconds")
     checkup_timer = Process.send_after(self(), :checkup, 15_000)
     %{state | checkup_timer: checkup_timer}
   end
@@ -236,14 +222,12 @@ defmodule FarmbotCeleryScript.Scheduler do
   # close to millisecond accuracy
   defp schedule_next_checkup(state, offset_ms) when offset_ms <= 60000 do
     _ = inspect(offset_ms)
-    # Logger.debug("Scheduling next checkup in #{offset_ms} seconds")
     checkup_timer = Process.send_after(self(), :checkup, offset_ms)
     %{state | checkup_timer: checkup_timer}
   end
 
   defp schedule_next_checkup(state, offset_ms) do
     _ = inspect(offset_ms)
-    # Logger.debug("Scheduling next checkup in 15 seconds (#{offset_ms})")
     checkup_timer = Process.send_after(self(), :checkup, 15_000)
     %{state | checkup_timer: checkup_timer}
   end

@@ -13,24 +13,7 @@ defmodule AutoSyncChannelTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
-  @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
-              "G1pbkBhZG1pbi5jb20iLCJpYXQiOjE1MDIxMjcxMTcsImp0a" <>
-              "SI6IjlhZjY2NzJmLTY5NmEtNDhlMy04ODVkLWJiZjEyZDlhY" <>
-              "ThjMiIsImlzcyI6Ii8vbG9jYWxob3N0OjMwMDAiLCJleHAiO" <>
-              "jE1MDU1ODMxMTcsIm1xdHQiOiJsb2NhbGhvc3QiLCJvc191c" <>
-              "GRhdGVfc2VydmVyIjoiaHR0cHM6Ly9hcGkuZ2l0aHViLmNvb" <>
-              "S9yZXBvcy9mYXJtYm90L2Zhcm1ib3Rfb3MvcmVsZWFzZXMvb" <>
-              "GF0ZXN0IiwiZndfdXBkYXRlX3NlcnZlciI6Imh0dHBzOi8vY" <>
-              "XBpLmdpdGh1Yi5jb20vcmVwb3MvRmFybUJvdC9mYXJtYm90L" <>
-              "WFyZHVpbm8tZmlybXdhcmUvcmVsZWFzZXMvbGF0ZXN0IiwiY" <>
-              "m90IjoiZGV2aWNlXzE1In0.XidSeTKp01ngtkHzKD_zklMVr" <>
-              "9ZUHX-U_VDlwCSmNA8ahOHxkwCtx8a3o_McBWvOYZN8RRzQV" <>
-              "LlHJugHq1Vvw2KiUktK_1ABQ4-RuwxOyOBqqc11-6H_GbkM8" <>
-              "dyzqRaWDnpTqHzkHGxanoWVTTgGx2i_MZLr8FPZ8prnRdwC1" <>
-              "x9zZ6xY7BtMPtHW0ddvMtXU8ZVF4CWJwKSaM0Q2pTxI9GRqr" <>
-              "p5Y8UjaKufif7bBPOUbkEHLNOiaux4MQr-OWAC8TrYMyFHzt" <>
-              "eXTEVkqw7rved84ogw6EKBSFCVqwRA-NKWLpPMV_q7fRwiEG" <>
-              "Wj7R-KZqRweALXuvCLF765E6-ENxA"
+  @fake_jwt Helpers.fake_jwt()
 
   def generate_pid do
     apply_default_mocks()
@@ -79,15 +62,27 @@ defmodule AutoSyncChannelTest do
     GenServer.stop(pid, :normal)
   end
 
-  test "init / terminate - preload error" do
-    expect(Preloader, :preload_all, 1, fn -> {:error, "part of a test"} end)
-    expect(FarmbotCore.BotState, :set_sync_status, 1, fn "sync_error" -> :ok end)
+  test "handle_info(:preload, state) - preload error" do
+    state = %{}
+    reason = "Just a test"
 
-    pid = generate_pid()
-    assert %{chan: nil, conn: nil, preloaded: false} == AutoSyncChannel.network_status(pid)
-    GenServer.stop(pid, :normal)
+    expect(Preloader, :preload_all, 1, fn ->
+      {:error, reason}
+    end)
+
+    Helpers.expect_log("Error preloading. #{inspect(reason)}")
+    assert {:noreply, state} == AutoSyncChannel.handle_info(:preload, state)
+    assert_receive(:preload, 10)
   end
 
+  test "handle_info({:basic_deliver, _, _}, %{preloaded: false} = state)" do
+    state = %{preloaded: false}
+    msg = {:basic_deliver, 0, 0}
+    assert {:noreply, state} == AutoSyncChannel.handle_info(msg, state)
+    assert_receive(:preload, 10)
+  end
+
+  # Blinked on 21 OCT 20. TODO: Rewrite
   test "delivery of auto sync messages" do
     expect(Preloader, :preload_all, 1, fn -> :ok end)
 
@@ -123,5 +118,17 @@ defmodule AutoSyncChannelTest do
 
     Helpers.wait_for(pid)
     Process.sleep(1000)
+  end
+
+  test "disconnect" do
+    state = %AutoSyncChannel{jwt: Helpers.fake_jwt_object()}
+
+    expect(ConnectionWorker, :maybe_connect_autosync, 1, fn jwt_dot_bot ->
+      assert jwt_dot_bot == state.jwt.bot
+      :error123
+    end)
+
+    Helpers.expect_log("Failed to connect to AutoSync channel: :error123")
+    AutoSyncChannel.handle_info(:connect, state)
   end
 end

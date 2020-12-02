@@ -245,12 +245,6 @@ defmodule FarmbotFirmware do
       {:ok, pid} ->
         ref = Process.monitor(pid)
 
-        Logger.debug(
-          "Firmware Transport #{state.transport} started. #{
-            inspect(state.transport_args)
-          }"
-        )
-
         state = goto(%{state | transport_pid: pid, transport_ref: ref}, :boot)
         {:noreply, state}
 
@@ -521,7 +515,6 @@ defmodule FarmbotFirmware do
 
   # report_no_config => goto(_, :no_config)
   def handle_report({:report_no_config, []}, %{status: _} = state) do
-    Logger.warn(":report_no_config received")
     tag = state.tag || "0"
     loaded_params = side_effects(state, :load_params, []) || []
 

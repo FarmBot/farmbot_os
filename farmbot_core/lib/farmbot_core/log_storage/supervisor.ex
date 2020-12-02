@@ -8,8 +8,6 @@ defmodule FarmbotCore.Logger.Supervisor do
 
   def init([]) do
     opts = [strategy: :one_for_all]
-    supervise(children(), opts)
+    Supervisor.init([FarmbotCore.Logger.Repo], opts)
   end
-
-  def children, do: [supervisor(FarmbotCore.Logger.Repo, [])]
 end

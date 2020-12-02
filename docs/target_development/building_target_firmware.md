@@ -114,7 +114,7 @@ MIX_TARGET=rpi3 mix firmware.burn
 
 ### Local firmware updates
 
-If you're bot is connected to your local network, you should be able to
+If your bot is connected to your local network, you should be able to
 push updates over the network to your device.
 
 ```bash

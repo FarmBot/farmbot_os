@@ -33,6 +33,7 @@ defmodule FarmbotCore.EctoMigrator do
     {:ok, pid, apps} = Mix.Ecto.ensure_started(repo, opts)
 
     migrator = &Ecto.Migrator.run/4
+    # HERE:
     migrated = migrator.(repo, migrations_path, :up, opts)
     pid && repo.stop(pid)
     restart_apps_if_migrated(apps, migrated)

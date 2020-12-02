@@ -39,17 +39,16 @@ defmodule FarmbotExt.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:amqp, "~> 1.6.0"},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:extty, "~> 0.1"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:tesla, "~> 1.2"},
-      {:hackney, "~> 1.15"},
-      {:uuid, "~> 1.1"},
-      {:amqp, "~> 1.4.0"},
-      {:mimic, "~> 1.1", only: :test},
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false},
-      {:extty, "~> 0.1"}
+      {:hackney, "~> 1.16"},
+      {:mimic, "~> 1.3.1", only: :test},
+      {:tesla, "~> 1.3.3"},
+      {:uuid, "~> 1.1.8"}
     ]
   end
 end

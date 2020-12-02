@@ -2,6 +2,7 @@ defmodule FarmbotExt.BootstrapTest do
   require Helpers
   use ExUnit.Case, async: false
   use Mimic
+  import ExUnit.CaptureLog
   alias FarmbotExt.Bootstrap
   alias FarmbotExt.Bootstrap.Authorization
   setup :verify_on_exit!
@@ -13,7 +14,14 @@ defmodule FarmbotExt.BootstrapTest do
     end)
 
     expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
-    assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 5000}
+
+    run_test = fn ->
+      assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 0}
+    end
+
+    expected_message = "[error] Password auth failed! Check again and reconfigurate."
+
+    assert capture_log(run_test) =~ expected_message
   end
 
   test "reauthorizes as needed" do

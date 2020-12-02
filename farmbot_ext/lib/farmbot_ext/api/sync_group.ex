@@ -13,7 +13,6 @@ defmodule FarmbotExt.API.SyncGroup do
     PinBinding,
     Point,
     PointGroup,
-    # PublicKey,
     Regimen,
     SensorReading,
     Sensor,

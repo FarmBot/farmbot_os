@@ -2,10 +2,11 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
   @moduledoc false
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState}
-  alias FarmbotExt.API
+  alias FarmbotExt.APIFetcher
 
   def factory_reset("farmbot_os") do
-    _ = API.put!(API.client(), "/api/device", %{needs_reset: false})
+    _ =
+      APIFetcher.put!(APIFetcher.client(), "/api/device", %{needs_reset: false})
 
     FarmbotOS.System.factory_reset(
       "Factory reset requested by Sequence or frontend",
@@ -21,9 +22,14 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
     id = Asset.firmware_config(:id)
     if id, do: Asset.delete_firmware_config!(id)
 
-    _ = API.delete!(API.client(), "/api/firmware_config")
-    _ = API.get!(API.client(), "/api/firmware_config")
-    _ = API.put!(API.client(), "/api/firmware_config", %{api_migrated: true})
+    _ = APIFetcher.delete!(APIFetcher.client(), "/api/firmware_config")
+    _ = APIFetcher.get!(APIFetcher.client(), "/api/firmware_config")
+
+    _ =
+      APIFetcher.put!(APIFetcher.client(), "/api/firmware_config", %{
+        api_migrated: true
+      })
+
     BotState.set_sync_status("maintenance")
     FarmbotOS.System.reboot("Arduino factory reset")
     :ok

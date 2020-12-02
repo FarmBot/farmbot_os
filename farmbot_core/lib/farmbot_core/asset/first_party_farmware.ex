@@ -24,15 +24,15 @@ defmodule FarmbotCore.Asset.FirstPartyFarmware do
     timestamps()
   end
 
-  view farmware_installation do
+  view first_party do
     %{
-      id: farmware_installation.id,
-      url: farmware_installation.url
+      id: first_party.id,
+      url: first_party.url
     }
   end
 
-  def changeset(farmware_installation, params \\ %{}) do
-    farmware_installation
+  def changeset(first_party, params \\ %{}) do
+    first_party
     |> cast(params, [:id, :url, :monitor, :created_at, :updated_at])
     |> cast_embed(:manifest)
     |> validate_required([])

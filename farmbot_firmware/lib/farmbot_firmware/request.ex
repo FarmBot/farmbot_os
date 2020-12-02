@@ -11,7 +11,7 @@ defmodule FarmbotFirmware.Request do
           {:ok, GCODE.t()}
           | {:error,
              :invalid_command | :firmware_error | FarmbotFirmware.status()}
-  @whitelist [
+  @ok [
     :parameter_read,
     :status_read,
     :pin_read,
@@ -22,7 +22,7 @@ defmodule FarmbotFirmware.Request do
   def request(firmware_server \\ FarmbotFirmware, code)
 
   def request(firmware_server, {_tag, {kind, _}} = code) do
-    if kind not in @whitelist do
+    if kind not in @ok do
       raise ArgumentError, "#{kind} is not a valid request."
     end
 
@@ -61,7 +61,7 @@ defmodule FarmbotFirmware.Request do
   # when valid data has been collected from `wait_for_request_result_process`
   # it will return that data.
   # If this function returns no data for 5 seconds, it needs to error.
-  defp wait_for_request_result(tag, code, result \\ nil) do
+  def wait_for_request_result(tag, code, result \\ nil) do
     receive do
       {tag, {:report_begin, []}} ->
         wait_for_request_result(tag, code, result)

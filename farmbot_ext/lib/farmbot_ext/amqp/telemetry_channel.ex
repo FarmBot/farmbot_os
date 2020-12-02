@@ -8,7 +8,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
   use AMQP
 
   alias FarmbotCore.{BotState, BotStateNG}
-  alias FarmbotExt.AMQP.ConnectionWorker
+  alias FarmbotExt.AMQP.Support
   require FarmbotCore.Logger
   require FarmbotTelemetry
 
@@ -39,37 +39,23 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
     {:ok, state}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from Telemetry channel: #{inspect(reason)}")
-    if state.chan, do: ConnectionWorker.close_channel(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "Telemetry")
 
   def handle_info(:connect_amqp, state) do
     bot = state.jwt.bot
-    telemetry = bot <> "_telemetry"
-    # route = "bot.#{bot}.telemetry"
 
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, %{pid: channel_pid} = chan} <- Channel.open(conn),
-         Process.link(channel_pid),
-         :ok <- Basic.qos(chan, global: true),
-         {:ok, _} <- Queue.declare(chan, telemetry, auto_delete: true),
-         {:ok, _} <- Queue.purge(chan, telemetry) do
-      FarmbotTelemetry.event(:amqp, :channel_open)
+    with {:ok, {conn, chan}} <- Support.create_queue(bot <> "_telemetry") do
       FarmbotCore.Logger.debug(3, "connected to Telemetry channel")
       send(self(), :consume_telemetry)
       send(self(), :dispatch_metrics)
       {:noreply, %{state | conn: conn, chan: chan}}
     else
       nil ->
-        Process.send_after(self(), :connect_amqp, 5000)
+        FarmbotExt.Time.send_after(self(), :connect_amqp, 5000)
         {:noreply, %{state | conn: nil, chan: nil}}
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to Telemetry channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        Process.send_after(self(), :connect_amqp, 2000)
-        {:noreply, %{state | conn: nil, chan: nil}}
+        Support.handle_error(state, err, "Telemetry")
     end
   end
 
@@ -97,7 +83,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
       })
 
     Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
-    Process.send_after(self(), :dispatch_metrics, @dispatch_metrics_timeout)
+    FarmbotExt.Time.send_after(self(), :dispatch_metrics, @dispatch_metrics_timeout)
     {:noreply, state}
   end
 
@@ -119,7 +105,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
           Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
       end)
 
-    _ = Process.send_after(self(), :consume_telemetry, @consume_telemetry_timeout)
+    _ = FarmbotExt.Time.send_after(self(), :consume_telemetry, @consume_telemetry_timeout)
     {:noreply, state}
   end
 end

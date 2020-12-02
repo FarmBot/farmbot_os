@@ -3,26 +3,25 @@ defmodule FarmbotExt.AMQP.LogChannel do
   Handler for AMQP log channel
   """
 
-  use GenServer
   use AMQP
-  alias AMQP.Channel
+  use GenServer
 
-  alias FarmbotCore.{BotState, JSON}
   require FarmbotCore.Logger
   require FarmbotTelemetry
-
-  alias FarmbotExt.AMQP.ConnectionWorker
   require Logger
 
+  alias FarmbotCore.{BotState, JSON}
+  alias FarmbotExt.AMQP.Support
+
+  @checkup_ms 50
   @exchange "amq.topic"
-  @checkup_ms 100
 
   defstruct [:conn, :chan, :jwt, :state_cache]
   alias __MODULE__, as: State
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
@@ -30,27 +29,23 @@ defmodule FarmbotExt.AMQP.LogChannel do
     {:ok, %State{conn: nil, chan: nil, jwt: jwt, state_cache: nil}, 0}
   end
 
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from Log channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan, do: Channel.close(state.chan)
-  end
+  def terminate(r, s), do: Support.handle_termination(r, s, "Log")
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true) do
-      FarmbotTelemetry.event(:amqp, :channel_open)
+    with {:ok, {conn, chan}} <- Support.create_channel() do
       initial_bot_state = BotState.subscribe()
-      {:noreply, %{state | conn: conn, chan: chan, state_cache: initial_bot_state}, 0}
+
+      FarmbotExt.Time.no_reply(
+        %{state | conn: conn, chan: chan, state_cache: initial_bot_state},
+        0
+      )
     else
       nil ->
-        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 5000}
+        FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil, state_cache: nil}, 5000)
 
       err ->
-        FarmbotCore.Logger.error(1, "Failed to connect to Log channel: #{inspect(err)}")
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        {:noreply, %{state | conn: nil, chan: nil, state_cache: nil}, 1000}
+        Support.connect_fail("Log", err)
+        FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil, state_cache: nil}, 1000)
     end
   end
 

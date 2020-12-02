@@ -6,6 +6,7 @@ defmodule FarmbotExt.API.ImageUploaderTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
+  # TODO(Rick) This test blinks. 21 OCT 2020
   test "force checkup" do
     pid =
       if Process.whereis(ImageUploader) do
@@ -22,7 +23,7 @@ defmodule FarmbotExt.API.ImageUploaderTest do
       File.write(f, "X")
     end)
 
-    expect(FarmbotExt.API, :upload_image, 4, fn
+    expect(FarmbotExt.APIFetcher, :upload_image, 4, fn
       "/tmp/images/d.gif", _meta -> {:error, %{status: 401, body: %{}}}
       _image_filename, _meta -> {:ok, %{status: 201, body: %{}}}
     end)

@@ -2,9 +2,6 @@ defmodule FarmbotFirmware.CommandTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
-  alias FarmbotFirmware.Command
-  import ExUnit.CaptureLog
-  @subject FarmbotFirmware.Command
 
   def fake_pid() do
     arg = [transport: FarmbotFirmware.StubTransport, reset: StubReset]
@@ -25,49 +22,67 @@ defmodule FarmbotFirmware.CommandTest do
     assert :ok == FarmbotFirmware.command(pid, cmd)
   end
 
-  @tag :capture_log
-  test "command() refuses to run RPCs in :boot state" do
-    pid = fake_pid()
-    {:error, message} = @subject.command(pid, {:a, {:b, :c}})
-    assert "Can't send command when in :boot state" == message
+  def do_spawn_my_test(caller, code) do
+    result = FarmbotFirmware.Command.wait_for_command_result(code)
+    send(caller, result)
   end
 
-  test "enable_debug_logs" do
-    Application.put_env(:farmbot_firmware, @subject, foo: :bar, debug_log: false)
+  def spawn_my_test() do
+    # Spawn a fake GCode command.
+    # For the sake of tests, we will
+    # simulate a "parameter_read_all"
+    # command.
+    spawn(__MODULE__, :do_spawn_my_test, [
+      self(),
+      {nil, {:parameter_read_all, []}}
+    ])
+  end
 
-    old_env = Application.get_env(:farmbot_firmware, @subject)
+  test "handle {:error, message} from firmware" do
+    pid = spawn_my_test()
+    my_error = {:error, "foo bar baz"}
+    send(pid, my_error)
+    assert_receive(my_error, 500, "Expected firmware errors to be echoed")
+  end
 
-    assert false == Keyword.fetch!(old_env, :debug_log)
-    assert :bar == Keyword.fetch!(old_env, :foo)
-    assert false == @subject.debug?()
+  test "handle a retry that turns in to an estop error" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_retry, []}})
+    send(pid, {nil, {:report_emergency_lock, []}})
 
-    refute capture_log(fn ->
-             @subject.debug_log("Never Shown")
-           end) =~ "Never Shown"
+    assert_receive(
+      {:error, :emergency_lock},
+      500,
+      "Expected :emergency_lock response"
+    )
+  end
 
-    # === Change ENV settings
-    assert :ok ==
-             Command.enable_debug_logs()
+  test "handle report_position_change from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_position_change, []}})
+    send(pid, {nil, {:report_error, [:no_error]}})
+    assert_receive({:ok, "ok"}, 500, "Expected OK response when :no_error")
+  end
 
-    assert capture_log(fn ->
-             @subject.debug_log("Good!")
-           end) =~ "Good!"
+  test "handle invalid command reports from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_invalid, []}})
 
-    assert true == @subject.debug?()
-    new_env = Application.get_env(:farmbot_firmware, @subject)
-    assert true == Keyword.fetch!(new_env, :debug_log)
-    assert :bar == Keyword.fetch!(new_env, :foo)
+    assert_receive(
+      {:error, :invalid_command},
+      500,
+      "Expected firmware errors to be echoed"
+    )
+  end
 
-    # === And back again
-    assert :ok == Command.disable_debug_logs()
-    even_newer = Application.get_env(:farmbot_firmware, @subject)
+  test "handle invalid axis timeout from firmware" do
+    pid = spawn_my_test()
+    send(pid, {nil, {:report_axis_timeout, [:x]}})
 
-    assert false == Keyword.fetch!(even_newer, :debug_log)
-    assert :bar == Keyword.fetch!(even_newer, :foo)
-    assert false == @subject.debug?()
-
-    refute capture_log(fn ->
-             @subject.debug_log("Also Never Shown")
-           end) =~ "Also Never Shown"
+    assert_receive(
+      {:error, "axis timeout: x"},
+      500,
+      "Expected firmware errors to be echoed"
+    )
   end
 end

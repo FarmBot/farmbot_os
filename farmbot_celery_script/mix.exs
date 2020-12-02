@@ -17,14 +17,6 @@ defmodule FarmbotCeleryScript.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      dialyzer: [
-        flags: [
-          "-Wunmatched_returns",
-          :error_handling,
-          :race_conditions,
-          :underspecs
-        ]
-      ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         test: :test,
@@ -63,13 +55,11 @@ defmodule FarmbotCeleryScript.MixProject do
   defp deps do
     [
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:jason, "~> 1.1"},
-      {:timex, "~> 3.4"},
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:mimic, "~> 1.1", only: :test},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
+      {:timex, "~> 3.6.2"},
+      {:mimic, "~> 1.3.1", only: :test},
+      {:jason, "~> 1.2.2"},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end

@@ -1,4 +1,6 @@
 defmodule FarmbotExt.API.DirtyWorkerTest do
+  require Helpers
+
   use ExUnit.Case
   use Mimic
 
@@ -17,7 +19,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
   test "child spec" do
     spec = DirtyWorker.child_spec(Point)
     assert spec[:id] == {DirtyWorker, Point}
-    assert spec[:start] == {DirtyWorker, :start_link, [[module: Point, timeout: 500]]}
+    assert spec[:start] == {DirtyWorker, :start_link, [[module: Point, timeout: 1000]]}
     assert spec[:type] == :worker
     assert spec[:restart] == :permanent
     assert spec[:shutdown] == 500
@@ -36,7 +38,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
-  test "handle_http_response - 409 resposne" do
+  test "handle_http_response - 409 response" do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
     Repo.delete_all(FbosConfig)
@@ -94,4 +96,25 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
 
     assert :ok == DirtyWorker.finalize(stub_data, Point)
   end
+
+  # This test blinks too much:
+  #
+  # test "init" do
+  #   Helpers.delete_all_points()
+  #   Helpers.use_fake_jwt()
+  #   {:ok, pid} = DirtyWorker.start_link(module: Point, timeout: 0)
+  #   state = :sys.get_state(pid)
+  #   assert state == %{module: Point}
+  #   Helpers.wait_for(pid)
+  #   GenServer.stop(pid, :normal)
+  # end
+
+  # This test blinks too much:
+  #
+  # test "work/2 error" do
+  #   Helpers.delete_all_points()
+  #   Helpers.use_fake_jwt()
+  #   %mod{} = p = Helpers.create_point(%{id: 0, pointer_type: "Plant"})
+  #   {:error, _} = DirtyWorker.work(p, mod)
+  # end
 end

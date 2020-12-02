@@ -20,6 +20,9 @@ defmodule FarmbotOS.Platform.Target.Network do
   @default_network_not_found_timer_minutes 20
 
   def host do
+    me = "192.168.24.1"
+    me_but_tuple = {192, 168, 24, 1}
+
     %{
       type: CaptivePortal,
       vintage_net_wifi: %{
@@ -33,15 +36,19 @@ defmodule FarmbotOS.Platform.Target.Network do
       },
       ipv4: %{
         method: :static,
-        address: "192.168.24.1",
+        address: me,
         netmask: "255.255.255.0"
       },
-      dnsmasq: %{
-        domain: "farmbot",
-        server: "192.168.24.1",
-        address: "192.168.24.1",
+      dhcpd: %{
+        options: %{dns: [me]},
         start: "192.168.24.2",
         end: "192.168.24.10"
+      },
+      dnsd: %{
+        records: [
+          {"setup.farm.bot", me_but_tuple},
+          {"*", me_but_tuple}
+        ]
       }
     }
   end
@@ -55,9 +62,6 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def is_first_connect?() do
-    # email = Config.get_config_value(:string, "authorization", "email")
-    # password = Config.get_config_value(:string, "authorization", "password")
-    # server = Config.get_config_value(:string, "authorization", "server")
     token = Config.get_config_value(:string, "authorization", "token")
     is_nil(token)
   end
@@ -323,7 +327,7 @@ defmodule FarmbotOS.Platform.Target.Network do
     )
 
     old_timer = state.network_not_found_timer
-    old_timer && Process.cancel_timer(old_timer)
+    FarmbotExt.Time.cancel_timer(old_timer)
     %{state | network_not_found_timer: nil}
   end
 

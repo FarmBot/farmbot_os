@@ -15,7 +15,6 @@ defmodule FarmbotExt.API.Reconciler do
 
   alias FarmbotCore.Asset.{Command, Repo, Sync, Sync.Item}
   import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
-  @behaviour FarmbotExt.API.ReconcilerAdapter
 
   @doc """
   Reconcile remote updates. The following steps are wrapped in a tranaction
@@ -28,16 +27,12 @@ defmodule FarmbotExt.API.Reconciler do
   * apply the Transaction.
   """
   def sync do
-    with {:ok, sync_changeset} <- API.get_changeset(Sync),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_0()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_1()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_2()),
-         %Changeset{valid?: true} = sync_changeset <-
-           sync_group(sync_changeset, SyncGroup.group_3()),
-         %Changeset{valid?: true} <- sync_group(sync_changeset, SyncGroup.group_4()) do
+    with {:ok, sc} <- API.get_changeset(Sync),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_0()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_1()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_2()),
+         %Changeset{valid?: true} = sc <- sync_group(sc, SyncGroup.group_3()),
+         %Changeset{valid?: true} <- sync_group(sc, SyncGroup.group_4()) do
       :ok
     end
   end
@@ -56,7 +51,6 @@ defmodule FarmbotExt.API.Reconciler do
   * applies changeset if there was any changes from cache or http
 
   """
-  @impl FarmbotExt.API.ReconcilerAdapter
   def sync_group(%Changeset{} = sync_changeset, [module | rest]) do
     with sync_changeset <- do_sync_group(sync_changeset, module) do
       sync_group(sync_changeset, rest)
@@ -99,22 +93,17 @@ defmodule FarmbotExt.API.Reconciler do
     local_item = Repo.one(from(d in module, where: d.id == ^item.id))
 
     case get_changeset(local_item || module, item, cached_cs) do
-      {:insert, %Changeset{} = cs} ->
-        # Logger.info("insert: #{inspect(cs)}")
-        item = module.render(Changeset.apply_changes(cs))
-        :ok = Command.update(module, item.id, item)
-        sync_changeset
-
-      {:update, %Changeset{} = cs} ->
-        # Logger.info("update: #{inspect(cs)}")
-        item = module.render(Changeset.apply_changes(cs))
-        :ok = Command.update(module, item.id, item)
-        sync_changeset
-
-      nil ->
-        # Logger.info("Local data: #{local_item.__struct__} is current.")
-        sync_changeset
+      {:insert, %Changeset{} = cs} -> handle_change(module, cs)
+      {:update, %Changeset{} = cs} -> handle_change(module, cs)
+      nil -> nil
     end
+
+    sync_changeset
+  end
+
+  defp handle_change(module, cs) do
+    item = module.render(Changeset.apply_changes(cs))
+    :ok = Command.update(module, item.id, item)
   end
 
   defp get_changeset(local_item, sync_item, cached_changeset)

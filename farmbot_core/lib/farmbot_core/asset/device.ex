@@ -17,8 +17,6 @@ defmodule FarmbotCore.Asset.Device do
 
     field(:name, :string)
     field(:timezone, :string)
-    field(:last_ota, :utc_datetime)
-    field(:last_ota_checkup, :utc_datetime)
     field(:ota_hour, :integer)
     field(:mounted_tool_id, :integer)
     field(:monitor, :boolean, default: true)
@@ -31,8 +29,6 @@ defmodule FarmbotCore.Asset.Device do
       id: device.id,
       name: device.name,
       timezone: device.timezone,
-      last_ota: device.last_ota,
-      last_ota_checkup: device.last_ota_checkup,
       ota_hour: device.ota_hour,
       needs_reset: device.needs_reset,
       mounted_tool_id: device.mounted_tool_id
@@ -45,8 +41,6 @@ defmodule FarmbotCore.Asset.Device do
       :id,
       :name,
       :timezone,
-      :last_ota,
-      :last_ota_checkup,
       :ota_hour,
       :mounted_tool_id,
       :monitor,

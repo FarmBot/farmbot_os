@@ -29,7 +29,7 @@ config :farmbot_core, FarmbotCore.JSON,
 # https://hexdocs.pm/nerves/advanced-configuration.html for details.
 config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
-config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 5_000
+config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core, FarmbotCore.EctoMigrator,
   default_firmware_io_logs: false,
@@ -47,8 +47,7 @@ config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotOS.SysCalls
 
 config :farmbot_core, FarmbotCore.BotState.FileSystem,
-  root_dir: "/tmp/farmbot_state",
-  sleep_time: 200
+  root_dir: "/tmp/farmbot_state"
 
 config :farmbot_core, FarmbotCore.FarmwareRuntime,
   runtime_dir: "/tmp/farmware_runtime"

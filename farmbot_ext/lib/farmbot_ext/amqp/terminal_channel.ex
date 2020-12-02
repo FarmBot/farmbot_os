@@ -33,7 +33,7 @@ defmodule FarmbotExt.AMQP.TerminalChannel do
   end
 
   def handle_continue({:connect_amqp, wait}, state) do
-    Process.sleep(wait)
+    FarmbotExt.Time.sleep(wait)
     handle_amqp_connection(state, Support.get_channel(state.jwt.bot))
   end
 

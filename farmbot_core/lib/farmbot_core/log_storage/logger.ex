@@ -60,9 +60,9 @@ defmodule FarmbotCore.Logger do
     changeset = Log.changeset(%Log{}, params)
 
     try do
-      hash = Ecto.Changeset.get_field(changeset, :hash)
+      message = Ecto.Changeset.get_field(changeset, :message)
 
-      case Repo.get_by(Log, hash: hash) do
+      case Repo.get_by(Log, message: message) do
         nil ->
           Repo.insert!(changeset)
 

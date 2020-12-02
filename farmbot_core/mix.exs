@@ -7,9 +7,9 @@ defmodule FarmbotCore.MixProject do
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD")
           |> elem(0)
           |> String.trim()
-  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
-                  |> File.read!()
-                  |> String.trim()
+  # @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+  #                 |> File.read!()
+  #                 |> String.trim()
 
   defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -19,7 +19,7 @@ defmodule FarmbotCore.MixProject do
     [
       app: :farmbot_core,
       description: "The Brains of the Farmbot Project",
-      elixir: @elixir_version,
+      # elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       make_clean: ["clean"],
       make_cwd: __DIR__,
@@ -33,11 +33,6 @@ defmodule FarmbotCore.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      dialyzer: [
-        plt_add_deps: :transitive,
-        plt_add_apps: [:mix],
-        flags: []
-      ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -57,7 +52,7 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :inets, :runtime_tools],
       mod: {FarmbotCore, []}
     ]
   end
@@ -69,16 +64,14 @@ defmodule FarmbotCore.MixProject do
        path: "../farmbot_celery_script", env: Mix.env()},
       {:farmbot_firmware, path: "../farmbot_firmware", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:elixir_make, "~> 0.6", runtime: false},
+      {:elixir_make, "~> 0.6.1", runtime: false},
       {:sqlite_ecto2, "~> 2.3"},
-      {:timex, "~> 3.4"},
-      {:jason, "~> 1.1"},
-      {:muontrap, "~> 0.5"},
-      {:excoveralls, "~> 0.10", only: [:test], targets: [:host]},
-      {:mimic, "~> 1.1", only: [:test]},
-      {:dialyxir, "~> 1.0.0-rc.3",
-       only: [:dev], targets: [:host], runtime: false},
-      {:ex_doc, "~> 0.21.2", only: [:dev], targets: [:host], runtime: false}
+      {:timex, "~> 3.6.2"},
+      {:jason, "~> 1.2.2"},
+      {:muontrap, "~> 0.6"},
+      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:mimic, "~> 1.3.1", only: [:test]},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 
@@ -94,6 +87,10 @@ defmodule FarmbotCore.MixProject do
 
   defp aliases,
     do: [
-      test: ["ecto.drop", "ecto.migrate", "test"]
+      test: [
+        "ecto.drop",
+        "ecto.migrate",
+        "test"
+      ]
     ]
 end

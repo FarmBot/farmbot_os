@@ -21,7 +21,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :noop
   end
 
-    @impl FarmbotFirmware.SideEffects
+  @impl FarmbotFirmware.SideEffects
   def handle_position_change([{axis, _}]) do
     FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at maximum")
     :noop
@@ -173,32 +173,18 @@ defmodule FarmbotCore.FirmwareSideEffects do
   end
 
   @impl FarmbotFirmware.SideEffects
-  def handle_input_gcode({_, {:unknown, _}}) do
+  def handle_input_gcode(_) do
     :ok
   end
 
-  def handle_input_gcode({:unknown, _}) do
+  @impl FarmbotFirmware.SideEffects
+  def handle_output_gcode(_code) do
     :ok
   end
 
-  def handle_input_gcode(code) do
-    string_code = FarmbotFirmware.GCODE.encode(code)
-    should_log? = Asset.fbos_config().firmware_input_log
-    should_log? && FarmbotCore.Logger.debug(3, "Firmware input: " <> string_code)
-  end
-
   @impl FarmbotFirmware.SideEffects
-  def handle_output_gcode(code) do
-    string_code = FarmbotFirmware.GCODE.encode(code)
-    should_log? = Asset.fbos_config().firmware_output_log
-    should_log? && FarmbotCore.Logger.debug(3, "Firmware output: " <> string_code)
-  end
-
-  @impl FarmbotFirmware.SideEffects
-  def handle_debug_message([message]) do
-    fbos_config = Asset.fbos_config()
-    should_log? = fbos_config.firmware_debug_log || fbos_config.arduino_debug_messages
-    should_log? && do_send_debug_message(message)
+  def handle_debug_message([_message]) do
+    :ok
   end
 
   # TODO(Rick): 0 means OK, but firmware debug logs say "error 0". Why?

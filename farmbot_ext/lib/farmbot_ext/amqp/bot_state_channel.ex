@@ -4,29 +4,24 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
   """
 
   use GenServer
-  use AMQP
-  alias AMQP.Channel
 
   require FarmbotCore.Logger
   require FarmbotTelemetry
-  alias FarmbotCore.JSON
-  alias FarmbotExt.AMQP.ConnectionWorker
-
-  alias FarmbotCore.{BotState, BotStateNG}
-
-  @exchange "amq.topic"
+  alias FarmbotCore.BotState
+  alias FarmbotExt.AMQP.Support
+  alias FarmbotExt.AMQP.BotStateChannelSupport
 
   defstruct [:conn, :chan, :jwt, :cache]
   alias __MODULE__, as: State
 
   @doc "Forces pushing the most current state tree"
-  def read_status do
-    GenServer.cast(__MODULE__, :force)
+  def read_status(name \\ __MODULE__) do
+    GenServer.cast(name, :force)
   end
 
   @doc false
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
 
   @impl GenServer
@@ -37,34 +32,9 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
   end
 
   @impl GenServer
-  def terminate(reason, state) do
-    FarmbotCore.Logger.error(1, "Disconnected from BotState channel: #{inspect(reason)}")
-    # If a channel was still open, close it.
-    if state.chan, do: Channel.close(state.chan)
-  end
-
-  @impl GenServer
-  def handle_cast(:force, state) do
-    cache = BotState.fetch()
-    {:noreply, %{state | cache: cache}, {:continue, :dispatch}}
-  end
-
-  @impl GenServer
   def handle_info(:timeout, %{conn: nil, chan: nil} = state) do
-    with %{} = conn <- ConnectionWorker.connection(),
-         {:ok, chan} <- Channel.open(conn),
-         :ok <- Basic.qos(chan, global: true) do
-      FarmbotTelemetry.event(:amqp, :channel_open)
-      {:noreply, %{state | conn: conn, chan: chan}, {:continue, :dispatch}}
-    else
-      nil ->
-        {:noreply, %{state | conn: nil, chan: nil}, 5000}
-
-      err ->
-        FarmbotTelemetry.event(:amqp, :channel_open_error, nil, error: inspect(err))
-        FarmbotCore.Logger.error(1, "Failed to connect to BotState channel: #{inspect(err)}")
-        {:noreply, %{state | conn: nil, chan: nil}, 1000}
-    end
+    result = Support.create_channel()
+    do_connect(result, state)
   end
 
   def handle_info(:timeout, %{chan: %{}} = state) do
@@ -77,17 +47,37 @@ defmodule FarmbotExt.AMQP.BotStateChannel do
   end
 
   @impl GenServer
-  def handle_continue(:dispatch, %{chan: nil} = state) do
-    {:noreply, state, 5000}
+  def handle_cast(:force, state) do
+    cache = BotState.fetch()
+    {:noreply, %{state | cache: cache}, {:continue, :dispatch}}
   end
 
-  def handle_continue(:dispatch, %{chan: %{}, cache: cache} = state) do
-    json =
-      cache
-      |> BotStateNG.view()
-      |> JSON.encode!()
+  @impl GenServer
+  def handle_continue(:dispatch, %{chan: nil} = state) do
+    FarmbotExt.Time.no_reply(state, 5000)
+  end
 
-    Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.status", json)
-    {:noreply, state, 5000}
+  def handle_continue(:dispatch, %{chan: chan, cache: cache} = state) do
+    BotStateChannelSupport.broadcast_state(chan, state.jwt.bot, cache)
+    FarmbotExt.Time.no_reply(state, 5000)
+  end
+
+  @impl GenServer
+  def terminate(r, s), do: Support.handle_termination(r, s, "BotState")
+
+  # Case: Connect OK
+  def do_connect({:ok, {conn, chan}}, state) do
+    {:noreply, %{state | conn: conn, chan: chan}, {:continue, :dispatch}}
+  end
+
+  # Case: No connectivity?
+  def do_connect(nil, state) do
+    FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil}, 5000)
+  end
+
+  # Case: All other errors
+  def do_connect(error, state) do
+    Support.connect_fail("BotState", error)
+    FarmbotExt.Time.no_reply(%{state | conn: nil, chan: nil}, 1000)
   end
 end

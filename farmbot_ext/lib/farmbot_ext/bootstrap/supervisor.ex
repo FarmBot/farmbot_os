@@ -6,8 +6,8 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
   use Supervisor
 
   @doc false
-  def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    Supervisor.start_link(__MODULE__, args, opts)
   end
 
   @impl Supervisor

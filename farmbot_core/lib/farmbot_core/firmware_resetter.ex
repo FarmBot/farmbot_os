@@ -1,5 +1,5 @@
 defmodule FarmbotCore.FirmwareResetter do
-  if Code.ensure_compiled?(Circuits.GPIO) do
+  if Code.ensure_compiled(Circuits.GPIO) do
     @gpio Circuits.GPIO
   else
     @gpio nil
