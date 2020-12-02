@@ -91,7 +91,6 @@ defmodule FarmbotExt.AMQP.AutoSyncChannel do
   end
 
   def handle_info(:connect, state) do
-    # THIS IS WHERE state.chan GETS SET
     result = ConnectionWorker.maybe_connect_autosync(state.jwt.bot)
     compute_reply_from_amqp_state(state, result)
   end

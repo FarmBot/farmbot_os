@@ -26,7 +26,7 @@ defmodule FarmbotExt.API.Preloader do
 
   defp do_auto_sync(%Changeset{} = sync_changeset) do
     FarmbotCore.Logger.busy(3, "Starting auto sync")
-    # This is where I left off.
+
     with %Changeset{valid?: true} = sync_changeset <-
            Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
          %Changeset{valid?: true} = sync_changeset <-
