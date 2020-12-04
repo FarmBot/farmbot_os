@@ -10,7 +10,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   alias FarmbotFirmware.Param
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
   @nr_steps [
-    :movement_axis_nr_steps_z,
+    :movement_axis_nr_steps_x,
     :movement_axis_nr_steps_y,
     :movement_axis_nr_steps_z
   ]
