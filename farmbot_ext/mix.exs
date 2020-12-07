@@ -42,7 +42,7 @@ defmodule FarmbotExt.MixProject do
       {:amqp, "~> 1.6.0"},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
-      {:extty, "~> 0.1"},
+      {:extty, "~> 0.2"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:hackney, "~> 1.16"},

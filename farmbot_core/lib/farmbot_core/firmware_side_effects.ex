@@ -187,11 +187,11 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok
   end
 
-  # TODO(Rick): 0 means OK, but firmware debug logs say "error 0". Why?
-  def do_send_debug_message("error 0"), do: do_send_debug_message("OK")
-
-  def do_send_debug_message(message) do
-    FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
+  def do_send_debug_message(_message_string) do
+    # Uncomment this line on dev builds if needed.
+    # Firmware debug over AMQP is deprecated.
+    # FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
+    :ok
   end
 
   @impl FarmbotFirmware.SideEffects
