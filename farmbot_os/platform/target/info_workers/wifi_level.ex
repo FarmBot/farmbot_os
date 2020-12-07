@@ -4,7 +4,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   power levels to the bot_state server
   """
 
-  @scan_interval 21_000
+  @report_interval 7_000
 
   use GenServer
   require FarmbotCore.Logger
@@ -22,10 +22,11 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   end
 
   @impl GenServer
-  def handle_info(:scan_begin, state) do
-    _ = VintageNet.scan("wlan0")
-    _ = Process.send_after(self(), :scan_begin, @scan_interval)
-    {:noreply, state}
+  def handle_info(:timeout, state) do
+    {:ok, signal_info} = VintageNet.ioctl("wlan0", :signal_poll)
+    :ok = BotState.report_wifi_level(signal_info.signal_dbm)
+    :ok = BotState.report_wifi_level_percent(signal_info.signal_percent)
+    {:noreply, state, @report_interval}
   end
 
   def handle_info(:load_network_config, state) do
@@ -42,8 +43,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
       case FarmbotCore.Config.get_network_config("wlan0") do
         %{ssid: ssid} ->
           VintageNet.subscribe(["interface", "wlan0"])
-          _ = Process.send_after(self(), :scan_begin, @scan_interval)
-          {:noreply, %{state | ssid: ssid}}
+          {:noreply, %{state | ssid: ssid}, @report_interval}
 
         nil ->
           Process.send_after(self(), :load_network_config, 10_000)
@@ -58,33 +58,10 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
         state
       ) do
     FarmbotCore.BotState.set_private_ip(to_string(:inet.ntoa(address)))
-    {:noreply, state}
-  end
-
-  def handle_info(
-        {VintageNet, ["interface", "wlan0", "wifi", "access_points"], _, new,
-         _meta},
-        %{ssid: ssid} = state
-      )
-      when is_binary(ssid) do
-    ap = find_ap(new, ssid)
-
-    if ap do
-      :ok = BotState.report_wifi_level(ap.signal_dbm)
-      :ok = BotState.report_wifi_level_percent(ap.signal_percent)
-    end
-
-    {:noreply, state}
+    {:noreply, state, @report_interval}
   end
 
   def handle_info({VintageNet, _property, _old, _new, _meta}, state) do
-    {:noreply, state}
-  end
-
-  defp find_ap(new, ssid) do
-    Enum.find_value(new, fn
-      %{ssid: ^ssid} = ap -> ap
-      _ -> false
-    end)
+    {:noreply, state, @report_interval}
   end
 end
