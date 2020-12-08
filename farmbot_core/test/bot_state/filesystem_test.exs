@@ -61,8 +61,6 @@ defmodule FarmbotCore.BotState.FileSystemTest do
 
   describe "server" do
     test "serializes state to fs" do
-      IO.puts("THIS TEST BLINKS! Fix it.")
-
       root_dir =
         Path.join([
           System.tmp_dir!(),
@@ -71,13 +69,9 @@ defmodule FarmbotCore.BotState.FileSystemTest do
         ])
 
       {:ok, bot_state_pid} = BotState.start_link([], [])
-
-      {:ok, _pid} =
-        FileSystem.start_link(
-          root_dir: root_dir,
-          bot_state: bot_state_pid,
-          sleep_time: 0
-        )
+      args = [root_dir: root_dir, bot_state: bot_state_pid, sleep_time: 0]
+      {:ok, pid} = FileSystem.start_link(args, [])
+      send(pid, :timeout)
 
       _ = BotState.subscribe(bot_state_pid)
       :ok = BotState.set_pin_value(bot_state_pid, 1, 1)
@@ -88,6 +82,7 @@ defmodule FarmbotCore.BotState.FileSystemTest do
       # default value
       assert File.read!(Path.join(pins_dir, "mode")) == "-1"
       assert File.read!(Path.join(pins_dir, "value")) == "1"
+      Process.exit(pid, :normal)
     end
   end
 end
