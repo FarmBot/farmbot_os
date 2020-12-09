@@ -1,6 +1,11 @@
 defmodule FarmbotCore.AssetTest do
   use ExUnit.Case, async: true
-  alias FarmbotCore.Asset.RegimenInstance
+
+  alias FarmbotCore.Asset.{
+    RegimenInstance,
+    PinBinding
+  }
+
   alias FarmbotCore.Asset
   import Farmbot.TestSupport.AssetFixtures
 
@@ -20,6 +25,18 @@ defmodule FarmbotCore.AssetTest do
     assert nil == Asset.device(:ota_hour)
     assert %FarmbotCore.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
     assert 17 == Asset.device(:ota_hour)
+  end
+
+  test "list_pin_bindings" do
+    FarmbotCore.Asset.Repo.delete_all(PinBinding)
+    results = Asset.list_pin_bindings()
+    assert results == []
+
+    {:ok, pb} =
+      FarmbotCore.Asset.Repo.insert(PinBinding.changeset(%PinBinding{}, %{}))
+
+    results2 = Asset.list_pin_bindings()
+    assert results2 == [pb]
   end
 
   describe "firmware config" do
