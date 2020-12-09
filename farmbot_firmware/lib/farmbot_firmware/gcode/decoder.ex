@@ -63,7 +63,7 @@ defmodule FarmbotFirmware.GCODE.Decoder do
     do: {:report_debug_message, [Enum.join(debug, " ")]}
 
   def do_decode("G00", xyzs), do: {:command_movement, decode_floats(xyzs)}
-  def do_decode("G28", []), do: {:comand_movement_home, [:x, :y, :z]}
+  def do_decode("G28", []), do: {:command_movement_home, [:x, :y, :z]}
 
   def do_decode("F11", []), do: {:command_movement_find_home, [:x]}
   def do_decode("F12", []), do: {:command_movement_find_home, [:y]}

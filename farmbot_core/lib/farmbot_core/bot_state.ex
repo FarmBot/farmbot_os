@@ -210,10 +210,7 @@ defmodule FarmbotCore.BotState do
   def handle_call({:set_config_value, key, value}, _from, state) do
     change = %{configuration: %{key => value}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
@@ -228,40 +225,28 @@ defmodule FarmbotCore.BotState do
   def handle_call({:set_position, x, y, z}, _from, state) do
     change = %{location_data: %{position: %{x: x, y: y, z: z}}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_load, x, y, z}, _from, state) do
     change = %{location_data: %{load: %{x: x, y: y, z: z}}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_encoders_scaled, x, y, z}, _from, state) do
     change = %{location_data: %{scaled_encoders: %{x: x, y: y, z: z}}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_encoders_raw, x, y, z}, _from, state) do
     change = %{location_data: %{raw_encoders: %{x: x, y: y, z: z}}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
@@ -274,10 +259,7 @@ defmodule FarmbotCore.BotState do
       }
     }
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
@@ -292,190 +274,133 @@ defmodule FarmbotCore.BotState do
   def handle_call({:set_firmware_config, param, value}, _from, state) do
     change = %{mcu_params: %{param => value}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_firmware_locked, bool}, _from, state) do
     change = %{informational_settings: %{locked: bool}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_firmware_version, version}, _from, state) do
     change = %{informational_settings: %{firmware_version: version}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_firmware_hardware, hardware}, _from, state) do
     change = %{configuration: %{firmware_hardware: hardware}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_firmware_busy, busy}, _from, state) do
     change = %{informational_settings: %{busy: busy}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_firmware_idle, idle}, _from, state) do
     change = %{informational_settings: %{idle: idle}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_sync_status, status}, _from, state) do
     change = %{informational_settings: %{sync_status: status}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_update_available, bool}, _from, state) do
     change = %{informational_settings: %{update_available: bool}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_node_name, node_name}, _from, state) do
     change = %{informational_settings: %{node_name: node_name}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_private_ip, private_ip}, _from, state) do
     change = %{informational_settings: %{private_ip: private_ip}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:set_controller_uuid, controller_uuid}, _from, state) do
     change = %{informational_settings: %{controller_uuid: controller_uuid}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_disk_usage, percent}, _form, state) do
     change = %{informational_settings: %{disk_usage: percent}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_memory_usage, megabytes}, _form, state) do
     change = %{informational_settings: %{memory_usage: megabytes}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_scheduler_usage, average_percent}, _form, state) do
     change = %{informational_settings: %{scheduler_usage: average_percent}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_soc_temp, temp}, _form, state) do
     change = %{informational_settings: %{soc_temp: temp}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_throttled, throttled_str}, _form, state) do
     change = %{informational_settings: %{throttled: throttled_str}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_uptime, seconds}, _form, state) do
     change = %{informational_settings: %{uptime: seconds}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_wifi_level, level}, _form, state) do
     change = %{informational_settings: %{wifi_level: level}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
   def handle_call({:report_wifi_level_percent, percent}, _form, state) do
     change = %{informational_settings: %{wifi_level_percent: percent}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
@@ -490,10 +415,7 @@ defmodule FarmbotCore.BotState do
   def handle_call(:enter_maintenance_mode, _form, state) do
     change = %{informational_settings: %{sync_status: "maintenance"}}
 
-    {reply, state} =
-      BotStateNG.changeset(state.tree, change)
-      |> dispatch_and_apply(state)
-
+    {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end
 
@@ -520,5 +442,9 @@ defmodule FarmbotCore.BotState do
 
   defp dispatch_and_apply(%Ecto.Changeset{valid?: false} = change, state) do
     {{:error, change}, state}
+  end
+
+  defp get_reply_from_change(state, change) do
+    dispatch_and_apply(BotStateNG.changeset(state.tree, change), state)
   end
 end
