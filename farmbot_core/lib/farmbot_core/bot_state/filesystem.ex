@@ -12,9 +12,10 @@ defmodule FarmbotCore.BotState.FileSystem do
   @type path_and_data :: {Path.t(), binary()}
   @type serialized :: [path_and_data | Path.t()]
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args)
+  def start_link(args, opts \\ [name: __MODULE__]) do
+    GenServer.start_link(__MODULE__, args, opts)
   end
+
 
   def init(args) do
     root_dir = Keyword.get(args, :root_dir, @root_dir)

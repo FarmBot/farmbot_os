@@ -72,4 +72,17 @@ defmodule FarmbotOS.Lua.Ext.FirmwareTest do
 
     assert {[nil, ^msg], ^lua} = Firmware.emergency_unlock(nil, lua)
   end
+
+  test "home" do
+    msg = "expected stub error"
+    lua = "return"
+
+    expect(FarmbotCeleryScript.SysCalls, :home, 2, fn
+      "x", _speed -> :ok
+      _, _speed -> {:error, msg}
+    end)
+
+    assert {[true], ^lua} = Firmware.home(["x", 100], lua)
+    assert {[nil, ^msg], ^lua} = Firmware.home(["y", 100], lua)
+  end
 end

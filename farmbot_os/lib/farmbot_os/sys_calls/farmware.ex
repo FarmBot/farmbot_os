@@ -31,6 +31,9 @@ defmodule FarmbotOS.SysCalls.Farmware do
 
   # Entry point to starting a farmware
   def execute_script(farmware_name, env) do
+    fs = FarmbotCore.BotState.FileSystem
+    if Process.whereis(fs), do: send(fs, :timeout)
+
     with {:ok, manifest} <- lookup_manifest(farmware_name),
          {:ok, runtime} <- FarmwareRuntime.start_link(manifest, env),
          :ok <- loop(runtime),

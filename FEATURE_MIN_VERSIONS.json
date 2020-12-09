@@ -19,6 +19,7 @@
   "long_scaling_factor": "7.0.1",
   "mark_as_step": "8.0.3",
   "named_pins": "6.3.0",
+  "no_firmware_logs": "12.2.2",
   "none_firmware": "8.0.0",
   "api_ota_releases": "11.1.0",
   "ota_update_hour": "8.2.3",
