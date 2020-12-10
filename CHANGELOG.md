@@ -4,6 +4,10 @@
 
  * Fix farmware bug where farmware system reports stale version of bot state.
 
+# 12.2.3
+
+ * Firmware debug log removal
+
 # 12.2.2
 
  * Performance updates for Express devices
