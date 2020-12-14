@@ -327,6 +327,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   end
 
   def read_status(sys_calls \\ @sys_calls) do
+    fs = FarmbotCore.BotState.FileSystem
+    if Process.whereis(fs), do: send(fs, :timeout)
     ok_or_error(sys_calls, :read_status, [])
   end
 
