@@ -1,5 +1,9 @@
 # Changelog
 
+# 12.3.2
+
+ * Improved remote error reporting.
+
 # 12.3.1
 
  * Require explicit call to `read_status()` to update farmware state information.

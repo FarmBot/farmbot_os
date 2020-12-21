@@ -76,6 +76,7 @@
   "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm", "451d8527787df716d99dc36162fca05934915db0b6141bbdac2ea8d3c7afc7d7"},
   "recon": {:hex, :recon, "2.5.1", "430ffa60685ac1efdfb1fe4c97b8767c92d0d92e6e7c3e8621559ba77598678a", [:mix, :rebar3], [], "hexpm", "5721c6b6d50122d8f68cccac712caa1231f97894bab779eff5ff0f886cb44648"},
   "ring_logger": {:hex, :ring_logger, "0.8.1", "ac60613dd20dc9a22d90b7eb89878364540d15a930621d1ade54e68787519f5e", [:mix], [], "hexpm", "34f05823b3188e4f154e09a2d9f13ac6f790a53414ed27b8a29456768a2eef12"},
+  "rollbax": {:hex, :rollbax, "0.11.0", "9557935d09d154c8775fa4efc709bfacbb73f20c58a3ced31dea2a74dd6e25de", [:mix], [{:hackney, "~> 1.1", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "a74318b175aae4bdddcc1ecfdf38755df3d8143c9902b1bfd19507ac9901062d"},
   "sbroker": {:hex, :sbroker, "1.0.0", "28ff1b5e58887c5098539f236307b36fe1d3edaa2acff9d6a3d17c2dcafebbd0", [:rebar3], [], "hexpm", "ba952bfa35b374e1e5d84bc5f5efe8360c6f99dc93b3118f714a9a2dff6c9e19"},
   "shoehorn": {:hex, :shoehorn, "0.7.0", "fc23870fb6b470f5c520fee692637b120a36e163842ab497bbec7e8a1aa6cfe3", [:mix], [], "hexpm", "eeb317ac677b228906039ccf532a582ad9f6d31d7958c98f5c853fe0459e0243"},
   "socket": {:hex, :socket, "0.3.13", "98a2ab20ce17f95fb512c5cadddba32b57273e0d2dba2d2e5f976c5969d0c632", [:mix], [], "hexpm", "f82ea9833ef49dde272e6568ab8aac657a636acb4cf44a7de8a935acb8957c2e"},

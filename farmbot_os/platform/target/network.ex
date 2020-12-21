@@ -46,8 +46,8 @@ defmodule FarmbotOS.Platform.Target.Network do
       },
       dnsd: %{
         records: [
-          {"setup.farm.bot", me_but_tuple},
-          {"*", me_but_tuple}
+          {"*", me_but_tuple},
+          {"setup.farm.bot", me_but_tuple}
         ]
       }
     }
