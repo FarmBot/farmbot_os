@@ -76,13 +76,14 @@ defmodule FarmbotOS.MixProject do
   def application do
     [
       mod: {FarmbotOS, []},
-      extra_applications: [:logger, :runtime_tools, :eex]
+      extra_applications: [:logger, :runtime_tools, :eex, :rollbax]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:rollbax, ">= 0.0.0"},
       {:vintage_net, "~> 0.9.2", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.9.1", targets: @all_targets},
       {:vintage_net_ethernet, "~> 0.9.0", targets: @all_targets},

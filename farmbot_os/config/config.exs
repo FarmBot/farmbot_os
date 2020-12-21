@@ -88,6 +88,16 @@ config :logger,
 
 import_config("lagger.exs")
 
+if rollbar_token = System.get_env("ROLLBAR_TOKEN") do
+  config :rollbax,
+    access_token: rollbar_token,
+    environment: "production",
+    enable_crash_reports: true,
+    custom: %{fbos_version: Mix.Project.config()[:version]}
+else
+  config :rollbax, enabled: false
+end
+
 if Mix.target() == :host do
   if File.exists?("config/host/#{Mix.env()}.exs") do
     import_config("host/#{Mix.env()}.exs")
