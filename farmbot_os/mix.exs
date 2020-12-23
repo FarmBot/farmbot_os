@@ -115,7 +115,6 @@ defmodule FarmbotOS.MixProject do
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
       {:luerl, github: "rvirding/luerl"},
-      # {:nimble_csv, "~> 0.7.0", runtime: false},
       {:phoenix_html, "~> 2.14.2"},
       {:plug_cowboy, "~> 2.4.1"},
       {:ring_logger, "~> 0.8.1"},
