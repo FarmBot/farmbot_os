@@ -60,6 +60,7 @@ defmodule FarmbotCore.Logger do
     changeset = Log.changeset(%Log{}, params)
 
     try do
+      maybe_truncate_logs!()
       message = Ecto.Changeset.get_field(changeset, :message)
 
       case Repo.get_by(Log, message: message) do
@@ -138,4 +139,15 @@ defmodule FarmbotCore.Logger do
   end
 
   def should_log?(_, _), do: false
+
+  # Under rare circumstances, it is possible for logs to fill
+  # to the point that SQLite cannot add any more.
+  # For these very rare cases, we naively drop all logs under
+  # the assumption that there is a very serious problem.
+  def maybe_truncate_logs!(limit \\ 3000) do
+    count = Repo.one(from l in "logs", select: count(l.id))
+    if count > limit do
+      Repo.delete_all(Log)
+    end
+  end
 end
