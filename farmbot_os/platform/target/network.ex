@@ -40,14 +40,18 @@ defmodule FarmbotOS.Platform.Target.Network do
         netmask: "255.255.255.0"
       },
       dhcpd: %{
-        options: %{dns: [me]},
+        options: %{
+          dns: [me],
+          router: [me],
+          subnet: {255, 255, 255, 0}
+        },
         start: "192.168.24.2",
         end: "192.168.24.10"
       },
       dnsd: %{
         records: [
-          {"setup.farm.bot", me_but_tuple},
-          {"*", me_but_tuple}
+          {"*", me_but_tuple},
+          {"setup.farm.bot", me_but_tuple}
         ]
       }
     }

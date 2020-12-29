@@ -1,5 +1,10 @@
 # Changelog
 
+# 12.3.2
+
+ * Improve remote error reporting.
+ * Improve captive portal performance on certain platforms.
+
 # 12.3.1
 
  * Require explicit call to `read_status()` to update farmware state information.
