@@ -2,7 +2,8 @@
 
 # 12.3.2
 
- * Improved remote error reporting.
+ * Improve remote error reporting.
+ * Improve captive portal performance on certain platforms.
 
 # 12.3.1
 
