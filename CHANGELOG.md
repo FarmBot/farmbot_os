@@ -6,7 +6,8 @@ Bug fixes:
 
  * SD card errors from log overflow (limit log buffer to 1000 logs max).
  * app crashes if user accidentally installs very old / incompatible Farmwares.
- * WiFi-related app crashes on certin networks.
+ * prevent firmware handler crashes on unexpected or timed out messages.
+ * WiFi-related app crashes on certain networks.
 
 # 12.3.2
 

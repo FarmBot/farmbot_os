@@ -53,6 +53,15 @@ defmodule FarmbotFirmware.UARTTransport do
     {:noreply, state}
   end
 
+  # Unexpected messages are rare but not unheeard of.
+  # Example:
+  # handle_info({:circuits_uart, "COM14", {:partial, "A"}}, state)
+  def handle_info(message, state) do
+    msg = "UNHANDLED UART MESSAGE: "
+    Logger.error(msg <> inspect(message))
+    {:noreply, state}
+  end
+
   def handle_call(code, _from, state) do
     str = GCODE.encode(code)
     r = UartDefaultAdapter.write(state.uart, str)
