@@ -144,7 +144,7 @@ defmodule FarmbotCore.Logger do
   # to the point that SQLite cannot add any more.
   # For these very rare cases, we naively drop all logs under
   # the assumption that there is a very serious problem.
-  def maybe_truncate_logs!(limit \\ 3000) do
+  def maybe_truncate_logs!(limit \\ 1000) do
     count = Repo.one(from l in "logs", select: count(l.id))
     if count > limit do
       Repo.delete_all(Log)
