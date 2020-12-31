@@ -88,7 +88,11 @@ config :logger,
 
 import_config("lagger.exs")
 
-if rollbar_token = System.get_env("ROLLBAR_TOKEN") do
+rollbar_token = System.get_env("ROLLBAR_TOKEN")
+
+if rollbar_token && Mix.env() != :test do
+  IO.puts("=== ROLLBAR IS ENABLED! ===")
+
   config :rollbax,
     access_token: rollbar_token,
     environment: "production",

@@ -3,6 +3,7 @@ defmodule FarmbotCore.LoggerTest do
   require FarmbotCore.Logger
 
   alias FarmbotCore.{Log, Logger.Repo}
+
   import Ecto.Query
 
   def create_log(msg), do: FarmbotCore.Logger.debug(1, msg)

@@ -1,14 +1,29 @@
 defmodule FarmbotCore.BotState.FileSystemTest do
   use ExUnit.Case, async: false
   alias FarmbotCore.{BotState, BotState.FileSystem}
+  import ExUnit.CaptureLog
 
   describe "serializer" do
-    test "arrays not aloud" do
-      assert_raise RuntimeError,
-                   "Arrays can not be serialized to filesystem nodes",
-                   fn ->
-                     FileSystem.serialize_state(%{key: [:value, :nope]}, "/")
-                   end
+    test "arrays are ignored" do
+      state = %{
+        key1: "OK",
+        key2: %{also: :ok},
+        key3: [:not, :ok]
+      }
+
+      expected = [
+        {"/tmp/farmbot_tests/key2/also", "ok"},
+        {"/tmp/farmbot_tests/key1", "OK"}
+      ]
+
+      log =
+        capture_log(fn ->
+          actual = FileSystem.serialize_state(state, "/tmp/farmbot_tests")
+          assert actual == expected
+        end)
+
+      expected = "Arrays can not be serialized to filesystem nodes"
+      assert String.contains?(log, expected)
     end
 
     test "serializes a map to the filesystem" do
