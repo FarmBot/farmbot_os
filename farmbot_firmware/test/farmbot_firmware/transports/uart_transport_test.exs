@@ -5,6 +5,7 @@ defmodule FarmbotFirmware.UARTTransportTest do
   alias FarmbotFirmware.{UartDefaultAdapter, UARTTransport}
   setup :verify_on_exit!
   import ExUnit.CaptureLog
+  import ExUnit.CaptureLog
 
   test "UARTTransport.init/1" do
     expect(UartDefaultAdapter, :start_link, fn ->
@@ -138,5 +139,23 @@ defmodule FarmbotFirmware.UARTTransportTest do
     end)
 
     UARTTransport.open(me, "/dev/null", a: :b)
+  end
+
+  test "handle_info for unknown messages" do
+    bad_payl = {:partial, <<130, 135, 7, 53, 65, 34>>}
+    bad_message = {:circuits_uart, "ttyAMA0", bad_payl}
+    fake_state = %{}
+
+    log =
+      capture_log(fn ->
+        result = UARTTransport.handle_info(bad_message, fake_state)
+        assert result == {:noreply, fake_state}
+      end)
+
+    expected =
+      "UNHANDLED UART MESSAGE: " <>
+        "{:circuits_uart, \"ttyAMA0\", {:partial, <<130, 135, 7, 53, 65, 34>>}}"
+
+    assert String.contains?(log, expected)
   end
 end

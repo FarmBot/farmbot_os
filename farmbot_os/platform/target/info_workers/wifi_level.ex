@@ -23,9 +23,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
 
   @impl GenServer
   def handle_info(:timeout, state) do
-    {:ok, signal_info} = VintageNet.ioctl("wlan0", :signal_poll)
-    :ok = BotState.report_wifi_level(signal_info.signal_dbm)
-    :ok = BotState.report_wifi_level_percent(signal_info.signal_percent)
+    maybe_report_wifi(VintageNet.ioctl("wlan0", :signal_poll))
     {:noreply, state, @report_interval}
   end
 
@@ -64,4 +62,12 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   def handle_info({VintageNet, _property, _old, _new, _meta}, state) do
     {:noreply, state, @report_interval}
   end
+
+  def maybe_report_wifi({:ok, signal_info} = result) do
+    :ok = BotState.report_wifi_level(signal_info.signal_dbm)
+    :ok = BotState.report_wifi_level_percent(signal_info.signal_percent)
+    result
+  end
+
+  def maybe_report_wifi(other), do: other
 end

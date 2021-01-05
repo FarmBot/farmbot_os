@@ -3,6 +3,7 @@ defmodule FarmbotCore.BotState.FileSystem do
   Serializes Farmbot's state into a location on a filesystem.
   """
 
+  require Logger
   use GenServer
   alias FarmbotCore.BotState
 
@@ -79,7 +80,9 @@ defmodule FarmbotCore.BotState.FileSystem do
         is_atom(value) -> [{Path.join(prefix, to_string(key)), to_string(value)} | acc]
         is_boolean(value) -> [{Path.join(prefix, to_string(key)), to_string(value)} | acc]
         is_nil(value) -> [{Path.join(prefix, to_string(key)), <<0x0>>} | acc]
-        is_list(value) -> raise("Arrays can not be serialized to filesystem nodes")
+        is_list(value) ->
+          Logger.error("Arrays can not be serialized to filesystem nodes")
+          acc
       end
     end)
   end
