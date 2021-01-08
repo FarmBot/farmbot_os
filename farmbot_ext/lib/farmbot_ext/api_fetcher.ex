@@ -109,12 +109,7 @@ defmodule FarmbotExt.APIFetcher do
         end)
       end)
 
-    opts =
-      if String.contains?(storage_auth.url, "direct_upload") do
-        []
-      else
-        [filename: image_filename, headers: [{"Content-Type", "image/jpeg"}]]
-      end
+    opts = [filename: image_filename, headers: [{"Content-Type", "image/jpeg"}]]
 
     mp =
       Multipart.new()

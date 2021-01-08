@@ -1,5 +1,9 @@
 # Changelog
 
+# 12.3.4
+
+ * Bug fix for self-hosted image uploads.
+
 # 12.3.3
 
 Bug fixes:
