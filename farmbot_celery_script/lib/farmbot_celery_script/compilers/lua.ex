@@ -10,8 +10,7 @@ defmodule FarmbotCeleryScript.Compiler.Lua do
 
   def do_lua(lua, better_params) do
     extra_variables = [[:variables], better_params]
-    args = [lua, extra_variables]
+    args = [lua, [extra_variables]]
     SysCalls.raw_lua_eval(args)
-    raise "=== stopped here"
   end
 end

@@ -377,6 +377,13 @@ defmodule FarmbotCeleryScript.CompilerTest do
     assert compiled == x
   end
 
+  test "`abort`" do
+    fake_env = []
+    ast = %AST{kind: :abort}
+    func = Compiler.compile(ast, fake_env)
+    assert func.() == {:error, "aborted"}
+  end
+
   test "`update_resource`: Multiple fields of `resource` type." do
     compiled =
       "test/fixtures/update_resource_multi.json"

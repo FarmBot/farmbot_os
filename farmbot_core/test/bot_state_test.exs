@@ -1,6 +1,7 @@
 defmodule FarmbotCore.BotStateTest do
   use ExUnit.Case
   alias FarmbotCore.BotState
+  alias FarmbotCore.BotState.JobProgress.Percent
 
   describe "bot state pub/sub" do
     test "subscribes to bot state updates" do
@@ -29,6 +30,27 @@ defmodule FarmbotCore.BotStateTest do
 
       assert %{pins: %{9 => %{value: 1}, 10 => %{value: 1}, 11 => %{value: 0}}} =
                BotState.fetch(bot_state_pid)
+    end
+  end
+
+  test "set_job_progress" do
+    {:ok, bot_state_pid} = BotState.start_link([], [])
+    _old_state = BotState.subscribe(bot_state_pid)
+
+    prog = %Percent{
+      status: "working",
+      percent: 50
+    }
+
+    :ok = BotState.set_job_progress(bot_state_pid, "test123", prog)
+
+    receive do
+      {BotState, cs} ->
+        prog2 = Map.fetch!(cs.changes.jobs, "test123")
+        assert Map.from_struct(prog) == prog2
+    after
+      5000 ->
+        refute "Timeout has elapsed"
     end
   end
 end
