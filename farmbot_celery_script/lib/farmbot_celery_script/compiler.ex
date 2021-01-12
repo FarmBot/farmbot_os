@@ -92,8 +92,10 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate find_home(ast, env), to: Compiler.AxisControl
   defdelegate home(ast, env), to: Compiler.AxisControl
   defdelegate install_first_party_farmware(ast, env), to: Compiler.Farmware
+  defdelegate lua(ast, env), to: Compiler.Lua
   defdelegate move_absolute(ast, env), to: Compiler.AxisControl
   defdelegate move_relative(ast, env), to: Compiler.AxisControl
+  defdelegate move(ast, env), to: Compiler.Move
   defdelegate named_pin(ast, env), to: Compiler.DataControl
   defdelegate point(ast, env), to: Compiler.DataControl
   defdelegate read_pin(ast, env), to: Compiler.PinControl
@@ -111,7 +113,6 @@ defmodule FarmbotCeleryScript.Compiler do
   defdelegate variable_declaration(ast, env), to: Compiler.VariableDeclaration
   defdelegate write_pin(ast, env), to: Compiler.PinControl
   defdelegate zero(ast, env), to: Compiler.AxisControl
-  defdelegate move(ast, env), to: Compiler.Move
 
   def compile_ast(ast_or_literal, env)
 

@@ -98,6 +98,8 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
               true | false | error()
   @callback raw_lua_eval(expression :: String.t()) :: ok_or_error
+  @callback raw_lua_eval(expression :: String.t(), extras :: list(any())) ::
+              ok_or_error
   @callback find_points_via_group(String.t() | resource_id) :: %{
               required(:point_ids) => [resource_id]
             }
@@ -310,8 +312,12 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :power_off, [])
   end
 
-  def raw_lua_eval(sys_calls \\ @sys_calls, expression) do
-    apply(sys_calls, :raw_lua_eval, [expression])
+  def raw_lua_eval(sys_calls \\ @sys_calls, args) do
+    if is_list(args) do
+      apply(sys_calls, :raw_lua_eval, args)
+    else
+      apply(sys_calls, :raw_lua_eval, [args])
+    end
   end
 
   def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do

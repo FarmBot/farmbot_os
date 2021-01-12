@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Lua do
   @moduledoc """
-  Embedded scripting language for testing,
-  assertion, and other debugging things.
+  Embedded scripting language for "formulas" in the MOVE block,
+  assertion, and general scripting via LUA block.
   """
 
   @type t() :: tuple()
@@ -21,21 +21,35 @@ defmodule FarmbotOS.Lua do
     FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, meta)
   end
 
+  # HACK: Provide an implicit "return", since many users
+  #       will want implicit returns. If we didn't do this,
+  #       users would be forced to write `return` everywhere,
+  #       even in the formula input seen in the MOVE block.
+  def add_implicit_return(str) do
+    if String.contains?(str, "return") do
+      str
+    else
+      "return (#{str})"
+    end
+  end
+
   @doc """
   `eval_lua` evaluates Lua code. It is a more generalized
   version of `eval_assertion`.
   """
   def raw_lua_eval(str) when is_binary(str) do
-    str =
-      if String.contains?(str, "return") do
-        str
-      else
-        # HACK: Provide an implicit "return", since many users
-        #       will want implicit returns.
-        "return (#{str})"
-      end
+    raw_lua_eval(str, [])
+  end
 
-    eval(init(), str)
+  @doc """
+  `extra_vm_args` is a set of extra args to place inside the
+  Lua sandbox. The extra args are passed to set_table/3
+  """
+  def raw_lua_eval(str, extra_vm_args) do
+    lua_code = add_implicit_return(str)
+    reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
+    vm = Enum.reduce(extra_vm_args, init(), reducer)
+    eval(vm, lua_code)
   end
 
   @doc """
