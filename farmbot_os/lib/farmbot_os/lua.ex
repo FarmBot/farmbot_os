@@ -7,6 +7,7 @@ defmodule FarmbotOS.Lua do
   @type t() :: tuple()
   @type table() :: [{any, any}]
   require FarmbotCore.Logger
+  require Logger
 
   alias FarmbotOS.Lua.Ext.{
     DataManipulation,
@@ -26,10 +27,13 @@ defmodule FarmbotOS.Lua do
   #       users would be forced to write `return` everywhere,
   #       even in the formula input seen in the MOVE block.
   def add_implicit_return(str) do
-    if String.contains?(str, "return") do
-      str
-    else
+    no_return? = !String.contains?(str, "return")
+    one_line? = !String.contains?(str, "\n")
+
+    if no_return? && one_line? do
       "return (#{str})"
+    else
+      str
     end
   end
 
@@ -47,6 +51,7 @@ defmodule FarmbotOS.Lua do
   """
   def raw_lua_eval(str, extra_vm_args) do
     lua_code = add_implicit_return(str)
+    Logger.info("=== Lua: " <> inspect(lua_code))
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
     eval(vm, lua_code)
