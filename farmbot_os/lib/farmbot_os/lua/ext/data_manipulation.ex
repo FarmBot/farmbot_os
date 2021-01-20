@@ -40,8 +40,12 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def get_fbos_config(_, lua) do
-    fbos_config = Asset.fbos_config() |> FbosConfig.render()
-    {[Util.map_to_table(fbos_config)], lua}
+    conf =
+      Asset.fbos_config()
+      |> FbosConfig.render()
+      |> Util.map_to_table()
+
+    {[conf], lua}
   end
 
   def update_firmware_config([table], lua) do

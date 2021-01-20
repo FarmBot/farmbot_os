@@ -2,10 +2,11 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   @moduledoc """
   Lua extensions for interacting with the Firmware
   """
+  @axis ["x", "y", "z"]
 
   alias FarmbotCeleryScript.SysCalls
 
-  def calibrate([axis], lua) when axis in ["x", "y", "z"] do
+  def calibrate([axis], lua) when axis in @axis do
     case SysCalls.calibrate(axis) do
       :ok ->
         {[true], lua}
@@ -35,7 +36,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def find_home([axis], lua) when axis in ["x", "y", "z"] do
+  def find_home([axis], lua) when axis in @axis do
     case SysCalls.find_home(axis) do
       :ok ->
         {[true], lua}
@@ -45,7 +46,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def home([axis, speed], lua) when axis in ["x", "y", "z"] do
+  def home([axis, speed], lua) when axis in @axis do
     case SysCalls.home(axis, speed) do
       :ok ->
         {[true], lua}
@@ -53,6 +54,10 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
       {:error, reason} ->
         {[nil, reason], lua}
     end
+  end
+
+  def home([axis], lua) when axis in @axis do
+    home([axis, 100], lua)
   end
 
   @doc "Moves in a straight line to a location"
@@ -178,6 +183,9 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     print("pin13", get_pin(13));
   """
   def get_pins([pin], lua) do
+    # Firmware returns floats.
+    pin = pin + 0.0
+
     case FarmbotFirmware.request({:pin_read, [p: pin]}) do
       {:ok, {_, {:report_pin_value, [p: ^pin, v: v]}}} ->
         {[v], lua}
