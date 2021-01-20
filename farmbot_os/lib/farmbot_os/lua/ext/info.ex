@@ -25,7 +25,11 @@ defmodule FarmbotOS.Lua.Ext.Info do
   def send_message([kind, message, channels], lua) do
     channels =
       channels
-      |> Enum.map(fn {_key, value} -> value end)
+      |> List.wrap()
+      |> Enum.map(fn
+        {_key, value} -> value
+        value -> value
+      end)
       |> Enum.map(&String.to_atom/1)
 
     do_send_message(kind, message, channels, lua)

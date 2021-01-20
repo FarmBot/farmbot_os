@@ -47,12 +47,11 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   def home([axis, speed], lua) when axis in @axis do
-    case SysCalls.home(axis, speed) do
-      :ok ->
-        {[true], lua}
+    IO.inspect({axis, speed}, label: "=== YOWZA")
 
-      {:error, reason} ->
-        {[nil, reason], lua}
+    case SysCalls.home(axis, speed) do
+      :ok -> {[true], lua}
+      {:error, reason} -> {[nil, reason], lua}
     end
   end
 
@@ -183,11 +182,8 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     print("pin13", get_pin(13));
   """
   def get_pins([pin], lua) do
-    # Firmware returns floats.
-    pin = pin + 0.0
-
     case FarmbotFirmware.request({:pin_read, [p: pin]}) do
-      {:ok, {_, {:report_pin_value, [p: ^pin, v: v]}}} ->
+      {:ok, {_, {:report_pin_value, [p: _, v: v]}}} ->
         {[v], lua}
 
       {:error, reason} ->
