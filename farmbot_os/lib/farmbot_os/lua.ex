@@ -51,7 +51,6 @@ defmodule FarmbotOS.Lua do
   """
   def raw_lua_eval(str, extra_vm_args) do
     lua_code = add_implicit_return(str)
-    Logger.info("=== Lua: " <> inspect(lua_code))
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
     eval(vm, lua_code)

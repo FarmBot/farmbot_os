@@ -22,8 +22,12 @@ defmodule FarmbotOS.Lua.Ext.Info do
     do_send_message(kind, message, [], lua)
   end
 
-  def send_message([kind, message | channels], lua) do
-    channels = Enum.map(channels, &String.to_atom/1)
+  def send_message([kind, message, channels], lua) do
+    channels =
+      channels
+      |> Enum.map(fn {_key, value} -> value end)
+      |> Enum.map(&String.to_atom/1)
+
     do_send_message(kind, message, channels, lua)
   end
 
@@ -73,7 +77,9 @@ defmodule FarmbotOS.Lua.Ext.Info do
   end
 
   defp do_send_message(kind, message, channels, lua) do
-    case SysCalls.send_message(kind, message, channels) do
+    result = SysCalls.send_message(kind, "#{message}", channels)
+
+    case result do
       :ok ->
         {[true, nil], lua}
 
