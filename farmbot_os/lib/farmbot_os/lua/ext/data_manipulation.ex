@@ -3,18 +3,14 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  alias FarmbotCore.{
-    Asset,
-    Asset.Device,
-    Asset.FbosConfig,
-    Asset.FirmwareConfig
-  }
-
+  alias FarmbotCore.Asset
+  alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
+  alias FarmbotOS.SysCalls.ResourceUpdate
 
   def update_device([table], lua) do
     params = Map.new(table)
-    _ = Asset.update_device!(params)
+    _ = ResourceUpdate.update_resource("Device", nil, params)
     {[true], lua}
   end
 

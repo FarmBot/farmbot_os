@@ -2,13 +2,14 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
+  alias FarmbotOS.SysCalls.ResourceUpdate
 
   def lua(test_name, lua_code) do
     FarmbotOS.Lua.eval_assertion(test_name, lua_code)
   end
 
   test "update_device()" do
-    expect(FarmbotCore.Asset, :update_device!, 1, fn params ->
+    expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
       assert %{"name" => "Test Farmbot"} == params
     end)
 

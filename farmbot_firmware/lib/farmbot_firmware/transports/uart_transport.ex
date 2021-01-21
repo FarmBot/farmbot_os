@@ -64,6 +64,7 @@ defmodule FarmbotFirmware.UARTTransport do
 
   def handle_call(code, _from, state) do
     str = GCODE.encode(code)
+    IO.puts("=== #{inspect(str)}")
     r = UartDefaultAdapter.write(state.uart, str)
     {:reply, r, state}
   end

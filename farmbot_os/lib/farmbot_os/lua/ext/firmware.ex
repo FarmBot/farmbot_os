@@ -47,8 +47,6 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   def home([axis, speed], lua) when axis in @axis do
-    IO.inspect({axis, speed}, label: "=== YOWZA")
-
     case SysCalls.home(axis, speed) do
       :ok -> {[true], lua}
       {:error, reason} -> {[nil, reason], lua}
