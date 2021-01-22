@@ -47,7 +47,17 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   def home([axis, speed], lua) when axis in @axis do
-    case SysCalls.home(axis, speed) do
+    defaults = %{
+      "x" => SysCalls.get_current_x(),
+      "y" => SysCalls.get_current_y(),
+      "z" => SysCalls.get_current_z()
+    }
+
+    mask = %{axis => 0}
+    p = Map.merge(defaults, mask)
+    args = Map.values(p) ++ [speed]
+
+    case apply(SysCalls, :move_absolute, args) do
       :ok -> {[true], lua}
       {:error, reason} -> {[nil, reason], lua}
     end
