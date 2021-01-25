@@ -63,7 +63,6 @@ defmodule FarmbotFirmware.GCODE.Encoder do
   def do_encode(:report_debug_message, [message]), do: "R99 " <> message
 
   def do_encode(:command_movement, xyzs), do: "G00 " <> encode_floats(xyzs)
-  # === HMMM
   def do_encode(:command_movement_home, [:x, :y, :z]), do: "G28"
 
   def do_encode(:command_movement_home, [:x]),

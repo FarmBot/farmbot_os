@@ -11,11 +11,12 @@ defmodule FarmbotCeleryScript.Compiler.Lua do
   def do_lua(lua, better_params) do
     go = fn params, label, lua ->
       raw_var = params[label] || missing_var(label)
-      # Some nodes do not have an x/y/z prop at the root level:
-      # %AST{ args: %{x: 0, y: 0, z: 0}, body: [], kind: :coordinate }
+      # Some nodes do not have an x/y/z prop at the root level.
+      # An example of this is the `coordinate` node, which keeps
+      # X/Y/Z data inside of `args`:
+      #   %AST{ args: %{x: 0, y: 0, z: 0}, body: [], kind: :coordinate }
       extra_stuff = Map.get(raw_var, :args, %{})
       result = Map.merge(extra_stuff, raw_var)
-      IO.inspect(result, label: "==== result")
       {[result], lua}
     end
 
