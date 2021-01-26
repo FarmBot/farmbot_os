@@ -28,9 +28,10 @@ defmodule FarmbotOS.Lua do
   #       even in the formula input seen in the MOVE block.
   def add_implicit_return(str) do
     no_return? = !String.contains?(str, "return")
+    no_assignment? = !String.contains?(str, "=")
     one_line? = !String.contains?(str, "\n")
 
-    if no_return? && one_line? do
+    if no_return? && one_line? && no_assignment? do
       "return (#{str})"
     else
       str
