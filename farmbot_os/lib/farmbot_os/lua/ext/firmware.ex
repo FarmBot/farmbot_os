@@ -36,7 +36,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def find_home([axis], lua) when axis in @axis do
+  def find_home([axis], lua) do
     case SysCalls.find_home(axis) do
       :ok ->
         {[true], lua}
@@ -46,7 +46,9 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def home([axis, speed], lua) when axis in @axis do
+  def find_home(_, lua), do: find_home(["all"], lua)
+
+  def go_to_home([axis, speed], lua) when axis in @axis do
     defaults = %{
       "x" => SysCalls.get_current_x(),
       "y" => SysCalls.get_current_y(),
@@ -63,8 +65,19 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def home([axis], lua) when axis in @axis do
-    home([axis, 100], lua)
+  def go_to_home(["all", speed], lua) do
+    case SysCalls.move_absolute(0, 0, 0, speed) do
+      :ok -> {[true], lua}
+      {:error, reason} -> {[nil, reason], lua}
+    end
+  end
+
+  def go_to_home([axis], lua) do
+    go_to_home([axis, 100], lua)
+  end
+
+  def go_to_home(_, lua) do
+    go_to_home(["all", 100], lua)
   end
 
   @doc "Moves in a straight line to a location"

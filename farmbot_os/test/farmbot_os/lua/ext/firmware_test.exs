@@ -86,7 +86,7 @@ defmodule FarmbotOS.Lua.Ext.FirmwareTest do
 
     msg = "expected stub error"
     lua = "return"
-    assert {[true], ^lua} = Firmware.home(["x", 100], lua)
-    assert {[nil, ^msg], ^lua} = Firmware.home(["y", 100], lua)
+    assert {[true], ^lua} = Firmware.go_to_home(["x", 100], lua)
+    assert {[nil, ^msg], ^lua} = Firmware.go_to_home(["y", 100], lua)
   end
 end

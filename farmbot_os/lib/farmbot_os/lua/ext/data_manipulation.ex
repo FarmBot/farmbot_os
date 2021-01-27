@@ -25,8 +25,10 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def update_fbos_config([table], lua) do
-    params = Map.new(table)
-    _ = Asset.update_fbos_config!(params)
+    Map.new(table)
+    |> Asset.update_fbos_config!()
+    |> Asset.Private.mark_dirty!(%{})
+
     {[true], lua}
   end
 
@@ -45,8 +47,10 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def update_firmware_config([table], lua) do
-    params = Map.new(table)
-    _ = Asset.update_firmware_config!(params)
+    Map.new(table)
+    |> Asset.update_firmware_config!()
+    |> Asset.Private.mark_dirty!(%{})
+
     {[true], lua}
   end
 

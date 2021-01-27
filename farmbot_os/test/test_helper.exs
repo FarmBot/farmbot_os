@@ -6,6 +6,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Asset.Device,
   FarmbotCore.Asset.FbosConfig,
   FarmbotCore.Asset.FirmwareConfig,
+  FarmbotCore.Asset.Private,
   FarmbotCore.BotState,
   FarmbotCore.Config,
   FarmbotCore.FarmwareRuntime,

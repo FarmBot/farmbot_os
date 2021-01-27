@@ -56,8 +56,15 @@ defmodule FarmbotOS.Lua.Ext.Info do
   end
 
   @doc "Returns the current version of farmbot."
-  def version(_args, lua) do
+  def fbos_version(_args, lua) do
     {[FarmbotCore.Project.version(), nil], lua}
+  end
+
+  @doc "Returns the current firmware version."
+  def firmware_version(_args, lua) do
+    state = FarmbotCore.BotStateNG.view(FarmbotCore.BotState.fetch())
+    v = state.informational_settings.firmware_version
+    {[v, nil], lua}
   end
 
   @doc "Returns the current month"

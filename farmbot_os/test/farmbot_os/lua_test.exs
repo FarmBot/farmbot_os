@@ -33,22 +33,22 @@ defmodule FarmbotOS.LuaTest do
   end
 
   @documentation_examples [
-    "calibrate(\"x\")\ncalibrate(\"y\")\ncalibrate(\"z\")",
+    "find_axis_length(\"x\")\nfind_axis_length(\"y\")\nfind_axis_length(\"z\")",
     "position = get_position()\nif position.x <= 20.55 then\n  return true\nelse\n  send_message(\"info\", \"X is: \" .. position.x)\n  return false\nend",
     "return get_position(\"y\") <= 20",
     "pins = get_pins()\npin9 = pins[9]\nif pins[9] == 1.0 then\n  return true\nend\nreturn get_pin(10) == 0",
     "find_home(\"x\")\nfind_home(\"y\")\nfind_home(\"z\")",
-    "home(\"x\")\nhome(\"y\")\nhome(\"z\")",
+    "go_to_home(\"all\")\ngo_to_home(\"x\")\ngo_to_home(\"y\")\ngo_to_home(\"z\")",
     "move_absolute(1.0, 0, 0)\nmove_absolute(coordinate(1.0, 20, 30))",
     "move_absolute(1.0, 0, 0)\nreturn check_position({x = 1.0, y = 0,  z = 0}, 0.50)",
     "move_absolute(20, 100, 100)\nreturn check_position(coordinate(20, 100, 100), 1)",
-    "return version() == \"12.3.4\"",
+    "return fbos_version() == \"12.3.4\"",
     "return get_device().timezone == \"America/los_angeles\"",
     "return get_device(\"name\") == \"Test Farmbot\"",
     "update_device({name = \"Test Farmbot\"})",
-    "return get_fbos_config(\"auto_sync\")",
+    "return get_fbos_config(\"disable_factory_reset\")",
     "return get_fbos_config().os_auto_update",
-    "update_fbos_config({auto_sync = true, os_auto_update = false})",
+    "update_fbos_config({disable_factory_reset = true, os_auto_update = false})",
     "return get_firmware_config().encoder_enabled_x == 1.0",
     "return get_firmware_config(\"encoder_enabled_z\")",
     "update_firmware_config({encoder_enabled_z = 1.0})",
@@ -58,7 +58,8 @@ defmodule FarmbotOS.LuaTest do
     "send_message(\"info\", x_pos, {\"toast\"})",
     "move_to = coordinate(1.0, 0, 0)",
     "status = read_status()",
-    "return read_status(\"location_data\", \"raw_encoders\") >= 1900"
+    "return read_status(\"location_data\", \"raw_encoders\") >= 1900",
+    "firmware_version()"
   ]
   test "documentation examples" do
     expect(Firmware, :calibrate, 3, fn
@@ -66,6 +67,10 @@ defmodule FarmbotOS.LuaTest do
     end)
 
     expect(Firmware, :find_home, 3, fn
+      [_axis], lua -> {[true], lua}
+    end)
+
+    expect(Firmware, :go_to_home, 4, fn
       [_axis], lua -> {[true], lua}
     end)
 
@@ -90,13 +95,17 @@ defmodule FarmbotOS.LuaTest do
       _vec_or_xyz, lua -> {[55.22], lua}
     end)
 
-    expect(Info, :version, 1, fn _args, lua ->
+    expect(Info, :fbos_version, 1, fn _args, lua ->
+      {["12.3.4"], lua}
+    end)
+
+    expect(Info, :firmware_version, 1, fn _args, lua ->
       {["12.3.4"], lua}
     end)
 
     expect(Info, :read_status, 2, fn
       ["location_data", "raw_encoders"], lua -> {[0], lua}
-      hmm, lua -> {[0], lua}
+      _, lua -> {[0], lua}
     end)
 
     fake_device = [
@@ -115,7 +124,7 @@ defmodule FarmbotOS.LuaTest do
 
     expect(DataManipulation, :get_fbos_config, 2, fn
       [], lua -> {[[{"os_auto_update", true}]], lua}
-      ["auto_sync"], lua -> {[true], lua}
+      ["disable_factory_reset"], lua -> {[true], lua}
     end)
 
     expect(DataManipulation, :get_firmware_config, 2, fn
