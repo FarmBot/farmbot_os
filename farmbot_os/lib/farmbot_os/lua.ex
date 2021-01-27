@@ -27,14 +27,19 @@ defmodule FarmbotOS.Lua do
   #       users would be forced to write `return` everywhere,
   #       even in the formula input seen in the MOVE block.
   def add_implicit_return(str) do
-    no_return? = !String.contains?(str, "return")
-    no_assignment? = !String.contains?(str, "=")
-    one_line? = !String.contains?(str, "\n")
+    # Don't add implicit return if:
+    #   * Contains carraige return ("\n")
+    #   * Contains assignment char ("=")
+    #   * Contains `return` keyword
+    has_return? = String.contains?(str, "return")
+    has_assignment? = String.contains?(str, "=")
+    has_cr? = String.contains?(str, "\n")
+    properly_formed? = has_cr? || has_assignment? || has_return?
 
-    if no_return? && one_line? && no_assignment? do
-      "return (#{str})"
-    else
+    if properly_formed? do
       str
+    else
+      "return (#{str})"
     end
   end
 

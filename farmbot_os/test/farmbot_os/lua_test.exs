@@ -12,12 +12,12 @@ defmodule FarmbotOS.LuaTest do
 
   @tag :capture_log
   test "evaluates Lua" do
-    assert Lua.eval_assertion("Returns 'true'", "return true")
+    assert Lua.eval_assertion("Returns 'true'", "true")
     {:error, message1} = Lua.eval_assertion("Returns 'true'", "-1")
 
     assert message1 == "bad return value from expression evaluation"
 
-    {:error, error} = Lua.eval_assertion("random error", "return (1/0)")
+    {:error, error} = Lua.eval_assertion("random error", "(1/0)")
     assert error == :badarith
   end
 
@@ -33,98 +33,82 @@ defmodule FarmbotOS.LuaTest do
   end
 
   @documentation_examples [
-    "find_axis_length(\"x\")\nfind_axis_length(\"y\")\nfind_axis_length(\"z\")",
-    "position = get_position()\nif position.x <= 20.55 then\n  return true\nelse\n  send_message(\"info\", \"X is: \" .. position.x)\n  return false\nend",
-    "return get_position(\"y\") <= 20",
-    "pins = get_pins()\npin9 = pins[9]\nif pins[9] == 1.0 then\n  return true\nend\nreturn get_pin(10) == 0",
-    "find_home(\"x\")\nfind_home(\"y\")\nfind_home(\"z\")",
-    "go_to_home(\"all\")\ngo_to_home(\"x\")\ngo_to_home(\"y\")\ngo_to_home(\"z\")",
-    "move_absolute(1.0, 0, 0)\nmove_absolute(coordinate(1.0, 20, 30))",
-    "move_absolute(1.0, 0, 0)\nreturn check_position({x = 1.0, y = 0,  z = 0}, 0.50)",
-    "move_absolute(20, 100, 100)\nreturn check_position(coordinate(20, 100, 100), 1)",
-    "return fbos_version() == \"12.3.4\"",
-    "return get_device().timezone == \"America/los_angeles\"",
-    "return get_device(\"name\") == \"Test Farmbot\"",
-    "update_device({name = \"Test Farmbot\"})",
-    "return get_fbos_config(\"disable_factory_reset\")",
-    "return get_fbos_config().os_auto_update",
-    "update_fbos_config({disable_factory_reset = true, os_auto_update = false})",
-    "return get_firmware_config().encoder_enabled_x == 1.0",
-    "return get_firmware_config(\"encoder_enabled_z\")",
-    "update_firmware_config({encoder_enabled_z = 1.0})",
     "emergency_lock()",
     "emergency_unlock()",
+    "find_axis_length(\"x\")\nfind_axis_length(\"y\")\nfind_axis_length(\"z\")",
+    "find_home(\"x\")\nfind_home(\"y\")\nfind_home(\"z\")",
+    "firmware_version()",
+    "get_fbos_config().os_auto_update",
+    "get_fbos_config(\"disable_factory_reset\")",
+    "get_firmware_config(\"encoder_enabled_z\")",
+    "go_to_home(\"all\")\ngo_to_home(\"x\")\ngo_to_home(\"y\")\ngo_to_home(\"z\")",
+    "position, error = get_position(\"y\")\nif error then\n send_message(\"error\", error, \"toast\")\nend",
     "send_message(\"info\", \"hello, world\", {\"toast\"})",
-    "send_message(\"info\", x_pos, {\"toast\"})",
-    "move_to = coordinate(1.0, 0, 0)",
     "status = read_status()",
-    "return read_status(\"location_data\", \"raw_encoders\") >= 1900",
-    "firmware_version()"
+    "update_device({name = \"Test Farmbot\"})",
+    "update_fbos_config({disable_factory_reset = true, os_auto_update = false})",
+    "update_firmware_config({encoder_enabled_z = 1.0})",
+    "send_message(\"info\", 23, {\"toast\"})",
+    "move_absolute(1.0, 0, 0)\ncheck_position({x = 1.0, y = 0,  z = 0}, 0.50)",
+    "move_absolute(1.0, 0, 0)\nmove_absolute(coordinate(1.0, 20, 30))",
+    "move_absolute(20, 100, 100)\ncheck_position(coordinate(20, 100, 100), 1)",
+    "move_to = coordinate(1.23, 0, 0)",
+    "read_status(\"location_data\", \"raw_encoders\", \"x\") > 23",
+    "get_device(\"name\")",
+    "send_message(\"info\", \"Time zone is: \" .. get_device().timezone)",
+    "get_firmware_config().encoder_enabled_x",
+    "pins = get_pins()\npin9 = pins[9]\nis_one = (pins[9] == 1.0)\nif is_one then\n  print(\"OK\")\nend\n_ = (get_pin(10) == 0)",
+    "position = get_position()\nif position.x <= 20.55 then\n  return true\nelse\n  send_message(\"info\", \"X is: \" .. position.x)\n  return false\nend",
+    "send_message(\"info\", \"Running FBOS v\" .. fbos_version())",
+    "variable().x",
+    "variable(\"parent\").x",
+    "variables().x",
+    "variables(\"parent\").x"
   ]
   test "documentation examples" do
-    expect(Firmware, :calibrate, 3, fn
-      [_axis], lua -> {[true], lua}
+    expect(Firmware, :calibrate, 3, fn [_axis], lua -> {[true], lua} end)
+    expect(Firmware, :check_position, 2, fn _args, lua -> {[true], lua} end)
+    expect(Firmware, :emergency_lock, 1, fn [], lua -> {[], lua} end)
+    expect(Firmware, :emergency_unlock, 1, fn [], lua -> {[], lua} end)
+    expect(Firmware, :find_home, 3, fn [_axis], lua -> {[true], lua} end)
+    expect(Firmware, :get_pin, 1, fn _, lua -> {[55.22], lua} end)
+    expect(Firmware, :get_pins, 1, fn [], lua -> {[[{"9", 20.55}]], lua} end)
+    expect(Firmware, :go_to_home, 4, fn [_axis], lua -> {[true], lua} end)
+    expect(Info, :fbos_version, 1, fn _args, lua -> {["12.3.4"], lua} end)
+    expect(Info, :firmware_version, 1, fn _args, lua -> {["12.3.4"], lua} end)
+    expect(Info, :read_status, 2, fn _other, lua -> {[0], lua} end)
+    expect(Info, :send_message, 4, fn _, lua -> {[], lua} end)
+
+    expect(DataManipulation, :update_device, 1, fn [[{"name", "Test Farmbot"}]],
+                                                   lua ->
+      {[], lua}
     end)
 
-    expect(Firmware, :find_home, 3, fn
-      [_axis], lua -> {[true], lua}
-    end)
-
-    expect(Firmware, :go_to_home, 4, fn
-      [_axis], lua -> {[true], lua}
-    end)
-
-    expect(Firmware, :check_position, 2, fn
-      _args, lua -> {[true], lua}
+    expect(Firmware, :move_absolute, 4, fn _vec_or_xyz, lua ->
+      {[55.22], lua}
     end)
 
     expect(Firmware, :get_position, 2, fn
-      [], lua -> {[[{"x", 1.23}, {"y", 1.23}, {"z", 1.23}]], lua}
-      _, lua -> {[1.23], lua}
+      [], lua -> {[[{"x", 1.23}, {"y", 1.23}, {"z", 1.23}], nil], lua}
+      _, lua -> {[1.23, nil], lua}
     end)
-
-    expect(Firmware, :get_pins, 1, fn
-      [], lua -> {[[{"9", 20.55}]], lua}
-    end)
-
-    expect(Firmware, :get_pin, 1, fn
-      _, lua -> {[55.22], lua}
-    end)
-
-    expect(Firmware, :move_absolute, 1, fn
-      _vec_or_xyz, lua -> {[55.22], lua}
-    end)
-
-    expect(Info, :fbos_version, 1, fn _args, lua ->
-      {["12.3.4"], lua}
-    end)
-
-    expect(Info, :firmware_version, 1, fn _args, lua ->
-      {["12.3.4"], lua}
-    end)
-
-    expect(Info, :read_status, 2, fn
-      ["location_data", "raw_encoders"], lua -> {[0], lua}
-      _, lua -> {[0], lua}
-    end)
-
-    fake_device = [
-      {"name", "Test Farmbot"},
-      {"timezone", "America/los_angeles"}
-    ]
 
     expect(DataManipulation, :get_device, 2, fn
-      [], lua -> {[fake_device], lua}
-      [_key], lua -> {["Test Farmbot"], lua}
-    end)
+      [], lua ->
+        {[
+           [
+             {"name", "Test Farmbot"},
+             {"timezone", "America/los_angeles"}
+           ]
+         ], lua}
 
-    expect(DataManipulation, :update_device, 1, fn
-      [[{"name", "Test Farmbot"}]], lua -> {[], lua}
+      [_key], lua ->
+        {["Test Farmbot"], lua}
     end)
 
     expect(DataManipulation, :get_fbos_config, 2, fn
       [], lua -> {[[{"os_auto_update", true}]], lua}
-      ["disable_factory_reset"], lua -> {[true], lua}
+      _, lua -> {[true], lua}
     end)
 
     expect(DataManipulation, :get_firmware_config, 2, fn
@@ -136,21 +120,11 @@ defmodule FarmbotOS.LuaTest do
       [[{"encoder_enabled_z", 1.0}]], lua -> {[], lua}
     end)
 
-    expect(Firmware, :emergency_lock, 1, fn [], lua ->
-      {[], lua}
-    end)
-
-    expect(Firmware, :emergency_unlock, 1, fn [], lua ->
-      {[], lua}
-    end)
-
-    expect(Info, :send_message, 2, fn
-      ["info", "hello, world", [{1, "toast"}]], lua -> {[], lua}
-      ["info", nil, [{1, "toast"}]], lua -> {[], lua}
-    end)
-
     Enum.map(@documentation_examples, fn lua ->
-      result = Lua.raw_lua_eval(lua)
+      result =
+        FarmbotCeleryScript.Compiler.Lua.do_lua(lua, %{
+          "parent" => %{"x" => 1000}
+        })
 
       case result do
         {:ok, _} ->
