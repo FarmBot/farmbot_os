@@ -65,7 +65,7 @@ defmodule FarmbotOS.LuaTest do
     "variable().x",
     "variable(\"parent\").x",
     "variables().x",
-    "variables(\"parent\").x",
+    "variables(\"parent\").x"
   ]
   test "documentation examples" do
     expect(Firmware, :calibrate, 3, fn [_axis], lua -> {[true], lua} end)

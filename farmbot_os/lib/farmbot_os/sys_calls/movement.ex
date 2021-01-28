@@ -135,6 +135,9 @@ defmodule FarmbotOS.SysCalls.Movement do
       :ok ->
         :ok
 
+      {:ok, _} ->
+        :ok
+
       {:error, reason} ->
         FarmbotOS.SysCalls.give_firmware_reason("find_home", reason)
     end

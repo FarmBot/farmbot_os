@@ -36,8 +36,12 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def find_home(["all"], lua), do: do_find_home(@axis, lua, &SysCalls.find_home/1)
-  def find_home([axis], lua), do: do_find_home([axis], lua, &SysCalls.find_home/1)
+  def find_home(["all"], lua),
+    do: do_find_home(@axis, lua, &SysCalls.find_home/1)
+
+  def find_home([axis], lua),
+    do: do_find_home([axis], lua, &SysCalls.find_home/1)
+
   def find_home([], lua), do: find_home(["all"], lua)
 
   def go_to_home([axis, speed], lua) when axis in @axis do
@@ -181,6 +185,11 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
+  def coordinate([x, y, z], lua)
+      when is_number(x) and is_number(y) and is_number(z) do
+    {[[{"x", x}, {"y", y}, {"z", z}]], lua}
+  end
+
   def get_pin(args, lua) do
     get_pins(args, lua)
   end
@@ -218,11 +227,6 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def coordinate([x, y, z], lua)
-      when is_number(x) and is_number(y) and is_number(z) do
-    {[[{"x", x}, {"y", y}, {"z", z}]], lua}
-  end
-
   defp do_get_pins(nums, acc \\ [])
 
   defp do_get_pins([p | rest], acc) do
@@ -243,17 +247,14 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     |> Enum.reverse()
     |> Enum.map(fn result ->
       case result do
-        :ok -> nil
         {:error, reason} -> reason
+        _ -> nil
       end
     end)
     |> Enum.uniq()
     |> case do
-      [nil] ->
-        {[true], lua}
-
-      reasons ->
-        {[nil, Enum.join(reasons, " ")], lua}
+      [nil] -> {[true], lua}
+      reasons -> {[nil, Enum.join(reasons, " ")], lua}
     end
   end
 end
