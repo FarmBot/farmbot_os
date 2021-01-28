@@ -36,17 +36,9 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def find_home([axis], lua) do
-    case SysCalls.find_home(axis) do
-      :ok ->
-        {[true], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
-    end
-  end
-
-  def find_home(_, lua), do: find_home(["all"], lua)
+  def find_home(["all"], lua), do: do_find_home(@axis, lua, &SysCalls.find_home/1)
+  def find_home([axis], lua), do: do_find_home([axis], lua, &SysCalls.find_home/1)
+  def find_home([], lua), do: find_home(["all"], lua)
 
   def go_to_home([axis, speed], lua) when axis in @axis do
     defaults = %{
@@ -244,4 +236,24 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   defp do_get_pins([], acc), do: {:ok, Enum.reverse(acc)}
+
+  defp do_find_home(axes, lua, callback) do
+    axes
+    |> Enum.map(callback)
+    |> Enum.reverse()
+    |> Enum.map(fn result ->
+      case result do
+        :ok -> nil
+        {:error, reason} -> reason
+      end
+    end)
+    |> Enum.uniq()
+    |> case do
+      [nil] ->
+        {[true], lua}
+
+      reasons ->
+        {[nil, Enum.join(reasons, " ")], lua}
+    end
+  end
 end
