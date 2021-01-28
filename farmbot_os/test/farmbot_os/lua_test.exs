@@ -50,7 +50,8 @@ defmodule FarmbotOS.LuaTest do
     "move_absolute(1.0, 0, 0)\nmove_absolute(coordinate(1.0, 20, 30))",
     "move_absolute(20, 100, 100)\ncheck_position(coordinate(20, 100, 100), 1)",
     "move_to = coordinate(1.23, 0, 0)",
-    "pins = get_pins()\npin9 = pins[9]\nis_one = (pins[9] == 1.0)\nif is_one then\n  print(\"OK\")\nend\n_ = (get_pin(10) == 0)",
+    "pin23 = read_pin(23, \"analog\")",
+    "pin24 = read_pin(24) -- Digital is the default",
     "position = get_position()\nif position.x <= 20.55 then\n  return true\nelse\n  send_message(\"info\", \"X is: \" .. position.x)\n  return false\nend",
     "position, error = get_position(\"y\")\nif error then\n send_message(\"error\", error, \"toast\")\nend",
     "read_status(\"location_data\", \"raw_encoders\", \"x\") > 23",
@@ -73,8 +74,7 @@ defmodule FarmbotOS.LuaTest do
     expect(Firmware, :emergency_lock, 1, fn [], lua -> {[], lua} end)
     expect(Firmware, :emergency_unlock, 1, fn [], lua -> {[], lua} end)
     expect(Firmware, :find_home, 3, fn [_axis], lua -> {[true], lua} end)
-    expect(Firmware, :get_pin, 1, fn _, lua -> {[55.22], lua} end)
-    expect(Firmware, :get_pins, 1, fn [], lua -> {[[{"9", 20.55}]], lua} end)
+    expect(Firmware, :read_pin, 1, fn _, lua -> {[55.22], lua} end)
     expect(Firmware, :go_to_home, 4, fn [_axis], lua -> {[true], lua} end)
     expect(Info, :fbos_version, 1, fn _args, lua -> {["12.3.4"], lua} end)
     expect(Info, :firmware_version, 1, fn _args, lua -> {["12.3.4"], lua} end)

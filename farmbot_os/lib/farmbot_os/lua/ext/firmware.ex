@@ -190,56 +190,20 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     {[[{"x", x}, {"y", y}, {"z", z}]], lua}
   end
 
-  def get_pin(args, lua) do
-    get_pins(args, lua)
-  end
+  def read_pin([pin, mode], lua) do
+    m =
+      case mode do
+        "analog" -> 1
+        _ -> 0
+      end
 
-  @doc """
-  Returns a table with pins data
-
-  ## Example
-
-    print("pin9", get_pins()["9"]);
-
-    print("pin13", get_pin(13));
-  """
-  def get_pins([pin], lua) do
-    case FarmbotFirmware.request({:pin_read, [p: pin]}) do
-      {:ok, {_, {:report_pin_value, [p: _, v: v]}}} ->
-        {[v], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
+    case FarmbotFirmware.request({:pin_read, [p: pin, m: m]}) do
+      {:ok, {_, {:report_pin_value, [p: _, v: v]}}} -> {[v], lua}
+      {:error, reason} -> {[nil, reason], lua}
     end
   end
 
-  def get_pins([], lua) do
-    get_pins(Enum.to_list(0..69), lua)
-  end
-
-  def get_pins(list, lua) do
-    case do_get_pins(list) do
-      {:ok, contents} ->
-        {[contents], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
-    end
-  end
-
-  defp do_get_pins(nums, acc \\ [])
-
-  defp do_get_pins([p | rest], acc) do
-    case FarmbotFirmware.request({:pin_read, [p: p]}) do
-      {:ok, {_, {:report_pin_value, [p: ^p, v: v]}}} ->
-        do_get_pins(rest, [{to_string(p), v} | acc])
-
-      er ->
-        er
-    end
-  end
-
-  defp do_get_pins([], acc), do: {:ok, Enum.reverse(acc)}
+  def read_pin([pin], lua), do: read_pin([pin, "digital"], lua)
 
   defp do_find_home(axes, lua, callback) do
     axes

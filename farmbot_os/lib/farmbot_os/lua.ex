@@ -124,8 +124,7 @@ defmodule FarmbotOS.Lua do
       [:get_firmware_config],
       &DataManipulation.get_firmware_config/2
     )
-    |> set_table([:get_pin], &Firmware.get_pin/2)
-    |> set_table([:get_pins], &Firmware.get_pins/2)
+    |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:get_position], &Firmware.get_position/2)
     |> set_table([:go_to_home], &Firmware.go_to_home/2)
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
