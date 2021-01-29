@@ -109,7 +109,7 @@ defmodule FarmbotOS.MixProject do
        runtime: false,
        targets: :rpi3},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:nerves, "~> 1.7", runtime: false},
+      {:nerves, "~> 1.7.3", runtime: false},
       {:cors_plug, "~> 2.0.2"},
       {:elixir_make, "~> 0.6.2", runtime: false},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
