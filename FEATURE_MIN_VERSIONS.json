@@ -17,6 +17,7 @@
   "flash_firmware": "8.0.0",
   "groups": "8.1.0",
   "long_scaling_factor": "7.0.1",
+  "lua_step": "12.3.4",
   "mark_as_step": "8.0.3",
   "named_pins": "6.3.0",
   "no_firmware_logs": "12.2.2",
