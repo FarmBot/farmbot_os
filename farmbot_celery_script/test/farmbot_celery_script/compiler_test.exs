@@ -384,6 +384,36 @@ defmodule FarmbotCeleryScript.CompilerTest do
     assert func.() == {:error, "aborted"}
   end
 
+  test "lua in RPC, no variable declarations" do
+    example = %FarmbotCeleryScript.AST{
+      args: %{
+        label: "abcdefgh"
+      },
+      body: [
+        %FarmbotCeleryScript.AST{
+          args: %{
+            lua: """
+              usage = read_status('informational_settings').scheduler_usage
+              send_message('warn', usage, 'toast');
+            """
+          },
+          body: [],
+          comment: nil,
+          kind: :lua,
+          meta: nil
+        }
+      ],
+      comment: nil,
+      kind: :rpc_request,
+      meta: nil
+    }
+
+    result = Compiler.compile(example)
+    # Previously, this would crash because
+    # `better_params` was not declared.
+    assert result
+  end
+
   test "`update_resource`: Multiple fields of `resource` type." do
     compiled =
       "test/fixtures/update_resource_multi.json"
