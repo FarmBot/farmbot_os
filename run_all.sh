@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-MIX_ENV=test
+export MIX_ENV=test
 
 cd farmbot_telemetry
 

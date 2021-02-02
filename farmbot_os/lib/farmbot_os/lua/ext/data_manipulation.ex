@@ -3,18 +3,14 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  alias FarmbotCore.{
-    Asset,
-    Asset.Device,
-    Asset.FbosConfig,
-    Asset.FirmwareConfig
-  }
-
+  alias FarmbotCore.Asset
+  alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
+  alias FarmbotOS.SysCalls.ResourceUpdate
 
   def update_device([table], lua) do
     params = Map.new(table)
-    _ = Asset.update_device!(params)
+    _ = ResourceUpdate.update_resource("Device", nil, params)
     {[true], lua}
   end
 
@@ -29,8 +25,10 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def update_fbos_config([table], lua) do
-    params = Map.new(table)
-    _ = Asset.update_fbos_config!(params)
+    Map.new(table)
+    |> Asset.update_fbos_config!()
+    |> Asset.Private.mark_dirty!(%{})
+
     {[true], lua}
   end
 
@@ -40,13 +38,19 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def get_fbos_config(_, lua) do
-    fbos_config = Asset.fbos_config() |> FbosConfig.render()
-    {[Util.map_to_table(fbos_config)], lua}
+    conf =
+      Asset.fbos_config()
+      |> FbosConfig.render()
+      |> Util.map_to_table()
+
+    {[conf], lua}
   end
 
   def update_firmware_config([table], lua) do
-    params = Map.new(table)
-    _ = Asset.update_firmware_config!(params)
+    Map.new(table)
+    |> Asset.update_firmware_config!()
+    |> Asset.Private.mark_dirty!(%{})
+
     {[true], lua}
   end
 

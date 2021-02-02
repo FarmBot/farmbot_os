@@ -1,5 +1,12 @@
 # Changelog
 
+# 12.3.4
+
+ * Bug fix for self-hosted image uploads.
+ * Support for new LUA block
+ * Numerous fixes to Lua VM (formulas, ASSERT block, LUA block)
+ * Ability to access sequence variables within LUA block (via `variables.parent`)
+
 # 12.3.3
 
 Bug fixes:

@@ -2,10 +2,11 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   @moduledoc """
   Lua extensions for interacting with the Firmware
   """
+  @axis ["x", "y", "z"]
 
   alias FarmbotCeleryScript.SysCalls
 
-  def calibrate([axis], lua) when axis in ["x", "y", "z"] do
+  def calibrate([axis], lua) when axis in @axis do
     case SysCalls.calibrate(axis) do
       :ok ->
         {[true], lua}
@@ -35,24 +36,44 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def find_home([axis], lua) when axis in ["x", "y", "z"] do
-    case SysCalls.find_home(axis) do
-      :ok ->
-        {[true], lua}
+  def find_home(["all"], lua),
+    do: do_find_home(@axis, lua, &SysCalls.find_home/1)
 
-      {:error, reason} ->
-        {[nil, reason], lua}
+  def find_home([axis], lua),
+    do: do_find_home([axis], lua, &SysCalls.find_home/1)
+
+  def find_home([], lua), do: find_home(["all"], lua)
+
+  def go_to_home([axis, speed], lua) when axis in @axis do
+    defaults = %{
+      "x" => SysCalls.get_current_x(),
+      "y" => SysCalls.get_current_y(),
+      "z" => SysCalls.get_current_z()
+    }
+
+    mask = %{axis => 0}
+    p = Map.merge(defaults, mask)
+    args = Map.values(p) ++ [speed]
+
+    case apply(SysCalls, :move_absolute, args) do
+      :ok -> {[true], lua}
+      {:error, reason} -> {[nil, reason], lua}
     end
   end
 
-  def home([axis, speed], lua) when axis in ["x", "y", "z"] do
-    case SysCalls.home(axis, speed) do
-      :ok ->
-        {[true], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
+  def go_to_home(["all", speed], lua) do
+    case SysCalls.move_absolute(0, 0, 0, speed) do
+      :ok -> {[true], lua}
+      {:error, reason} -> {[nil, reason], lua}
     end
+  end
+
+  def go_to_home([axis], lua) do
+    go_to_home([axis, 100], lua)
+  end
+
+  def go_to_home(_, lua) do
+    go_to_home(["all", 100], lua)
   end
 
   @doc "Moves in a straight line to a location"
@@ -164,59 +185,40 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     end
   end
 
-  def get_pin(args, lua) do
-    get_pins(args, lua)
-  end
-
-  @doc """
-  Returns a table with pins data
-
-  ## Example
-
-    print("pin9", get_pins()["9"]);
-
-    print("pin13", get_pin(13));
-  """
-  def get_pins([pin], lua) do
-    case FarmbotFirmware.request({:pin_read, [p: pin]}) do
-      {:ok, {_, {:report_pin_value, [p: ^pin, v: v]}}} ->
-        {[v], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
-    end
-  end
-
-  def get_pins([], lua) do
-    get_pins(Enum.to_list(0..69), lua)
-  end
-
-  def get_pins(list, lua) do
-    case do_get_pins(list) do
-      {:ok, contents} ->
-        {[contents], lua}
-
-      {:error, reason} ->
-        {[nil, reason], lua}
-    end
-  end
-
   def coordinate([x, y, z], lua)
       when is_number(x) and is_number(y) and is_number(z) do
     {[[{"x", x}, {"y", y}, {"z", z}]], lua}
   end
 
-  defp do_get_pins(nums, acc \\ [])
+  def read_pin([pin, mode], lua) do
+    m =
+      case mode do
+        "analog" -> 1
+        _ -> 0
+      end
 
-  defp do_get_pins([p | rest], acc) do
-    case FarmbotFirmware.request({:pin_read, [p: p]}) do
-      {:ok, {_, {:report_pin_value, [p: ^p, v: v]}}} ->
-        do_get_pins(rest, [{to_string(p), v} | acc])
-
-      er ->
-        er
+    case FarmbotFirmware.request({:pin_read, [p: pin, m: m]}) do
+      {:ok, {_, {:report_pin_value, [p: _, v: v]}}} -> {[v], lua}
+      {:error, reason} -> {[nil, reason], lua}
     end
   end
 
-  defp do_get_pins([], acc), do: {:ok, Enum.reverse(acc)}
+  def read_pin([pin], lua), do: read_pin([pin, "digital"], lua)
+
+  defp do_find_home(axes, lua, callback) do
+    axes
+    |> Enum.map(callback)
+    |> Enum.reverse()
+    |> Enum.map(fn result ->
+      case result do
+        {:error, reason} -> reason
+        _ -> nil
+      end
+    end)
+    |> Enum.uniq()
+    |> case do
+      [nil] -> {[true], lua}
+      reasons -> {[nil, Enum.join(reasons, " ")], lua}
+    end
+  end
 end
