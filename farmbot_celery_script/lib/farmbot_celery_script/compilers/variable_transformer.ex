@@ -1,7 +1,6 @@
 # Ensure that every "location like" CeleryScript variable has
 # an x/y/z property at the root of the object.
 defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
-  alias FarmbotCore.Asset
   alias FarmbotCeleryScript.SysCalls
 
   def run!(%{x: _, y: _, z: _} = vec), do: [vec]
@@ -10,30 +9,8 @@ defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
     [Map.merge(vec, args)]
   end
 
-  @point_keys [
-    :gantry_mounted,
-    :id,
-    :meta,
-    :name,
-    :openfarm_slug,
-    :plant_stage,
-    :pointer_type,
-    :pullout_direction,
-    :radius,
-    :tool_id,
-    :x,
-    :y,
-    :z
-  ]
-
-  def run!(%{args: %{pointer_id: id}}) do
-    point = Map.from_struct(Asset.get_point(id: id))
-
-    reducer = fn key, result ->
-      Map.merge(result, %{key => Map.get(point, key)})
-    end
-
-    [Enum.reduce(@point_keys, %{}, reducer)]
+  def run!(%{args: %{pointer_id: id, pointer_type: t}}) do
+    [SysCalls.point(t, id)]
   end
 
   def run!(nil) do
