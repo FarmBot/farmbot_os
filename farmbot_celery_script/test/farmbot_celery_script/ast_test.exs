@@ -53,4 +53,10 @@ defmodule FarmbotCeleryScript.ASTTest do
     res = AST.new(:nothing, %{nothing: @nothing_json}, [@nothing_json])
     assert match?(%AST{}, res)
   end
+
+  test "decodes a list" do
+    assert AST.decode([]) == []
+    nothing = AST.new(:nothing, %{nothing: @nothing_json}, [@nothing_json])
+    assert AST.decode([nothing]) == [nothing]
+  end
 end
