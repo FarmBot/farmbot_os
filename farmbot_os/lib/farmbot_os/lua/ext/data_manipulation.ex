@@ -8,6 +8,28 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
 
+  def env([key, value], lua) do
+    with :ok <- FarmbotOS.SysCalls.set_user_env(key, value) do
+      {[value], lua}
+    else
+      {:error, reason} ->
+        {[nil, reason], lua}
+
+      error ->
+        {[nil, inspect(error)], lua}
+    end
+  end
+
+  def env([key], lua) do
+    result =
+      Asset.list_farmware_env()
+      |> Enum.map(fn e -> {e.key, e.value} end)
+      |> Map.new()
+      |> Map.get(key)
+
+    {[result], lua}
+  end
+
   def json_encode([data], lua) do
     with {:ok, json} <- JSON.encode(Util.lua_to_elixir(data)) do
       {[json], lua}
@@ -85,12 +107,6 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   def get_firmware_config(_, lua) do
     firmware_config = Asset.firmware_config() |> FirmwareConfig.render()
     {[Util.map_to_table(firmware_config)], lua}
-  end
-
-  def new_farmware_env([table], lua) do
-    params = Map.new(table)
-    _ = Asset.new_farmware_env(params)
-    {[true], lua}
   end
 
   def new_sensor_reading([table], lua) do

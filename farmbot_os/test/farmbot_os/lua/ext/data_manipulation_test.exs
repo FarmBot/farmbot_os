@@ -94,16 +94,6 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
     assert true == lua("get_firmware_config/1", lua_code)
   end
 
-  test "new_farmware_env" do
-    expect(FarmbotCore.Asset, :new_farmware_env, 1, fn params -> params end)
-
-    lua_code = """
-    return new_farmware_env({foo = "bar"})
-    """
-
-    assert true == lua("new_farmware_env/1", lua_code)
-  end
-
   test "new_sensor_reading" do
     expect(FarmbotCore.Asset, :new_sensor_reading!, 1, fn params -> params end)
 
@@ -118,6 +108,6 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
     })
     """
 
-    assert true == lua("new_farmware_env/1", lua_code)
+    assert true == lua("new_sensor_reading/1", lua_code)
   end
 end

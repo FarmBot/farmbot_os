@@ -116,6 +116,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:current_second], &Info.current_second/2)
     |> set_table([:emergency_lock], &Firmware.emergency_lock/2)
     |> set_table([:emergency_unlock], &Firmware.emergency_unlock/2)
+    |> set_table([:env], &DataManipulation.env/2)
     |> set_table([:fbos_version], &Info.fbos_version/2)
     |> set_table([:find_axis_length], &Firmware.calibrate/2)
     |> set_table([:find_home], &Firmware.find_home/2)
@@ -134,7 +135,6 @@ defmodule FarmbotOS.Lua do
       {:encode, &DataManipulation.json_encode/2}
     ])
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
-    |> set_table([:new_farmware_env], &DataManipulation.new_farmware_env/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:read_status], &Info.read_status/2)
