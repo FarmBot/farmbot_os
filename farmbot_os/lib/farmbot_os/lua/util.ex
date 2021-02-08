@@ -23,12 +23,11 @@ defmodule FarmbotOS.Lua.Util do
 
   def table_to_map([], acc) do
     # POST PROCESSING
-    not_array? =
-      acc
-      |> Map.keys()
-      |> Enum.find_value(fn key -> !is_number(key) end)
+    keys = Map.keys(acc)
+    not_array? = Enum.find_value(keys, fn key -> !is_number(key) end)
+    not_populated? = Enum.count(keys) == 0
 
-    if not_array? do
+    if not_array? || not_populated? do
       acc
     else
       Map.values(acc)

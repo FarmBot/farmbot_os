@@ -59,7 +59,7 @@ defmodule FarmbotOS.Lua do
     lua_code = add_implicit_return(str)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
-    IO.inspect(eval(vm, lua_code), label: "=== LUA OUTPUT")
+    eval(vm, lua_code)
   end
 
   @doc """
@@ -129,6 +129,7 @@ defmodule FarmbotOS.Lua do
     )
     |> set_table([:get_position], &Firmware.get_position/2)
     |> set_table([:go_to_home], &Firmware.go_to_home/2)
+    |> set_table([:http], &DataManipulation.http/2)
     |> set_table([:inspect], &DataManipulation.json_encode/2)
     |> set_table([:json], [
       {:decode, &DataManipulation.json_decode/2},

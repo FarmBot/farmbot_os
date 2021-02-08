@@ -8,6 +8,35 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
 
+  @methods %{
+    "connect" => :connect,
+    "delete" => :delete,
+    "get" => :get,
+    "head" => :head,
+    "options" => :options,
+    "patch" => :patch,
+    "post" => :post,
+    "put" => :put,
+    "trace" => :trace
+  }
+
+  def http([lua_config], lua) do
+    config = Util.lua_to_elixir(lua_config)
+    url = Map.fetch!(config, "url")
+    method_str = String.downcase(Map.get(config, "method", "get")) || "get"
+    method = Map.get(@methods, method_str, :get)
+    headers = Map.to_list(Map.get(config, "headers", %{}))
+    body = Map.get(config, "body", "")
+    options = []
+
+    {:ok, status, resp_headers, client_ref} =
+      :hackney.request(method, url, headers, body, options)
+
+    {:ok, resp_body} = :hackney.body(client_ref)
+    result = %{body: resp_body, headers: Map.new(resp_headers), status: status}
+    {[Util.map_to_table(result)], lua}
+  end
+
   def env([key, value], lua) do
     with :ok <- FarmbotOS.SysCalls.set_user_env(key, value) do
       {[value], lua}
