@@ -7,4 +7,10 @@ defmodule FarmbotOS.Lua.Util do
       {key, value} -> {to_string(key), value}
     end)
   end
+
+  # def table_to_map([{key, value} | rest], acc \\ %{}) do
+  # end
+
+  # def table_to_map([], acc \\ %{}) do
+  # end
 end

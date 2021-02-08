@@ -3,10 +3,27 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  alias FarmbotCore.Asset
+  alias FarmbotCore.{Asset, JSON}
   alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
+
+  # def json_encode([data], lua) do
+  #   IO.inspect(data, label: "==== ENCODE BEFORE")
+
+  #   data
+  #   |> Enum.into(%{})
+  #   |> IO.inspect(label: "==== ENCODE AFTER")
+  #   {["ENCODE"], lua}
+  # end
+
+  def json_decode([data], lua) do
+    with {:ok, map} <- JSON.decode(data) do
+      {[Util.map_to_table(map)], lua}
+    else
+      _ -> {[nil, "Error parsing JSON."], lua}
+    end
+  end
 
   def take_photo(_, lua) do
     case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", %{}) do
