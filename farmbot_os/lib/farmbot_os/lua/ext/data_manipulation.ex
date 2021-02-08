@@ -8,20 +8,19 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
 
-  # def json_encode([data], lua) do
-  #   IO.inspect(data, label: "==== ENCODE BEFORE")
-
-  #   data
-  #   |> Enum.into(%{})
-  #   |> IO.inspect(label: "==== ENCODE AFTER")
-  #   {["ENCODE"], lua}
-  # end
+  def json_encode([data], lua) do
+    with {:ok, json} <- JSON.encode(Util.lua_to_elixir(data)) do
+      {[json], lua}
+    else
+      _ -> {[nil, "Error serializing JSON. Please send a bug report."], lua}
+    end
+  end
 
   def json_decode([data], lua) do
     with {:ok, map} <- JSON.decode(data) do
       {[Util.map_to_table(map)], lua}
     else
-      _ -> {[nil, "Error parsing JSON."], lua}
+      _ -> {[nil, "Error parsing JSON. Please send a bug report."], lua}
     end
   end
 

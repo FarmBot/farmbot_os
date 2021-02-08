@@ -128,6 +128,7 @@ defmodule FarmbotOS.Lua do
     )
     |> set_table([:get_position], &Firmware.get_position/2)
     |> set_table([:go_to_home], &Firmware.go_to_home/2)
+    |> set_table([:inspect], &DataManipulation.json_encode/2)
     |> set_table([:json], [
       {:decode, &DataManipulation.json_decode/2},
       {:encode, &DataManipulation.json_encode/2}
