@@ -59,7 +59,7 @@ defmodule FarmbotOS.Lua do
     lua_code = add_implicit_return(str)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
-    eval(vm, lua_code)
+    IO.inspect(eval(vm, lua_code), label: "=== LUA OUTPUT")
   end
 
   @doc """
@@ -134,6 +134,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:send_message], &Info.send_message/2)
     |> set_table([:update_device], &DataManipulation.update_device/2)
     |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
+    |> set_table([:take_photo], &DataManipulation.take_photo/2)
     |> set_table(
       [:update_firmware_config],
       &DataManipulation.update_firmware_config/2
