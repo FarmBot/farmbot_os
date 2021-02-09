@@ -116,30 +116,37 @@ defmodule FarmbotOS.Lua do
     |> set_table([:current_second], &Info.current_second/2)
     |> set_table([:emergency_lock], &Firmware.emergency_lock/2)
     |> set_table([:emergency_unlock], &Firmware.emergency_unlock/2)
+    |> set_table([:env], &DataManipulation.env/2)
+    |> set_table([:fbos_version], &Info.fbos_version/2)
     |> set_table([:find_axis_length], &Firmware.calibrate/2)
     |> set_table([:find_home], &Firmware.find_home/2)
+    |> set_table([:firmware_version], &Info.firmware_version/2)
     |> set_table([:get_device], &DataManipulation.get_device/2)
     |> set_table([:get_fbos_config], &DataManipulation.get_fbos_config/2)
     |> set_table(
       [:get_firmware_config],
       &DataManipulation.get_firmware_config/2
     )
-    |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:get_position], &Firmware.get_position/2)
     |> set_table([:go_to_home], &Firmware.go_to_home/2)
+    |> set_table([:http], &DataManipulation.http/2)
+    |> set_table([:inspect], &DataManipulation.json_encode/2)
+    |> set_table([:json], [
+      {:decode, &DataManipulation.json_decode/2},
+      {:encode, &DataManipulation.json_encode/2}
+    ])
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
-    |> set_table([:new_farmware_env], &DataManipulation.new_farmware_env/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
+    |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
+    |> set_table([:take_photo], &DataManipulation.take_photo/2)
     |> set_table([:update_device], &DataManipulation.update_device/2)
     |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
     |> set_table(
       [:update_firmware_config],
       &DataManipulation.update_firmware_config/2
     )
-    |> set_table([:fbos_version], &Info.fbos_version/2)
-    |> set_table([:firmware_version], &Info.firmware_version/2)
   end
 
   @spec set_table(t(), Path.t(), any()) :: t()
