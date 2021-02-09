@@ -1,8 +1,9 @@
-defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
+defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.ResourceUpdate
+  alias FarmbotOS.Lua.Ext.DataManipulation
 
   def lua(test_name, lua_code) do
     FarmbotOS.Lua.eval_assertion(test_name, lua_code)
@@ -114,21 +115,31 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
   test "take_photo - OK" do
     mock = fn ("take-photo", %{}) -> :ok end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    actual = DataManipulation.take_photo(:none, :lua)
     assert {[], :lua} == actual
   end
 
   test "take_photo - 'normal' errors" do
     mock = fn ("take-photo", %{}) -> {:error, "whatever"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    actual = DataManipulation.take_photo(:none, :lua)
     assert {["whatever"], :lua} == actual
   end
 
   test "take_photo - malformed errors" do
     mock = fn ("take-photo", %{}) -> {:something_else, "whoops"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    actual = DataManipulation.take_photo(:none, :lua)
     assert {[inspect({:something_else, "whoops"})], :lua} == actual
+  end
+
+  test "json_decode - OK" do
+    actual = DataManipulation.json_decode(["{\"foo\":\"bar\"}"], :lua)
+    assert {[[{"foo", "bar"}]], :lua} == actual
+  end
+
+  test "json_decode - Error" do
+    actual = DataManipulation.json_decode(["no"], :lua)
+    assert {[nil, "Error parsing JSON."], :lua} == actual
   end
 end

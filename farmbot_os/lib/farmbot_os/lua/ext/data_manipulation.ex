@@ -63,7 +63,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
     with {:ok, json} <- JSON.encode(Util.lua_to_elixir(data)) do
       {[json], lua}
     else
-      _ -> {[nil, "Error serializing JSON. Please send a bug report."], lua}
+      _ -> {[nil, "Error serializing JSON."], lua}
     end
   end
 
@@ -71,7 +71,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
     with {:ok, map} <- JSON.decode(data) do
       {[Util.map_to_table(map)], lua}
     else
-      _ -> {[nil, "Error parsing JSON. Please send a bug report."], lua}
+      _ -> {[nil, "Error parsing JSON."], lua}
     end
   end
 
