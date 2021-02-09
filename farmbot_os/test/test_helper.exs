@@ -14,6 +14,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API,
   FarmbotExt.API.Reconciler,
   FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.HTTP,
   FarmbotFirmware,
   FarmbotOS.Configurator.ConfigDataLayer,
   FarmbotOS.Configurator.DetsTelemetryLayer,

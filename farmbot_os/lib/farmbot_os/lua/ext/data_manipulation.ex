@@ -7,6 +7,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
+  alias FarmbotExt.HTTP
 
   @methods %{
     "connect" => :connect,
@@ -28,12 +29,23 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
     headers = Map.to_list(Map.get(config, "headers", %{}))
     body = Map.get(config, "body", "")
     options = []
+    hackney = HTTP.hackney()
 
+    # Example request:
+    #     {:ok, 200,
+    #    [
+    #      {"Access-Control-Allow-Origin", "*"},
+    #      {"Content-Length", "33"},
+    #      {"Content-Type", "application/json; charset=utf-8"},
+    #    ], #Reference<0.3657984643.824705025.36946>}
+    # }
     {:ok, status, resp_headers, client_ref} =
-      :hackney.request(method, url, headers, body, options)
+      hackney.request(method, url, headers, body, options)
 
-    {:ok, resp_body} = :hackney.body(client_ref)
+    # Example response body: {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
+    {:ok, resp_body} = hackney.body(client_ref)
     result = %{body: resp_body, headers: Map.new(resp_headers), status: status}
+
     {[Util.map_to_table(result)], lua}
   end
 

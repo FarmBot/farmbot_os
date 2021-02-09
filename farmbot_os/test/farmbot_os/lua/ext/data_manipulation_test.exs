@@ -5,7 +5,9 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.Lua.Ext.DataManipulation
 
+  # Random tidbits needed for mocks / stubs.
   defstruct [:key, :value]
+
   def lua(test_name, lua_code) do
     FarmbotOS.Lua.eval_assertion(test_name, lua_code)
   end
@@ -114,21 +116,21 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   end
 
   test "take_photo - OK" do
-    mock = fn ("take-photo", %{}) -> :ok end
+    mock = fn "take-photo", %{} -> :ok end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
     actual = DataManipulation.take_photo(:none, :lua)
     assert {[], :lua} == actual
   end
 
   test "take_photo - 'normal' errors" do
-    mock = fn ("take-photo", %{}) -> {:error, "whatever"} end
+    mock = fn "take-photo", %{} -> {:error, "whatever"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
     actual = DataManipulation.take_photo(:none, :lua)
     assert {["whatever"], :lua} == actual
   end
 
   test "take_photo - malformed errors" do
-    mock = fn ("take-photo", %{}) -> {:something_else, "whoops"} end
+    mock = fn "take-photo", %{} -> {:something_else, "whoops"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
     actual = DataManipulation.take_photo(:none, :lua)
     assert {[inspect({:something_else, "whoops"})], :lua} == actual
@@ -177,5 +179,52 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     expect(FarmbotOS.SysCalls, :set_user_env, 1, mock)
     results = DataManipulation.env(["foo", "bar"], :lua)
     assert {[nil, ":misc"], :lua} == results
+  end
+
+  defmodule FakeHackney do
+    def request(_method, _url, _headers, _body, _options) do
+      resp_headers = [
+        {"Access-Control-Allow-Origin", "*"},
+        {"Content-Length", "33"},
+        {"Content-Type", "application/json; charset=utf-8"}
+      ]
+
+      {:ok, 200, resp_headers, make_ref()}
+    end
+
+    def body(_ref) do
+      {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
+    end
+  end
+
+  test "http" do
+    expect(FarmbotExt.HTTP, :hackney, 1, fn -> FakeHackney end)
+
+    params =
+      FarmbotOS.Lua.Util.map_to_table(%{
+        "url" => "http://localhost:4567",
+        "method" => "POST",
+        "headers" => %{"foo" => "bar"},
+        "body" => "{\"one\":\"two\"}"
+      })
+
+    expected = {
+      [
+        [
+          {"body", "{\"whatever\": \"foo_bar_baz\"}"},
+          {"headers",
+           [
+             {"Access-Control-Allow-Origin", "*"},
+             {"Content-Length", "33"},
+             {"Content-Type", "application/json; charset=utf-8"}
+           ]},
+          {"status", 200}
+        ]
+      ],
+      :fake_lua
+    }
+
+    results = DataManipulation.http([params], :fake_lua)
+    assert results == expected
   end
 end
