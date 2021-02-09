@@ -78,7 +78,8 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   def take_photo(_, lua) do
     case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", %{}) do
       {:error, reason} -> {[reason], lua}
-      _ -> {[], lua}
+      :ok -> {[], lua}
+      other -> {[inspect(other)], lua}
     end
   end
 

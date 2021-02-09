@@ -110,4 +110,25 @@ defmodule FarmbotOS.FarmbotOS.Lua.Ext.DataManipulationTest do
 
     assert true == lua("new_sensor_reading/1", lua_code)
   end
+
+  test "take_photo - OK" do
+    mock = fn ("take-photo", %{}) -> :ok end
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
+    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    assert {[], :lua} == actual
+  end
+
+  test "take_photo - 'normal' errors" do
+    mock = fn ("take-photo", %{}) -> {:error, "whatever"} end
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
+    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    assert {["whatever"], :lua} == actual
+  end
+
+  test "take_photo - malformed errors" do
+    mock = fn ("take-photo", %{}) -> {:something_else, "whoops"} end
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
+    actual = FarmbotOS.Lua.Ext.DataManipulation.take_photo(:none, :lua)
+    assert {[inspect({:something_else, "whoops"})], :lua} == actual
+  end
 end
