@@ -5,6 +5,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.Lua.Ext.DataManipulation
 
+  defstruct [:key, :value]
   def lua(test_name, lua_code) do
     FarmbotOS.Lua.eval_assertion(test_name, lua_code)
   end
@@ -146,5 +147,14 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   test "json_encode - OK" do
     actual = DataManipulation.json_encode([[{"foo", "bar"}]], :lua)
     assert {["{\"foo\":\"bar\"}"], :lua} == actual
+  end
+
+  test "env/1 OK" do
+    mock = fn -> [%__MODULE__{key: "foo", value: "bar"}] end
+    expect(FarmbotCore.Asset, :list_farmware_env, 2, mock)
+    results = DataManipulation.env(["foo"], :lua)
+    assert {["bar"], :lua} == results
+    results = DataManipulation.env(["wrong"], :lua)
+    assert {[nil], :lua} == results
   end
 end
