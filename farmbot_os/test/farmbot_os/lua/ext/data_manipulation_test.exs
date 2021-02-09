@@ -149,12 +149,33 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     assert {["{\"foo\":\"bar\"}"], :lua} == actual
   end
 
-  test "env/1 OK" do
+  test "env/1" do
     mock = fn -> [%__MODULE__{key: "foo", value: "bar"}] end
     expect(FarmbotCore.Asset, :list_farmware_env, 2, mock)
     results = DataManipulation.env(["foo"], :lua)
     assert {["bar"], :lua} == results
     results = DataManipulation.env(["wrong"], :lua)
     assert {[nil], :lua} == results
+  end
+
+  test "env/2 - OK" do
+    mock = fn _, _ -> :ok end
+    expect(FarmbotOS.SysCalls, :set_user_env, 1, mock)
+    results = DataManipulation.env(["foo", "bar"], :lua)
+    assert {["bar"], :lua} == results
+  end
+
+  test "env/2 - normal error" do
+    mock = fn _, _ -> {:error, "reason"} end
+    expect(FarmbotOS.SysCalls, :set_user_env, 1, mock)
+    results = DataManipulation.env(["foo", "bar"], :lua)
+    assert {[nil, "reason"], :lua} == results
+  end
+
+  test "env/2 - malformed error" do
+    mock = fn _, _ -> :misc end
+    expect(FarmbotOS.SysCalls, :set_user_env, 1, mock)
+    results = DataManipulation.env(["foo", "bar"], :lua)
+    assert {[nil, ":misc"], :lua} == results
   end
 end
