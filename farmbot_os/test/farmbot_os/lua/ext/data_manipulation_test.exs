@@ -142,4 +142,9 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     actual = DataManipulation.json_decode(["no"], :lua)
     assert {[nil, "Error parsing JSON."], :lua} == actual
   end
+
+  test "json_encode - OK" do
+    actual = DataManipulation.json_encode([[{"foo", "bar"}]], :lua)
+    assert {["{\"foo\":\"bar\"}"], :lua} == actual
+  end
 end
