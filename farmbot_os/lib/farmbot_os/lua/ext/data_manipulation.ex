@@ -161,7 +161,6 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
     end)
     |> Map.new()
     |> Asset.new_sensor_reading!()
-    |> IO.inspect(label: "===============")
 
     {[true], lua}
   end
