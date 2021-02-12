@@ -152,8 +152,17 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   end
 
   def new_sensor_reading([table], lua) do
-    params = Map.new(table)
-    _ = Asset.new_sensor_reading!(params)
+    table
+    |> Enum.map(fn
+      {"mode", val} -> {"mode", round(val)}
+      {"pin", val} -> {"pin", round(val)}
+      {"value", val} -> {"value", round(val)}
+      other -> other
+    end)
+    |> Map.new()
+    |> Asset.new_sensor_reading!()
+    |> IO.inspect(label: "===============")
+
     {[true], lua}
   end
 end
