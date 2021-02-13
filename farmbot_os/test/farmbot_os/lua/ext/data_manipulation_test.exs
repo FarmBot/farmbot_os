@@ -99,16 +99,27 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   end
 
   test "new_sensor_reading" do
-    expect(FarmbotCore.Asset, :new_sensor_reading!, 1, fn params -> params end)
+    expect(FarmbotCore.Asset, :new_sensor_reading!, 1, fn params ->
+      expected = %{
+        "mode" => 1,
+        "pin" => 0,
+        "value" => 2,
+        "x" => 3.0,
+        "y" => 4.0,
+        "z" => 5.0
+      }
+
+      assert expected == params
+    end)
 
     lua_code = """
     return new_sensor_reading({
-      pin = 0,
-      mode = 1,
-      value = 2,
-      x = 3,
-      y = 4,
-      z = 5,
+      mode = 1.1,
+      pin = 0.1,
+      value = 2.1,
+      x = 3.0,
+      y = 4.0,
+      z = 5.0,
     })
     """
 
