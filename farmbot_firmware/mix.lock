@@ -26,7 +26,7 @@
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm", "69b09adddc4f74a40716ae54d140f93beb0fb8978d8636eaded0c31b6f099f16"},
   "mime": {:hex, :mime, "1.3.0", "5e8d45a39e95c650900d03f897fbf99ae04f60ab1daa4a34c7a20a5151b7a5fe", [:mix], [], "hexpm"},
   "mimerl": {:hex, :mimerl, "1.2.0", "67e2d3f571088d5cfd3e550c383094b47159f3eee8ffa08e64106cdf5e981be3", [:rebar3], [], "hexpm", "f278585650aa581986264638ebf698f8bb19df297f66ad91b18910dfc6e19323"},
-  "mimic": {:hex, :mimic, "1.3.1", "ba1c90b851de9065db81b1e3a16f659e53dffb89d2f4d404db06f67d0b990deb", [:mix], [], "hexpm", "51b74ab8009e0673bf68beba6abfce0e5500c8bec3ad27033c4a8dacbc44d55e"},
+  "mimic": {:hex, :mimic, "1.4.0", "2712fa9f26df858414cb95ba2d6f0343b0bd0f36c6a26f529e58570727d5f142", [:mix], [], "hexpm", "2c744d50bae5dac0772d624507b5a72bdd1413a73ae11291cae9264de9d0865f"},
   "mox": {:hex, :mox, "0.5.1", "f86bb36026aac1e6f924a4b6d024b05e9adbed5c63e8daa069bd66fb3292165b", [:mix], [], "hexpm"},
   "nerves_uart": {:hex, :nerves_uart, "1.2.0", "195424116b925cd3bf9d666be036c2a80655e6ca0f8d447e277667a60005c50e", [:mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.1.0", "3a6fca1550363552e54c216debb6a9e95bd8d32348938e13de5eda962c0d7f89", [:mix], [], "hexpm", "08eb32d66b706e913ff748f11694b17981c0b04a33ef470e33e11b3d3ac8f54b"},

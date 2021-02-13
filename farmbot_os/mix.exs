@@ -113,7 +113,7 @@ defmodule FarmbotOS.MixProject do
       {:cors_plug, "~> 2.0.2"},
       {:elixir_make, "~> 0.6.2", runtime: false},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
-      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
       {:luerl, github: "rvirding/luerl"},
       {:phoenix_html, "~> 2.14.2"},
       {:plug_cowboy, "~> 2.4.1"},
