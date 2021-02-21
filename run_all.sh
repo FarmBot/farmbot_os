@@ -11,49 +11,49 @@ echo "######### farmbot_telemetry"
 cd ../farmbot_telemetry
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 echo "######### farmbot_celery_script"
 cd ../farmbot_celery_script
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 echo "######### farmbot_firmware"
 cd ../farmbot_firmware
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 echo "######### farmbot_core"
 cd ../farmbot_core
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 echo "######### farmbot_ext"
 cd ../farmbot_ext
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 echo "######### farmbot_os"
 cd ../farmbot_os
 mix format
 mix deps.get --all
+MIX_ENV=test mix compile
 mix coveralls.html
 rm -f *.coverdata
-MIX_ENV=test mix compile
 
 cd ..
 cd farmbot_os
