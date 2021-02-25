@@ -1,5 +1,9 @@
 # Changelog
 
+# 13.0.0
+
+ * Nerves system upgrade
+
 # 12.3.4
 
  * Bug fix for self-hosted image uploads.
