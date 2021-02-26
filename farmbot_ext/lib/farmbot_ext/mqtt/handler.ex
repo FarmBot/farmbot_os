@@ -1,13 +1,34 @@
 defmodule FarmbotExt.MQTT.Handler do
+  alias FarmbotExt.JWT
   require Logger
   use Tortoise.Handler
 
-  def mqtt_child(token, username) do
+  @wss "wss:"
+
+  def mqtt_child(raw_token) do
+    token = JWT.decode!(raw_token)
+    host = token.mqtt
+    username = token.bot
+
+    server =
+      if String.starts_with?(token.mqtt_ws, @wss) do
+        IO.puts("⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆")
+        IO.puts("⛆                                                         ⛆")
+        IO.puts("⛆   SSL  NOT  ACTUALLY  ENABLED.                          ⛆")
+        IO.puts("⛆      FIX  BEFORE  RELEASE!!!                            ⛆")
+        IO.puts("⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆")
+
+        {Tortoise.Transport.SSL,
+         cacertfile: :certifi.cacertfile(), host: host, port: 8883, verify: :verify_none}
+      else
+        {Tortoise.Transport.Tcp, host: host, port: 1883}
+      end
+
     opts = [
       client_id: "change_this_later",
       user_name: username,
-      password: token,
-      server: {Tortoise.Transport.Tcp, host: 'localhost', port: 1883},
+      password: raw_token,
+      server: server,
       handler: {FarmbotExt.MQTT.Handler, []},
       subscriptions: [
         {"bot.#{username}.from_clients", 0},
@@ -28,8 +49,8 @@ defmodule FarmbotExt.MQTT.Handler do
     {:ok, args}
   end
 
-  def connection(status, state) do
-    IO.inspect(status, label: "⛆⛆⛆⛆ CONNECTION ⛆⛆⛆⛆")
+  def connection(_status, state) do
+    IO.inspect(state, label: "⛆⛆⛆⛆ CONNECTION ⛆⛆⛆⛆")
     # `status` will be either `:up` or `:down`; you can use this to
     # inform the rest of your system if the connection is currently
     # open or closed; tortoise should be busy reconnecting if you get
@@ -37,8 +58,10 @@ defmodule FarmbotExt.MQTT.Handler do
     {:ok, state}
   end
 
-  def handle_message([_bot, _device, "ping", time], payload, state) do
-    IO.inspect({time, payload}, label: "⛆⛆⛆⛆ TODO: PING HANDLER ⛆⛆⛆⛆")
+  def handle_message([a, b, "ping", d], payload, state) do
+    topic = Enum.join([a, b, "pong", d], "/")
+    Tortoise.publish("change_this_later", topic, payload, qos: 0)
+    IO.inspect({topic, payload}, label: "⛆⛆⛆⛆ !PONG! ⛆⛆⛆⛆")
     {:ok, state}
   end
 

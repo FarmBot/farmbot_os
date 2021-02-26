@@ -18,13 +18,10 @@ defmodule FarmbotExt.AMQP.Supervisor do
     email = get_config_value(:string, "authorization", "email")
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
-    legacy_children =
-      Keyword.get(config, :children, [
-        {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
-        {FarmbotExt.AMQP.ChannelSupervisor, [token]}
-      ])
-
-    modern_children = [FarmbotExt.MQTT.Handler.mqtt_child(token, email)]
-    legacy_children ++ modern_children
+    Keyword.get(config, :children, [
+      {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
+      {FarmbotExt.AMQP.ChannelSupervisor, [token]},
+      FarmbotExt.MQTT.Handler.mqtt_child(token)
+    ])
   end
 end

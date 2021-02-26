@@ -23,7 +23,8 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
       FarmbotExt.API.DirtyWorker.Supervisor,
       FarmbotExt.AMQP.Supervisor,
       FarmbotExt.API.ImageUploader,
-      FarmbotExt.Bootstrap.DropPasswordTask
+      FarmbotExt.Bootstrap.DropPasswordTask,
+      FarmbotExt.API.Ping
     ])
   end
 end

@@ -6,10 +6,10 @@ defmodule FarmbotExt.JWT do
     :exp,
     :iss,
     :mqtt,
+    :mqtt_ws,
     :vhost,
     :os_update_server,
-    :beta_os_update_server,
-    :interim_email
+    :beta_os_update_server
   ]
 
   alias FarmbotExt.JWT
@@ -21,9 +21,9 @@ defmodule FarmbotExt.JWT do
           exp: number,
           iss: binary,
           mqtt: binary,
+          mqtt_ws: binary,
           os_update_server: binary,
-          vhost: binary,
-          interim_email: binary
+          vhost: binary
         }
 
   @doc "Decode a token."
@@ -61,6 +61,7 @@ defmodule FarmbotExt.JWT do
        exp: map["exp"],
        iss: map["iss"],
        mqtt: map["mqtt"],
+       mqtt_ws: map["mqtt_ws"],
        vhost: map["vhost"],
        os_update_server: map["os_update_server"]
      )}
