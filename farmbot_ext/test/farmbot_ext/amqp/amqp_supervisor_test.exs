@@ -3,29 +3,36 @@ defmodule FarmbotExt.AMQP.SupervisorTest do
   use Mimic
 
   alias FarmbotExt.AMQP.Supervisor
+  alias FarmbotCore.Config
 
   setup :verify_on_exit!
 
   test "children" do
+    email = System.get_env("FARMBOT_EMAIL")
+    t = Helpers.fake_jwt()
+
+    expect(Config, :get_config_value, 2, fn
+      :string, "authorization", "token" -> t
+      :string, "authorization", "email" -> email
+    end)
+
     results = Supervisor.children()
 
-    # email = System.get_env("FARMBOT_EMAIL")
-
     expected = [
-      {FarmbotExt.AMQP.ConnectionWorker, [token: nil, email: "test@test.com"]},
-      {FarmbotExt.AMQP.ChannelSupervisor, [nil]},
+      {FarmbotExt.AMQP.ConnectionWorker, [token: t, email: email]},
+      {FarmbotExt.AMQP.ChannelSupervisor, [t]},
       {Tortoise.Connection,
        [
          client_id: "change_this_later",
-         user_name: "test@test.com",
-         password: nil,
-         server: {Tortoise.Transport.Tcp, [host: 'localhost', port: 1883]},
+         user_name: "device_15",
+         password: t,
+         server: {Tortoise.Transport.Tcp, [host: "localhost", port: 1883]},
          handler: {FarmbotExt.MQTT.Handler, []},
          subscriptions: [
-           {"bot.test@test.com.from_clients", 0},
-           {"bot.test@test.com.ping.#", 0},
-           {"bot.test@test.com.sync.#", 0},
-           {"bot.test@test.com.terminal_input", 0}
+           {"bot.device_15.from_clients", 0},
+           {"bot.device_15.ping.#", 0},
+           {"bot.device_15.sync.#", 0},
+           {"bot.device_15.terminal_input", 0}
          ]
        ]}
     ]

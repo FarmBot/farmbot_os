@@ -18,13 +18,10 @@ defmodule FarmbotExt.API.Ping do
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
-    IO.puts("⏣⏣⏣ START_LINK ⏣⏣⏣")
     GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(_args) do
-    IO.puts("⏣⏣⏣ INIT ⏣⏣⏣")
-
     state = %State{
       http_ping_timer: FarmbotExt.Time.send_after(self(), :http_ping, 5000),
       ping_fails: 0
@@ -33,12 +30,7 @@ defmodule FarmbotExt.API.Ping do
     {:ok, state}
   end
 
-  def terminate(_reason, _state) do
-    IO.puts("⏣⏣⏣ TERMINATE ⏣⏣⏣")
-  end
-
   def handle_info(:http_ping, state) do
-    IO.puts("⏣⏣⏣ handle_info(:http_ping, state) ⏣⏣⏣")
     ms = Enum.random(@lower_bound_ms..@upper_bound_ms)
     http_ping_timer = FarmbotExt.Time.send_after(self(), :http_ping, ms)
 

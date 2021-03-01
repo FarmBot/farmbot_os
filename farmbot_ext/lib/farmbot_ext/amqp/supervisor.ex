@@ -3,7 +3,7 @@ defmodule FarmbotExt.AMQP.Supervisor do
   Supervises AMQP connections
   """
   use Supervisor
-  import FarmbotCore.Config, only: [get_config_value: 3]
+  alias FarmbotCore.Config
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -14,8 +14,8 @@ defmodule FarmbotExt.AMQP.Supervisor do
   end
 
   def children do
-    token = get_config_value(:string, "authorization", "token")
-    email = get_config_value(:string, "authorization", "email")
+    token = Config.get_config_value(:string, "authorization", "token")
+    email = Config.get_config_value(:string, "authorization", "email")
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
     Keyword.get(config, :children, [

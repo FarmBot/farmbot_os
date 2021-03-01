@@ -6,20 +6,18 @@ defmodule FarmbotExt.MQTT.Handler do
   @wss "wss:"
 
   def mqtt_child(raw_token) do
+    System.cmd("clear", [])
     token = JWT.decode!(raw_token)
     host = token.mqtt
     username = token.bot
 
     server =
-      if String.starts_with?(token.mqtt_ws, @wss) do
-        IO.puts("⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆")
-        IO.puts("⛆                                                         ⛆")
-        IO.puts("⛆   SSL  NOT  ACTUALLY  ENABLED.                          ⛆")
-        IO.puts("⛆      FIX  BEFORE  RELEASE!!!                            ⛆")
-        IO.puts("⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆   ⛆")
-
+      if String.starts_with?(token.mqtt_ws || "", @wss) do
         {Tortoise.Transport.SSL,
-         cacertfile: :certifi.cacertfile(), host: host, port: 8883, verify: :verify_none}
+         server_name_indication: :disable,
+         cacertfile: :certifi.cacertfile(),
+         host: host,
+         port: 8883}
       else
         {Tortoise.Transport.Tcp, host: host, port: 1883}
       end
@@ -30,6 +28,7 @@ defmodule FarmbotExt.MQTT.Handler do
       password: raw_token,
       server: server,
       handler: {FarmbotExt.MQTT.Handler, []},
+      backoff: [min_interval: 6_000, max_interval: 120_000],
       subscriptions: [
         {"bot.#{username}.from_clients", 0},
         {"bot.#{username}.ping.#", 0},
@@ -37,6 +36,8 @@ defmodule FarmbotExt.MQTT.Handler do
         {"bot.#{username}.terminal_input", 0}
       ]
     ]
+
+    System.cmd("espeak", ["beep"])
 
     {Tortoise.Connection, opts}
   end
@@ -46,6 +47,7 @@ defmodule FarmbotExt.MQTT.Handler do
   end
 
   def init(args) do
+    IO.puts("⛆===⛆===⛆===⛆===⛆===⛆===⛆===⛆===⛆")
     {:ok, args}
   end
 
