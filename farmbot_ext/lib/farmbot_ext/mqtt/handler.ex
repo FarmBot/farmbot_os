@@ -6,7 +6,6 @@ defmodule FarmbotExt.MQTT.Handler do
   @wss "wss:"
 
   def mqtt_child(raw_token) do
-    System.cmd("clear", [])
     token = JWT.decode!(raw_token)
     host = token.mqtt
     username = token.bot
@@ -36,8 +35,6 @@ defmodule FarmbotExt.MQTT.Handler do
         {"bot.#{username}.terminal_input", 0}
       ]
     ]
-
-    System.cmd("espeak", ["beep"])
 
     {Tortoise.Connection, opts}
   end

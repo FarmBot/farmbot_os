@@ -40,7 +40,7 @@ defmodule FarmbotExt.MixProject do
   defp deps do
     [
       {:amqp, "~> 1.6.0"},
-      {:tortoise, "~> 0.9"},
+      {:tortoise, "~> 0.9.8"},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
       {:extty, "~> 0.2.1"},

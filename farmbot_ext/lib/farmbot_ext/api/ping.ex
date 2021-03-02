@@ -13,7 +13,7 @@ defmodule FarmbotExt.API.Ping do
   @lower_bound_ms 900_000
   @upper_bound_ms 1_200_000
 
-  defstruct [:http_ping_timer, :ping_fails]
+  defstruct [:timer, :failures]
   alias __MODULE__, as: State
 
   @doc false
@@ -22,26 +22,30 @@ defmodule FarmbotExt.API.Ping do
   end
 
   def init(_args) do
-    state = %State{
-      http_ping_timer: FarmbotExt.Time.send_after(self(), :http_ping, 5000),
-      ping_fails: 0
-    }
-
-    {:ok, state}
+    {:ok, %State{timer: ping_after(5000), failures: 0}}
   end
 
-  def handle_info(:http_ping, state) do
-    ms = Enum.random(@lower_bound_ms..@upper_bound_ms)
-    http_ping_timer = FarmbotExt.Time.send_after(self(), :http_ping, ms)
+  def handle_info(:ping, state) do
+    timer = ping_after(random_ms())
+    response = APIFetcher.get(APIFetcher.client(), "/api/device")
+    handle_response(response, state, timer)
+  end
 
-    case APIFetcher.get(APIFetcher.client(), "/api/device") do
-      {:ok, _} ->
-        {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: 0}}
+  def handle_response({:ok, _}, state, timer) do
+    {:noreply, %{state | timer: timer, failures: 0}}
+  end
 
-      error ->
-        ping_fails = state.ping_fails + 1
-        FarmbotCore.Logger.error(3, "Ping failed (#{ping_fails}). #{inspect(error)}")
-        {:noreply, %{state | http_ping_timer: http_ping_timer, ping_fails: ping_fails}}
-    end
+  def handle_response(error, state, timer) do
+    failures = state.failures + 1
+    FarmbotCore.Logger.error(3, "Ping failed (#{failures}). #{inspect(error)}")
+    {:noreply, %{state | timer: timer, failures: failures}}
+  end
+
+  def random_ms() do
+    Enum.random(@lower_bound_ms..@upper_bound_ms)
+  end
+
+  def ping_after(ms) do
+    FarmbotExt.Time.send_after(self(), :ping, ms)
   end
 end

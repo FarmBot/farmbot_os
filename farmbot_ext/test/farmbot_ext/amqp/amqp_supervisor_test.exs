@@ -28,6 +28,7 @@ defmodule FarmbotExt.AMQP.SupervisorTest do
          password: t,
          server: {Tortoise.Transport.Tcp, [host: "localhost", port: 1883]},
          handler: {FarmbotExt.MQTT.Handler, []},
+         backoff: [min_interval: 6_000, max_interval: 120_000],
          subscriptions: [
            {"bot.device_15.from_clients", 0},
            {"bot.device_15.ping.#", 0},
