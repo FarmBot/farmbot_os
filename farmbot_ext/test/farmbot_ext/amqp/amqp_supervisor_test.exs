@@ -23,7 +23,6 @@ defmodule FarmbotExt.AMQP.SupervisorTest do
       {FarmbotExt.AMQP.ChannelSupervisor, [t]},
       {Tortoise.Connection,
        [
-         client_id: "change_this_later",
          user_name: "device_15",
          password: t,
          server: {Tortoise.Transport.Tcp, [host: "localhost", port: 1883]},

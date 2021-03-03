@@ -48,7 +48,7 @@ defmodule FarmbotExt.API.PingTest do
       assert url == "/api/device"
     end)
 
-    expect(FarmbotExt.Time, :send_after, 1, fn pid, :ping, _ms ->
+    expect(FarmbotExt.Time, :send_after, 1, fn _pid, :ping, _ms ->
       :this_is_my_timer
     end)
 

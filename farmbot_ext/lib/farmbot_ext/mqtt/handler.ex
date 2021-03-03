@@ -1,5 +1,6 @@
 defmodule FarmbotExt.MQTT.Handler do
   alias FarmbotExt.JWT
+  alias FarmbotCore.Project
   require Logger
   use Tortoise.Handler
 
@@ -9,6 +10,8 @@ defmodule FarmbotExt.MQTT.Handler do
     token = JWT.decode!(raw_token)
     host = token.mqtt
     username = token.bot
+    jitter = String.slice(UUID.uuid4(:hex), 0..7)
+    client_id = "#{token.bot}_#{Project.version()}_#{jitter}"
 
     server =
       if String.starts_with?(token.mqtt_ws || "", @wss) do
@@ -22,11 +25,11 @@ defmodule FarmbotExt.MQTT.Handler do
       end
 
     opts = [
-      client_id: "change_this_later",
+      client_id: client_id,
       user_name: username,
       password: raw_token,
       server: server,
-      handler: {FarmbotExt.MQTT.Handler, []},
+      handler: {FarmbotExt.MQTT.Handler, [client_id]},
       backoff: [min_interval: 6_000, max_interval: 120_000],
       subscriptions: [
         {"bot.#{username}.from_clients", 0},
@@ -45,6 +48,7 @@ defmodule FarmbotExt.MQTT.Handler do
 
   def init(args) do
     IO.puts("⛆===⛆===⛆===⛆===⛆===⛆===⛆===⛆===⛆")
+    IO.inspect(args)
     {:ok, args}
   end
 
@@ -57,9 +61,9 @@ defmodule FarmbotExt.MQTT.Handler do
     {:ok, state}
   end
 
-  def handle_message([a, b, "ping", d], payload, state) do
+  def handle_message([a, b, "ping", d], payload, [client_id] = state) do
     topic = Enum.join([a, b, "pong", d], "/")
-    Tortoise.publish("change_this_later", topic, payload, qos: 0)
+    Tortoise.publish(client_id, topic, payload, qos: 0)
     IO.inspect({topic, payload}, label: "⛆⛆⛆⛆ !PONG! ⛆⛆⛆⛆")
     {:ok, state}
   end
