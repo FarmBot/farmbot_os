@@ -18,7 +18,7 @@ defmodule FarmbotExt.MQTT.HandlerTest do
   end
 
   test "handle_message - PING" do
-    fake_state = %Handler{client_id: UUID.uuid4(:hex)}
+    fake_state = %Handler{client_id: UUID.uuid4(:hex), connection_status: :up}
     fake_topic = ["bot", "devie_15", "ping", "1234"]
     fake_payl = "4321"
 
