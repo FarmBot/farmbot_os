@@ -10,7 +10,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     BotStateChannel,
     CeleryScriptChannel,
     LogChannel,
-    PingPongChannel,
     TelemetryChannel,
     TerminalChannel
   }
@@ -29,7 +28,6 @@ defmodule FarmbotExt.AMQP.ChannelSupervisor do
     Keyword.get(config, :children, [
       {TelemetryChannel, [jwt: jwt]},
       {LogChannel, [jwt: jwt]},
-      {PingPongChannel, [jwt: jwt]},
       {BotStateChannel, [jwt: jwt]},
       {AutoSyncChannel, [jwt: jwt]},
       {CeleryScriptChannel, [jwt: jwt]},
