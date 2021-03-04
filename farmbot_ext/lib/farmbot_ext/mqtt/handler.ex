@@ -16,10 +16,6 @@ defmodule FarmbotExt.MQTT.Handler do
   end
 
   def handle_message([a, b, "ping", d], payload, s) do
-    if s.connection_status != :up do
-      Logger.debug("⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆ #{inspect(s)}")
-    end
-
     publish(s, Enum.join([a, b, "pong", d], "/"), payload)
     {:ok, s}
   end
@@ -30,7 +26,6 @@ defmodule FarmbotExt.MQTT.Handler do
   end
 
   def publish(state, topic, payload, opts \\ [qos: 0]) do
-    # Tortoise.publish(id, topic, payload, qos: 0)
     if state.connection_status == :up do
       Tortoise.publish(state.client_id, topic, payload, opts)
     else
