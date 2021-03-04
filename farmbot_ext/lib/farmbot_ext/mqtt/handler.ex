@@ -1,6 +1,5 @@
 defmodule FarmbotExt.MQTT.Handler do
   require Logger
-  require FarmbotCore.Logger
 
   use Tortoise.Handler
 
@@ -35,7 +34,11 @@ defmodule FarmbotExt.MQTT.Handler do
     if state.connection_status == :up do
       Tortoise.publish(state.client_id, topic, payload, opts)
     else
-      Logger.debug("FARMBOT IS OFFLINE, CANT SEND.")
+      Logger.debug("FARMBOT IS OFFLINE, CANT SEND #{topic}")
     end
+  end
+
+  def terminate(reason, _state) do
+    Logger.debug("MQTT Connection Failed: #{inspect(reason)}")
   end
 end
