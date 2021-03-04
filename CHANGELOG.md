@@ -1,5 +1,9 @@
 # Changelog
 
+# 13.0.1
+
+ * Begin transition back to MQTT from AMQP (ping channel only)
+
 # 13.0.0
 
  * Nerves system upgrade
