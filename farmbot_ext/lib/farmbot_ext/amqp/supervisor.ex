@@ -3,7 +3,10 @@ defmodule FarmbotExt.AMQP.Supervisor do
   Supervises AMQP connections
   """
   use Supervisor
-  import FarmbotCore.Config, only: [get_config_value: 3]
+  alias FarmbotCore.Config
+  alias FarmbotCore.Project
+  alias FarmbotExt.JWT
+  @wss "wss:"
 
   def start_link(args) do
     Supervisor.start_link(__MODULE__, args, name: __MODULE__)
@@ -14,13 +17,50 @@ defmodule FarmbotExt.AMQP.Supervisor do
   end
 
   def children do
-    token = get_config_value(:string, "authorization", "token")
-    email = get_config_value(:string, "authorization", "email")
+    token = Config.get_config_value(:string, "authorization", "token")
+    email = Config.get_config_value(:string, "authorization", "email")
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
     Keyword.get(config, :children, [
       {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
-      {FarmbotExt.AMQP.ChannelSupervisor, [token]}
+      {FarmbotExt.AMQP.ChannelSupervisor, [token]},
+      mqtt_child(token)
     ])
+  end
+
+  def mqtt_child(raw_token) do
+    token = JWT.decode!(raw_token)
+    host = token.mqtt
+    username = token.bot
+    jitter = String.slice(UUID.uuid4(:hex), 0..7)
+    client_id = "#{token.bot}_#{Project.version()}_#{jitter}"
+
+    server =
+      if String.starts_with?(token.mqtt_ws || "", @wss) do
+        {Tortoise.Transport.SSL,
+         server_name_indication: :disable,
+         cacertfile: :certifi.cacertfile(),
+         host: host,
+         port: 8883}
+      else
+        {Tortoise.Transport.Tcp, host: host, port: 1883}
+      end
+
+    opts = [
+      client_id: client_id,
+      user_name: username,
+      password: raw_token,
+      server: server,
+      handler: {FarmbotExt.MQTT.Handler, [client_id: client_id]},
+      backoff: [min_interval: 6_000, max_interval: 120_000],
+      subscriptions: [
+        # {"bot.#{username}.from_clients", 0},
+        {"bot.#{username}.ping.#", 0}
+        # {"bot.#{username}.sync.#", 0},
+        # {"bot.#{username}.terminal_input", 0}
+      ]
+    ]
+
+    {Tortoise.Connection, opts}
   end
 end

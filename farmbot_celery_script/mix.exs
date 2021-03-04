@@ -56,9 +56,9 @@ defmodule FarmbotCeleryScript.MixProject do
     [
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:timex, "~> 3.6.2"},
-      {:mimic, "~> 1.3.1", only: :test},
+      {:mimic, "~> 1.4.0", only: :test},
       {:jason, "~> 1.2.2"},
-      {:excoveralls, "~> 0.13.3", only: [:test], targets: [:host]},
+      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
       {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
     ]
   end

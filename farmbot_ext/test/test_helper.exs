@@ -32,7 +32,8 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
   FarmbotExt.HTTP,
-  FarmbotExt.Time
+  FarmbotExt.Time,
+  Tortoise
 ]
 |> Enum.map(&Mimic.copy/1)
 
