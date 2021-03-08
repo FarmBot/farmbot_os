@@ -51,13 +51,13 @@ defmodule FarmbotExt.AMQP.Supervisor do
       user_name: username,
       password: raw_token,
       server: server,
-      handler: {FarmbotExt.MQTT.Handler, [client_id: client_id]},
-      backoff: [min_interval: 6_000, max_interval: 120_000],
+      handler: {FarmbotExt.MQTT, [client_id: client_id, username: username]},
+      backoff: [min_interval: 8_000, max_interval: 120_000],
       subscriptions: [
-        # {"bot.#{username}.from_clients", 0},
-        {"bot.#{username}.ping.#", 0}
-        # {"bot.#{username}.sync.#", 0},
-        # {"bot.#{username}.terminal_input", 0}
+        {"bot.#{username}.from_clients", 0},
+        {"bot.#{username}.ping.#", 0},
+        {"bot.#{username}.sync.#", 0},
+        {"bot.#{username}.terminal_input", 0}
       ]
     ]
 
