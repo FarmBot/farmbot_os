@@ -7,6 +7,7 @@ defmodule FarmbotExt.MQTT do
 
   alias FarmbotExt.MQTT.{
     PingHandler,
+    TerminalHandler,
     TopicSupervisor
   }
 
@@ -35,9 +36,11 @@ defmodule FarmbotExt.MQTT do
     {:ok, s}
   end
 
-  # def handle_message([_, _, "from_clients"], _payl, s) do
-  #   {:ok, s}
-  # end
+  def handle_message([_, _, "terminal_input"] = topic, payload, s) do
+    IO.puts("=== TERMINAL INPUT")
+    forward_message(TerminalHandler, {topic, payload})
+    {:ok, s}
+  end
 
   # def handle_message([_, _, "ping"], _payl, s) do
   #   {:ok, s}
@@ -51,8 +54,8 @@ defmodule FarmbotExt.MQTT do
   #   {:ok, s}
   # end
 
-  def handle_message(_topic, _payl, state) do
-    # Logger.debug("⛆⛆⛆⛆ Unhandled MQTT message: " <> inspect({topic, payl}))
+  def handle_message(topic, payl, state) do
+    Logger.debug("⛆⛆⛆⛆ Unhandled MQTT message: " <> inspect({topic, payl}))
     {:ok, state}
   end
 

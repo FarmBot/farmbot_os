@@ -8,11 +8,13 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
   def init(opts) do
     child_opts = [
       client_id: Keyword.fetch!(opts, :client_id),
-      parent: Keyword.fetch!(opts, :parent),
       username: Keyword.fetch!(opts, :username)
     ]
 
-    children = [{FarmbotExt.MQTT.PingHandler, child_opts}]
+    children = [
+      {FarmbotExt.MQTT.PingHandler, child_opts},
+      {FarmbotExt.MQTT.TerminalHandler, child_opts}
+    ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
