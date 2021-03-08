@@ -42,15 +42,7 @@ defmodule FarmbotExt.MQTT do
     {:ok, s}
   end
 
-  # def handle_message([_, _, "ping"], _payl, s) do
-  #   {:ok, s}
-  # end
-
   # def handle_message([_, _, "sync"], _payl, s) do
-  #   {:ok, s}
-  # end
-
-  # def handle_message([_, _, "terminal_input"], _payl, s) do
   #   {:ok, s}
   # end
 

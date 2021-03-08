@@ -1,5 +1,6 @@
 defmodule FarmbotExt.MQTT.TopicSupervisor do
   use Supervisor
+  alias FarmbotExt.MQTT.{BotStateChannel, PingHandler, TerminalHandler}
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     Supervisor.start_link(__MODULE__, args, opts)
@@ -11,10 +12,9 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
       username: Keyword.fetch!(opts, :username)
     ]
 
-    children = [
-      {FarmbotExt.MQTT.PingHandler, child_opts},
-      {FarmbotExt.MQTT.TerminalHandler, child_opts}
-    ]
+    mapper = fn child -> {child, child_opts} end
+    list = [BotStateChannel, PingHandler, TerminalHandler]
+    children = Enum.map(list, mapper)
 
     Supervisor.init(children, strategy: :one_for_one)
   end
