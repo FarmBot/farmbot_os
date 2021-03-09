@@ -3,6 +3,7 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
 
   alias FarmbotExt.MQTT.{
     BotStateChannel,
+    LogHandler,
     PingHandler,
     RPCHandler,
     SyncHandler,
@@ -23,10 +24,11 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
 
     list = [
       BotStateChannel,
+      LogHandler,
       PingHandler,
       RPCHandler,
-      TerminalHandler,
-      SyncHandler
+      SyncHandler,
+      TerminalHandler
     ]
 
     children = Enum.map(list, mapper)

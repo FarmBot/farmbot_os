@@ -16,7 +16,11 @@ defmodule FarmbotExt.MQTT do
   alias __MODULE__, as: State
 
   def publish(client_id, topic, payload, opts \\ [qos: 0]) do
-    IO.puts("Send message to #{inspect(topic)}")
+    if !String.contains?(inspect(topic), "pong") do
+      IO.puts("Send message to #{inspect(topic)}")
+      IO.puts(String.slice(payload, 0..100))
+    end
+
     Tortoise.publish(client_id, topic, payload, opts)
   end
 
