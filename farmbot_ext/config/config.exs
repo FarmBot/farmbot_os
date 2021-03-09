@@ -89,7 +89,7 @@ if is_test? do
 
   list = [
     FarmbotExt,
-    FarmbotExt.AMQP.ChannelSupervisor,
+    FarmbotExt.MQTT.ChannelSupervisor,
     FarmbotExt.API.DirtyWorker.Supervisor,
     FarmbotExt.API.EagerLoader.Supervisor,
     FarmbotExt.Bootstrap.Supervisor

@@ -1,6 +1,6 @@
-defmodule FarmbotExt.AMQP.Supervisor do
+defmodule FarmbotExt.MQTT.Supervisor do
   @moduledoc """
-  Supervises AMQP connections
+  Supervises the MQTT handler.
   """
   use Supervisor
   alias FarmbotCore.Config
@@ -18,7 +18,6 @@ defmodule FarmbotExt.AMQP.Supervisor do
 
   def children do
     token = Config.get_config_value(:string, "authorization", "token")
-    # email = Config.get_config_value(:string, "authorization", "email")
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
     Keyword.get(config, :children, [mqtt_child(token)])

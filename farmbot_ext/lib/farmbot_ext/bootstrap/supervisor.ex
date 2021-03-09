@@ -21,7 +21,7 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
     Keyword.get(config, :children, [
       FarmbotExt.API.EagerLoader.Supervisor,
       FarmbotExt.API.DirtyWorker.Supervisor,
-      FarmbotExt.AMQP.Supervisor,
+      FarmbotExt.MQTT.Supervisor,
       FarmbotExt.API.ImageUploader,
       FarmbotExt.Bootstrap.DropPasswordTask,
       FarmbotExt.API.Ping
