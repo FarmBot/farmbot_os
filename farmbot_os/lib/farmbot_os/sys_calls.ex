@@ -55,7 +55,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate check_update(), to: CheckUpdate
 
   @impl true
-  defdelegate read_status(), to: FarmbotExt.AMQP.BotStateChannel
+  defdelegate read_status(), to: FarmbotExt.MQTT.BotStateChannel
 
   @impl true
   defdelegate factory_reset(package), to: FactoryReset

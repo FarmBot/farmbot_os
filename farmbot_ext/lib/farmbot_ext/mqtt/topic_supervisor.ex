@@ -1,6 +1,13 @@
 defmodule FarmbotExt.MQTT.TopicSupervisor do
   use Supervisor
-  alias FarmbotExt.MQTT.{BotStateChannel, PingHandler, TerminalHandler}
+
+  alias FarmbotExt.MQTT.{
+    BotStateChannel,
+    PingHandler,
+    RPCHandler,
+    SyncHandler,
+    TerminalHandler
+  }
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     Supervisor.start_link(__MODULE__, args, opts)
@@ -13,7 +20,15 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
     ]
 
     mapper = fn child -> {child, child_opts} end
-    list = [BotStateChannel, PingHandler, TerminalHandler]
+
+    list = [
+      BotStateChannel,
+      PingHandler,
+      RPCHandler,
+      TerminalHandler,
+      SyncHandler
+    ]
+
     children = Enum.map(list, mapper)
 
     Supervisor.init(children, strategy: :one_for_one)

@@ -28,10 +28,13 @@ defmodule FarmbotExt.AMQP.SupervisorTest do
          server: {Tortoise.Transport.Tcp, [host: "localhost", port: 1883]},
          backoff: [min_interval: 6_000, max_interval: 120_000],
          subscriptions: [
-           {"bot.device_15.from_clients", 0},
+           # DONE:
            {"bot.device_15.ping.#", 0},
-           {"bot.device_15.sync.#", 0},
-           {"bot.device_15.terminal_input", 0}
+           {"bot.device_15.terminal_input", 0},
+           {"bot.device_15.from_clients", 0},
+           # TODO:
+           {"bot.device_15.sync.#", 0}
+           # ...and Telemetry channel
          ]
        ]}
     ]

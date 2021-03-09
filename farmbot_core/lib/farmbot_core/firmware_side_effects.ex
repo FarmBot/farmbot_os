@@ -189,7 +189,6 @@ defmodule FarmbotCore.FirmwareSideEffects do
 
   def do_send_debug_message(_message_string) do
     # Uncomment this line on dev builds if needed.
-    # Firmware debug over AMQP is deprecated.
     # FarmbotCore.Logger.debug(3, "Firmware debug message: " <> message)
     :ok
   end

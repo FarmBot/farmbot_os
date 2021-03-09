@@ -8,6 +8,8 @@ defmodule FarmbotExt.MQTT do
   alias FarmbotExt.MQTT.{
     PingHandler,
     TerminalHandler,
+    RPCHandler,
+    SyncHandler,
     TopicSupervisor
   }
 
@@ -37,26 +39,32 @@ defmodule FarmbotExt.MQTT do
   end
 
   def handle_message([_, _, "terminal_input"] = topic, payload, s) do
-    IO.puts("=== TERMINAL INPUT")
     forward_message(TerminalHandler, {topic, payload})
     {:ok, s}
   end
 
-  # def handle_message([_, _, "sync"], _payl, s) do
-  #   {:ok, s}
-  # end
+  def handle_message([_, _, "from_clients"] = topic, payload, s) do
+    forward_message(RPCHandler, {topic, payload})
+    {:ok, s}
+  end
+
+  def handle_message([_, _, "sync" | _] = topic, payload, s) do
+    IO.puts("INBOUND SYNC MESSAGE")
+    forward_message(SyncHandler, {topic, payload})
+    {:ok, s}
+  end
 
   def handle_message(topic, payl, state) do
     Logger.debug("⛆⛆⛆⛆ Unhandled MQTT message: " <> inspect({topic, payl}))
     {:ok, state}
   end
 
-  def forward_message(pid, {topic, message}) when is_pid(pid) do
-    if Process.alive?(pid), do: send(pid, {:inbound, topic, message})
-  end
-
   def forward_message(nil, msg) do
     Logger.debug("Dropped message: #{inspect(msg)}")
+  end
+
+  def forward_message(pid, {topic, message}) when is_pid(pid) do
+    if Process.alive?(pid), do: send(pid, {:inbound, topic, message})
   end
 
   def forward_message(mod, {topic, message}) do
