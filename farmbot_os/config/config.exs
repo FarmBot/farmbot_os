@@ -82,8 +82,6 @@ config :logger,
   handle_otp_reports: false,
   compile_time_purge_matching: []
 
-import_config("lagger.exs")
-
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
 if rollbar_token && Mix.env() != :test do
