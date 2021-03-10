@@ -7,6 +7,7 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
     PingHandler,
     RPCHandler,
     SyncHandler,
+    TelemetryHandler,
     TerminalHandler
   }
 
@@ -28,6 +29,7 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
       PingHandler,
       RPCHandler,
       SyncHandler,
+      TelemetryHandler,
       TerminalHandler
     ]
 

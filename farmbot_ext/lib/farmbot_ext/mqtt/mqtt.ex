@@ -7,9 +7,9 @@ defmodule FarmbotExt.MQTT do
 
   alias FarmbotExt.MQTT.{
     PingHandler,
-    TerminalHandler,
     RPCHandler,
     SyncHandler,
+    TerminalHandler,
     TopicSupervisor
   }
 
