@@ -13,6 +13,7 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
   FarmbotCore.Logger,
+  Ecto.Changeset,
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,

@@ -21,7 +21,15 @@ defmodule FarmbotExt.MQTT do
       IO.puts(String.slice(payload, 0..100))
     end
 
-    Tortoise.publish(client_id, topic, payload, opts)
+    result = Tortoise.publish(client_id, topic, payload, opts)
+
+    if result != :ok do
+      System.cmd("espeak", ["ding"])
+      IO.inspect(result, label: "⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆ B ⛆ A ⛆ D ⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆")
+    end
+
+    # Returns `:ok` or an `{:error, :tuple}`
+    result
   end
 
   def init(args) do
