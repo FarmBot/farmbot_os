@@ -55,6 +55,9 @@ defmodule FarmbotExt.MQTT.LogHandler do
         {:noreply, state, {:continue, rest}}
 
       error ->
+        IO.puts("THIS BRANCH IS BROKE!")
+        IO.puts("YOU CAN'T PASS A LOG RECORD HERE.")
+        IO.puts("Did it ever work??")
         Logger.error("Failed to upload log: #{inspect(error)}")
         # Reschedule log to be uploaded again
         FarmbotCore.Logger.insert_log!(log)

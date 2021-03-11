@@ -16,16 +16,10 @@ defmodule FarmbotExt.MQTT do
   alias __MODULE__, as: State
 
   def publish(client_id, topic, payload, opts \\ [qos: 0]) do
-    if !String.contains?(inspect(topic), "pong") do
-      IO.puts("Send message to #{inspect(topic)}")
-      IO.puts(String.slice(payload, 0..100))
-    end
-
     result = Tortoise.publish(client_id, topic, payload, opts)
 
     if result != :ok do
-      System.cmd("espeak", ["ding"])
-      IO.inspect(result, label: "⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆ B ⛆ A ⛆ D ⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆⛆")
+      notice(result, "⛆ B ⛆ A ⛆ D ⛆ M ⛆ Q ⛆ T ⛆ T")
     end
 
     # Returns `:ok` or an `{:error, :tuple}`
@@ -61,13 +55,12 @@ defmodule FarmbotExt.MQTT do
   end
 
   def handle_message([_, _, "sync" | _] = topic, payload, s) do
-    IO.puts("INBOUND SYNC MESSAGE")
     forward_message(SyncHandler, {topic, payload})
     {:ok, s}
   end
 
   def handle_message(topic, payl, state) do
-    Logger.debug("⛆⛆⛆⛆ Unhandled MQTT message: " <> inspect({topic, payl}))
+    notice({topic, payl}, "Unhandled MQTT message")
     {:ok, state}
   end
 
@@ -83,10 +76,26 @@ defmodule FarmbotExt.MQTT do
     forward_message(Process.whereis(mod), {topic, message})
   end
 
-  def terminate(reason, _state) do
-    Logger.debug("MQTT Connection Failed: #{inspect(reason)}")
+  def connection(:up, state) do
+    resubscribe(state)
+    {:ok, %{state | connection_status: :up}}
   end
 
-  def connection(status, s), do: {:ok, %{s | connection_status: status}}
-  def subscription(_stat, _filter, state), do: {:ok, state}
+  def connection(status, state) do
+    {:ok, %{state | connection_status: status}}
+  end
+
+  def resubscribe(%{client_id: client_id}) do
+    meta_data = Tortoise.Connection.subscriptions(client_id)
+    Tortoise.Connection.subscribe(client_id, meta_data.topics)
+  end
+
+  def subscription(_stat, _filter, state) do
+    {:ok, state}
+  end
+
+
+  def notice(payl, label) do
+    IO.inspect(payl, label: "⛆⛆⛆⛆ " <> label)
+  end
 end

@@ -49,10 +49,10 @@ defmodule FarmbotExt.MQTT.Supervisor do
       handler: {FarmbotExt.MQTT, [client_id: client_id, username: username]},
       backoff: [min_interval: 8_000, max_interval: 120_000],
       subscriptions: [
-        {"bot.#{username}.from_clients", 0},
-        {"bot.#{username}.ping.#", 0},
-        {"bot.#{username}.sync.#", 0},
-        {"bot.#{username}.terminal_input", 0}
+        {"bot/#{username}/from_clients", 0},
+        {"bot/#{username}/ping/#", 0},
+        {"bot/#{username}/sync/#", 0},
+        {"bot/#{username}/terminal_input", 0}
       ]
     ]
 
