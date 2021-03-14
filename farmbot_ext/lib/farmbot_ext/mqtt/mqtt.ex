@@ -94,7 +94,6 @@ defmodule FarmbotExt.MQTT do
     {:ok, state}
   end
 
-
   def notice(payl, label) do
     IO.inspect(payl, label: "⛆⛆⛆⛆ " <> label)
   end

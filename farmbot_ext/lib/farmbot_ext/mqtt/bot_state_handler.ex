@@ -13,7 +13,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
 
   @doc "Forces pushing the most current state tree"
   def read_status(name \\ __MODULE__) do
-    GenServer.cast(name, :force)
+    GenServer.cast(name, :reload)
   end
 
   @doc false
@@ -31,13 +31,13 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
     {:ok, state}
   end
 
-  def handle_cast(:force, state) do
-    {:noreply, %{state | cache: BotState.fetch()}, {:continue, :dispatch}}
+  def handle_cast(:reload, state) do
+    {:noreply, broadcast!(%{state | cache: BotState.fetch()})}
   end
 
   def handle_info({BotState, change}, state) do
     cache = Ecto.Changeset.apply_changes(change)
-    {:noreply, %{state | cache: cache}, {:continue, :dispatch}}
+    {:noreply, broadcast!(%{state | cache: cache})}
   end
 
   def handle_info(other, state) do
@@ -45,7 +45,9 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
     {:noreply, state}
   end
 
-  def handle_continue(:dispatch, state) do
+  defp broadcast!(state) do
+    IO.puts("Triggering state update.")
+
     json =
       state.cache
       |> BotStateNG.view()
@@ -53,6 +55,6 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
 
     topic = "bot/#{state.username}/status"
     MQTT.publish(state.client_id, topic, json)
-    {:noreply, state}
+    state
   end
 end
