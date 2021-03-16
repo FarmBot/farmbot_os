@@ -19,7 +19,6 @@ defmodule FarmbotExt.MQTT.LogHandlerSupport do
 
   defp publish_log(log, state) do
     topic = "bot/#{state.username}/logs"
-    IO.puts("Publishing log: " <> log.message)
     MQTT.publish(state.client_id, topic, format_log(log, state))
   end
 

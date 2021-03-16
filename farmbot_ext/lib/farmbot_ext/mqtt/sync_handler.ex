@@ -1,6 +1,7 @@
 defmodule FarmbotExt.MQTT.SyncHandler do
   require FarmbotCore.Logger
   require FarmbotTelemetry
+  require Logger
 
   alias FarmbotCore.{BotState, JSON, Leds, Asset}
   alias FarmbotExt.API.{EagerLoader, Preloader}
@@ -80,7 +81,7 @@ defmodule FarmbotExt.MQTT.SyncHandler do
   end
 
   def handle_info(other, state) do
-    IO.puts("UNKNOWN SYNC MSG: #{inspect(other)}")
+    Logger.info("UNKNOWN SYNC MSG: #{inspect(other)}")
     {:noreply, state}
   end
 

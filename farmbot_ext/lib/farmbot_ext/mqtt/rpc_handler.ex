@@ -89,7 +89,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   end
 
   def handle_info(req, state) do
-    IO.puts("================ UNKNOWN MSG - #{inspect(req)}")
+    Logger.info("================ UNKNOWN MSG - #{inspect(req)}")
     {:noreply, state}
   end
 

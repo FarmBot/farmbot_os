@@ -36,6 +36,7 @@ defmodule FarmbotExt.MQTT do
     ]
 
     {:ok, supervisor} = TopicSupervisor.start_link(opts)
+    notice("init(args)", "Init")
     {:ok, %State{client_id: client_id, supervisor: supervisor}}
   end
 
@@ -76,18 +77,19 @@ defmodule FarmbotExt.MQTT do
     forward_message(Process.whereis(mod), {topic, message})
   end
 
-  def connection(:up, state) do
-    resubscribe(state)
-    {:ok, %{state | connection_status: :up}}
-  end
+  # def resubscribe(state) do
+  #   meta_data = Tortoise.Connection.subscriptions(state.client_id)
+  #   Tortoise.Connection.subscribe(client_id, meta_data.topics)
+  # end
+
+  # def connection(:up, state) do
+  #   resubscribe(state)
+  #   {:ok, %{state | connection_status: :up}}
+  # end
 
   def connection(status, state) do
+    notice(status, "connection(status, state)")
     {:ok, %{state | connection_status: status}}
-  end
-
-  def resubscribe(%{client_id: client_id}) do
-    meta_data = Tortoise.Connection.subscriptions(client_id)
-    Tortoise.Connection.subscribe(client_id, meta_data.topics)
   end
 
   def subscription(_stat, _filter, state) do
@@ -95,6 +97,7 @@ defmodule FarmbotExt.MQTT do
   end
 
   def notice(payl, label) do
-    IO.inspect(payl, label: "⛆⛆⛆⛆ " <> label)
+    Logger.info(inspect("⛆⛆⛆⛆ " <> label))
+    Logger.info(inspect(payl))
   end
 end

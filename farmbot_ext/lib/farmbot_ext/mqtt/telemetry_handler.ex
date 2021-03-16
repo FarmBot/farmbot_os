@@ -3,6 +3,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
 
   require FarmbotCore.Logger
   require FarmbotTelemetry
+  require Logger
 
   alias __MODULE__, as: State
   alias FarmbotCore.{BotState, BotStateNG}
@@ -78,7 +79,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
   end
 
   def handle_info(req, state) do
-    IO.puts("UNKNOWN TELEMETRY MSG - #{inspect(req)}")
+    Logger.info("UNKNOWN TELEMETRY MSG - #{inspect(req)}")
     {:noreply, state}
   end
 

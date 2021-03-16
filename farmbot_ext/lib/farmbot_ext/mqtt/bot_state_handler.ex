@@ -6,6 +6,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   alias FarmbotCore.{BotState, BotStateNG, JSON}
   alias FarmbotExt.MQTT
   require FarmbotTelemetry
+  require Logger
   use GenServer
 
   defstruct [:client_id, :username]
@@ -43,7 +44,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   end
 
   def handle_info(other, state) do
-    IO.inspect("UNEXPECTED HANDLE_INFO: #{inspect(other)}")
+    Logger.info("UNEXPECTED HANDLE_INFO: #{inspect(other)}")
     {:noreply, state}
   end
 

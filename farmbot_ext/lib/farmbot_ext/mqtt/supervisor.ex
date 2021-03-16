@@ -47,7 +47,7 @@ defmodule FarmbotExt.MQTT.Supervisor do
       password: raw_token,
       server: server,
       handler: {FarmbotExt.MQTT, [client_id: client_id, username: username]},
-      backoff: [min_interval: 8_000, max_interval: 120_000],
+      # backoff: [min_interval: 20_000, max_interval: 30_000],
       subscriptions: [
         {"bot/#{username}/from_clients", 0},
         {"bot/#{username}/ping/#", 0},
