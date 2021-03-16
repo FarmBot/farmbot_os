@@ -8,7 +8,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   require FarmbotTelemetry
   use GenServer
 
-  defstruct [:client_id, :username, :cache]
+  defstruct [:client_id, :username]
   alias __MODULE__, as: State
 
   @doc "Forces pushing the most current state tree"
@@ -22,22 +22,24 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   end
 
   def init(args) do
+    BotState.subscribe()
+
     state = %State{
       client_id: Keyword.fetch!(args, :client_id),
-      username: Keyword.fetch!(args, :username),
-      cache: BotState.subscribe()
+      username: Keyword.fetch!(args, :username)
     }
 
     {:ok, state}
   end
 
   def handle_cast(:reload, state) do
-    {:noreply, broadcast!(%{state | cache: BotState.fetch()})}
+    broadcast!(state)
+    {:noreply, state}
   end
 
-  def handle_info({BotState, change}, state) do
-    cache = Ecto.Changeset.apply_changes(change)
-    {:noreply, broadcast!(%{state | cache: cache})}
+  def handle_info({BotState, _}, state) do
+    broadcast!(state)
+    {:noreply, state}
   end
 
   def handle_info(other, state) do
@@ -46,10 +48,8 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   end
 
   defp broadcast!(state) do
-    IO.puts("Triggering state update.")
-
     json =
-      state.cache
+      BotState.fetch()
       |> BotStateNG.view()
       |> JSON.encode!()
 
