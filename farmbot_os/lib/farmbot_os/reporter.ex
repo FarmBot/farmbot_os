@@ -14,26 +14,13 @@ defmodule FarmbotOS.Reporter do
     :next
   end
 
-  # Errors in a GenServer.
-  defp handle_error_format('** Generic server ' ++ _, [
-         name,
-         last_message,
-         state,
-         reason
+  # Ping timeouts are the result of a low quality connection.
+  # We don't need to log them.
+  defp handle_error_format(_, [
+         {Tortoise.Registry, _},
+         {:EXIT, _, :ping_timeout} | _
        ]) do
-    {class, message, stacktrace} =
-      format_as_exception(reason, "GenServer terminating")
-
-    %Rollbax.Exception{
-      class: class,
-      message: message,
-      stacktrace: stacktrace,
-      custom: %{
-        "name" => inspect(name),
-        "last_message" => inspect(last_message),
-        "state" => inspect(state)
-      }
-    }
+    :next
   end
 
   # Errors in a GenEvent handler.
