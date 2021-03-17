@@ -63,6 +63,11 @@ defmodule FarmbotExt.MQTT.SyncHandler do
     end
   end
 
+  def handle_info({:inbound, _, _}, %{preloaded: false} = state) do
+    send(self(), :preload)
+    {:noreply, state}
+  end
+
   def handle_info(
         {:inbound, [_, _, "sync", kind, id_str], json},
         %{preloaded: true} = state
@@ -75,13 +80,7 @@ defmodule FarmbotExt.MQTT.SyncHandler do
     {:noreply, state}
   end
 
-  def handle_info({:inbound, _, _}, %{preloaded: false} = state) do
-    send(self(), :preload)
-    {:noreply, state}
-  end
-
-  def handle_info(other, state) do
-    Logger.info("UNKNOWN SYNC MSG: #{inspect(other)}")
+  def handle_info(_other, state) do
     {:noreply, state}
   end
 

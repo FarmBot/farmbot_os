@@ -91,6 +91,7 @@ if rollbar_token && Mix.env() != :test do
     access_token: rollbar_token,
     environment: "production",
     enable_crash_reports: true,
+    reporters: [FarmbotOS.Reporter],
     custom: %{fbos_version: Mix.Project.config()[:version]}
 else
   config :rollbax, enabled: false
