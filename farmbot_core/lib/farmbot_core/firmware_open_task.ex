@@ -10,7 +10,7 @@ defmodule FarmbotCore.FirmwareOpenTask do
   alias FarmbotFirmware.{UARTTransport, StubTransport}
   alias FarmbotCore.{Asset, FirmwareNeeds}
   @attempt_threshold Application.get_env(:farmbot_core, __MODULE__)[:attempt_threshold] || 5
-  @open_delay 1_250
+  @open_delay 10_000
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
