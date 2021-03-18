@@ -50,22 +50,21 @@ defmodule FarmbotExt.MQTT.LogHandler do
   end
 
   def handle_continue([log | rest], state) do
-    case LogHandlerSupport.maybe_publish_log(log, state) do
-      :ok ->
-        {:noreply, state, {:continue, rest}}
-
-      error ->
-        Logger.info("THIS BRANCH IS BROKE!")
-        Logger.info("YOU CAN'T PASS A LOG RECORD HERE.")
-        Logger.info("Did it ever work??")
-        Logger.error("Failed to upload log: #{inspect(error)}")
-        # Reschedule log to be uploaded again
-        FarmbotCore.Logger.insert_log!(log)
-        {:noreply, state, @checkup_ms}
-    end
+    result = LogHandlerSupport.maybe_publish_log(log, state)
+    do_handle_continue(result, state, log, rest)
   end
 
   def handle_continue([], state) do
+    {:noreply, state, @checkup_ms}
+  end
+
+  def do_handle_continue(:ok, state, _log, rest) do
+    {:noreply, state, {:continue, rest}}
+  end
+
+  def do_handle_continue(_error, state, log, _rest) do
+    # Reschedule log to be uploaded again
+    FarmbotCore.Logger.insert_log!(log)
     {:noreply, state, @checkup_ms}
   end
 end

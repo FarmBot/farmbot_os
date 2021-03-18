@@ -2,6 +2,7 @@ Application.ensure_all_started(:farmbot)
 Application.ensure_all_started(:mimic)
 
 [
+  Ecto.Changeset,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
@@ -13,7 +14,6 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
   FarmbotCore.Logger,
-  Ecto.Changeset,
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
@@ -24,6 +24,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
   FarmbotExt.HTTP,
+  FarmbotExt.MQTT.Support,
   FarmbotExt.Time,
   Tortoise
 ]

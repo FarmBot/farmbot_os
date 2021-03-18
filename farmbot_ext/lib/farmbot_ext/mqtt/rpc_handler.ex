@@ -27,7 +27,6 @@ defmodule FarmbotExt.MQTT.RPCHandler do
 
   def handle_info({:inbound, [_, _, "from_clients"], payload}, state) do
     ast = JSON.decode!(payload) |> AST.decode()
-    IO.puts("=== TODO: Dont crash on bad inut")
     channel_pid = self()
     ref = make_ref()
     _pid = spawn(StepRunner, :step, [channel_pid, ref, ast])
@@ -89,7 +88,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   end
 
   def handle_info(req, state) do
-    Logger.info("================ UNKNOWN MSG - #{inspect(req)}")
+    Logger.info("#{inspect(__MODULE__)} Uncaught message: #{inspect(req)}")
     {:noreply, state}
   end
 

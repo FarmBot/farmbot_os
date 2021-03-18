@@ -79,7 +79,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
   end
 
   def handle_info(req, state) do
-    Logger.info("UNKNOWN TELEMETRY MSG - #{inspect(req)}")
+    Logger.info("#{inspect(__MODULE__)} Uncaught message: #{inspect(req)}")
     {:noreply, state}
   end
 
