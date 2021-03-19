@@ -24,7 +24,6 @@ defmodule FarmbotExt.MQTT.Supervisor do
   end
 
   def mqtt_child(raw_token) do
-    Process.sleep(60_000)
     token = JWT.decode!(raw_token)
     host = token.mqtt
     username = token.bot
