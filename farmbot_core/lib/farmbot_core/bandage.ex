@@ -13,15 +13,9 @@ defmodule FarmbotCore.Bandage do
 
   # 180_000 ms == 3 minutes
   @iter_time 5_000
-  @wait_cycles 36
+  @wait_cycles 16
   @children [
-    FarmbotCore.FirmwareTTYDetector,
     FarmbotCore.FirmwareOpenTask,
-    FarmbotCore.FirmwareEstopTimer,
-    {FarmbotFirmware,
-    transport: FarmbotFirmware.StubTransport,
-    side_effects: FarmbotCore.FirmwareSideEffects,
-    reset: FarmbotCore.FirmwareResetter},
 ]
 
   def start_link(args, opts \\ [name: __MODULE__]) do

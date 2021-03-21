@@ -24,7 +24,13 @@ defmodule FarmbotCore do
       FarmbotCore.StorageSupervisor,
       FarmbotCeleryScript.Scheduler,
       FarmbotCore.BotState.Supervisor,
-      FarmbotCore.Bandage
+      FarmbotCore.FirmwareTTYDetector,
+      FarmbotCore.FirmwareEstopTimer,
+      FarmbotCore.Bandage,
+      {FarmbotFirmware,
+    transport: FarmbotFirmware.StubTransport,
+    side_effects: FarmbotCore.FirmwareSideEffects,
+    reset: FarmbotCore.FirmwareResetter}
     ]
     config = (Application.get_env(:farmbot_ext, __MODULE__) || [])
     Keyword.get(config, :children, allow)
