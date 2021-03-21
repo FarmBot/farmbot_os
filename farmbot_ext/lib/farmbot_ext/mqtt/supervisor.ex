@@ -2,26 +2,18 @@ defmodule FarmbotExt.MQTT.Supervisor do
   @moduledoc """
   Supervises the MQTT handler.
   """
-  # use Supervisor
-  use GenServer
+  use Supervisor
   alias FarmbotCore.Config
   alias FarmbotCore.Project
   alias FarmbotExt.JWT
   @wss "wss:"
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init(_) do
-    Process.send_after(self(), :experiment, 1000 * 60 * 3)
-    {:ok, %{not_ready: true}}
-  end
-
-  def handle_info(:experiment, _state) do
-    args = [strategy: :one_for_one]
-    {:ok, pid} = Supervisor.start_link(children(), args)
-    {:noreply, %{child: pid}}
+  def init([]) do
+    Supervisor.init(children(), strategy: :one_for_all)
   end
 
   def children do

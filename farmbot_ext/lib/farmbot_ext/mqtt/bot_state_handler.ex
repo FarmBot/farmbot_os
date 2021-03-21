@@ -9,7 +9,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   require Logger
   use GenServer
 
-  defstruct [:client_id, :username]
+  defstruct [:client_id, :username, :last_broadcast]
   alias __MODULE__, as: State
 
   @doc "Forces pushing the most current state tree"
@@ -34,13 +34,11 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   end
 
   def handle_cast(:reload, state) do
-    broadcast!(state)
-    {:noreply, state}
+    {:noreply, broadcast!(state)}
   end
 
   def handle_info({BotState, _}, state) do
-    broadcast!(state)
-    {:noreply, state}
+    {:noreply, broadcast!(state)}
   end
 
   def handle_info(other, state) do
@@ -48,14 +46,20 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
     {:noreply, state}
   end
 
-  defp broadcast!(state) do
-    json =
-      BotState.fetch()
-      |> BotStateNG.view()
-      |> JSON.encode!()
+  defp broadcast!(%{last_broadcast: last} = state) do
+    next = BotState.fetch()
 
-    topic = "bot/#{state.username}/status"
-    MQTT.publish(state.client_id, topic, json)
-    state
+    if next != last do
+      json =
+        next
+        |> BotStateNG.view()
+        |> JSON.encode!()
+
+      topic = "bot/#{state.username}/status"
+      MQTT.publish(state.client_id, topic, json)
+      %{state | last_broadcast: next}
+    else
+      state
+    end
   end
 end
