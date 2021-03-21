@@ -26,7 +26,7 @@ defmodule FarmbotCore do
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.FirmwareTTYDetector,
       FarmbotCore.FirmwareEstopTimer,
-      FarmbotCore.Bandage,
+      FarmbotCore.FirmwareOpenTask,
       {FarmbotFirmware,
     transport: FarmbotFirmware.StubTransport,
     side_effects: FarmbotCore.FirmwareSideEffects,
