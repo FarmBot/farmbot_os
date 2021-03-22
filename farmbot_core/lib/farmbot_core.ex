@@ -18,21 +18,21 @@ defmodule FarmbotCore do
   end
 
   def children do
-    allow = [
-      FarmbotCore.EctoMigrator,
+    default = [
       FarmbotCore.Leds,
-      FarmbotCore.StorageSupervisor,
-      FarmbotCeleryScript.Scheduler,
+      FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
+      FarmbotCore.StorageSupervisor,
       FarmbotCore.FirmwareTTYDetector,
-      FarmbotCore.FirmwareEstopTimer,
       FarmbotCore.FirmwareOpenTask,
+      FarmbotCore.FirmwareEstopTimer,
       {FarmbotFirmware,
-    transport: FarmbotFirmware.StubTransport,
-    side_effects: FarmbotCore.FirmwareSideEffects,
-    reset: FarmbotCore.FirmwareResetter}
+      transport: FarmbotFirmware.StubTransport,
+      side_effects: FarmbotCore.FirmwareSideEffects,
+      reset: FarmbotCore.FirmwareResetter},
+      FarmbotCeleryScript.Scheduler
     ]
     config = (Application.get_env(:farmbot_ext, __MODULE__) || [])
-    Keyword.get(config, :children, allow)
+    Keyword.get(config, :children, default)
   end
 end
