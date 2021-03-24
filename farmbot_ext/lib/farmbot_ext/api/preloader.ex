@@ -35,7 +35,6 @@ defmodule FarmbotExt.API.Preloader do
            Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
          %Changeset{valid?: true} <- Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
       FarmbotCore.Logger.success(3, "Auto sync complete")
-      FarmbotCore.FirmwareNeeds.sync(false)
       :ok
     else
       error ->

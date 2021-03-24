@@ -18,7 +18,6 @@ defmodule FarmbotCore.FirmwareNeeds do
       keys: %{
         needs_flash: true,
         needs_open:  true,
-        needs_sync: true
       }
     }
     {:ok, state}
@@ -29,9 +28,6 @@ defmodule FarmbotCore.FirmwareNeeds do
 
   def open?(mod \\ __MODULE__), do: get(:needs_open, mod)
   def open(value, mod \\ __MODULE__), do: set(:needs_open, value, mod)
-
-  def sync?(mod \\ __MODULE__), do: get(:needs_sync, mod)
-  def sync(value, mod \\ __MODULE__), do: set(:needs_sync, value, mod)
 
   def get(key, mod), do: GenServer.call(mod, {:get, key})
   def set(key, value, mod), do: GenServer.call(mod, {:set, key, value})
