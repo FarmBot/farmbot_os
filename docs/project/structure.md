@@ -5,7 +5,6 @@ The FarmBot OS application is broken into several sub OTP applications.
 * [farmbot_celery_script](/docs/project/farmbot_celery_script.md)
 * [farmbot_core](/docs/project/farmbot_core.md)
 * [farmbot_ext](/docs/project/farmbot_ext.md)
-* [farmbot_firmware](/docs/project/farmbot_firmware.md)
 * [farmbot_os](/docs/project/farmbot_os.md)
 * [farmbot_telemetry](/docs/project/farmbot_telemetry.md)
 

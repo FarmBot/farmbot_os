@@ -23,13 +23,7 @@ defmodule FarmbotCore do
       FarmbotCore.EctoMigrator,
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.StorageSupervisor,
-      FarmbotCore.FirmwareTTYDetector,
-      FarmbotCore.FirmwareOpenTask,
       FarmbotCore.FirmwareEstopTimer,
-      {FarmbotFirmware,
-      transport: FarmbotFirmware.StubTransport,
-      side_effects: FarmbotCore.FirmwareSideEffects,
-      reset: FarmbotCore.FirmwareResetter},
       FarmbotCeleryScript.Scheduler
     ]
     config = (Application.get_env(:farmbot_ext, __MODULE__) || [])

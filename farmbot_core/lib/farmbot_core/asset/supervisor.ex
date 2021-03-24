@@ -41,7 +41,6 @@ defmodule FarmbotCore.Asset.Supervisor do
       {AssetSupervisor, module: FarmwareInstallation},
       {AssetSupervisor, module: FarmwareEnv},
       AssetMonitor,
-      {FarmbotCore.FirmwareNeeds, []}
     ]
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
     Keyword.get(config, :children, default)

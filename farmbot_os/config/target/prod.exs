@@ -88,7 +88,6 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [
     FarmbotOS.Platform.Target.Network.Supervisor,
     FarmbotOS.Platform.Target.SSHConsole,
-    FarmbotOS.Platform.Target.Uevent.Supervisor,
     FarmbotOS.Platform.Target.InfoWorker.Supervisor
   ]
 

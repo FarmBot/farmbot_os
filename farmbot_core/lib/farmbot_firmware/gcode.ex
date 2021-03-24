@@ -3,10 +3,6 @@ defmodule FarmbotFirmware.GCODE do
   Handles encoding and decoding of GCODEs.
   """
 
-  alias FarmbotFirmware.GCODE.{Decoder, Encoder}
-  import Decoder, only: [do_decode: 2]
-  import Encoder, only: [do_encode: 2]
-
   @typedoc "Tag is a binary integer. example: `\"123\"`"
   @type tag() :: nil | binary()
 
@@ -76,70 +72,4 @@ defmodule FarmbotFirmware.GCODE do
 
   @typedoc "Constructed GCODE."
   @type t :: {tag(), {kind(), args}}
-
-  @doc """
-  Shortcut for constructing a new GCODE
-  ## Examples
-      iex(1)> FarmbotFirmware.GCODE.new(:report_idle, [], "100")
-      {"100", {:report_idle, []}}
-      iex(2)> FarmbotFirmware.GCODE.new(:report_idle, [])
-      {nil, {:report_idle, []}}
-  """
-  @spec new(kind(), args(), tag()) :: t()
-  def new(kind, args, tag \\ nil) do
-    {tag, {kind, args}}
-  end
-
-  @doc """
-  Takes a string representation of a GCODE, and returns a tuple representation of:
-  `{tag, {kind, args}}`
-
-  ## Examples
-      iex(1)> FarmbotFirmware.GCODE.decode("R00 Q100")
-      {"100", {:report_idle, []}}
-      iex(2)> FarmbotFirmware.GCODE.decode("R00")
-      {nil, {:report_idle, []}}
-  """
-  @spec decode(binary()) :: t()
-  def decode(binary_with_q) when is_binary(binary_with_q) do
-    code = String.split(binary_with_q, " ")
-
-    case extract_tag(code) do
-      {tag, [kind | args]} ->
-        {tag, do_decode(kind, args)}
-
-      {tag, []} ->
-        {tag, {:unknown, []}}
-    end
-  end
-
-  @doc """
-  Takes a tuple representation of a GCODE and returns a string.
-
-  ## Examples
-      iex(1)> FarmbotFirmware.GCODE.encode({"444", {:report_idle, []}})
-      "R00 Q444"
-      iex(2)> FarmbotFirmware.GCODE.encode({nil, {:report_idle, []}})
-      "R00"
-  """
-  @spec encode(t()) :: binary()
-  def encode({nil, {kind, args}}) do
-    do_encode(kind, args)
-  end
-
-  def encode({tag, {kind, args}}) do
-    str = do_encode(kind, args)
-    str <> " Q" <> tag
-  end
-
-  @doc false
-  @spec extract_tag([binary()]) :: {tag(), [binary()]}
-  def extract_tag(list) when is_list(list) do
-    with {"Q" <> bin_tag, list} when is_list(list) <- List.pop_at(list, -1) do
-      {bin_tag, list}
-    else
-      # if there was no Q code provided
-      {_, data} when is_list(data) -> {nil, list}
-    end
-  end
 end

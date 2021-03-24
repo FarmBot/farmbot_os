@@ -38,7 +38,6 @@ scratchpad.*
 
 # Various env vars.
 .env
-scripts/mqtt.py
 
 # Fwup keys aren't stored here, but just in case.
 *.priv

@@ -20,7 +20,6 @@ defmodule FarmbotOS.SysCalls do
     CheckUpdate,
     Farmware,
     FactoryReset,
-    FlashFirmware,
     SendMessage,
     SetPinIOMode,
     PinControl,
@@ -46,7 +45,9 @@ defmodule FarmbotOS.SysCalls do
   defdelegate update_farmware(name), to: Farmware
 
   @impl true
-  defdelegate flash_firmware(package), to: FlashFirmware
+  def flash_firmware(package) do
+    FarmbotFirmware.wip("OOO flash_firmware(#{inspect(package)})")
+  end
 
   @impl true
   defdelegate change_ownership(email, secret, server), to: ChangeOwnership
