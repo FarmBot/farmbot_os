@@ -62,10 +62,11 @@ defmodule FarmbotCore.FirmwareOpenTask do
 
     needs_flash? = FirmwareNeeds.flash?()
     needs_open? =  FirmwareNeeds.open?()
+    needs_sync? =  FirmwareNeeds.sync?()
     firmware_hardware = Asset.fbos_config(:firmware_hardware)
     cond do
-      needs_flash? ->
-        FarmbotCore.Logger.debug 3, "Firmware needs flash still. Not opening"
+      needs_flash? || needs_sync? ->
+        FarmbotCore.Logger.debug 3, "Firmware needs flash still or sync. Not opening"
         timer = Process.send_after(self(), :open, @open_delay)
         {:noreply, increment_attempts(%{state | timer: timer})}
 
