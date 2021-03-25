@@ -284,10 +284,6 @@ defmodule FarmbotOS.SysCalls do
       :ok = BotState.set_sync_status("synced")
       _ = Leds.green(:solid)
 
-      Logger.debug(
-        "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FarmbotOS.SysCalls"
-      )
-
       :ok
     else
       error ->
