@@ -28,4 +28,6 @@ defmodule FarmbotExt.Time do
   def ms(num) do
     if @disabled, do: 0, else: num
   end
+
+  def system_time_ms, do: :os.system_time(:millisecond)
 end

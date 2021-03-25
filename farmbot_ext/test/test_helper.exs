@@ -3,6 +3,7 @@ Application.ensure_all_started(:mimic)
 
 [
   Ecto.Changeset,
+  ExTTY,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
@@ -24,7 +25,10 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
   FarmbotExt.HTTP,
+  FarmbotExt.MQTT,
+  FarmbotExt.MQTT.LogHandlerSupport,
   FarmbotExt.MQTT.Support,
+  FarmbotExt.MQTT.TerminalHandlerSupport,
   FarmbotExt.Time,
   Tortoise
 ]

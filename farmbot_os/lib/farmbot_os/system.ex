@@ -85,11 +85,11 @@ defmodule FarmbotOS.System do
   end
 
   # Check if the FarmbotFirmware process is alive
-  defp try_lock_fw do
+  def try_lock_fw(fw_module \\ FarmbotFirmware) do
     try do
-      if Process.whereis(FarmbotFirmware) do
+      if Process.whereis(fw_module) do
         FarmbotCore.Logger.warn(1, "Emergency locking and powering down")
-        FarmbotFirmware.command({:command_emergency_lock, []})
+        fw_module.command({:command_emergency_lock, []})
       else
         FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down (1)")
       end
