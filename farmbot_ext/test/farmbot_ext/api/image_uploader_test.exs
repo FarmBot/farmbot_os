@@ -1,6 +1,6 @@
 defmodule FarmbotExt.API.ImageUploaderTest do
   require Helpers
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
   alias FarmbotExt.API.ImageUploader
   setup :verify_on_exit!

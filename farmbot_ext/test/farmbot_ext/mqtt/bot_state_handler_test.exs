@@ -26,7 +26,7 @@ defmodule FarmbotExt.BotStateHandlerTest do
       assert topic == "bot/NOT_SET/status"
       # Ensure that it's a bot state.
       # The sync_status is not actually important.
-      assert json =~ "\"sync_status\":\"sync_now\""
+      assert json =~ "sync_status"
     end)
 
     next_state = BotStateHandler.broadcast!(last_state)

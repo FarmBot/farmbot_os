@@ -1,6 +1,6 @@
 defmodule FarmbotExt.API.ReconcilerTest do
   require Helpers
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
 
   alias FarmbotExt.API.Reconciler

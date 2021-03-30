@@ -1,6 +1,6 @@
 defmodule FarmbotExt.BootstrapTest do
   require Helpers
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
   import ExUnit.CaptureLog
   alias FarmbotExt.Bootstrap

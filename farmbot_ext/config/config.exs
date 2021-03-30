@@ -83,6 +83,7 @@ if is_test? do
 
   list = [
     FarmbotExt,
+    FarmbotExt.MQTT.Supervisor,
     FarmbotExt.MQTT.ChannelSupervisor,
     FarmbotExt.API.DirtyWorker.Supervisor,
     FarmbotExt.API.EagerLoader.Supervisor,

@@ -28,8 +28,10 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.MQTT,
   FarmbotExt.MQTT.LogHandlerSupport,
   FarmbotExt.MQTT.Support,
+  FarmbotExt.MQTT.SyncHandlerSupport,
   FarmbotExt.MQTT.TerminalHandlerSupport,
   FarmbotExt.Time,
+  FarmbotTelemetry,
   Tortoise
 ]
 |> Enum.map(&Mimic.copy/1)

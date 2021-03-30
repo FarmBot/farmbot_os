@@ -3,10 +3,9 @@ defmodule FarmbotExt.MQTT.SyncHandler do
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCore.{BotState, JSON, Leds, Asset}
-  alias FarmbotExt.API.{EagerLoader, Preloader}
-  alias FarmbotExt.MQTT
   alias __MODULE__, as: State
+  alias FarmbotExt.MQTT.SyncHandlerSupport, as: Support
+
   defstruct client_id: "NOT_SET", username: "NOT_SET", preloaded: false
 
   use GenServer
@@ -43,26 +42,6 @@ defmodule FarmbotExt.MQTT.SyncHandler do
     {:ok, state}
   end
 
-  def handle_info(:preload, state) do
-    _ = Leds.green(:really_fast_blink)
-
-    with :ok <- Preloader.preload_all() do
-      _ = Leds.green(:solid)
-      BotState.set_sync_status("synced")
-
-      {:noreply, %{state | preloaded: true}}
-    else
-      reason ->
-        BotState.set_sync_status("sync_error")
-        _ = Leds.green(:slow_blink)
-        FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
-        FarmbotTelemetry.event(:asset_sync, :preload_error, nil, error: inspect(reason))
-        FarmbotExt.Time.send_after(self(), :preload, 5000)
-
-        {:noreply, state}
-    end
-  end
-
   def handle_info({:inbound, _, _}, %{preloaded: false} = state) do
     send(self(), :preload)
     {:noreply, state}
@@ -73,37 +52,11 @@ defmodule FarmbotExt.MQTT.SyncHandler do
         %{preloaded: true} = state
       )
       when kind in @known_kinds do
-    data = JSON.decode!(json)
-    id = data["id"] || String.to_integer(id_str)
-    handle_asset(kind, id, data["body"])
-    rpc_reply(state, data["args"]["label"])
+    Support.reply_to_sync_message(state, kind, id_str, json)
     {:noreply, state}
   end
 
-  def handle_info(_other, state) do
-    {:noreply, state}
-  end
-
-  def rpc_reply(state, label) do
-    topic = "bot/#{state.username}/from_device"
-    json = JSON.encode!(%{args: %{label: label}, kind: "rpc_ok"})
-    MQTT.publish(state.client_id, topic, json)
-  end
-
-  def terminate(_reason, _state) do
-    try do
-      EagerLoader.Supervisor.drop_all_cache()
-    catch
-      _, _ ->
-        :ok
-    end
-  end
-
-  def handle_asset(asset_kind, id, params) do
-    :ok = BotState.set_sync_status("syncing")
-    _ = Leds.green(:really_fast_blink)
-    Asset.Command.update(asset_kind, id, params)
-    :ok = BotState.set_sync_status("synced")
-    _ = Leds.green(:solid)
-  end
+  def handle_info(:preload, state), do: Support.preload_all(state)
+  def handle_info(_other, state), do: {:noreply, state}
+  def terminate(_reason, _state), do: Support.drop_all_cache()
 end
