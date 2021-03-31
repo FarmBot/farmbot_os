@@ -51,7 +51,7 @@ defmodule FarmbotExt.TerminalHandlerSupportTest do
     result = S.start_iex(state)
     assert result == %T{iex_pid: self()}
 
-    {:ok, fake_ex_tty} = NoOp.start_link(nil)
+    {:ok, fake_ex_tty} = NoOp.start_link(name: :ex_tty_handler_farmbot)
 
     unless Process.whereis(:ex_tty_handler_farmbot) do
       raise "Expected `:ex_tty_handler_farmbot` TO BE RUNNING"

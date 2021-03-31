@@ -54,8 +54,8 @@ end
 defmodule NoOp do
   use GenServer
 
-  def new() do
-    {:ok, pid} = start_link(nil)
+  def new(opts \\ []) do
+    {:ok, pid} = start_link(opts)
     pid
   end
 
@@ -68,8 +68,8 @@ defmodule NoOp do
     :sys.get_state(pid)
   end
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, [], name: :ex_tty_handler_farmbot)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, [], opts)
   end
 
   def init([]) do
