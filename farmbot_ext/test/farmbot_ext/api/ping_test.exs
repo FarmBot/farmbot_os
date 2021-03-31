@@ -1,6 +1,6 @@
 defmodule FarmbotExt.API.PingTest do
   require Helpers
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   setup :set_mimic_global

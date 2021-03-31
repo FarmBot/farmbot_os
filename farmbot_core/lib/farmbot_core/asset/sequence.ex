@@ -1,6 +1,6 @@
 defmodule FarmbotCore.Asset.Sequence do
   @moduledoc """
-  Sequences are "code" that FarmbotCoreOS can Execute.
+  Sequences are "code" that FarmbotOS can Execute.
   """
 
   use FarmbotCore.Asset.Schema, path: "/api/sequences"

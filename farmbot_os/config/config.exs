@@ -79,14 +79,7 @@ config :farmbot, FarmbotOS.Platform.Supervisor,
 
 config :logger,
   handle_sasl_reports: false,
-  handle_otp_reports: false,
-  compile_time_purge_matching: [
-    [application: :amqp],
-    [application: :amqp_client],
-    [application: :rabbit_common]
-  ]
-
-import_config("lagger.exs")
+  handle_otp_reports: false
 
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
