@@ -1,16 +1,4 @@
 defmodule FarmbotExt.TerminalHandlerSupportTest do
-  defmodule NoOp do
-    use GenServer
-
-    def start_link(_) do
-      GenServer.start_link(__MODULE__, [], name: :ex_tty_handler_farmbot)
-    end
-
-    def init([]) do
-      {:ok, []}
-    end
-  end
-
   use ExUnit.Case
   use Mimic
 

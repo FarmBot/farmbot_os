@@ -20,8 +20,8 @@ defmodule FarmbotExt.SyncHandlerSupportTest do
   }
 
   test "finalize_preload(state, :ok)" do
-    old_state = %{ @fake_state | preloaded: false }
-    expected = %{ old_state | preloaded: true }
+    old_state = %{@fake_state | preloaded: false}
+    expected = %{old_state | preloaded: true}
 
     expect(Leds, :green, 1, fn
       :solid -> :ok
@@ -41,11 +41,11 @@ defmodule FarmbotExt.SyncHandlerSupportTest do
     expect(EagerLoader.Supervisor, :drop_all_cache, 1, fn ->
       raise "Intentional exception to test error handling"
     end)
+
     assert :ok == Support.drop_all_cache()
   end
 
   test "handle_asset (error)" do
-
     fake_kind = "Point"
     fake_id = 123
     fake_params = %{fake: :params}
@@ -62,14 +62,14 @@ defmodule FarmbotExt.SyncHandlerSupportTest do
     end)
 
     expect(Asset.Command, :update, 1, fn
-      (asset_kind, id, params) ->
+      asset_kind, id, params ->
         assert asset_kind == fake_kind
         assert id == fake_id
         assert params == fake_params
         :ok
     end)
 
-    Support.handle_asset(fake_kind,  fake_id,  fake_params )
+    Support.handle_asset(fake_kind, fake_id, fake_params)
   end
 
   test "finalize_preload(state, reason)" do
