@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.ASTTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCeleryScript.AST
 
   @nothing_json "{\"kind\": \"nothing\", \"args\": {}}"

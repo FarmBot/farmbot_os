@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Leds.StubHandlerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   @status [:fast_blink, :really_fast_blink, :slow_blink, :solid]
 
   def capture_led(color) do

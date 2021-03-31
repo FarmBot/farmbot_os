@@ -1,7 +1,7 @@
 defmodule FarmbotExt.APIFetcherTest do
   require Helpers
 
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
 
   setup :verify_on_exit!

@@ -1,5 +1,5 @@
 defmodule FarmbotOS.SysCalls.CheckUpdateTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
 

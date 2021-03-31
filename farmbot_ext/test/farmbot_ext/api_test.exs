@@ -1,5 +1,5 @@
 defmodule FarmbotExt.APITest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   use Mimic
 
   setup :verify_on_exit!

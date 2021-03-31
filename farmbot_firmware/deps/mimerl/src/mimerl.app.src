@@ -1,0 +1,10 @@
+{application,mimerl,
+             [{description,"Library to handle mimetypes"},
+              {vsn,"1.2.0"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {env,[]},
+              {modules,[]},
+              {maintainers,["Benoit Chesneau"]},
+              {licenses,["MIT"]},
+              {links,[{"Github","https://github.com/benoitc/mimerl"}]}]}.

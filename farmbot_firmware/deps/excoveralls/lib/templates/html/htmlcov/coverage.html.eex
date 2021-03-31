@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Coverage</title>
+    <meta charset="utf-8" />
+    <%= ExCoveralls.Html.View.partial "_style.html.eex" %>
+    <%= ExCoveralls.Html.View.partial "_script.html.eex" %>
+  </head>
+  <body>
+    <div id='coverage'>
+      <h1 id='overview'>Coverage</h1>
+      <div id="menu">
+        <li><a href='#overview'>overview</a></li>
+        <%= for file <- @cov.files do %>
+          <li>
+            <span class='cov <%= ExCoveralls.Html.View.coverage_class(file.coverage, file.sloc) %>'><%= file.coverage || 0 %></span>
+            <a href='#<%= file.filename %>'>
+              <% parts = String.split(file.filename, "/") %><% [b | s] = parts |> Enum.reverse |> Enum.reverse_slice(1, Enum.count(parts)) %>
+              <%= if Enum.count(s) do %>
+                <span class='dirname'><%= Enum.join(s, "/") <> "/" %></span>
+              <% end %>
+              <span class='basename'><%= b %></span>
+            </a>
+          </li>
+        <% end %>
+      </div>
+
+      <div id='stats' class='<%= ExCoveralls.Html.View.coverage_class(@cov.coverage) %>'>
+        <div class='percentage'><%= @cov.coverage || 0 %></div>
+        <div class='sloc'><%= @cov.sloc %></div>
+        <div class='hits'><%= @cov.hits %></div>
+        <div class='misses'><%= @cov.misses %></div>
+      </div>
+      <div id='files'>
+        <%= for file <- @cov.files do %>
+          <div class='file'>
+            <h2 id='<%= file.filename %>'><%= file.filename %></h1>
+            <div id='stats' class='<%= ExCoveralls.Html.View.coverage_class(file.coverage, file.sloc) %>'>
+              <div class='percentage'><%= file.coverage || 0 %></div>
+              <div class='sloc'><%= file.sloc %></div>
+              <div class='hits'><%= file.hits %></div>
+              <div class='misses'><%= file.misses %></div>
+            </div>
+            <table id='source'>
+              <thead>
+                <tr>
+                  <th>Line</th>
+                  <th>Hits</th>
+                  <th>Source</th>
+                </tr>
+              <tbody>
+                <%= for {line, number} <- Enum.with_index(file.source) do %>
+                  <%= cond do %>
+                    <% line.coverage > 0 && line.coverage != nil -> %>
+                      <tr class='hit'>
+                        <td class='line'><%= number %></td>
+                        <td class='hits'><%= line.coverage %></td>
+                        <td class='source'><%= ExCoveralls.Html.View.safe line.source %></td>
+                      </tr>
+                    <% 0 == line.coverage -> %>
+                      <tr class='miss'>
+                        <td class='line'><%= number %></td>
+                        <td class='hits'>0</td>
+                        <td class='source'><%= ExCoveralls.Html.View.safe line.source %></td>
+                      </tr>
+                    <% true -> %>
+                      <tr>
+                        <td class='line'><%= number %></td>
+                        <td class='hits'></td>
+                        <td class='source'><%= ExCoveralls.Html.View.safe(line.source || ' ')  %></td>
+                      </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </body>
+</html>

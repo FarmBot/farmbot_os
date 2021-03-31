@@ -2,7 +2,7 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
   use Supervisor
 
   alias FarmbotExt.MQTT.{
-    BotStateChannel,
+    BotStateHandler,
     LogHandler,
     PingHandler,
     RPCHandler,
@@ -24,7 +24,7 @@ defmodule FarmbotExt.MQTT.TopicSupervisor do
     mapper = fn child -> {child, child_opts} end
 
     list = [
-      BotStateChannel,
+      BotStateHandler,
       LogHandler,
       PingHandler,
       RPCHandler,

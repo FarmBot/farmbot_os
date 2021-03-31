@@ -1,5 +1,5 @@
 defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.FarmEventWorker.RegimenEvent
   alias Farmbot.TestSupport.AssetFixtures
   import ExUnit.CaptureLog

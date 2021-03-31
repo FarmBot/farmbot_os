@@ -1,5 +1,5 @@
 defmodule FarmbotExt.API.EagerLoader.SupervisorTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
 
   alias FarmbotExt.API.EagerLoader.Supervisor
 

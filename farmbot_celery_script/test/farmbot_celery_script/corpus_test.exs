@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.CorpusTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCeleryScript.Corpus
 
   test "lists all node names" do

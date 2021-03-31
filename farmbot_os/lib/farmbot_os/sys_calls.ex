@@ -56,7 +56,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate check_update(), to: CheckUpdate
 
   @impl true
-  defdelegate read_status(), to: FarmbotExt.MQTT.BotStateChannel
+  defdelegate read_status(), to: FarmbotExt.MQTT.BotStateHandler
 
   @impl true
   defdelegate factory_reset(package), to: FactoryReset
@@ -284,10 +284,6 @@ defmodule FarmbotOS.SysCalls do
       FarmbotCore.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
       _ = Leds.green(:solid)
-
-      Logger.debug(
-        "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FarmbotOS.SysCalls"
-      )
 
       :ok
     else

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.PointGroupTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.PointGroup
 
   def fake_pg() do

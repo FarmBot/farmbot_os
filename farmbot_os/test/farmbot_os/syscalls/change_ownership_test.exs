@@ -1,7 +1,7 @@
 defmodule FarmbotOS.SysCalls.ChangeOwnershipTest do
   require Helpers
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.ChangeOwnership

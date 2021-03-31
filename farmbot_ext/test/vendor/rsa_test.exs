@@ -1,6 +1,6 @@
 defmodule RSATest do
   require Helpers
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   def priv_key(), do: RSA.decode_key(Helpers.priv_key())
   def pub_key(), do: RSA.decode_key(Helpers.pub_key())

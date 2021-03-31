@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.FirstPartyFarmwareTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.FirstPartyFarmware
 
   @expected_keys [:id, :url]

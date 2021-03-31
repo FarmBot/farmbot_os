@@ -2,7 +2,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   alias FarmbotOS.Configurator.Router
   alias FarmbotOS.Configurator.ConfigDataLayer
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Plug.Test
 
   use Mimic

@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.CompilerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCeleryScript.{AST, Compiler}
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false

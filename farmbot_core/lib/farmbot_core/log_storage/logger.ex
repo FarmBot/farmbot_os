@@ -65,7 +65,8 @@ defmodule FarmbotCore.Logger do
       maybe_truncate_logs!()
       message = Ecto.Changeset.get_field(changeset, :message)
 
-      case Repo.get_by(Log, message: message) do
+      all = Repo.all(from l in Log, where: l.message == ^message, limit: 1)
+      case Enum.at(all, 0) do
         nil ->
           Repo.insert!(changeset)
 

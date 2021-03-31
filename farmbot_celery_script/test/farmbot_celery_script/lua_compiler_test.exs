@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.LuaTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCeleryScript.Compiler.Lua
 
   test "conversion of `better_params` to luerl params" do

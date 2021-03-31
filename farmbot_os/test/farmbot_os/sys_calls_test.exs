@@ -1,5 +1,5 @@
 defmodule FarmbotOS.SysCallsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotOS.SysCalls
   alias FarmbotCore.Asset
 

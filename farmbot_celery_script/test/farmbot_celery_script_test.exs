@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScriptTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Mimic
 
   alias FarmbotCeleryScript.AST

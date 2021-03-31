@@ -8,8 +8,8 @@ defmodule FarmbotExt.MQTT.Supervisor do
   alias FarmbotExt.JWT
   @wss "wss:"
 
-  def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(_, opts \\ [name: __MODULE__]) do
+    Supervisor.start_link(__MODULE__, [], opts)
   end
 
   def init([]) do

@@ -1,4 +1,4 @@
-defmodule FarmbotExt.MQTT.BotStateChannel do
+defmodule FarmbotExt.MQTT.BotStateHandler do
   @moduledoc """
   Publishes JSON encoded bot state updates onto an MQTT channel
   """
@@ -9,7 +9,10 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
   require Logger
   use GenServer
 
-  defstruct [:client_id, :username, :last_broadcast]
+  defstruct client_id: "NOT_SET",
+            username: "NOT_SET",
+            last_broadcast: nil
+
   alias __MODULE__, as: State
 
   @doc "Forces pushing the most current state tree"
@@ -46,7 +49,7 @@ defmodule FarmbotExt.MQTT.BotStateChannel do
     {:noreply, state}
   end
 
-  defp broadcast!(%{last_broadcast: last} = state) do
+  def broadcast!(%{last_broadcast: last} = state) do
     next = BotState.fetch()
 
     if next != last do

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.SensorReadingTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias FarmbotCore.Asset.SensorReading
 

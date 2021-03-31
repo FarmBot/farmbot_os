@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.DeviceTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.Device
 
   @expected_keys [
