@@ -1,4 +1,4 @@
-defmodule FarmbotFirmware do
+defmodule FarmbotCore.Firmware do
   def close_transport(), do: wip("close_transport")
   def command(_), do: wip("command")
   def request(_), do: wip("request")

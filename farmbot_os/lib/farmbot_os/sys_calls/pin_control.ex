@@ -23,8 +23,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
     peripheral = Asset.get_peripheral_by_pin(pin_number)
 
     with :ok <-
-           FarmbotFirmware.command({:pin_mode_write, [p: pin_number, m: 1]}) do
-      case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
+           FarmbotCore.Firmware.command({:pin_mode_write, [p: pin_number, m: 1]}) do
+      case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 0]}) do
         {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
           do_toggle_pin(peripheral || pin_number, 0)
 
@@ -45,7 +45,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def set_servo_angle(pin, angle) do
-    case FarmbotFirmware.command({:servo_write, [p: pin, v: angle]}) do
+    case FarmbotCore.Firmware.command({:servo_write, [p: pin, v: angle]}) do
       :ok ->
         :ok
 
@@ -56,7 +56,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_toggle_pin(%Peripheral{pin: pin_number} = data, value) do
     with :ok <-
-           FarmbotFirmware.command(
+           FarmbotCore.Firmware.command(
              {:pin_write, [p: pin_number, v: value, m: 0]}
            ),
          value when is_number(value) <- do_read_pin(data, 0) do
@@ -72,7 +72,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_toggle_pin(pin_number, value) do
     result =
-      FarmbotFirmware.command({:pin_write, [p: pin_number, v: value, m: 0]})
+      FarmbotCore.Firmware.command({:pin_write, [p: pin_number, v: value, m: 0]})
 
     with :ok <- result,
          value when is_number(value) <- do_read_pin(pin_number, 0) do
@@ -134,7 +134,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Peripheral{pin: pin_number, label: label}, 0)
        when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 0]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
         FarmbotCore.Logger.info(
           2,
@@ -168,7 +168,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Peripheral{pin: pin_number, label: label}, 1)
        when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 1]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 1]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
         FarmbotCore.Logger.info(
           2,
@@ -189,7 +189,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Sensor{pin: pin_number, label: label}, 0)
        when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 0]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
         FarmbotCore.Logger.info(2, "The #{label} sensor value is 1 (digital)")
         1
@@ -213,7 +213,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Sensor{pin: pin_number, label: label}, 1)
        when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 1]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 1]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
         FarmbotCore.Logger.info(
           2,
@@ -235,7 +235,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   # Generic pin digital
   defp do_read_pin(pin_number, 0) when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 0]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 0]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
         FarmbotCore.Logger.info(2, "Pin #{pin_number} value is OFF (digital)")
         0
@@ -258,7 +258,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   # Generic pin digital
   defp do_read_pin(pin_number, 1) when is_number(pin_number) do
-    case FarmbotFirmware.request({:pin_read, [p: pin_number, m: 1]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 1]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
         FarmbotCore.Logger.info(2, "Pin #{pin_number} is #{value} (analog)")
         value
@@ -332,7 +332,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   def do_write_pin(pin_number, mode, value) do
     params = {:pin_write, [p: pin_number, v: value, m: mode]}
-    cmd = FarmbotFirmware.command(params)
+    cmd = FarmbotCore.Firmware.command(params)
 
     case cmd do
       :ok ->

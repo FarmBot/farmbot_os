@@ -5,7 +5,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   alias FarmbotOS.SysCalls.Movement
 
   test "home/1" do
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:command_movement_home, [:x]} -> :ok
       {:command_movement_home, [:y]} -> {:error, "error"}
     end)
@@ -16,7 +16,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "find_home/1" do
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:command_movement_find_home, [:x]} -> :ok
       {:command_movement_find_home, [:y]} -> {:error, "whoops"}
     end)
@@ -27,7 +27,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "calibrate/1" do
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:command_movement_calibrate, [:x]} -> :ok
       {:command_movement_calibrate, [:y]} -> {:error, "nope"}
     end)
@@ -43,7 +43,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "move_absolute/4" do
-    FarmbotFirmware
+    FarmbotCore.Firmware
     |> expect(:request, 3, fn
       {:parameter_read, [:movement_max_spd_x]} ->
         {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_x, 1}]}}}
@@ -65,7 +65,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "move_absolute/4 - unexpected error (not a tuple)" do
-    FarmbotFirmware
+    FarmbotCore.Firmware
     |> expect(:request, 3, fn
       {:parameter_read, [:movement_max_spd_x]} ->
         {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_x, 1}]}}}
@@ -93,7 +93,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
 
   @tag :capture_log
   test "move_absolute/4 - error (in tuple)" do
-    expect(FarmbotFirmware, :request, 1, fn {:parameter_read, [_]} ->
+    expect(FarmbotCore.Firmware, :request, 1, fn {:parameter_read, [_]} ->
       {:error, "boom"}
     end)
 
@@ -109,7 +109,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "get_position/1 - error" do
-    expect(FarmbotFirmware, :request, 1, fn {nil, {:position_read, []}} ->
+    expect(FarmbotCore.Firmware, :request, 1, fn {nil, {:position_read, []}} ->
       {:error, "boom"}
     end)
 
@@ -126,7 +126,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
         {:error, "my test"}
     end
 
-    expect(FarmbotFirmware, :command, 2, mock)
+    expect(FarmbotCore.Firmware, :command, 2, mock)
 
     expected = "Firmware error @ \"zero()\": \"my test\""
     assert {:error, ^expected} = Movement.zero(:y)
@@ -134,7 +134,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "get_current_(x|y|z)" do
-    expect(FarmbotFirmware, :request, 3, fn _args ->
+    expect(FarmbotCore.Firmware, :request, 3, fn _args ->
       fake_stuff = [x: 1, y: 2, z: 3]
       {:ok, {:whatever, {:report_position, fake_stuff}}}
     end)

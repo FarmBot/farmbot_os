@@ -8,7 +8,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
 
   @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 1" do
-    expect(FarmbotFirmware, :request, 1, fn
+    expect(FarmbotCore.Firmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
         {:ok, {:qqq, {:report_pin_value, [p: 13, v: 1]}}}
     end)
@@ -23,7 +23,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
 
   @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 0" do
-    expect(FarmbotFirmware, :request, 1, fn
+    expect(FarmbotCore.Firmware, :request, 1, fn
       {:pin_read, [p: 13, m: 0]} ->
         {:ok, {:qqq, {:report_pin_value, [p: 13, v: 0]}}}
     end)
@@ -38,12 +38,12 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       nil
     end)
 
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:pin_mode_write, [p: 12, m: 1]} -> :ok
       {:pin_write, [p: 12, v: _, m: _]} -> :ok
     end)
 
-    expect(FarmbotFirmware, :request, 2, fn
+    expect(FarmbotCore.Firmware, :request, 2, fn
       {:pin_read, [p: 12, m: 0]} ->
         {:ok, {:qqq, {:report_pin_value, [p: 12, v: 1]}}}
     end)
@@ -57,12 +57,12 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       nil
     end)
 
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:pin_mode_write, [p: 12, m: 1]} -> :ok
       {:pin_write, [p: 12, v: _, m: _]} -> :ok
     end)
 
-    expect(FarmbotFirmware, :request, 2, fn
+    expect(FarmbotCore.Firmware, :request, 2, fn
       {:pin_read, [p: 12, m: 0]} ->
         {:ok, {:qqq, {:report_pin_value, [p: 12, v: 0]}}}
     end)
@@ -75,7 +75,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   end
 
   test "set_servo_angle" do
-    expect(FarmbotFirmware, :command, 2, fn
+    expect(FarmbotCore.Firmware, :command, 2, fn
       {:servo_write, [p: 20, v: 90]} -> {:error, "opps"}
       {:servo_write, [p: 40, v: 180]} -> :ok
     end)

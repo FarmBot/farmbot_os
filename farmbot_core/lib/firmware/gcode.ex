@@ -1,4 +1,4 @@
-defmodule FarmbotFirmware.GCODE do
+defmodule FarmbotCore.Firmware.GCODE do
   @moduledoc """
   Handles encoding and decoding of GCODEs.
   """

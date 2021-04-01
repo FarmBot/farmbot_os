@@ -1,54 +1,54 @@
 defmodule FarmbotCore.FirmwareSideEffects do
   @moduledoc "Handles firmware data and syncing it with BotState."
-  @behaviour FarmbotFirmware.SideEffects
+  @behaviour FarmbotCore.Firmware.SideEffects
   require Logger
   require FarmbotCore.Logger
   alias FarmbotCore.{Asset, BotState, FirmwareEstopTimer, Leds}
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_position(x: x, y: y, z: z) do
     :ok = BotState.set_position(x, y, z)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_load([_u, x, _v, y, _w, z]) do
     :ok = BotState.set_load(x, y, z)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_position_change([{axis, 0.0}]) do
     FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at home")
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_position_change([{axis, _}]) do
     FarmbotCore.Logger.warn(1, "#{axis}-axis stopped at maximum")
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_axis_state([{axis, state}]) do
     BotState.set_axis_state(axis, state)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_axis_timeout(axis) do
     FarmbotCore.Logger.error(1, "#{axis}-axis timed out waiting for movement to complete")
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_home_complete(_) do
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_calibration_state([{_axis, _state}]) do
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_encoders_scaled(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_scaled(x, y, z)
   end
@@ -56,17 +56,17 @@ defmodule FarmbotCore.FirmwareSideEffects do
   # this is a bug in the firmware code i think
   def handle_encoders_scaled([]), do: :noop
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_encoders_raw(x: x, y: y, z: z) do
     :ok = BotState.set_encoders_raw(x, y, z)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_parameter_value([{param, value}]) do
     :ok = BotState.set_firmware_config(param, value)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_parameter_calibration_value([{_, 0}]), do: :ok
   def handle_parameter_calibration_value([{_, 0.0}]), do: :ok
   def handle_parameter_calibration_value([{param, value}]) do
@@ -78,12 +78,12 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_pin_value(p: pin, v: value) do
     :ok = BotState.set_pin_value(pin, value)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_software_version([version]) do
     :ok = BotState.set_firmware_version(version)
 
@@ -139,24 +139,24 @@ defmodule FarmbotCore.FirmwareSideEffects do
     end
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_end_stops(_) do
     :noop
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_busy(busy) do
     :ok = BotState.set_firmware_busy(busy)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_idle(idle) do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(idle)
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_emergency_lock() do
     _ = FirmwareEstopTimer.start_timer()
     _ = Leds.red(:fast_blink)
@@ -164,7 +164,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_locked()
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_emergency_unlock() do
     _ = FirmwareEstopTimer.cancel_timer()
     _ = Leds.red(:solid)
@@ -172,17 +172,17 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok = BotState.set_firmware_unlocked()
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_input_gcode(_) do
     :ok
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_output_gcode(_code) do
     :ok
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def handle_debug_message([_message]) do
     :ok
   end
@@ -193,7 +193,7 @@ defmodule FarmbotCore.FirmwareSideEffects do
     :ok
   end
 
-  @impl FarmbotFirmware.SideEffects
+  @impl FarmbotCore.Firmware.SideEffects
   def load_params do
     conf = Asset.firmware_config()
     known_params(conf)

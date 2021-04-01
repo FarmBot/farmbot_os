@@ -76,7 +76,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
   end
 
   def set_config_to_state(fbos_config) do
-    # firmware_hardware is set by FarmbotFirmware.SideEffects
+    # firmware_hardware is set by FarmbotCore.Firmware.SideEffects
     :ok = BotState.set_config_value(:disable_factory_reset, fbos_config.disable_factory_reset)
     :ok = BotState.set_config_value(:network_not_found_timer, fbos_config.network_not_found_timer)
     :ok = BotState.set_config_value(:os_auto_update, fbos_config.os_auto_update)

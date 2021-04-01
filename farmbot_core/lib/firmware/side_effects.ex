@@ -1,9 +1,9 @@
-defmodule FarmbotFirmware.SideEffects do
+defmodule FarmbotCore.Firmware.SideEffects do
   @moduledoc """
   Callback functions that the firmware process will call on certain events.
   """
 
-  alias FarmbotFirmware.{GCODE, Param}
+  alias FarmbotCore.Firmware.{GCODE, Param}
 
   @type axis :: :x | :y | :z
 

@@ -197,7 +197,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
         _ -> 0
       end
 
-    case FarmbotFirmware.request({:pin_read, [p: pin, m: m]}) do
+    case FarmbotCore.Firmware.request({:pin_read, [p: pin, m: m]}) do
       {:ok, {_, {:report_pin_value, [p: _, v: v]}}} -> {[v], lua}
       {:error, reason} -> {[nil, reason], lua}
     end

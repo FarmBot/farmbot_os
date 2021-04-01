@@ -30,7 +30,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   def zero(axis) do
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:position_write_zero, [axis]}) do
+    case FarmbotCore.Firmware.command({:position_write_zero, [axis]}) do
       :ok ->
         :ok
 
@@ -40,7 +40,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def get_position() do
-    case FarmbotFirmware.request({nil, {:position_read, []}}) do
+    case FarmbotCore.Firmware.request({nil, {:position_read, []}}) do
       {:ok, {_, {:report_position, params}}} ->
         params
 
@@ -88,7 +88,7 @@ defmodule FarmbotOS.SysCalls.Movement do
            b: speed_y / 100 * (max_speed_y || 1),
            c: speed_z / 100 * (max_speed_z || 1)
          ] do
-      result = FarmbotFirmware.command({nil, {:command_movement, params}})
+      result = FarmbotCore.Firmware.command({nil, {:command_movement, params}})
       finish_movement(result)
     else
       error -> finish_movement(error)
@@ -119,7 +119,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   def calibrate(axis) do
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:command_movement_calibrate, [axis]}) do
+    case FarmbotCore.Firmware.command({:command_movement_calibrate, [axis]}) do
       :ok ->
         :ok
 
@@ -131,7 +131,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   def find_home(axis) do
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:command_movement_find_home, [axis]}) do
+    case FarmbotCore.Firmware.command({:command_movement_find_home, [axis]}) do
       :ok ->
         :ok
 
@@ -147,7 +147,7 @@ defmodule FarmbotOS.SysCalls.Movement do
     # TODO(Connor) fix speed
     axis = assert_axis!(axis)
 
-    case FarmbotFirmware.command({:command_movement_home, [axis]}) do
+    case FarmbotCore.Firmware.command({:command_movement_home, [axis]}) do
       :ok ->
         :ok
 
@@ -157,7 +157,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   defp param_read(param) do
-    case FarmbotFirmware.request({:parameter_read, [param]}) do
+    case FarmbotCore.Firmware.request({:parameter_read, [param]}) do
       {:ok, {_, {:report_parameter_value, [{^param, value}]}}} -> {:ok, value}
       {:error, reason} -> {:error, reason}
     end

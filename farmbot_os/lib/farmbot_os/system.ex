@@ -84,8 +84,8 @@ defmodule FarmbotOS.System do
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end
 
-  # Check if the FarmbotFirmware process is alive
-  def try_lock_fw(fw_module \\ FarmbotFirmware) do
+  # Check if the FarmbotCore.Firmware process is alive
+  def try_lock_fw(fw_module \\ FarmbotCore.Firmware) do
     try do
       if Process.whereis(fw_module) do
         FarmbotCore.Logger.warn(1, "Emergency locking and powering down")

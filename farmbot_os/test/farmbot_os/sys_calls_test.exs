@@ -13,7 +13,7 @@ defmodule FarmbotOS.SysCallsTest do
   setup :verify_on_exit!
 
   test "emergency_unlock" do
-    expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->
+    expect(FarmbotCore.Firmware, :command, fn {:command_emergency_unlock, []} ->
       :qqq
     end)
 
@@ -21,7 +21,7 @@ defmodule FarmbotOS.SysCallsTest do
   end
 
   test "emergency_lock" do
-    expect(FarmbotFirmware, :command, fn {:command_emergency_lock, []} ->
+    expect(FarmbotCore.Firmware, :command, fn {:command_emergency_lock, []} ->
       :qqq
     end)
 

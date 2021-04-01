@@ -8,7 +8,7 @@ defmodule FarmbotOS.SysCalls do
   require Logger
 
   alias FarmbotCeleryScript.AST
-  alias FarmbotFirmware
+  alias FarmbotCore.Firmware
 
   alias FarmbotCore.Asset.{
     BoxLed,
@@ -46,7 +46,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def flash_firmware(package) do
-    FarmbotFirmware.wip("OOO flash_firmware(#{inspect(package)})")
+    FarmbotCore.Firmware.wip("OOO flash_firmware(#{inspect(package)})")
   end
 
   @impl true
@@ -191,7 +191,7 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def firmware_reboot do
     FarmbotCore.Logger.info(1, "Restarting firmware...")
-    GenServer.stop(FarmbotFirmware, :reboot)
+    GenServer.stop(FarmbotCore.Firmware, :reboot)
   end
 
   @impl true
@@ -210,14 +210,14 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def emergency_lock do
-    _ = FarmbotFirmware.command({:command_emergency_lock, []})
+    _ = FarmbotCore.Firmware.command({:command_emergency_lock, []})
     FarmbotCore.Logger.error(1, "E-stopped")
     :ok
   end
 
   @impl true
   def emergency_unlock do
-    _ = FarmbotFirmware.command({:command_emergency_unlock, []})
+    _ = FarmbotCore.Firmware.command({:command_emergency_unlock, []})
     FarmbotCore.Logger.busy(1, "Unlocked")
     :ok
   end

@@ -7,7 +7,7 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
   alias FarmbotOS.SysCalls.SetPinIOMode
 
   test "set_pin_io_mode error handler" do
-    expect(FarmbotFirmware, :command, 1, fn params ->
+    expect(FarmbotCore.Firmware, :command, 1, fn params ->
       assert params == {:pin_mode_write, [p: 3, m: 1]}
       {:error, "a unit test"}
     end)
@@ -30,7 +30,7 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
       6 => 0x2
     }
 
-    expect(FarmbotFirmware, :command, 6, fn
+    expect(FarmbotCore.Firmware, :command, 6, fn
       {:pin_mode_write, [p: pin_number, m: actual_mode]} ->
         expected_mode = Map.fetch!(modes, pin_number)
         assert expected_mode == actual_mode

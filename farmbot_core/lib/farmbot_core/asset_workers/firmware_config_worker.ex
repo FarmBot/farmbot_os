@@ -6,8 +6,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
 
   use GenServer
   require FarmbotCore.Logger
-  alias FarmbotFirmware
-  alias FarmbotFirmware.Param
+  alias FarmbotCore.Firmware
+  alias FarmbotCore.Firmware.Param
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
   @nr_steps [
     :movement_axis_nr_steps_x,
@@ -39,7 +39,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
 
   defp do_write_read(calib_param, value) when calib_param in @nr_steps do
     {human, units, value_str} = Param.to_human(calib_param, value)
-    case FarmbotFirmware.command({:parameter_write, [{calib_param, value}]}) do
+    case FarmbotCore.Firmware.command({:parameter_write, [{calib_param, value}]}) do
       {:error, :configuration} ->
         msg = "Firmware parameter edge case (calibration): #{human}: #{value_str} #{units}"
         FarmbotCore.Logger.warn 3, msg
@@ -53,8 +53,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
 
   defp do_write_read(param, value) do
     {human, units, value_str} = Param.to_human(param, value)
-    with :ok <- FarmbotFirmware.command({:parameter_write, [{param, value}]}),
-          {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotFirmware.request({:parameter_read, [param]}) do
+    with :ok <- FarmbotCore.Firmware.command({:parameter_write, [{param, value}]}),
+          {:ok, {_, {:report_parameter_value, [{^param, ^value}]}}} <- FarmbotCore.Firmware.request({:parameter_read, [param]}) do
       FarmbotCore.Logger.success 1, "Set #{human} to #{value_str} #{units}"
       :ok
     else
