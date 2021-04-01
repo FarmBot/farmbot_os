@@ -33,7 +33,7 @@ defmodule FarmbotExt.RPCHandlerTest do
 
   test "handle_info - unknown messages" do
     misc = fn ->
-      {:noreply, next_state} = RPC.handle_info("SOMETHING ELSE", %{})
+      {:noreply, _next_state} = RPC.handle_info("SOMETHING ELSE", %{})
     end
 
     assert capture_log(misc) =~ "FarmbotExt.MQTT.RPCHandler Uncaught message: \"SOMETHING ELSE\""
