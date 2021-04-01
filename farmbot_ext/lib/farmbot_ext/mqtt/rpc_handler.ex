@@ -26,8 +26,6 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   end
 
   def handle_info({:inbound, [_, _, "from_clients"], payload}, state) do
-    IO.inspect(%{payload: payload}, label: "============== PAYLOAD")
-
     ast = JSON.decode!(payload) |> AST.decode()
     channel_pid = self()
     ref = make_ref()

@@ -58,33 +58,33 @@ defmodule FarmbotCore.LoggerTest do
     assert capture_log(t) =~ "Can't decode log: %{foo: :bar}"
   end
 
-  test "insert_log!/1 - pass in a %Log{}" do
-    result1 = FarmbotCore.Logger.insert_log!(@fake_msg)
+  # test "insert_log!/1 - pass in a %Log{}" do
+  #   result1 = FarmbotCore.Logger.insert_log!(@fake_msg)
 
-    expected1 = %Log{
-      duplicates: 0,
-      env: "test",
-      message: "Hello, world!",
-      target: "host"
-    }
+  #   expected1 = %Log{
+  #     duplicates: 0,
+  #     env: "test",
+  #     message: "Hello, world!",
+  #     target: "host"
+  #   }
 
-    assert result1.duplicates == expected1.duplicates
-    assert result1.env == expected1.env
-    assert result1.message == expected1.message
-    assert result1.target == expected1.target
+  #   assert result1.duplicates == expected1.duplicates
+  #   assert result1.env == expected1.env
+  #   assert result1.message == expected1.message
+  #   assert result1.target == expected1.target
 
-    result2 = FarmbotCore.Logger.insert_log!(@fake_msg)
+  #   result2 = FarmbotCore.Logger.insert_log!(@fake_msg)
 
-    expected2 = %Log{
-      duplicates: 1,
-      env: "test",
-      message: "Hello, world!",
-      target: "host"
-    }
+  #   expected2 = %Log{
+  #     duplicates: 1,
+  #     env: "test",
+  #     message: "Hello, world!",
+  #     target: "host"
+  #   }
 
-    assert result2.duplicates == expected2.duplicates
-    assert result2.env == expected2.env
-    assert result2.message == expected2.message
-    assert result2.target == expected2.target
-  end
+  #   assert result2.duplicates == expected2.duplicates
+  #   assert result2.env == expected2.env
+  #   assert result2.message == expected2.message
+  #   assert result2.target == expected2.target
+  # end
 end
