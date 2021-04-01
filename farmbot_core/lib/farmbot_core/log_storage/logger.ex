@@ -3,6 +3,7 @@ defmodule FarmbotCore.Logger do
   Log messages to Farmot endpoints.
   """
 
+  require Logger
   alias FarmbotCore.{Log, Logger.Repo}
   import Ecto.Query
   @log_types [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion]
@@ -56,7 +57,8 @@ defmodule FarmbotCore.Logger do
     end
   end
 
-  def insert_log!(params) do
+  def insert_log!(%{ message: _, level: _, verbosity: _ } = input) do
+    params = input |> Map.delete(:__meta__) |> Map.delete(:__struct__)
     changeset = Log.changeset(%Log{}, params)
 
     try do
@@ -82,6 +84,10 @@ defmodule FarmbotCore.Logger do
         IO.warn("Error inserting log: #{kind} #{inspect(err)}", __STACKTRACE__)
         Ecto.Changeset.apply_changes(changeset)
     end
+  end
+
+  def insert_log!(other) do
+    Logger.error("Can't decode log: #{inspect(other)}")
   end
 
   @doc "Gets a log by it's id, deletes it."

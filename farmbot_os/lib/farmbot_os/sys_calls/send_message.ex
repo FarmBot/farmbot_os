@@ -15,11 +15,10 @@ defmodule FarmbotOS.SysCalls.SendMessage do
     case render(templ) do
       {:ok, message} ->
         FarmbotCore.Logger.dispatch_log(__ENV__, type, 1, message, meta)
-        # Give FarmbotExt.AMQP.LogChannel time to catch up
-        # and ingest logs. Removing this line will result in
-        # non-deterministic loss of duplicate logs or general
-        # "funny business" when executing two consecutive
-        # SEND MESSAGE blocks. :(
+        # Give LogChannel time to catch up and ingest logs.
+        # Removing this line will result in non-deterministic
+        # loss of duplicate logs or general "funny business"
+        # when executing two consecutive SEND MESSAGE blocks. :(
         Process.sleep(100)
         :ok
 

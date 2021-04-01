@@ -22,7 +22,7 @@ This file contains a basic glossary of commonly used terms
 * UART - **U**niversal **A**synchronous **R**eceiver/**T**ransmitter.
   hardware based transport mechanism
 * SSH - **S**ecure **S**hell.
-* MQTT/AMQP - network protocols for pub/sub data transport
+* MQTT - network protocols for pub/sub data transport
 * HTTP - network protocol for accessing REST resource
 
 ## Nerves Specific Terms

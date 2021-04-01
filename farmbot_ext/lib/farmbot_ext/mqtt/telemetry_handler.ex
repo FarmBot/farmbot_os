@@ -1,67 +1,36 @@
-defmodule FarmbotExt.AMQP.TelemetryChannel do
-  @moduledoc """
-  Channel that dispatches telemetry messgaes out of the
-  DETS database.
-  """
-
+defmodule FarmbotExt.MQTT.TelemetryHandler do
   use GenServer
-  use AMQP
 
-  alias FarmbotCore.{BotState, BotStateNG}
-  alias FarmbotExt.AMQP.Support
   require FarmbotCore.Logger
   require FarmbotTelemetry
+  require Logger
 
-  @exchange "amq.topic"
-  @dispatch_metrics_timeout 300_000
-  @consume_telemetry_timeout 1000
-
-  defstruct [:conn, :chan, :jwt, :cache]
   alias __MODULE__, as: State
+  alias FarmbotCore.{BotState, BotStateNG}
+  alias FarmbotExt.MQTT
 
-  @doc false
+  @consume_telemetry_timeout 1000
+  @dispatch_metrics_timeout 300_000
+  defstruct [:cache, :client_id, :username]
+
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(args) do
-    jwt = Keyword.fetch!(args, :jwt)
-    send(self(), :connect_amqp)
-    cache = BotState.subscribe()
-
     state = %State{
-      conn: nil,
-      chan: nil,
-      jwt: jwt,
-      cache: cache
+      client_id: Keyword.fetch!(args, :client_id),
+      username: Keyword.fetch!(args, :username),
+      cache: BotState.subscribe()
     }
 
+    send(self(), :consume_telemetry)
+    send(self(), :dispatch_metrics)
     {:ok, state}
   end
 
-  def terminate(r, s), do: Support.handle_termination(r, s, "Telemetry")
-
-  def handle_info(:connect_amqp, state) do
-    bot = state.jwt.bot
-
-    with {:ok, {conn, chan}} <- Support.create_queue(bot <> "_telemetry") do
-      FarmbotCore.Logger.debug(3, "connected to Telemetry channel")
-      send(self(), :consume_telemetry)
-      send(self(), :dispatch_metrics)
-      {:noreply, %{state | conn: conn, chan: chan}}
-    else
-      nil ->
-        FarmbotExt.Time.send_after(self(), :connect_amqp, 5000)
-        {:noreply, %{state | conn: nil, chan: nil}}
-
-      err ->
-        Support.handle_error(state, err, "Telemetry")
-    end
-  end
-
   def handle_info({BotState, change}, state) do
-    cache = Ecto.Changeset.apply_changes(change)
-    {:noreply, %{state | cache: cache}}
+    {:noreply, %{state | cache: Ecto.Changeset.apply_changes(change)}}
   end
 
   def handle_info(:dispatch_metrics, state) do
@@ -82,7 +51,7 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
         "telemetry_target" => metrics.target
       })
 
-    Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
+    publish(state, json)
     FarmbotExt.Time.send_after(self(), :dispatch_metrics, @dispatch_metrics_timeout)
     {:noreply, state}
   end
@@ -102,10 +71,19 @@ defmodule FarmbotExt.AMQP.TelemetryChannel do
               "telemetry.meta" => %{meta | function: inspect(meta.function)}
             })
 
-          Basic.publish(state.chan, @exchange, "bot.#{state.jwt.bot}.telemetry", json)
+          publish(state, json)
       end)
 
     _ = FarmbotExt.Time.send_after(self(), :consume_telemetry, @consume_telemetry_timeout)
     {:noreply, state}
+  end
+
+  def handle_info(req, state) do
+    Logger.info("#{inspect(__MODULE__)} Uncaught message: #{inspect(req)}")
+    {:noreply, state}
+  end
+
+  def publish(state, payload) do
+    MQTT.publish(state.client_id, "bot/#{state.username}/telemetry", payload)
   end
 end

@@ -226,7 +226,6 @@ defmodule FarmbotOS.Platform.Target.Network do
       "Interface #{ifname} disconnected from the internet: #{ifstate}"
     )
 
-    FarmbotExt.AMQP.ConnectionWorker.close()
     FarmbotTelemetry.event(:network, :wan_disconnect, nil, interface: ifname)
 
     if state.network_not_found_timer do

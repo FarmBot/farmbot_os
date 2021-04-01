@@ -1,6 +1,6 @@
-defmodule FarmbotExt.AMQP.Supervisor do
+defmodule FarmbotExt.MQTT.Supervisor do
   @moduledoc """
-  Supervises AMQP connections
+  Supervises the MQTT handler.
   """
   use Supervisor
   alias FarmbotCore.Config
@@ -8,8 +8,8 @@ defmodule FarmbotExt.AMQP.Supervisor do
   alias FarmbotExt.JWT
   @wss "wss:"
 
-  def start_link(args) do
-    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
+  def start_link(_, opts \\ [name: __MODULE__]) do
+    Supervisor.start_link(__MODULE__, [], opts)
   end
 
   def init([]) do
@@ -18,14 +18,9 @@ defmodule FarmbotExt.AMQP.Supervisor do
 
   def children do
     token = Config.get_config_value(:string, "authorization", "token")
-    email = Config.get_config_value(:string, "authorization", "email")
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
 
-    Keyword.get(config, :children, [
-      {FarmbotExt.AMQP.ConnectionWorker, [token: token, email: email]},
-      {FarmbotExt.AMQP.ChannelSupervisor, [token]},
-      mqtt_child(token)
-    ])
+    Keyword.get(config, :children, [mqtt_child(token)])
   end
 
   def mqtt_child(raw_token) do
@@ -51,13 +46,14 @@ defmodule FarmbotExt.AMQP.Supervisor do
       user_name: username,
       password: raw_token,
       server: server,
-      handler: {FarmbotExt.MQTT.Handler, [client_id: client_id]},
-      backoff: [min_interval: 6_000, max_interval: 120_000],
+      handler: {FarmbotExt.MQTT, [client_id: client_id, username: username]},
+      # Tortoise will double the min_interval on every attempt.
+      backoff: [min_interval: 7_500, max_interval: 120_000],
       subscriptions: [
-        # {"bot.#{username}.from_clients", 0},
-        {"bot.#{username}.ping.#", 0}
-        # {"bot.#{username}.sync.#", 0},
-        # {"bot.#{username}.terminal_input", 0}
+        {"bot/#{username}/from_clients", 0},
+        {"bot/#{username}/ping/#", 0},
+        {"bot/#{username}/sync/#", 0},
+        {"bot/#{username}/terminal_input", 0}
       ]
     ]
 

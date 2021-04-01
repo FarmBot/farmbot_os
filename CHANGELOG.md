@@ -1,5 +1,9 @@
 # Changelog
 
+# 13.1.0
+
+ * Finalize AMQP removal. MQTT is the only transport now.
+
 # 13.0.1
 
  * Begin transition back to MQTT from AMQP (ping channel only)

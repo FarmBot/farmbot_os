@@ -8,7 +8,7 @@ possible to do in `farmbot_core`.
 
 Subsystem responsible for bootstrapping a connection to the
 FarmBot network services. This includes authenticating with
-the FarmBot API, connecting to AMQP/MQTT and syncing
+the FarmBot API, connecting to MQTT and syncing
 the bare minimum resources to get up and running.
 
 ## HTTP/Sync subsystem
@@ -22,7 +22,7 @@ FarmBot will do an HTTP PUT of it's data. If the remote resource does not
 exist, FarmBot will do an HTTP POST of it's data. If the remote data has a more
 recent `updated_at` field, FarmBot will do an HTTP GET and replace it's own data.
 
-## AMQP/MQTT subsystem
+## MQTT subsystem
 
 FarmBot maintains a connection to the API for real time communication. This
 real time communication connection is multiplexed over multiple `channel`s.

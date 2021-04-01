@@ -134,7 +134,6 @@ defmodule FarmbotOS.LuaTest do
 
         {:error, expl} ->
           {a, b, _c} = expl
-          IO.inspect({a, b}, label: "== Result")
           raise "NO"
       end
     end)

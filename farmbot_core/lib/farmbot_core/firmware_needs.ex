@@ -17,13 +17,13 @@ defmodule FarmbotCore.FirmwareNeeds do
     state = %{
       keys: %{
         needs_flash: true,
-        needs_open:  true
+        needs_open:  true,
       }
     }
     {:ok, state}
   end
 
-  def flash?(mod \\ __MODULE__), do: get(:needs_flash, mod)
+  def flash?(_mod \\ __MODULE__), do: false
   def flash(value, mod \\ __MODULE__), do: set(:needs_flash, value, mod)
 
   def open?(mod \\ __MODULE__), do: get(:needs_open, mod)

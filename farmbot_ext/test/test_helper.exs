@@ -2,10 +2,8 @@ Application.ensure_all_started(:farmbot)
 Application.ensure_all_started(:mimic)
 
 [
-  AMQP.Basic,
-  AMQP.Channel,
-  AMQP.Connection,
-  AMQP.Queue,
+  Ecto.Changeset,
+  ExTTY,
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset.Command,
@@ -17,11 +15,6 @@ Application.ensure_all_started(:mimic)
   FarmbotCore.Leds,
   FarmbotCore.LogExecutor,
   FarmbotCore.Logger,
-  FarmbotExt.AMQP.AutoSyncAssetHandler,
-  FarmbotExt.AMQP.BotStateChannelSupport,
-  FarmbotExt.AMQP.ConnectionWorker,
-  FarmbotExt.AMQP.Support,
-  FarmbotExt.AMQP.TerminalChannelSupport,
   FarmbotExt.API,
   FarmbotExt.API.EagerLoader,
   FarmbotExt.API.EagerLoader.Supervisor,
@@ -32,7 +25,13 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
   FarmbotExt.HTTP,
+  FarmbotExt.MQTT,
+  FarmbotExt.MQTT.LogHandlerSupport,
+  FarmbotExt.MQTT.Support,
+  FarmbotExt.MQTT.SyncHandlerSupport,
+  FarmbotExt.MQTT.TerminalHandlerSupport,
   FarmbotExt.Time,
+  FarmbotTelemetry,
   Tortoise
 ]
 |> Enum.map(&Mimic.copy/1)
@@ -50,6 +49,36 @@ ExUnit.start()
 # Use this to stub out calls to `state.reset.reset()` in firmware.
 defmodule StubReset do
   def reset(), do: :ok
+end
+
+defmodule NoOp do
+  use GenServer
+
+  def new(opts \\ []) do
+    {:ok, pid} = start_link(opts)
+    pid
+  end
+
+  def stop(pid) do
+    _ = Process.unlink(pid)
+    :ok = GenServer.stop(pid, :normal, 3_000)
+  end
+
+  def last_message(pid) do
+    :sys.get_state(pid)
+  end
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, [], opts)
+  end
+
+  def init([]) do
+    {:ok, :no_message_yet}
+  end
+
+  def handle_info(next_message, _last_message) do
+    {:noreply, next_message}
+  end
 end
 
 defmodule SimpleCounter do

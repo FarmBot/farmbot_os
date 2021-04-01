@@ -1,6 +1,6 @@
 defmodule FarmbotExt.API.SyncGroupTest do
   require Helpers
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   alias FarmbotExt.API.SyncGroup
 
   @all [
