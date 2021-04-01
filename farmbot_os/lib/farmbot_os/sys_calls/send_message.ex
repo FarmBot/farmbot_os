@@ -1,7 +1,6 @@
 defmodule FarmbotOS.SysCalls.SendMessage do
   @moduledoc false
 
-  alias FarmbotCore.Firmware
   @root_regex ~r/{{\s*[\w\.]+\s*}}/
   @extract_reg ~r/[\w\.]+/
 

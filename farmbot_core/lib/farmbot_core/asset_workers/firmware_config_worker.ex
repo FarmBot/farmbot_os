@@ -6,7 +6,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
 
   use GenServer
   require FarmbotCore.Logger
-  alias FarmbotCore.Firmware
   alias FarmbotCore.Firmware.Param
   alias FarmbotCore.{Asset.FirmwareConfig, FirmwareSideEffects}
   @nr_steps [

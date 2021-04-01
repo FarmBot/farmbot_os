@@ -8,7 +8,6 @@ defmodule FarmbotOS.SysCalls do
   require Logger
 
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.Firmware
 
   alias FarmbotCore.Asset.{
     BoxLed,
