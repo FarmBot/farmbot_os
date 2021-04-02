@@ -97,8 +97,6 @@ config :farmbot, FarmbotOS.Configurator,
 config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
-config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 5_000_000
-
 config :logger, backends: [RingLogger]
 
 config :logger, RingLogger,
