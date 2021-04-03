@@ -46,12 +46,12 @@ defmodule FarmbotCore.LoggerTest do
            )
   end
 
-  @fake_msg %Log{
-    message: "Hello, world!",
-    verbosity: 3,
-    level: :info,
-    updated_at: ~U[1998-11-07 16:52:31.618000Z]
-  }
+  # @fake_msg %Log{
+  #   message: "Hello, world!",
+  #   verbosity: 3,
+  #   level: :info,
+  #   updated_at: ~U[1998-11-07 16:52:31.618000Z]
+  # }
 
   test "insert_log!/1 - unknown format" do
     t = fn -> FarmbotCore.Logger.insert_log!(%{foo: :bar}) end

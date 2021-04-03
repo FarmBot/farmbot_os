@@ -60,17 +60,18 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:elixir_make, "~> 0.6.2", runtime: false},
+      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
       {:farmbot_celery_script,
        path: "../farmbot_celery_script", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:elixir_make, "~> 0.6.2", runtime: false},
-      {:sqlite_ecto2, "~> 2.3"},
-      {:timex, "~> 3.6.3"},
       {:jason, "~> 1.2.2"},
-      {:muontrap, "~> 0.6"},
-      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
       {:mimic, "~> 1.4.0", only: [:test]},
-      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
+      {:muontrap, "~> 0.6"},
+      {:circuits_uart, "~> 1.4"},
+      {:sqlite_ecto2, "~> 2.3"},
+      {:timex, "~> 3.6.3"}
     ]
   end
 
