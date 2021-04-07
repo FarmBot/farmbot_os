@@ -4,10 +4,11 @@ defmodule FarmbotCore.Firmware.UART do
   such as a Farmduino (1.3+) or Arduino Mega (FarmBot v1.2).
 
   Guiding Principals:
-   * No cached state
-   * No timeouts
-   * No retries
-   * No polling
+   * No cached state - Delay data fetching. Never duplicate.
+   * No timeouts - Push data, don't pull.
+   * No polling - Push data, don't pull.
+   * No retries - Fail fast / hard. Restarting the module is
+                  the only recovery option.
 
   Callbacks required:
    * New message (UART -> App)
@@ -26,28 +27,18 @@ defmodule FarmbotCore.Firmware.UART do
   alias __MODULE__, as: State
   alias FarmbotCore.Firmware.UARTSupport, as: Support
   alias FarmbotCore.Firmware.LineBuffer
+  require Logger
 
-  defstruct path: "null", circuits_pid: nil, parser: LineBuffer.new()
+  defstruct circuits_pid: nil, parser: LineBuffer.new()
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(opts) do
-    {:ok, circuits_pid} = Circuits.UART.start_link()
+    {:ok, circuits_pid} = Support.connect(Keyword.fetch!(opts, :path))
 
-    state = %State{
-      path: Keyword.fetch!(opts, :path),
-      circuits_pid: circuits_pid
-    }
-
-    {:ok, state}
-  end
-
-  def handle_call(:connect, _, state) do
-    %{circuits_pid: pid, path: path} = state
-    result = Support.maybe_open_uart_device(pid, path)
-    {:reply, result, state}
+    {:ok, %State{circuits_pid: circuits_pid}}
   end
 
   # === SCENARIO: Serial cable is unplugged.
@@ -56,7 +47,7 @@ defmodule FarmbotCore.Firmware.UART do
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
-  def handle_info({:circuits_uart, _, msg}, state) do
+  def handle_info({:circuits_uart, _, msg}, state) when is_binary(msg) do
     {next_parser, _tokens} =
       state.parser
       |> LineBuffer.puts(msg)
@@ -66,7 +57,7 @@ defmodule FarmbotCore.Firmware.UART do
   end
 
   def handle_info(message, state) do
-    IO.puts("!!! UNEXPECTED MESSAGE: #{inspect(message)}")
+    Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
     {:noreply, state}
   end
 end

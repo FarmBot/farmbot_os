@@ -5,6 +5,7 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 |> FarmbotCore.Asset.Repo.insert_or_update!()
 
 [
+  FarmbotCore.Firmware.UARTSupport,
   FarmbotCeleryScript,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset,

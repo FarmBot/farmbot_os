@@ -29,13 +29,32 @@ defmodule FarmbotCore.Firmware.LineBuffer do
   @new_line "\n"
   @wake_word "R99 ARDUINO STARTUP COMPLETE"
 
+  @doc ~S"""
+  Create a new line buffer object.
+
+  iex> new("r88 Q00\n")
+  %FarmbotCore.Firmware.LineBuffer{
+    buffer: "",
+    output: ["R88 Q00\n"],
+    ready: false
+  }
+  """
   def new(string \\ "") do
     puts(%State{}, string)
   end
 
+  @doc ~S"""
+  Create a new line buffer by appending to an existing buffer.
+
+  iex> new("r88 Q00\n") |> puts("R99 ARDUINO STARTUP COMPLETE\n")
+  %FarmbotCore.Firmware.LineBuffer{
+    buffer: "",
+    output: ["R88 Q00\n", "R99 ARDUINO STARTUP COMPLETE\n"],
+    ready: false
+  }
+  """
   def puts(state, string) do
     string
-    |> IO.inspect(label: "BEFORE")
     |> String.upcase()
     |> String.replace(~r/\ +/, " ")
     |> String.replace(~r/\r/, "\n")
@@ -48,6 +67,24 @@ defmodule FarmbotCore.Firmware.LineBuffer do
     |> Enum.reduce(state, fn char, state -> step(state, char) end)
   end
 
+  @doc ~S"""
+  Harvest well-formed data from a line buffer. Returns a tuple
+  containing a new line buffer at element 0 and an array of
+  strings that are guaranteed to be properly buffered.
+
+  iex> new("r88 Q00\n")
+  ...>    |> puts("R99 ARDUINO STARTUP COMPLETE\n")
+  ...>    |> puts("r99 InCoMpLeTe DaTA")
+  ...>    |> gets()
+  {
+    %LineBuffer{
+      buffer: "R99 INCOMPLETE DATA",
+      output: [],
+      ready: true
+    },
+    ["R99 ARDUINO STARTUP COMPLETE"]
+  }
+  """
   def gets(state) do
     results =
       state.output
@@ -66,13 +103,8 @@ defmodule FarmbotCore.Firmware.LineBuffer do
 
   defp finalize(%{ready: false} = state, results) do
     if Enum.member?(results, @wake_word) do
-      clean_results =
-        Enum.reduce(results, [], fn
-          @wake_word, _ -> [@wake_word]
-          item, list -> list ++ [item]
-        end)
-
-      {%{state | output: [], ready: true}, clean_results}
+      clean = Enum.drop_while(results, fn w -> w != @wake_word end)
+      {%{state | output: [], ready: true}, clean}
     else
       {%{state | output: []}, []}
     end
@@ -84,7 +116,7 @@ defmodule FarmbotCore.Firmware.LineBuffer do
 
   defp step(last_state, "\n") do
     next_output = last_state.output ++ ["#{last_state.buffer}\n"]
-    %{last_state | output: next_output, buffer: []}
+    %{last_state | output: next_output, buffer: ""}
   end
 
   defp step(p, char), do: %{p | buffer: "#{p.buffer}#{char}"}

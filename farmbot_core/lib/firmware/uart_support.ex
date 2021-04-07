@@ -2,11 +2,12 @@ defmodule FarmbotCore.Firmware.UARTSupport do
   defstruct path: "null", circuits_pid: nil
   @default_opts [speed: 115_200, active: true]
 
-  def connect(pid) do
-    GenServer.call(pid, :connect, :infinity)
+  def connect(path) do
+    {:ok, pid} = Circuits.UART.start_link()
+    maybe_open_uart_device(pid, path)
   end
 
-  def maybe_open_uart_device(pid, path) do
+  defp maybe_open_uart_device(pid, path) do
     if device_available?(path) do
       open_uart_device(pid, path)
     else
@@ -15,7 +16,8 @@ defmodule FarmbotCore.Firmware.UARTSupport do
   end
 
   defp open_uart_device(pid, path) do
-    Circuits.UART.open(pid, path, @default_opts)
+    :ok = Circuits.UART.open(pid, path, @default_opts)
+    {:ok, pid}
   end
 
   defp device_available?(path) do
