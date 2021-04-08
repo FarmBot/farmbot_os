@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Firmware.UARTTest do
+defmodule FarmbotCore.Firmware.UARTCoreTest do
   use ExUnit.Case
   use Mimic
 
   import ExUnit.CaptureLog
 
-  alias FarmbotCore.Firmware.UART
-  alias FarmbotCore.Firmware.UARTSupport, as: Support
+  alias FarmbotCore.Firmware.UARTCore
+  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   setup :set_mimic_global
   setup :verify_on_exit!
@@ -13,7 +13,7 @@ defmodule FarmbotCore.Firmware.UARTTest do
   test "lifecycle" do
     path = "ttyACM0"
     expect(Support, :connect, 1, fn ^path -> {:ok, self()} end)
-    {:ok, pid} = UART.start_link([path: path], [])
+    {:ok, pid} = UARTCore.start_link([path: path], [])
     assert is_pid(pid)
     noise = fn -> send(pid, "nonsense") end
     expected = "UNEXPECTED FIRMWARE MESSAGE: \"nonsense\""
@@ -30,4 +30,11 @@ defmodule FarmbotCore.Firmware.UARTTest do
     state3 = :sys.get_state(pid)
     assert state3.parser.ready
   end
+
+  # test "scratchpad" do
+  #   # Use this when debugging a live bot.
+  #   IO.puts("\e[H\e[2J\e[3J")
+  #   {:ok, _pid} = UARTCore.start_link([path: "ttyACM0"], [])
+  #   Process.sleep(50_000)
+  # end
 end

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.UARTSupport do
+defmodule FarmbotCore.Firmware.UARTCoreSupport do
   defstruct path: "null", circuits_pid: nil
   @default_opts [speed: 115_200, active: true]
 
