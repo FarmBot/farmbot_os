@@ -496,7 +496,6 @@ defmodule FarmbotCore.Asset do
       Repo.all(from(ri in RegimenInstance, where: ri.regimen_id == ^regimen.local_id))
 
     for ri <- regimen_instances do
-      IO.puts("deleting regimen instance: #{inspect(ri)}")
       delete_regimen_instance!(ri)
     end
 

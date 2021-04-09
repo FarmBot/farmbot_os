@@ -50,6 +50,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   alias FarmbotCore.Firmware.{
     RxBuffer,
+    TxBuffer,
     GCodeDecoder,
     InboundGCode
   }
@@ -58,7 +59,19 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   defstruct circuits_pid: nil,
             rx_buffer: RxBuffer.new(),
-            inbound_gcode: InboundGCode.new()
+            rx_status: InboundGCode.new(),
+            tx_buffer: TxBuffer.new()
+
+  @ten_minutes 1000 * 60 * 10
+
+  # Send raw GCode to the MCU. Blocks the calling process
+  # until a response is received.
+  # Don't use this function outside of the `/firmware`
+  # directory.
+  def start_job(server \\ __MODULE__, gcode) do
+    IO.puts("Starting job #{inspect(gcode)}")
+    GenServer.call(server, {:start_job, gcode}, @ten_minutes)
+  end
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -70,6 +83,13 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid}}
   end
 
+  # === SCENARIO: FBOS wants to send raw text to the attached
+  #               serial device
+  def handle_info({:send_raw, text}, state) do
+    :ok = Support.uart_send(state.circuits_pid, text)
+    {:noreply, state}
+  end
+
   # === SCENARIO: Serial cable is unplugged.
   def handle_info({:circuits_uart, _, {:error, :eio}}, state) do
     {:noreply, %{state | rx_buffer: RxBuffer.new()}}
@@ -79,15 +99,15 @@ defmodule FarmbotCore.Firmware.UARTCore do
   def handle_info({:circuits_uart, _, msg}, state) when is_binary(msg) do
     # First, push all messages into a buffer. The result is a
     # list of Gcode blocks to be processed (if any).
-    {next_rx_buffer, gcodes} = process_incoming_text(state.rx_buffer, msg)
-
+    {next_rx_buffer, txt_lines} = process_incoming_text(state.rx_buffer, msg)
+    gcodes = GCodeDecoder.run(txt_lines)
     # Next, pass the list of GCode blocks to a side effect
     # handler.
-    next_inbound_gcode = InboundGCode.process(state.inbound_gcode, gcodes)
+    next_rx_status = InboundGCode.process(state.rx_status, gcodes)
 
     state_update = %{
       rx_buffer: next_rx_buffer,
-      inbound_gcode: next_inbound_gcode
+      rx_status: next_rx_status
     }
 
     {:noreply, Map.merge(state, state_update)}
@@ -98,10 +118,21 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, state}
   end
 
+  # Emergency stop always gets to jump the queue.
+  def handle_call({:start_job, "E"}, _, state) do
+    Circuits.UART.write(state.circuits_pid, " E\r\n")
+    {:noreply, %{state | tx_buffer: TxBuffer.new()}}
+  end
+
+  def handle_call({:start_job, gcode}, caller_pid, state) do
+    # TODO: How will I call `GenServer.reply`?
+    next_buffer = TxBuffer.push(state.tx_buffer, {caller_pid, gcode})
+    {:noreply, %{state | tx_buffer: next_buffer}}
+  end
+
   defp process_incoming_text(rx_buffer, text) do
     rx_buffer
     |> RxBuffer.puts(text)
     |> RxBuffer.gets()
-    |> GCodeDecoder.run()
   end
 end

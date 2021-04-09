@@ -133,7 +133,7 @@ defmodule FarmbotOS.LuaTest do
           nil
 
         {:error, expl} ->
-          {a, b, _c} = expl
+          {_a, _b, _c} = expl
           raise "NO"
       end
     end)

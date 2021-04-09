@@ -34,6 +34,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   @impl GenServer
   def handle_cast({:new_data, new_fbos_config}, %{fbos_config: %FbosConfig{} = old_fbos_config} = state) do
+    FarmbotCore.Firmware.UARTObserver.data_available(__MODULE__)
     _ = set_config_to_state(new_fbos_config, old_fbos_config)
     {:noreply, %{state | fbos_config: new_fbos_config}}
   end

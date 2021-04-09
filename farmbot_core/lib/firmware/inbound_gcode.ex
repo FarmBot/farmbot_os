@@ -13,6 +13,10 @@ defmodule FarmbotCore.Firmware.InboundGCode do
   end
 
   def process(state, gcode) do
+    Enum.map(gcode, fn {name, params} ->
+      IO.inspect(params, label: "==> #{name}")
+    end)
+
     Enum.reduce(gcode, state, &reduce/2)
   end
 
@@ -25,6 +29,7 @@ defmodule FarmbotCore.Firmware.InboundGCode do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(true)
+    IO.puts("IT IS SAFE TO SEND THE NEXT QUEUED GCODE!")
     state
   end
 
@@ -53,10 +58,12 @@ defmodule FarmbotCore.Firmware.InboundGCode do
     %{state | needs_config: true}
   end
 
-  defp reduce(unknown, _state) do
-    error = inspect(unknown)
-    msg = "Malformed firmware message: #{error}"
-    FarmbotCore.Logger.error(3, msg)
-    raise msg
+  defp reduce({:emergency_lock, _}, state) do
+    IO.puts("Emergency locked...")
+    state
+  end
+
+  defp reduce(_unknown, state) do
+    state
   end
 end

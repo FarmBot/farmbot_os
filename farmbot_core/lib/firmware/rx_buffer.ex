@@ -56,8 +56,9 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   def puts(state, string) do
     string
     |> String.upcase()
-    |> String.replace(~r/\ +/, " ")
+    |> String.replace(~r/\r*/, "")
     |> String.replace(~r/\r/, "\n")
+    |> String.replace(~r/\ +/, " ")
     |> String.replace(~r/\n+/, "\n")
     |> String.split("")
     |> Enum.filter(fn

@@ -19,9 +19,9 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     "15" => :different_x_coordinate_than_given,
     "16" => :different_y_coordinate_than_given,
     "17" => :different_z_coordinate_than_given,
-    "20" => :paramater_completion,
-    "21" => :parameter_value_report,
-    "23" => :report_updated_parameter_during_calibration,
+    "20" => :param_completion,
+    "21" => :param_value_report,
+    "23" => :report_updated_param_during_calibration,
     "41" => :pin_value_report,
     "71" => :x_axis_timeout,
     "72" => :y_axis_timeout,
@@ -44,7 +44,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     "E" => :element,
     "M" => :mode,
     "N" => :number,
-    "P" => :pin_number,
+    "P" => :pin_or_param,
     "Q" => :queue,
     "T" => :seconds,
     "V" => :value,
@@ -60,13 +60,10 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     "ZB" => :z_endstop_b
   }
 
-  def run({parser, messages}) do
-    next_messages =
-      messages
-      |> Enum.map(&validate_message/1)
-      |> Enum.map(&preprocess/1)
-
-    {parser, next_messages}
+  def run(messages) do
+    messages
+    |> Enum.map(&validate_message/1)
+    |> Enum.map(&process/1)
   end
 
   defp validate_message("R99" <> _ = m), do: m
@@ -77,16 +74,22 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     raise "Expect inbound GCode to begin with `R`. Got: #{actual}"
   end
 
-  defp preprocess("R99" <> rest) do
+  # Firmware log
+  defp process("R99" <> rest) do
     {response_code("99"), String.trim(rest)}
   end
 
-  defp preprocess("R" <> <<code::binary-size(2)>> <> rest) do
+  # Command echo
+  defp process("R08" <> rest) do
+    {response_code("08"), String.trim(rest)}
+  end
+
+  defp process("R" <> <<code::binary-size(2)>> <> rest) do
     {response_code(code), parameterize(rest)}
   end
 
   defp response_code(code), do: Map.fetch!(@response_codes, code)
-  defp parameter_code(code), do: Map.fetch!(@params, code)
+  defp param_code(code), do: Map.fetch!(@params, code)
 
   defp parameterize(string) do
     string
@@ -96,7 +99,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
       [number] = Regex.run(~r/\d+\.?\d?+/, pair)
       [code] = Regex.run(~r/\D{1,2}/, pair)
       {float, _} = Float.parse(number)
-      {parameter_code(code), float}
+      {param_code(code), float}
     end)
     |> Enum.reduce(%{}, fn {key, val}, acc -> Map.put(acc, key, val) end)
   end
