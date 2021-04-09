@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Firmware.LineBuffer do
+defmodule FarmbotCore.Firmware.RxBuffer do
   @moduledoc """
   Serial character buffering doesn't always make sense. When
   reading serial input of line oriented data, you might not
   always capture a full line of text.
    * You might see only the end of a line.
    * You might get a complete line in two parts.
-   * You might get garbled test because the device is not
+   * You might get garbled text because the device is not
      truly online yet.
    * If you are lucky, You might get the whole line in one part.
 
@@ -33,7 +33,7 @@ defmodule FarmbotCore.Firmware.LineBuffer do
   Create a new line buffer object.
 
   iex> new("r88 Q00\n")
-  %FarmbotCore.Firmware.LineBuffer{
+  %FarmbotCore.Firmware.RxBuffer{
     buffer: "",
     output: ["R88 Q00\n"],
     ready: false
@@ -47,7 +47,7 @@ defmodule FarmbotCore.Firmware.LineBuffer do
   Create a new line buffer by appending to an existing buffer.
 
   iex> new("r88 Q00\n") |> puts("R99 ARDUINO STARTUP COMPLETE\n")
-  %FarmbotCore.Firmware.LineBuffer{
+  %FarmbotCore.Firmware.RxBuffer{
     buffer: "",
     output: ["R88 Q00\n", "R99 ARDUINO STARTUP COMPLETE\n"],
     ready: false
@@ -77,7 +77,7 @@ defmodule FarmbotCore.Firmware.LineBuffer do
   ...>    |> puts("r99 InCoMpLeTe DaTA")
   ...>    |> gets()
   {
-    %LineBuffer{
+    %RxBuffer{
       buffer: "R99 INCOMPLETE DATA",
       output: [],
       ready: true

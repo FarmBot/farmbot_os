@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Firmware.LineBufferTest do
+defmodule FarmbotCore.Firmware.RxBufferTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.LineBuffer
-  doctest FarmbotCore.Firmware.LineBuffer, import: true
+  alias FarmbotCore.Firmware.RxBuffer
+  doctest FarmbotCore.Firmware.RxBuffer, import: true
 
   @random_tokens [
     "",
@@ -28,8 +28,8 @@ defmodule FarmbotCore.Firmware.LineBufferTest do
 
     {_, results} =
       random_text
-      |> LineBuffer.new()
-      |> LineBuffer.gets()
+      |> RxBuffer.new()
+      |> RxBuffer.gets()
 
     Enum.map(results, fn chunk ->
       refute chunk =~ "\r", "Contains non-printing char #{inspect(chunk)}"

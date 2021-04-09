@@ -20,7 +20,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
       └────────────┘ restart this process.
        ▼
       ┌────────────┐ Ensures that GCode is a fully formed
-      │LineBuffer  │ block.
+      │RxBuffer    │ block.
       └────────────┘
        ▼
       ┌────────────┐ Converts GCode strings to machine readable
@@ -28,7 +28,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
       └────────────┘
        ▼
       ┌────────────┐ Triggers callbacks as the system ingests
-      │InboundUART │ GCode
+      │InboundGCode│ GCode
       └────────────┘
 
   Callbacks required:
@@ -49,14 +49,16 @@ defmodule FarmbotCore.Firmware.UARTCore do
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   alias FarmbotCore.Firmware.{
-    LineBuffer,
+    RxBuffer,
     GCodeDecoder,
-    InboundUART
+    InboundGCode
   }
 
   require Logger
 
-  defstruct circuits_pid: nil, parser: LineBuffer.new()
+  defstruct circuits_pid: nil,
+            rx_buffer: RxBuffer.new(),
+            inbound_gcode: InboundGCode.new()
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -70,23 +72,36 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   # === SCENARIO: Serial cable is unplugged.
   def handle_info({:circuits_uart, _, {:error, :eio}}, state) do
-    {:noreply, %{state | parser: LineBuffer.new()}}
+    {:noreply, %{state | rx_buffer: RxBuffer.new()}}
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
   def handle_info({:circuits_uart, _, msg}, state) when is_binary(msg) do
-    next_parser =
-      state.parser
-      |> LineBuffer.puts(msg)
-      |> LineBuffer.gets()
-      |> GCodeDecoder.run()
-      |> InboundUART.process()
+    # First, push all messages into a buffer. The result is a
+    # list of Gcode blocks to be processed (if any).
+    {next_rx_buffer, gcodes} = process_incoming_text(state.rx_buffer, msg)
 
-    {:noreply, %{state | parser: next_parser}}
+    # Next, pass the list of GCode blocks to a side effect
+    # handler.
+    next_inbound_gcode = InboundGCode.process(state.inbound_gcode, gcodes)
+
+    state_update = %{
+      rx_buffer: next_rx_buffer,
+      inbound_gcode: next_inbound_gcode
+    }
+
+    {:noreply, Map.merge(state, state_update)}
   end
 
   def handle_info(message, state) do
     Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
     {:noreply, state}
+  end
+
+  defp process_incoming_text(rx_buffer, text) do
+    rx_buffer
+    |> RxBuffer.puts(text)
+    |> RxBuffer.gets()
+    |> GCodeDecoder.run()
   end
 end

@@ -20,15 +20,15 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     assert capture_log(noise) =~ expected
 
     state1 = :sys.get_state(pid)
-    refute state1.parser.ready
+    refute state1.rx_buffer.ready
 
     send(pid, {:circuits_uart, "", "r99 "})
     state2 = :sys.get_state(pid)
-    refute state2.parser.ready
+    refute state2.rx_buffer.ready
 
     send(pid, {:circuits_uart, "", "ARDUINO startup COMPLETE\r\n"})
     state3 = :sys.get_state(pid)
-    assert state3.parser.ready
+    assert state3.rx_buffer.ready
   end
 
   # test "scratchpad" do
