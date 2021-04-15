@@ -3,7 +3,6 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
 
   @default_opts [
     active: true,
-    # framing: {Circuits.UART.Framing.Line, separator: "\r\n"},
     speed: 115_200
   ]
 

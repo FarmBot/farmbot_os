@@ -19,8 +19,8 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     | the contents back to FBOS verbatim.
     |
     V
-  PROCESSING , . -> TIMEOUT: Firmware didn't hear back from hardware
-               ' > DROPPED: FBOS didn't hear back from firmware
+  PROCESSING _,-> TIMEOUT: Firmware didn't hear back from hardware
+               `-> DROPPED: FBOS didn't hear back from firmware
   ==========================================================
     | The firmware has started executing the command, but is
     | not done yet.
@@ -49,7 +49,10 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %State{}
   end
 
+  def process_next_message(%{tx_buffer: %{queue: []}} = state), do: state
+
   def process_next_message(state) do
+    raise "TODO: Process the GCodes: #{inspect(state)}"
     state
   end
 

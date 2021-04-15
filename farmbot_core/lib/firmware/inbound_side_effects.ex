@@ -1,16 +1,11 @@
-defmodule FarmbotCore.Firmware.InboundGCode do
+defmodule FarmbotCore.Firmware.InboundSideEffects do
   @moduledoc """
   """
   alias FarmbotCore.{BotState, FirmwareEstopTimer}
+  alias FarmbotCore.Firmware.TxBuffer
+
   require Logger
   require FarmbotCore.Logger
-
-  alias __MODULE__, as: State
-  defstruct needs_config: true
-
-  def new() do
-    %State{}
-  end
 
   def process(state, gcode) do
     Enum.map(gcode, fn {name, params} ->
@@ -29,7 +24,7 @@ defmodule FarmbotCore.Firmware.InboundGCode do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(true)
-    IO.puts("IT IS SAFE TO SEND THE NEXT QUEUED GCODE!")
+    TxBuffer.process_next_message(state)
     state
   end
 
@@ -54,8 +49,8 @@ defmodule FarmbotCore.Firmware.InboundGCode do
   end
 
   defp reduce({:not_configured, _}, state) do
-    Logger.debug("Firmware needs config")
-    %{state | needs_config: true}
+    next_state = FarmbotCore.Firmware.ConfigUploader.upload(state)
+    next_state
   end
 
   defp reduce({:emergency_lock, _}, state) do
@@ -63,7 +58,8 @@ defmodule FarmbotCore.Firmware.InboundGCode do
     state
   end
 
-  defp reduce(_unknown, state) do
+  defp reduce(unknown, state) do
+    IO.inspect(unknown, label: "=== Unhandled inbound side effects")
     state
   end
 end

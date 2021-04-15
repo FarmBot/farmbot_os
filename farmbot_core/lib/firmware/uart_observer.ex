@@ -1,7 +1,5 @@
 defmodule FarmbotCore.Firmware.UARTObserver do
   alias __MODULE__, as: State
-  alias FarmbotCore.Asset
-  alias FarmbotFirmware.Parameter
 
   defstruct uart_pid: nil
 
@@ -24,7 +22,16 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def init(_) do
-    {:ok, refresh_data(%State{})}
+    config = FarmbotCore.Firmware.ConfigUploader.maybe_get_config()
+
+    if config do
+      IO.puts("FIX THIS- Handle `nil` cases.")
+      path = config.firmware_path
+      {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
+      {:ok, %State{uart_pid: uart_pid}}
+    else
+      {:ok, %State{}}
+    end
   end
 
   def handle_info({:data_available, from}, state) do
@@ -35,18 +42,5 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   def handle_info(message, state) do
     IO.inspect(message, label: "##### UNKNOWN #####")
     {:noreply, state}
-  end
-
-  defp refresh_data(state) do
-    state |> Map.merge(fbos_config()) |> Map.merge(fw_config())
-  end
-
-  defp fbos_config do
-    keys = [:firmware_hardware, :firmware_path]
-    Map.take(Asset.fbos_config(), keys)
-  end
-
-  defp fw_config do
-    Map.take(Asset.firmware_config(), Parameter.names())
   end
 end

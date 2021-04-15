@@ -27,9 +27,9 @@ defmodule FarmbotCore.Firmware.UARTCore do
       │GCodeDecoder│ data structures. Crashes on bad input.
       └────────────┘
        ▼
-      ┌────────────┐ Triggers callbacks as the system ingests
-      │InboundGCode│ GCode
-      └────────────┘
+      ┌──────────────────┐ Triggers callbacks as the system ingests
+      │InboundSideEffects│ GCode
+      └──────────────────┘
 
   Callbacks required:
    * New message (UART -> App)
@@ -52,25 +52,34 @@ defmodule FarmbotCore.Firmware.UARTCore do
     RxBuffer,
     TxBuffer,
     GCodeDecoder,
-    InboundGCode
+    InboundSideEffects
   }
 
   require Logger
 
   defstruct circuits_pid: nil,
             rx_buffer: RxBuffer.new(),
-            rx_status: InboundGCode.new(),
-            tx_buffer: TxBuffer.new()
+            tx_buffer: TxBuffer.new(),
+            # Is the device emergency locked?
+            locked: false,
+            # Has the MCU received a valid firmware
+            # config from FBOS?
+            config_phase: :unknown
 
   @ten_minutes 1000 * 60 * 10
 
-  # Send raw GCode to the MCU. Blocks the calling process
-  # until a response is received.
-  # Don't use this function outside of the `/firmware`
-  # directory.
+  # Schedule GCode to the MCU using the job queue. Blocks
+  # the calling process until a response is received. Don't
+  # use this function outside of the `/firmware` directory.
   def start_job(server \\ __MODULE__, gcode) do
     IO.puts("Starting job #{inspect(gcode)}")
     GenServer.call(server, {:start_job, gcode}, @ten_minutes)
+  end
+
+  # Sends GCode directly to the MCU without any checks or
+  # queues. Don't use outside of the `/firmware` directory.
+  def send_raw(server \\ __MODULE__, gcode) do
+    send(server, {:send_raw, gcode})
   end
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -83,11 +92,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid}}
   end
 
-  # === SCENARIO: FBOS wants to send raw text to the attached
-  #               serial device
+  # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, state) do
-    :ok = Support.uart_send(state.circuits_pid, text)
-    {:noreply, state}
+    # TODO: Use `Support.uart_send`.
+    Circuits.UART.write(state.circuits_pid, "#{text}\r\n")
+    {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
   end
 
   # === SCENARIO: Serial cable is unplugged.
@@ -96,35 +105,28 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
-  def handle_info({:circuits_uart, _, msg}, state) when is_binary(msg) do
+  def handle_info({:circuits_uart, _, msg}, state1) when is_binary(msg) do
     # First, push all messages into a buffer. The result is a
-    # list of Gcode blocks to be processed (if any).
-    {next_rx_buffer, txt_lines} = process_incoming_text(state.rx_buffer, msg)
+    # list of stringly-typed Gcode blocks to be
+    # processed (if any).
+    {next_rx_buffer, txt_lines} = process_incoming_text(state1.rx_buffer, msg)
+    state2 = %{state1 | rx_buffer: next_rx_buffer}
+    # Then, format GCode strings into Elixir-readable tuples.
     gcodes = GCodeDecoder.run(txt_lines)
-    # Next, pass the list of GCode blocks to a side effect
-    # handler.
-    next_rx_status = InboundGCode.process(state.rx_status, gcodes)
+    # Lastly, trigger any relevant side effect(s).
+    # Example: send userl logs when firmware is locked.
+    state3 = InboundSideEffects.process(state2, gcodes)
 
-    state_update = %{
-      rx_buffer: next_rx_buffer,
-      rx_status: next_rx_status
-    }
-
-    {:noreply, Map.merge(state, state_update)}
+    {:noreply, state3}
   end
 
+  # === SCENARIO: Unexpected message from a library or FBOS.
   def handle_info(message, state) do
     Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
     {:noreply, state}
   end
 
-  # Emergency stop always gets to jump the queue.
-  def handle_call({:start_job, "E"}, _, state) do
-    Circuits.UART.write(state.circuits_pid, " E\r\n")
-    {:noreply, %{state | tx_buffer: TxBuffer.new()}}
-  end
-
-  def handle_call({:start_job, gcode}, caller_pid, state) do
+  def handle_call({:start_job, gcode}, caller_pid, %{locked: false} = state) do
     # TODO: How will I call `GenServer.reply`?
     next_buffer = TxBuffer.push(state.tx_buffer, {caller_pid, gcode})
     {:noreply, %{state | tx_buffer: next_buffer}}

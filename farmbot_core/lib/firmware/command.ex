@@ -3,10 +3,10 @@ defmodule FarmbotCore.Firmware.Command do
   alias FarmbotCore.Firmware.UARTCore
 
   # E   Emergency stop
-  def lock(), do: schedule("E")
+  def lock(), do: UARTCore.send_raw("E")
 
   # F09 Reset emergency stop
-  def unlock(), do: schedule("F09")
+  def unlock(), do: UARTCore.send_raw("F09")
 
   # G28 Move home all axis (Z, Y, X axis order)
   def go_home(), do: schedule("G28")
@@ -71,14 +71,9 @@ defmodule FarmbotCore.Firmware.Command do
   def update_param(param, val) do
     gcode = "F22 #{encode_p(param)} V#{encode_float(val)}"
     schedule(gcode)
-    raise "Not used??"
   end
 
-  # ==== Not used???^
-
-  defp schedule(gcode) do
-    UARTCore.start_job(gcode)
-  end
+  defp schedule(gcode), do: UARTCore.start_job(gcode)
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
 
