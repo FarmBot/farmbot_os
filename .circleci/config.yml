@@ -435,19 +435,18 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
-      - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
       - run:
           name: Sign rpi3 Firmware and create image
           command: |
             mv /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw /tmp/farmbot-rpi3-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
+            fwup -i /tmp/farmbot-rpi3-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img
             sha256sum /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi3-$(cat VERSION).sha256
       - run:
           name: Sign rpi Firmware and create image
           command: |
             mv /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw /tmp/farmbot-rpi-$(cat VERSION).fw
-            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw
+            fwup -i /tmp/farmbot-rpi-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw
             fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img
             sha256sum /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).sha256
       - run:
