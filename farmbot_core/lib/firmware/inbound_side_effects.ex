@@ -7,7 +7,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require Logger
   require FarmbotCore.Logger
 
-  def process(state, gcode), do: Enum.reduce(gcode, state, &reduce/2)
+  def process(state, gcode) do
+    # Uncomment this line for debugging:
+    # IO.inspect(gcode, label: "=== INBOUND GCODE")
+    Enum.reduce(gcode, state, &reduce/2)
+  end
 
   defp reduce({:debug_message, string}, state) do
     Logger.debug("Firmware Message: #{inspect(string)}")
@@ -18,6 +22,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(true)
+    :ok = BotState.set_firmware_busy(false)
     TxBuffer.process_next_message(state)
   end
 
@@ -42,6 +47,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:start, %{queue: _}}, state) do
+    BotState.set_firmware_busy(true)
     state
   end
 
@@ -58,16 +64,27 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   # USECASE I: MCU is not configured. FBOS did not try to
   # upload yet.
   defp reduce({:not_configured, _}, %{config_phase: :not_started} = state) do
+    BotState.im_busy()
     FarmbotCore.Firmware.ConfigUploader.upload(state)
   end
 
   # USECASE II: MCU is not configured, but FBOS already started an upload.
   defp reduce({:not_configured, _}, state) do
+    BotState.im_busy()
     state
   end
 
   defp reduce({:emergency_lock, _}, state) do
-    IO.puts("Emergency locked...")
+    :ok = BotState.set_firmware_locked()
+    state
+  end
+
+  defp reduce({:param_value_report, %{pin_or_param: p_float, value: v}}, s) do
+    FarmbotCore.Firmware.ConfigUploader.verify_param(s, {trunc(p_float), v})
+  end
+
+  defp reduce({:software_version, version}, state) do
+    :ok = BotState.set_firmware_version(version)
     state
   end
 

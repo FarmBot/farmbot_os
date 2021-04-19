@@ -1,9 +1,0 @@
-{application,farmbot_telemetry,
-             [{applications,[kernel,stdlib,elixir,logger,telemetry,
-                             excoveralls,uuid]},
-              {description,"farmbot_telemetry"},
-              {modules,['Elixir.FarmbotTelemetry',
-                        'Elixir.FarmbotTelemetry.Application']},
-              {registered,[]},
-              {vsn,"13.1.0-rc20"},
-              {mod,{'Elixir.FarmbotTelemetry.Application',[]}}]}.

@@ -82,6 +82,11 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     state
   end
 
+  # Queue number 0 is special. If a response comes back on
+  # Q00, assume it was not sent via this module and
+  # ignore it.
+  def process_ok(state, 0), do: state
+
   def process_ok(%{tx_buffer: txb} = state, q) do
     old_pending = txb.pending
     # 0. Fetch job, crashing if it does not exist.

@@ -22,17 +22,19 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def init(_) do
-    config = FarmbotCore.Firmware.ConfigUploader.maybe_get_config()
+    try_to_attach_uart()
+    {:ok, %State{}}
+  end
 
-    if config do
-      IO.puts("FIX THIS- Handle `nil` cases.")
-      path = config.firmware_path
-      {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
-      {:ok, %State{uart_pid: uart_pid}}
-    else
-      IO.puts("=== WARNING: THIS IS WRONG!! Just crash instead!!")
-      {:ok, %State{}}
+  def handle_info(:connect_uart, %{uart_pid: nil}) do
+    uart_pid = maybe_get_uart_pid()
+
+    unless uart_pid do
+      IO.puts("==== Retrying UART connection...")
+      try_to_attach_uart()
     end
+
+    {:noreply, %State{uart_pid: uart_pid}}
   end
 
   def handle_info({:data_available, from}, state) do
@@ -43,5 +45,19 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   def handle_info(message, state) do
     IO.inspect(message, label: "##### UNKNOWN #####")
     {:noreply, state}
+  end
+
+  defp try_to_attach_uart() do
+    Process.send_after(self(), :connect_uart, 3_000)
+  end
+
+  defp maybe_get_uart_pid do
+    config = FarmbotCore.Firmware.ConfigUploader.maybe_get_config()
+
+    if config do
+      path = config.firmware_path
+      {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
+      uart_pid
+    end
   end
 end

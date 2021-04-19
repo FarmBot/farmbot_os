@@ -5,6 +5,7 @@ defmodule FarmbotOS.System do
   require FarmbotCore.Logger
   require Logger
   alias FarmbotCore.Asset
+  alias FarmbotCore.Firmware.Command
 
   error_msg = """
   Please configure `:system_tasks`!
@@ -85,14 +86,9 @@ defmodule FarmbotOS.System do
   end
 
   # Check if the FarmbotCore.Firmware process is alive
-  def try_lock_fw(fw_module \\ FarmbotCore.Firmware) do
+  def try_lock_fw() do
     try do
-      if Process.whereis(fw_module) do
-        FarmbotCore.Logger.warn(1, "Emergency locking and powering down")
-        fw_module.command({:command_emergency_lock, []})
-      else
-        FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down (1)")
-      end
+      Command.lock()
     rescue
       _ ->
         FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down (2)")

@@ -74,6 +74,11 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     raise "Expect inbound GCode to begin with `R`. Got: #{actual}"
   end
 
+  defp process("R83" <> rest) do
+    version = rest |> String.trim() |> String.split(" ") |> Enum.at(0)
+    {response_code("83"), version}
+  end
+
   # Firmware log
   defp process("R99" <> rest) do
     {response_code("99"), String.trim(rest)}

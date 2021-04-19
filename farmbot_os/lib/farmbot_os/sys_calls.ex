@@ -8,6 +8,7 @@ defmodule FarmbotOS.SysCalls do
   require Logger
 
   alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Firmware.Command
 
   alias FarmbotCore.Asset.{
     BoxLed,
@@ -209,14 +210,14 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def emergency_lock do
-    _ = FarmbotCore.Firmware.command({:command_emergency_lock, []})
+    Command.lock()
     FarmbotCore.Logger.error(1, "E-stopped")
     :ok
   end
 
   @impl true
   def emergency_unlock do
-    _ = FarmbotCore.Firmware.command({:command_emergency_unlock, []})
+    Command.unlock()
     FarmbotCore.Logger.busy(1, "Unlocked")
     :ok
   end
