@@ -11,8 +11,12 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     maybe_open_uart_device(pid, path)
   end
 
-  def uart_send(circuits_uart_pid, text) do
-    :ok = Circuits.UART.write(circuits_uart_pid, text)
+  def uart_send(uart_pid, text) do
+    if is_pid(uart_pid) && Process.alive?(uart_pid) do
+      :ok = Circuits.UART.write(uart_pid, text <> "\r\n")
+    else
+      raise "UART DIED!!"
+    end
   end
 
   defp maybe_open_uart_device(pid, path) do

@@ -30,6 +30,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
       {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
       {:ok, %State{uart_pid: uart_pid}}
     else
+      IO.puts("=== WARNING: THIS IS WRONG!! Just crash instead!!")
       {:ok, %State{}}
     end
   end

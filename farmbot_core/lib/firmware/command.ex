@@ -73,6 +73,8 @@ defmodule FarmbotCore.Firmware.Command do
     schedule(gcode)
   end
 
+  def f22({param, val}), do: "F22 #{encode_p(param)} V#{encode_float(val)}"
+
   defp schedule(gcode), do: UARTCore.start_job(gcode)
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
@@ -80,7 +82,8 @@ defmodule FarmbotCore.Firmware.Command do
   defp encode_p(p) when is_number(p) do
     # Crash on bad input:
     _ = Parameter.translate(p)
-    "P" <> String.pad_leading("#{p}", 3, ["0"])
+    # String.pad_leading(, 3, ["0"])
+    "P#{p}"
   end
 
   defp encode_p(p) do

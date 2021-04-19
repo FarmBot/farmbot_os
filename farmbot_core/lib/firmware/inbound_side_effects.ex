@@ -7,13 +7,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require Logger
   require FarmbotCore.Logger
 
-  def process(state, gcode) do
-    Enum.map(gcode, fn {name, params} ->
-      IO.inspect(params, label: "==> #{name}")
-    end)
-
-    Enum.reduce(gcode, state, &reduce/2)
-  end
+  def process(state, gcode), do: Enum.reduce(gcode, state, &reduce/2)
 
   defp reduce({:debug_message, string}, state) do
     Logger.debug("Firmware Message: #{inspect(string)}")
@@ -25,7 +19,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     :ok = BotState.set_firmware_unlocked()
     :ok = BotState.set_firmware_idle(true)
     TxBuffer.process_next_message(state)
-    state
   end
 
   defp reduce({:current_position, %{x: x, y: y, z: z}}, state) do
@@ -48,9 +41,29 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     s
   end
 
+  defp reduce({:start, %{queue: _}}, state) do
+    state
+  end
+
+  defp reduce({:echo, echo_string}, state) do
+    TxBuffer.process_echo(state, String.replace(echo_string, "*", ""))
+  end
+
+  defp reduce({:ok, %{queue: q_float}}, state) do
+    state
+    |> TxBuffer.process_ok(trunc(q_float))
+    |> TxBuffer.process_next_message()
+  end
+
+  # USECASE I: MCU is not configured. FBOS did not try to
+  # upload yet.
+  defp reduce({:not_configured, _}, %{config_phase: :not_started} = state) do
+    FarmbotCore.Firmware.ConfigUploader.upload(state)
+  end
+
+  # USECASE II: MCU is not configured, but FBOS already started an upload.
   defp reduce({:not_configured, _}, state) do
-    next_state = FarmbotCore.Firmware.ConfigUploader.upload(state)
-    next_state
+    state
   end
 
   defp reduce({:emergency_lock, _}, state) do

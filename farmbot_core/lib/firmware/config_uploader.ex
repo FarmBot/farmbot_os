@@ -1,6 +1,8 @@
 defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Asset
   alias FarmbotFirmware.Parameter
+  alias FarmbotCore.Firmware.Command
+  alias FarmbotCore.Firmware.TxBuffer
 
   def upload(state) do
     %{} = do_upload(state, maybe_get_config())
@@ -18,7 +20,6 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       end)
 
     if missing_key? do
-      IO.puts("Missing key: #{inspect(missing_key?)}")
       nil
     else
       data
@@ -27,12 +28,18 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
 
   defp do_upload(state, nil), do: state
 
-  defp do_upload(state, _config_data) do
-    Enum.map(Parameter.names(), fn name ->
-      IO.puts("Still need to upload #{inspect(name)}")
-    end)
+  defp do_upload(state, config_data) do
+    next_tx_buffer =
+      config_data
+      |> Map.to_list()
+      |> Enum.filter(fn {k, _v} -> Parameter.is_param?(k) end)
+      |> Enum.map(fn {key, value} -> {Parameter.translate(key), value} end)
+      |> Enum.map(&Command.f22/1)
+      |> Enum.reduce(state.tx_buffer, fn gcode, tx_buffer ->
+        TxBuffer.push(tx_buffer, {nil, gcode})
+      end)
 
-    state
+    %{state | tx_buffer: next_tx_buffer, config_phase: :in_progress}
   end
 
   defp fetch_data() do

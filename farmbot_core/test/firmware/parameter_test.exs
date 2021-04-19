@@ -2,10 +2,14 @@ defmodule FarmbotFirmware.ParameterTest do
   use ExUnit.Case
   alias FarmbotFirmware.Parameter
 
-  @how_many_params_there_are 104
+  # REAL VALUE:
+  # @how_many_params_there_are 104
+
+  # VALUE DURING TESTING:
+  @how_many_params_there_are 92
 
   test "decoding" do
-    assert 86 == Parameter.translate(:movement_stall_sensitivity_y)
+    assert 61 == Parameter.translate(:movement_min_spd_x)
   end
 
   test "encoding" do

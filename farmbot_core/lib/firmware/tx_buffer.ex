@@ -32,59 +32,111 @@ defmodule FarmbotCore.Firmware.TxBuffer do
 
   alias __MODULE__, as: State
 
-  @pending :pending
-  # @begin :begin
-  # @echo_ok :echo_ok
-  # @ok :ok
-  # @processing :processing
-
-  # ID of last job created (or zero if none exist yet)
-  defstruct autoinc: 0,
-            # List of IDs that need to be processed
-            queue: [],
-            # Job data, indexed by unique ID
-            jobs: %{}
+  # List of IDs that need to be processed
+  defstruct queue: [],
+            # Last `Q` param that was sent to MCU.
+            q: 1,
+            # Jobs pending, indexed by unique ID
+            pending: %{}
 
   def new() do
     %State{}
   end
 
-  def process_next_message(%{tx_buffer: %{queue: []}} = state), do: state
+  def push(state, {caller_pid, gcode}) do
+    job = %{caller: caller_pid, gcode: gcode, echo: nil}
+    %{state | queue: state.queue ++ [job]}
+  end
 
-  def process_next_message(state) do
-    raise "TODO: Process the GCodes: #{inspect(state)}"
+  def process_next_message(
+        %{tx_buffer: %{q: old_q, queue: [job | next_queue]}} = state
+      ) do
+    last_buffer = state.tx_buffer
+
+    # 0. Create q param
+    q =
+      if Enum.member?(1..98, old_q) do
+        old_q + 1
+      else
+        1
+      end
+
+    # 1. Attach a `Q` param to GCode.
+    gcode = job.gcode <> " Q#{q}"
+
+    # 2. Move job to the "waiting area"
+    pending_updates = %{q => %{job | gcode: gcode}}
+    next_pending = Map.merge(last_buffer.pending, pending_updates)
+
+    # 3. Send GCode down the wire with newly minted Q param
+    IO.inspect(gcode, label: "=== SENDING JOB")
+    FarmbotCore.Firmware.UARTCoreSupport.uart_send(state.circuits_pid, gcode)
+
+    # 4. Update state.
+    updates = %{pending: next_pending, queue: next_queue, q: q}
+    %{state | tx_buffer: Map.merge(last_buffer, updates)}
+  end
+
+  def process_next_message(%{tx_buffer: %{queue: []}} = state) do
+    IO.puts("No jobs to process.")
     state
   end
 
-  def push(%{autoinc: i} = s, {pid, gcode}) when i > 99 when i < 0 do
-    push(%{s | autoinc: 0}, {pid, gcode})
+  def process_ok(%{tx_buffer: txb} = state, q) do
+    old_pending = txb.pending
+    # 0. Fetch job, crashing if it does not exist.
+    %{caller: pid} = Map.fetch!(old_pending, q)
+    # 1. If job had a PID, and it is still alive, send a Genserver.reply.
+    if is_pid(pid) && Process.alive?(pid) do
+      IO.puts("SENT FIRMWARE REPLY TO CALLER PID!!")
+      GenServer.reply(pid, :ok)
+    end
+
+    # 2. Remove job from state tree
+    new_txb = %{txb | pending: Map.delete(old_pending, q)}
+    %{state | tx_buffer: new_txb}
   end
 
-  def push(state, {caller_pid, gcode}) do
-    id = state.autoinc + 1
+  def process_echo(state, echo) do
+    do_process_echo(state, echo, extract_q_param(echo))
+  end
 
-    if Map.has_key?(state.jobs, id) do
-      raise "JOB OVERFLOW - Ran out of queues @ id #{inspect(id)}!"
+  defp do_process_echo(state, _echo, nil) do
+    # If there is no Q param, there's
+    # no way to retrieve the job
+    state
+  end
+
+  defp do_process_echo(%{tx_buffer: txb} = state, echo, q) do
+    # 0. Retrieve old job
+    old_job = Map.fetch!(state.tx_buffer.pending, q)
+
+    # 1. add `echo` to job record
+    %{echo: echo, gcode: gcode} = new_job = %{old_job | echo: echo}
+
+    # 2. Cross-check gcode with echo, crash if not ==
+    if echo != gcode do
+      err = "CORRUPT ECHO! Expected echo "
+      raise err <> "#{inspect(echo)} to equal #{inspect(gcode)}"
     end
 
-    if id == 0 do
-      # 0 is special
-      raise "CANT USE 0 as JOB ID!!!"
+    # 3. Add updated record to state.
+    new_pending = Map.put(txb.pending, q, new_job)
+    new_txb = Map.merge(txb, %{pending: new_pending})
+    %{state | tx_buffer: new_txb}
+  end
+
+  defp extract_q_param(text) do
+    regex = ~r/Q\d\d?/
+
+    if Regex.match?(regex, text) do
+      {q, _} =
+        Regex.run(regex, text)
+        |> Enum.at(0)
+        |> String.replace("Q", "")
+        |> Integer.parse(10)
+
+      q
     end
-
-    job = %{
-      id: id,
-      status: @pending,
-      created_at: :os.system_time(:millisecond),
-      caller: caller_pid,
-      gcode: gcode
-    }
-
-    # TODO: Crash on duplicate keys
-    next_jobs = Map.merge(state.jobs, %{id => job})
-    next_queue = state.queue ++ [id]
-
-    IO.inspect(job, label: "=== NEW JOB!")
-    %{state | autoinc: id, queue: next_queue, jobs: next_jobs}
   end
 end

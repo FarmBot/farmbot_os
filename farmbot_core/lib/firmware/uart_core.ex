@@ -64,7 +64,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
             locked: false,
             # Has the MCU received a valid firmware
             # config from FBOS?
-            config_phase: :unknown
+            config_phase: :not_started
 
   @ten_minutes 1000 * 60 * 10
 
@@ -92,11 +92,20 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid}}
   end
 
+  # === SCENARIO: EMERGENCY LOCK - this one gets special
+  # treatment. It skips all queing mechanisms and dumps
+  # any tasks that were already queued.
+  def handle_info({:send_raw, "E"}, state) do
+    Circuits.UART.write(state.circuits_pid, "E\r\n")
+    {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
+  end
+
   # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, state) do
+    IO.puts(" == SEND RAW: #{inspect(text)}")
     # TODO: Use `Support.uart_send`.
     Circuits.UART.write(state.circuits_pid, "#{text}\r\n")
-    {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
+    {:noreply, state}
   end
 
   # === SCENARIO: Serial cable is unplugged.
