@@ -3,6 +3,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.Movement
+  alias FarmbotCore.Firmware.Command
 
   test "home/1" do
     expect(FarmbotCore.Firmware, :command, 2, fn
@@ -27,14 +28,14 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "calibrate/1" do
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:command_movement_calibrate, [:x]} -> :ok
-      {:command_movement_calibrate, [:y]} -> {:error, "nope"}
+    expect(Command, :find_length, 2, fn
+      :x -> :ok
+      :y -> {:error, "nope"}
     end)
 
     assert :ok == Movement.calibrate(:x)
     {:error, message} = Movement.calibrate(:y)
-    assert "Firmware error @ \"calibrate()\": \"nope\"" == message
+    assert "Firmware error @ \"calibrate()\": {:error, \"nope\"}" == message
   end
 
   test "catching bad axis values" do

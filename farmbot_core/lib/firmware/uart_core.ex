@@ -48,6 +48,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   alias __MODULE__, as: State
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
   alias FarmbotCore.BotState
+
   alias FarmbotCore.Firmware.{
     RxBuffer,
     TxBuffer,
@@ -72,7 +73,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # the calling process until a response is received. Don't
   # use this function outside of the `/firmware` directory.
   def start_job(server \\ __MODULE__, gcode) do
-    IO.puts("Starting job #{inspect(gcode)}")
     GenServer.call(server, {:start_job, gcode}, @ten_minutes)
   end
 
@@ -135,10 +135,13 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, state}
   end
 
-  def handle_call({:start_job, gcode}, caller_pid, %{locked: false} = state) do
-    # TODO: How will I call `GenServer.reply`?
-    next_buffer = TxBuffer.push(state.tx_buffer, {caller_pid, gcode})
+  def handle_call({:start_job, gcode}, caller, %{locked: false} = state) do
+    next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
     {:noreply, %{state | tx_buffer: next_buffer}}
+  end
+
+  def handle_call({:start_job, gcode}, _, state) do
+    {:reply, {:error, "Device is locked."}, state}
   end
 
   defp process_incoming_text(rx_buffer, text) do

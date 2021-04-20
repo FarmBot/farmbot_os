@@ -100,6 +100,10 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     string
     |> String.trim()
     |> String.split(" ")
+    |> Enum.filter(fn
+      "" -> false
+      _ -> true
+    end)
     |> Enum.map(fn pair ->
       [number] = Regex.run(~r/\d+\.?\d?+/, pair)
       [code] = Regex.run(~r/\D{1,2}/, pair)

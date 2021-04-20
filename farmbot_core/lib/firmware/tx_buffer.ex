@@ -43,8 +43,8 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %State{}
   end
 
-  def push(state, {caller_pid, gcode}) do
-    job = %{caller: caller_pid, gcode: gcode, echo: nil}
+  def push(state, {caller, gcode}) do
+    job = %{caller: caller, gcode: gcode, echo: nil}
     %{state | queue: state.queue ++ [job]}
   end
 
@@ -78,7 +78,6 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   end
 
   def process_next_message(%{tx_buffer: %{queue: []}} = state) do
-    IO.puts("No jobs to process.")
     state
   end
 
@@ -90,11 +89,26 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   def process_ok(%{tx_buffer: txb} = state, q) do
     old_pending = txb.pending
     # 0. Fetch job, crashing if it does not exist.
-    %{caller: pid} = Map.fetch!(old_pending, q)
-    # 1. If job had a PID, and it is still alive, send a Genserver.reply.
-    if is_pid(pid) && Process.alive?(pid) do
+    %{caller: caller} = Map.fetch!(old_pending, q)
+    # 1. If job had a caller, send a Genserver.reply.
+    if caller do
       IO.puts("SENT FIRMWARE REPLY TO CALLER PID!!")
-      GenServer.reply(pid, :ok)
+      GenServer.reply(caller, {:ok, nil})
+    end
+
+    # 2. Remove job from state tree
+    new_txb = %{txb | pending: Map.delete(old_pending, q)}
+    %{state | tx_buffer: new_txb}
+  end
+
+  def process_error(%{tx_buffer: txb} = state, q) do
+    old_pending = txb.pending
+    # 0. Fetch job, crashing if it does not exist.
+    %{caller: pid} = Map.fetch!(old_pending, q)
+
+    if pid do
+      # 1. If job had a PID, and it is still alive, send a Genserver.reply.
+      GenServer.reply(pid, {:error, nil})
     end
 
     # 2. Remove job from state tree

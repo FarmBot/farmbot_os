@@ -2,6 +2,8 @@ defmodule FarmbotOS.SysCalls.Movement do
   @moduledoc false
 
   require FarmbotCore.Logger
+  alias FarmbotCore.Firmware.Command
+  alias FarmbotCore.BotState
 
   def get_current_x do
     get_position(:x)
@@ -40,12 +42,10 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def get_position() do
-    case FarmbotCore.Firmware.request({nil, {:position_read, []}}) do
-      {:ok, {_, {:report_position, params}}} ->
-        params
-
-      {:error, reason} ->
-        FarmbotOS.SysCalls.give_firmware_reason("get_position", reason)
+    # Update read cache
+    case Command.report_current_position() do
+      {:ok, %{x: x, y: y, z: z}} -> [x: x, y: y, z: z]
+      reason -> FarmbotOS.SysCalls.give_firmware_reason("get_position", reason)
     end
   end
 
@@ -59,7 +59,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def get_cached_position() do
-    %{x: x, y: y, z: z} = FarmbotCore.BotState.fetch().location_data.position
+    %{x: x, y: y, z: z} = BotState.fetch().location_data.position
     [x: x, y: y, z: z]
   end
 
@@ -79,16 +79,17 @@ defmodule FarmbotOS.SysCalls.Movement do
   defp do_move_absolute(x, y, z, speed_x, speed_y, speed_z) do
     with {:ok, max_speed_x} <- param_read(:movement_max_spd_x),
          {:ok, max_speed_y} <- param_read(:movement_max_spd_y),
-         {:ok, max_speed_z} <- param_read(:movement_max_spd_z),
-         params <- [
-           x: x / 1.0,
-           y: y / 1.0,
-           z: z / 1.0,
-           a: speed_x / 100 * (max_speed_x || 1),
-           b: speed_y / 100 * (max_speed_y || 1),
-           c: speed_z / 100 * (max_speed_z || 1)
-         ] do
-      result = FarmbotCore.Firmware.command({nil, {:command_movement, params}})
+         {:ok, max_speed_z} <- param_read(:movement_max_spd_z) do
+      result =
+        Command.move_abs(%{
+          x: x / 1.0,
+          y: y / 1.0,
+          z: z / 1.0,
+          a: speed_x / 100 * (max_speed_x || 1),
+          b: speed_y / 100 * (max_speed_y || 1),
+          c: speed_z / 100 * (max_speed_z || 1)
+        })
+
       finish_movement(result)
     else
       error -> finish_movement(error)
@@ -117,13 +118,11 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def calibrate(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotCore.Firmware.command({:command_movement_calibrate, [axis]}) do
+    case Command.find_length(assert_axis!(axis)) do
       :ok ->
         :ok
 
-      {:error, reason} ->
+      reason ->
         FarmbotOS.SysCalls.give_firmware_reason("calibrate()", reason)
     end
   end
@@ -157,9 +156,20 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   defp param_read(param) do
-    case FarmbotCore.Firmware.request({:parameter_read, [param]}) do
-      {:ok, {_, {:report_parameter_value, [{^param, value}]}}} -> {:ok, value}
-      {:error, reason} -> {:error, reason}
+    conf = FarmbotCore.Asset.firmware_config()
+
+    if conf do
+      value = Map.get(conf, param)
+
+      if value do
+        {:ok, value}
+      else
+        IO.puts("MOVEMENT FAIL #{inspect(param)} was nil")
+        {:error, "#{inspect(param)} was nil"}
+      end
+    else
+      IO.puts("MOVEMENT FAIL CONF WAS NIL")
+      {:error, "conf was `nil`"}
     end
   end
 

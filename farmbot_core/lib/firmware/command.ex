@@ -1,6 +1,21 @@
 defmodule FarmbotCore.Firmware.Command do
   alias FarmbotFirmware.Parameter
   alias FarmbotCore.Firmware.UARTCore
+  alias FarmbotCore.BotState
+
+  # G00(X, Y, Z, A, B, C) Move to location at given speed
+  # for axis in absolute coordinates
+  def move_abs(%{x: x, y: y, z: z, a: a, b: b, c: c}) do
+    [
+      "G00",
+      "X#{inspect(x)}",
+      "Y#{inspect(y)}",
+      "Z#{inspect(z)}",
+      "A#{inspect(a)}",
+      "B#{inspect(b)}",
+      "C#{inspect(c)}"
+    ] |> Enum.join(" ") |> schedule()
+  end
 
   # E   Emergency stop
   def lock(), do: UARTCore.send_raw("E")
@@ -20,14 +35,14 @@ defmodule FarmbotCore.Firmware.Command do
   # F13 Home Z axis (find 0, 3 attempts) *
   def find_home(:z), do: schedule("F13")
 
-  # F14 Calibrate X axis (measure length + find 0) *
-  def calibrate(:x), do: schedule("F14")
+  # F14 Find length of X axis (measure length + find 0) *
+  def find_length(:x), do: schedule("F14")
 
-  # F15 Calibrate Y axis (measure length + find 0) *
-  def calibrate(:y), do: schedule("F15")
+  # F15 Find length of Y axis (measure length + find 0) *
+  def find_length(:y), do: schedule("F15")
 
-  # F16 Calibrate Z axis (measure length + find 0) *
-  def calibrate(:z), do: schedule("F16")
+  # F16 Find length of Z axis (measure length + find 0) *
+  def find_length(:z), do: schedule("F16")
 
   # F20 List all parameters and value
   def read_params(), do: schedule("F20")
@@ -45,7 +60,11 @@ defmodule FarmbotCore.Firmware.Command do
   def report_end_stops(), do: schedule("F81")
 
   # F82
-  def report_current_position(), do: schedule("F82")
+  def report_current_position() do
+    schedule("F82")
+    pos = %{x: _, y: _, z: _} = BotState.fetch().location_data.position
+    {:ok, pos}
+  end
 
   # F83
   def report_software_version(), do: schedule("F83")
@@ -56,7 +75,6 @@ defmodule FarmbotCore.Firmware.Command do
   # F61(P, V) Set the servo on the pin P (only pins 4, 5, 6, and 11) to the requested angle V
   # F42(P, M) Read a value from an arduino pin P in mode M (digital=0/analog=1)
   # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
-  # G00(X, Y, Z, A, B, C) Move to location at given speed for axis in absolute coordinates
   # ==== TODO ^
 
   # === Not implemented??:
@@ -82,7 +100,6 @@ defmodule FarmbotCore.Firmware.Command do
   defp encode_p(p) when is_number(p) do
     # Crash on bad input:
     _ = Parameter.translate(p)
-    # String.pad_leading(, 3, ["0"])
     "P#{p}"
   end
 

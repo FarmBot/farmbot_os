@@ -32,7 +32,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   end
 
   defp do_verify_param(_, {2, _}) do
-    IO.puts("==== CONFIG ACCEPTED BY MCU!")
+    IO.puts("==== Congfig upload complete")
   end
 
   defp do_verify_param(nil, _conf) do

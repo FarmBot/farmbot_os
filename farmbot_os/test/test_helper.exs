@@ -16,6 +16,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.HTTP,
   FarmbotCore.Firmware,
+  FarmbotCore.Firmware.Command,
   FarmbotOS.Configurator.ConfigDataLayer,
   FarmbotOS.Configurator.DetsTelemetryLayer,
   FarmbotOS.Configurator.FakeNetworkLayer,
