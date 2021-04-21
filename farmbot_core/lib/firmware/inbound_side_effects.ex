@@ -98,7 +98,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     |> TxBuffer.process_next_message()
   end
 
-  defp reduce({:invalidation, _}, state), do: raise("FBOS SENT INVALID GCODE")
+  defp reduce({:invalidation, _}, _), do: raise("FBOS SENT INVALID GCODE")
 
   defp reduce({:ok, %{queue: q_float}}, state) do
     state

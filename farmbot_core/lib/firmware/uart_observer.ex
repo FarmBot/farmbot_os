@@ -52,12 +52,36 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   defp maybe_get_uart_pid do
-    config = FarmbotCore.Firmware.ConfigUploader.maybe_get_config()
+    path = guess_uart(FarmbotCore.Firmware.ConfigUploader.maybe_get_config())
 
-    if config do
-      path = config.firmware_path
+    if path do
       {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
       uart_pid
     end
   end
+
+  # If the `firmware_path` is not set, we can still try to
+  # guess. We only guess if there is _EXACTLY_ one serial
+  # device. This is to prevent interference with DIY setups.
+  defp guess_uart(nil) do
+    case uart_list() do
+      [default_uart] -> default_uart
+      _ -> nil
+    end
+  end
+
+  defp guess_uart(config) do
+    config.firmware_path || guess_uart(nil)
+  end
+
+  defp uart_list() do
+    Circuits.UART.enumerate()
+    |> Map.keys()
+    |> Enum.filter(&filter_uart/1)
+  end
+
+  defp filter_uart("ttyACM" <> _), do: true
+  defp filter_uart("ttyAMA" <> _), do: true
+  defp filter_uart("ttyUSB" <> _), do: true
+  defp filter_uart(_), do: false
 end

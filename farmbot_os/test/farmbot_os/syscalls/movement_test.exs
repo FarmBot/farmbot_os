@@ -44,76 +44,43 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "move_absolute/4" do
-    FarmbotCore.Firmware
-    |> expect(:request, 3, fn
-      {:parameter_read, [:movement_max_spd_x]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_x, 1}]}}}
-
-      {:parameter_read, [:movement_max_spd_y]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_y, 2}]}}}
-
-      {:parameter_read, [:movement_max_spd_z]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_z, 3}]}}}
-    end)
-    |> expect(:command, 1, fn {nil, {:command_movement, params}} ->
-      expected = [x: 1.0, y: 2.0, z: 3.0, a: 0.04, b: 0.08, c: 0.12]
-      assert expected == params
-      :ok
-    end)
-
-    result = Movement.move_absolute(1, 2, 3, 4)
-    assert :ok == result
+    expect(Command, :move_abs, 1, fn _ -> {:ok, nil} end)
+    assert :ok == Movement.move_absolute(1, 2, 3, 4)
   end
 
   test "move_absolute/4 - unexpected error (not a tuple)" do
-    FarmbotCore.Firmware
-    |> expect(:request, 3, fn
-      {:parameter_read, [:movement_max_spd_x]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_x, 1}]}}}
+    msg = "kaboom"
+    formatted_msg = "Movement failed. " <> msg
 
-      {:parameter_read, [:movement_max_spd_y]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_y, 2}]}}}
-
-      {:parameter_read, [:movement_max_spd_z]} ->
-        {:ok, {:tag, {:report_parameter_value, [{:movement_max_spd_z, 3}]}}}
-    end)
-    |> expect(:command, 1, fn {nil, {:command_movement, _}} ->
-      "kaboom"
-    end)
-
-    msg = "Movement failed. kaboom"
+    expect(Command, :move_abs, 1, fn _ -> msg end)
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-      assert log.message == msg
+      assert log.message == formatted_msg
     end)
 
     {:error, error_log} = Movement.move_absolute(1, 2, 3, 4)
-
-    assert msg == error_log
+    assert formatted_msg == error_log
   end
 
   @tag :capture_log
   test "move_absolute/4 - error (in tuple)" do
-    expect(FarmbotCore.Firmware, :request, 1, fn {:parameter_read, [_]} ->
-      {:error, "boom"}
-    end)
-
-    msg = "Movement failed. boom"
+    msg = "boom"
+    formatted_msg = "Movement failed. " <> msg
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-      assert log.message == msg
+      assert log.message == formatted_msg
+    end)
+
+    expect(Command, :move_abs, 1, fn _ ->
+      {:error, msg}
     end)
 
     {:error, error_log} = Movement.move_absolute(1, 2, 3, 4)
-
-    assert msg == error_log
+    assert formatted_msg == error_log
   end
 
   test "get_position/1 - error" do
-    expect(FarmbotCore.Firmware, :request, 1, fn {nil, {:position_read, []}} ->
-      {:error, "boom"}
-    end)
-
+    expect(Command, :report_current_position, 1, fn -> "boom" end)
     message = "Firmware error @ \"get_position\": \"boom\""
     assert {:error, ^message} = Movement.get_position(:x)
   end
@@ -135,9 +102,8 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "get_current_(x|y|z)" do
-    expect(FarmbotCore.Firmware, :request, 3, fn _args ->
-      fake_stuff = [x: 1, y: 2, z: 3]
-      {:ok, {:whatever, {:report_position, fake_stuff}}}
+    expect(Command, :report_current_position, 3, fn ->
+      {:ok, %{x: 1, y: 2, z: 3}}
     end)
 
     assert 1 == Movement.get_current_x()

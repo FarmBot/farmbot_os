@@ -140,7 +140,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, %{state | tx_buffer: next_buffer}}
   end
 
-  def handle_call({:start_job, gcode}, _, state) do
+  # Always reject job requests if locked != false.
+  def handle_call({:start_job, _gcode}, _, state) do
     {:reply, {:error, "Device is locked."}, state}
   end
 

@@ -6,15 +6,19 @@ defmodule FarmbotCore.Firmware.Command do
   # G00(X, Y, Z, A, B, C) Move to location at given speed
   # for axis in absolute coordinates
   def move_abs(%{x: x, y: y, z: z, a: a, b: b, c: c}) do
+    {max_speed_x, max_speed_y, max_speed_z} = max_speeds()
+
     [
       "G00",
-      "X#{inspect(x)}",
-      "Y#{inspect(y)}",
-      "Z#{inspect(z)}",
-      "A#{inspect(a)}",
-      "B#{inspect(b)}",
-      "C#{inspect(c)}"
-    ] |> Enum.join(" ") |> schedule()
+      "X#{decode_float(x / 1.0)}",
+      "Y#{decode_float(y / 1.0)}",
+      "Z#{decode_float(z / 1.0)}",
+      "A#{decode_float(a / 100.0 * max_speed_x)}",
+      "B#{decode_float(b / 100.0 * max_speed_y)}",
+      "C#{decode_float(c / 100.0 * max_speed_z)}"
+    ]
+    |> Enum.join(" ")
+    |> schedule()
   end
 
   # E   Emergency stop
@@ -96,6 +100,7 @@ defmodule FarmbotCore.Firmware.Command do
   defp schedule(gcode), do: UARTCore.start_job(gcode)
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
+  defp decode_float(v), do: inspect(Float.round(v, 2))
 
   defp encode_p(p) when is_number(p) do
     # Crash on bad input:
@@ -111,5 +116,21 @@ defmodule FarmbotCore.Firmware.Command do
     else
       raise "Bad parameter value: #{inspect(p)}"
     end
+  end
+
+  @temp_fallback %{
+    movement_max_spd_x: 800.0,
+    movement_max_spd_y: 800.0,
+    movement_max_spd_z: 1000.0
+  }
+
+  defp max_speeds() do
+    conf = FarmbotCore.Asset.firmware_config() || @temp_fallback
+
+    {
+      Map.fetch!(conf, :movement_max_spd_x) || 800.0,
+      Map.fetch!(conf, :movement_max_spd_y) || 800.0,
+      Map.fetch!(conf, :movement_max_spd_z) || 1000.0
+    }
   end
 end

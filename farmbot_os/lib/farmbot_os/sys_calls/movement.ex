@@ -50,11 +50,9 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def get_position(axis) do
-    axis = assert_axis!(axis)
-
     case get_position() do
       {:error, _} = error -> error
-      position -> Keyword.fetch!(position, axis)
+      position -> Keyword.fetch!(position, assert_axis!(axis))
     end
   end
 
@@ -77,23 +75,9 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   defp do_move_absolute(x, y, z, speed_x, speed_y, speed_z) do
-    with {:ok, max_speed_x} <- param_read(:movement_max_spd_x),
-         {:ok, max_speed_y} <- param_read(:movement_max_spd_y),
-         {:ok, max_speed_z} <- param_read(:movement_max_spd_z) do
-      result =
-        Command.move_abs(%{
-          x: x / 1.0,
-          y: y / 1.0,
-          z: z / 1.0,
-          a: speed_x / 100 * (max_speed_x || 1),
-          b: speed_y / 100 * (max_speed_y || 1),
-          c: speed_z / 100 * (max_speed_z || 1)
-        })
-
-      finish_movement(result)
-    else
-      error -> finish_movement(error)
-    end
+    %{x: x, y: y, z: z, a: speed_x, b: speed_y, c: speed_z}
+    |> Command.move_abs()
+    |> finish_movement()
   end
 
   @estopped "Cannot execute commands while E-stopped"
@@ -152,24 +136,6 @@ defmodule FarmbotOS.SysCalls.Movement do
 
       {:error, reason} ->
         FarmbotOS.SysCalls.give_firmware_reason("home", reason)
-    end
-  end
-
-  defp param_read(param) do
-    conf = FarmbotCore.Asset.firmware_config()
-
-    if conf do
-      value = Map.get(conf, param)
-
-      if value do
-        {:ok, value}
-      else
-        IO.puts("MOVEMENT FAIL #{inspect(param)} was nil")
-        {:error, "#{inspect(param)} was nil"}
-      end
-    else
-      IO.puts("MOVEMENT FAIL CONF WAS NIL")
-      {:error, "conf was `nil`"}
     end
   end
 
