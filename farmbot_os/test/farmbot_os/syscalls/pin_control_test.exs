@@ -81,9 +81,9 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   end
 
   test "set_servo_angle" do
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:servo_write, [p: 20, v: 90]} -> {:error, "opps"}
-      {:servo_write, [p: 40, v: 180]} -> :ok
+    expect(Command, :move_servo, 2, fn
+      20, 90 -> {:error, "opps"}
+      40, 180 -> {:ok, nil}
     end)
 
     assert :ok = PinControl.set_servo_angle(40, 180)

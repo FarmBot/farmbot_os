@@ -40,8 +40,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def set_servo_angle(pin, angle) do
-    case FarmbotCore.Firmware.command({:servo_write, [p: pin, v: angle]}) do
-      :ok ->
+    case Command.move_servo(pin, angle) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->
@@ -175,20 +175,18 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Sensor{pin: pin_number, label: label}, 0)
        when is_number(pin_number) do
-    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 0]}) do
-      {:ok, {_, {:report_pin_value, [p: _, v: 1]}}} ->
+    case Command.read_pin(pin_number, 0) do
+      {:ok, 1} ->
         FarmbotCore.Logger.info(2, "The #{label} sensor value is 1 (digital)")
         1
 
-      {:ok, {_, {:report_pin_value, [p: _, v: 0]}}} ->
+      {:ok, 0} ->
         FarmbotCore.Logger.info(2, "The #{label} sensor value is 0 (digital)")
         0
 
-      {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
-        FarmbotCore.Logger.info(
-          2,
-          "The #{label} sensor value is #{value} (analog)"
-        )
+      {:ok, value} ->
+        msg = "The #{label} sensor value is #{value} (analog)"
+        FarmbotCore.Logger.info(2, msg)
 
       {:error, reason} ->
         FarmbotOS.SysCalls.give_firmware_reason("do_read_pin(%Sensor)", reason)
@@ -199,13 +197,10 @@ defmodule FarmbotOS.SysCalls.PinControl do
 
   defp do_read_pin(%Sensor{pin: pin_number, label: label}, 1)
        when is_number(pin_number) do
-    case FarmbotCore.Firmware.request({:pin_read, [p: pin_number, m: 1]}) do
-      {:ok, {_, {:report_pin_value, [p: _, v: value]}}} ->
-        FarmbotCore.Logger.info(
-          2,
-          "The #{label} sensor value is #{value} (analog)"
-        )
-
+    case Command.read_pin(pin_number, 1) do
+      {:ok, value} ->
+        msg = "The #{label} sensor value is #{value} (analog)"
+        FarmbotCore.Logger.info(2, msg)
         value
 
       {:error, reason} ->
@@ -317,11 +312,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def do_write_pin(pin_number, mode, value) do
-    params = {:pin_write, [p: pin_number, v: value, m: mode]}
-    cmd = FarmbotCore.Firmware.command(params)
-
-    case cmd do
-      :ok ->
+    case Command.write_pin(pin_number, value, mode) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->

@@ -8,15 +8,6 @@ defmodule FarmbotOS.SystemTest do
   import ExUnit.CaptureLog
   setup :verify_on_exit!
 
-  # def try_lock_fw(_ \\ nil) do
-  #   try do
-  #     Command.lock()
-  #   rescue
-  #     _ ->
-  #       FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down")
-  #   end
-  # end
-
   test "try_lock_fw - OK" do
     expect(Command, :lock, 1, fn -> :ok end)
     System.try_lock_fw()

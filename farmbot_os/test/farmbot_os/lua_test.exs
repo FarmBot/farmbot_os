@@ -88,6 +88,7 @@ defmodule FarmbotOS.LuaTest do
     end)
 
     expect(Command, :move_abs, 1, fn _ -> {:ok, nil} end)
+    expect(Command, :read_pin, 1, fn _, _ -> {:ok, 1} end)
 
     expect(Firmware, :move_absolute, 4, fn _vec_or_xyz, lua ->
       {[55.22], lua}
@@ -135,9 +136,11 @@ defmodule FarmbotOS.LuaTest do
         {:ok, _} ->
           nil
 
-        {:error, expl} ->
-          {_a, _b, _c} = expl
-          raise "NO"
+        error ->
+          IO.puts("===== A LUA EXAMPLE IS BROKE:")
+          IO.puts(lua)
+          IO.inspect(error, label: "=== This is the error")
+          raise "NO!: #{inspect(error)}"
       end
     end)
   end

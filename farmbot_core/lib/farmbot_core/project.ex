@@ -23,7 +23,7 @@ defmodule FarmbotCore.Project do
   @compile {:inline, branch: 0}
   def branch, do: @branch
 
-  def arduino_commit, do: FarmbotCore.Firmware.arduino_commit()
+  def arduino_commit, do: "WORK_IN_PROGRESS_000000"
 
   @doc "*#{@target}*"
   @compile {:inline, target: 0}

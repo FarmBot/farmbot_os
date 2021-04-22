@@ -5,6 +5,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   @axis ["x", "y", "z"]
 
   alias FarmbotCeleryScript.SysCalls
+  alias FarmbotCore.Firmware.Command
 
   def calibrate([axis], lua) when axis in @axis do
     case SysCalls.calibrate(axis) do
@@ -197,8 +198,8 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
         _ -> 0
       end
 
-    case FarmbotCore.Firmware.request({:pin_read, [p: pin, m: m]}) do
-      {:ok, {_, {:report_pin_value, [p: _, v: v]}}} -> {[v], lua}
+    case Command.read_pin(pin, m) do
+      {:ok, v} -> {[v], lua}
       {:error, reason} -> {[nil, reason], lua}
     end
   end

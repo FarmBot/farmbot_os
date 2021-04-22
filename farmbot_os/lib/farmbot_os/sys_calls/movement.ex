@@ -30,10 +30,8 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def zero(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotCore.Firmware.command({:position_write_zero, [axis]}) do
-      :ok ->
+    case Command.set_zero(assert_axis!(axis)) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->
@@ -112,12 +110,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def find_home(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotCore.Firmware.command({:command_movement_find_home, [axis]}) do
-      :ok ->
-        :ok
-
+    case Command.find_home(assert_axis!(axis)) do
       {:ok, _} ->
         :ok
 
@@ -127,11 +120,8 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def home(axis, _speed) do
-    # TODO(Connor) fix speed
-    axis = assert_axis!(axis)
-
-    case FarmbotCore.Firmware.command({:command_movement_home, [axis]}) do
-      :ok ->
+    case Command.go_home(assert_axis!(axis)) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->

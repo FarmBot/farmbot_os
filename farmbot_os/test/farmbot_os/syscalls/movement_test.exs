@@ -6,9 +6,9 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   alias FarmbotCore.Firmware.Command
 
   test "home/1" do
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:command_movement_home, [:x]} -> :ok
-      {:command_movement_home, [:y]} -> {:error, "error"}
+    expect(Command, :go_home, 2, fn
+      :x -> {:ok, nil}
+      :y -> {:error, "error"}
     end)
 
     assert :ok == Movement.home(:x, 100)
@@ -17,9 +17,9 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "find_home/1" do
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:command_movement_find_home, [:x]} -> :ok
-      {:command_movement_find_home, [:y]} -> {:error, "whoops"}
+    expect(Command, :find_home, 2, fn
+      :x -> {:ok, nil}
+      :y -> {:error, "whoops"}
     end)
 
     assert :ok == Movement.find_home(:x)
@@ -86,15 +86,10 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "zero()" do
-    mock = fn
-      {:position_write_zero, [:x]} ->
-        :ok
-
-      {:position_write_zero, [:y]} ->
-        {:error, "my test"}
-    end
-
-    expect(FarmbotCore.Firmware, :command, 2, mock)
+    expect(Command, :set_zero, 2, fn
+      :y -> {:error, "my test"}
+      :x -> {:ok, nil}
+    end)
 
     expected = "Firmware error @ \"zero()\": \"my test\""
     assert {:error, ^expected} = Movement.zero(:y)

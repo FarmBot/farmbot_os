@@ -8,6 +8,10 @@ defmodule FarmbotCore.Firmware.Command do
   def move_abs(%{x: x, y: y, z: z, a: a, b: b, c: c}) do
     {max_speed_x, max_speed_y, max_speed_z} = max_speeds()
 
+    IO.inspect(%{x: x, y: y, z: z, a: a, b: b, c: c},
+      label: "====================="
+    )
+
     [
       "G00",
       "X#{decode_float(x / 1.0)}",
@@ -29,6 +33,18 @@ defmodule FarmbotCore.Firmware.Command do
 
   # G28 Move home all axis (Z, Y, X axis order)
   def go_home(), do: schedule("G28")
+  # Firmware has a bug where trying to go home on a single
+  # axis fails. We can get around this limitation by faking
+  # it with G00
+  def go_home("x"), do: set_zero(:x)
+  def go_home("y"), do: set_zero(:y)
+  def go_home("z"), do: set_zero(:z)
+
+  def go_home(axis) do
+    %{x: x, y: y, z: z} = location()
+    defaults = %{x: x, y: y, z: z, a: 100.0, b: 100.0, c: 100.0}
+    move_abs(%{defaults | axis => 0.0})
+  end
 
   # F11 Home X axis (find 0, 3 attempts) *
   def find_home(:x), do: schedule("F11")
@@ -52,11 +68,11 @@ defmodule FarmbotCore.Firmware.Command do
   def read_params(), do: schedule("F20")
 
   # # F21(P) Read parameter
-  def read_param(param), do: schedule("F21 #{encode_p(param)}")
+  def read_param(param), do: schedule("F21 #{encode_param(param)}")
 
   # F22(P, V) Write parameter
   def write_param(param, val) do
-    schedule("F22 #{encode_p(param)} V#{encode_float(val)}")
+    schedule("F22 #{encode_param(param)} V#{encode_float(val)}")
   end
 
   # F81 Report end stop
@@ -65,7 +81,7 @@ defmodule FarmbotCore.Firmware.Command do
   # F82
   def report_current_position() do
     schedule("F82")
-    pos = %{x: _, y: _, z: _} = BotState.fetch().location_data.position
+    pos = %{x: _, y: _, z: _} = cached_position()
     {:ok, pos}
   end
 
@@ -95,7 +111,9 @@ defmodule FarmbotCore.Firmware.Command do
 
   # F41(P, V, M) Set a value V on an arduino pin in mode M (digital=0/analog=1)
   def write_pin(pin, value, mode) do
-    gcode = "F41 #{encode_p(pin)} V#{inspect(round(value))} #{encode_m(mode)}"
+    gcode =
+      "F41 #{encode_param(pin)} V#{inspect(round(value))} #{encode_m(mode)}"
+
     schedule(gcode)
   end
 
@@ -109,10 +127,31 @@ defmodule FarmbotCore.Firmware.Command do
     schedule("F#{inspect(f_code)} P#{inspect(pin)} #{encode_m(mode)}")
   end
 
-  # ==== TODO:
-  # F84(X, Y, Z) Set axis current position to zero (yes=1/no=0)
   # F61(P, V) Set the servo on the pin P (only pins 4, 5, 6, and 11) to the requested angle V
-  # ==== TODO ^
+  def move_servo(pin, angle) do
+    schedule("F61 P#{trunc(pin)} V#{inspect(angle)}")
+  end
+
+  # F84(X, Y, Z) Set axis current position to zero (yes=1/no=0)
+  def set_zero(:x), do: set_zero("x")
+  def set_zero(:y), do: set_zero("y")
+  def set_zero(:z), do: set_zero("z")
+
+  def set_zero(axis) do
+    yes = 1
+    no = 0
+    defaults = %{"x" => no, "y" => no, "z" => no}
+
+    params =
+      %{defaults | axis => yes}
+      |> Map.to_list()
+      |> Enum.map(fn {axis, value} ->
+        "#{String.upcase(axis)}#{inspect(value)}"
+      end)
+      |> Enum.join(" ")
+
+    schedule("F84 #{params}")
+  end
 
   # === Not implemented??:
   # F44(P, V, W T M) Set the value V on an arduino pin P,
@@ -124,28 +163,28 @@ defmodule FarmbotCore.Firmware.Command do
 
   # F23(P, V) Update parameter (during calibration)
   def update_param(param, val) do
-    gcode = "F22 #{encode_p(param)} V#{encode_float(val)}"
+    gcode = "F22 #{encode_param(param)} V#{encode_float(val)}"
     schedule(gcode)
   end
 
-  def f22({param, val}), do: "F22 #{encode_p(param)} V#{encode_float(val)}"
+  def f22({param, val}), do: "F22 #{encode_param(param)} V#{encode_float(val)}"
 
   defp schedule(gcode), do: UARTCore.start_job(gcode)
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
   defp decode_float(v), do: inspect(Float.round(v, 2))
 
-  defp encode_p(p) when is_number(p) do
+  defp encode_param(p) when is_number(p) do
     # Crash on bad input:
     _ = Parameter.translate(p)
     "P#{p}"
   end
 
-  defp encode_p(p) do
+  defp encode_param(p) do
     number = Parameter.translate(p)
 
     if is_integer(number) do
-      encode_p(number)
+      encode_param(number)
     else
       raise "Bad parameter value: #{inspect(p)}"
     end
@@ -182,4 +221,16 @@ defmodule FarmbotCore.Firmware.Command do
       Map.fetch!(conf, :movement_max_spd_z) || 1000.0
     }
   end
+
+  defp location() do
+    if missing_cache?() do
+      {:ok, pos} = report_current_position()
+      pos
+    else
+      cached_position()
+    end
+  end
+
+  defp missing_cache?(), do: Enum.member?(Map.values(cached_position()), nil)
+  defp cached_position(), do: BotState.fetch().location_data.position
 end
