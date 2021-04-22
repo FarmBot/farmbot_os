@@ -133,6 +133,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
+  defp reduce({:pin_value_report, %{pin_or_param: pin, value: value}}, state) do
+    BotState.set_pin_value(trunc(pin), value)
+    state
+  end
+
   # defp reduce({:axis_state_report, args}, state) do
   #   args |> map_args(fn
   #     {:x, value} ->

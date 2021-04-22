@@ -56,8 +56,7 @@ defmodule FarmbotCore.Firmware.Command do
 
   # F22(P, V) Write parameter
   def write_param(param, val) do
-    gcode = "F22 #{encode_p(param)} V#{encode_float(val)}"
-    schedule(gcode)
+    schedule("F22 #{encode_p(param)} V#{encode_float(val)}")
   end
 
   # F81 Report end stop
@@ -73,12 +72,46 @@ defmodule FarmbotCore.Firmware.Command do
   # F83
   def report_software_version(), do: schedule("F83")
 
-  # ==== TODO:
+  @m_codes %{
+    0 => 0,
+    :input => 0,
+    "input" => 0,
+    "digital" => 0,
+    :digital => 0,
+    1 => 1,
+    "output" => 1,
+    :output => 1,
+    "analog" => 1,
+    :analog => 1,
+    2 => 2,
+    :input_pullup => 2,
+    "input_pullup" => 2
+  }
+
+  # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
+  def set_pin_io_mode(pin, mode) do
+    write_pm(43, pin, mode)
+  end
+
   # F41(P, V, M) Set a value V on an arduino pin in mode M (digital=0/analog=1)
+  def write_pin(pin, value, mode) do
+    gcode = "F41 #{encode_p(pin)} V#{inspect(round(value))} #{encode_m(mode)}"
+    schedule(gcode)
+  end
+
+  # F42(P, M) Read a value from an arduino pin P in mode M (digital=0/analog=1)
+  def read_pin(pin, mode) do
+    {:ok, _} = write_pm(42, pin, mode)
+    {:ok, round(Map.fetch!(BotState.fetch().pins, pin).value)}
+  end
+
+  defp write_pm(f_code, pin, mode) do
+    schedule("F#{inspect(f_code)} P#{inspect(pin)} #{encode_m(mode)}")
+  end
+
+  # ==== TODO:
   # F84(X, Y, Z) Set axis current position to zero (yes=1/no=0)
   # F61(P, V) Set the servo on the pin P (only pins 4, 5, 6, and 11) to the requested angle V
-  # F42(P, M) Read a value from an arduino pin P in mode M (digital=0/analog=1)
-  # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
   # ==== TODO ^
 
   # === Not implemented??:
@@ -115,6 +148,22 @@ defmodule FarmbotCore.Firmware.Command do
       encode_p(number)
     else
       raise "Bad parameter value: #{inspect(p)}"
+    end
+  end
+
+  defp encode_m(mode) do
+    m = Map.get(@m_codes, mode)
+
+    if m do
+      "M#{inspect(trunc(m))}"
+    else
+      valid_modes =
+        @m_codes
+        |> Map.keys()
+        |> Enum.filter(&is_atom/1)
+        |> Enum.sort()
+
+      raise "Expect pin mode to be one of #{valid_modes}. Got: #{inspect(mode)}"
     end
   end
 

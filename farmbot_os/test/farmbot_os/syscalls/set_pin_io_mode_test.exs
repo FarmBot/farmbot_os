@@ -5,16 +5,20 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
   setup :verify_on_exit!
 
   alias FarmbotOS.SysCalls.SetPinIOMode
+  alias FarmbotCore.Firmware.Command
 
   test "set_pin_io_mode error handler" do
-    expect(FarmbotCore.Firmware, :command, 1, fn params ->
-      assert params == {:pin_mode_write, [p: 3, m: 1]}
-      {:error, "a unit test"}
+    real_reason = {:error, "a unit test"}
+
+    expect(Command, :set_pin_io_mode, 1, fn pin, mode ->
+      assert pin == 3
+      assert mode == 1
+      real_reason
     end)
 
     expect(FarmbotOS.SysCalls, :give_firmware_reason, fn label, reason ->
       assert label == "set_pin_io_mode"
-      assert reason == "a unit test"
+      assert reason == real_reason
     end)
 
     SetPinIOMode.set_pin_io_mode(3, "output")
@@ -30,11 +34,10 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
       6 => 0x2
     }
 
-    expect(FarmbotCore.Firmware, :command, 6, fn
-      {:pin_mode_write, [p: pin_number, m: actual_mode]} ->
-        expected_mode = Map.fetch!(modes, pin_number)
-        assert expected_mode == actual_mode
-        :ok
+    expect(Command, :set_pin_io_mode, 6, fn pin_number, actual_mode ->
+      expected_mode = Map.fetch!(modes, pin_number)
+      assert expected_mode == actual_mode
+      :ok
     end)
 
     SetPinIOMode.set_pin_io_mode(1, "input_pullup")

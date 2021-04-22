@@ -1,16 +1,15 @@
 defmodule FarmbotOS.SysCalls.SetPinIOMode do
   @moduledoc false
+  alias FarmbotCore.Firmware.Command
 
   def set_pin_io_mode(pin_number, mode) do
     mode = extract_set_pin_mode(mode)
 
-    case FarmbotCore.Firmware.command(
-           {:pin_mode_write, [p: pin_number, m: mode]}
-         ) do
-      :ok ->
+    case Command.set_pin_io_mode(pin_number, mode) do
+      {:ok, _} ->
         :ok
 
-      {:error, reason} ->
+      reason ->
         FarmbotOS.SysCalls.give_firmware_reason("set_pin_io_mode", reason)
     end
   end

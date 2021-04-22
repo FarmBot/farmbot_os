@@ -2,50 +2,48 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
-  alias FarmbotOS.SysCalls.PinControl
   alias FarmbotCore.Asset.Peripheral
+  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.SysCalls.PinControl
+
   @digital 0
 
   @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 1" do
-    expect(FarmbotCore.Firmware, :request, 1, fn
-      {:pin_read, [p: 13, m: 0]} ->
-        {:ok, {:qqq, {:report_pin_value, [p: 13, v: 1]}}}
-    end)
-
-    peripheral = %Peripheral{
-      pin: 13,
-      label: "xyz"
-    }
-
+    expect(Command, :read_pin, 1, fn 13, 0 -> {:ok, 1} end)
+    peripheral = %Peripheral{pin: 13, label: "xyz"}
     assert 1 == PinControl.read_pin(peripheral, @digital)
   end
 
   @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 0" do
-    expect(FarmbotCore.Firmware, :request, 1, fn
-      {:pin_read, [p: 13, m: 0]} ->
-        {:ok, {:qqq, {:report_pin_value, [p: 13, v: 0]}}}
-    end)
-
+    expect(Command, :read_pin, 1, fn 13, 0 -> {:ok, 0} end)
     peripheral = %Peripheral{pin: 13, label: "xyz"}
     assert 0 == PinControl.read_pin(peripheral, @digital)
   end
 
   @tag :capture_log
   test "toggle_pin, 1 => 0" do
-    expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
+    expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn pin ->
+      assert pin == 12
       nil
     end)
 
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:pin_mode_write, [p: 12, m: 1]} -> :ok
-      {:pin_write, [p: 12, v: _, m: _]} -> :ok
+    expect(Command, :set_pin_io_mode, 1, fn pin, mode ->
+      assert pin == 12
+      assert mode == :output
+      {:ok, nil}
     end)
 
-    expect(FarmbotCore.Firmware, :request, 2, fn
-      {:pin_read, [p: 12, m: 0]} ->
-        {:ok, {:qqq, {:report_pin_value, [p: 12, v: 1]}}}
+    expect(Command, :write_pin, 1, fn pin, _, _ ->
+      assert pin == 12
+      {:ok, nil}
+    end)
+
+    expect(Command, :read_pin, 2, fn pin, mode ->
+      assert pin == 12
+      assert mode == :digital || mode == 0
+      {:ok, 1}
     end)
 
     assert :ok = PinControl.toggle_pin(12)
@@ -57,14 +55,22 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       nil
     end)
 
-    expect(FarmbotCore.Firmware, :command, 2, fn
-      {:pin_mode_write, [p: 12, m: 1]} -> :ok
-      {:pin_write, [p: 12, v: _, m: _]} -> :ok
+    expect(Command, :write_pin, 1, fn pin, value, _ ->
+      assert pin == 12
+      assert value == 1
+      {:ok, nil}
     end)
 
-    expect(FarmbotCore.Firmware, :request, 2, fn
-      {:pin_read, [p: 12, m: 0]} ->
-        {:ok, {:qqq, {:report_pin_value, [p: 12, v: 0]}}}
+    expect(Command, :read_pin, 2, fn pin, mode ->
+      assert pin == 12
+      assert mode == :digital || mode == 0
+      {:ok, 0}
+    end)
+
+    expect(Command, :set_pin_io_mode, 1, fn pin, mode ->
+      assert pin == 12
+      assert mode == :output
+      {:ok, nil}
     end)
 
     assert :ok = PinControl.toggle_pin(12)

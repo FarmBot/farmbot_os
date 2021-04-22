@@ -91,10 +91,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     # 0. Fetch job, crashing if it does not exist.
     %{caller: caller} = Map.fetch!(old_pending, q)
     # 1. If job had a caller, send a Genserver.reply.
-    if caller do
-      IO.puts("SENT FIRMWARE REPLY TO CALLER PID!!")
-      GenServer.reply(caller, {:ok, nil})
-    end
+    if caller, do: GenServer.reply(caller, {:ok, nil})
 
     # 2. Remove job from state tree
     new_txb = %{txb | pending: Map.delete(old_pending, q)}
