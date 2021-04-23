@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.0.0
+
+ * Complete overhaul of firmware handler in FBOS.
+
 # 13.1.0
 
  * Finalize AMQP removal. MQTT is the only transport now.
