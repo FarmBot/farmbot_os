@@ -12,6 +12,11 @@ defmodule FarmbotCore.BotState do
     :ok = BotState.set_firmware_busy(true)
   end
 
+  def im_idle() do
+    :ok = BotState.set_firmware_idle(true)
+    :ok = BotState.set_firmware_busy(false)
+  end
+
   @doc "Subscribe to BotState changes"
   def subscribe(bot_state_server \\ __MODULE__) do
     GenServer.call(bot_state_server, :subscribe)

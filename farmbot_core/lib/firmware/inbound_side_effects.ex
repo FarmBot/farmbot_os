@@ -31,8 +31,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp reduce({:idle, _}, state) do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
-    :ok = BotState.set_firmware_idle(true)
-    :ok = BotState.set_firmware_busy(false)
+    BotState.im_idle()
     TxBuffer.process_next_message(state)
   end
 
@@ -85,13 +84,13 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:running, _}, state) do
-    IO.puts("=== Working....")
     BotState.im_busy()
     state
   end
 
   defp reduce({:error, %{queue: q_float}}, state) do
     IO.puts("=== ERROR!")
+    BotState.im_idle()
 
     state
     |> TxBuffer.process_error(trunc(q_float))
@@ -101,6 +100,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp reduce({:invalidation, _}, _), do: raise("FBOS SENT INVALID GCODE")
 
   defp reduce({:ok, %{queue: q_float}}, state) do
+    BotState.im_idle()
+
     state
     |> TxBuffer.process_ok(trunc(q_float))
     |> TxBuffer.process_next_message()
