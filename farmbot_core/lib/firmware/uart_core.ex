@@ -137,7 +137,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def handle_call({:start_job, gcode}, caller, %{locked: false} = state) do
     next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
-    {:noreply, %{state | tx_buffer: next_buffer}}
+    IO.puts("TODO: Add semaphore to avoid race conditions??")
+
+    next_state =
+      TxBuffer.process_next_message(%{state | tx_buffer: next_buffer})
+
+    {:noreply, next_state}
   end
 
   # Always reject job requests if locked != false.

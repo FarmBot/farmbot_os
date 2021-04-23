@@ -45,8 +45,8 @@ defmodule FarmbotOS.SysCalls do
   defdelegate update_farmware(name), to: Farmware
 
   @impl true
-  def flash_firmware(package) do
-    FarmbotCore.Firmware.wip("OOO flash_firmware(#{inspect(package)})")
+  def flash_firmware(_package) do
+    raise "TODO: Firmware flashing"
   end
 
   @impl true
