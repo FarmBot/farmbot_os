@@ -49,4 +49,11 @@ defmodule FarmbotCore.Firmware.GCodeDecoderTest do
     msg = "Expect inbound GCode to begin with `R`. Got: \"F21\""
     assert_raise RuntimeError, msg, boom
   end
+
+  test "negative numbers" do
+    expected = [
+      encoder_position_scaled: %{queue: 0.0, x: 0.2, y: 0.2, z: -123.4}
+    ]
+    assert expected == GCodeDecoder.run(["R84 X0.20 Y0.20 Z-123.4 Q0"])
+  end
 end

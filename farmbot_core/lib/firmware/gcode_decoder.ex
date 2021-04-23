@@ -105,8 +105,8 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
       _ -> true
     end)
     |> Enum.map(fn pair ->
-      [number] = Regex.run(~r/\d+\.?\d?+/, pair)
-      [code] = Regex.run(~r/\D{1,2}/, pair)
+      [number] = Regex.run(~r/-?\d+\.?\d?+/, pair)
+      [code] = Regex.run(~r/[A|B|C|E|M|N|P|Q|T|V|W|X|Y|Z]{1,2}/, pair)
       {float, _} = Float.parse(number)
       {param_code(code), float}
     end)
