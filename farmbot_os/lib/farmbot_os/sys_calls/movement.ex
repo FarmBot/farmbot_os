@@ -87,8 +87,8 @@ defmodule FarmbotOS.SysCalls.Movement do
     finish_movement(@estopped)
   end
 
-  def finish_movement(err) when is_binary(err) do
-    msg = "Movement failed. #{err}"
+  def finish_movement(nil) do
+    msg = "Movement failed."
     FarmbotCore.Logger.error(1, msg)
     {:error, msg}
   end

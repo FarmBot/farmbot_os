@@ -1,21 +1,10 @@
 defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
-  alias FarmbotCore.BotState
   alias FarmbotCore.BotStateNG
   alias FarmbotCore.BotState.JobProgress.Percent
 
   require FarmbotCore.Logger
   use GenServer
-
-  def im_busy() do
-    :ok = BotState.set_firmware_idle(false)
-    :ok = BotState.set_firmware_busy(true)
-  end
-
-  def im_idle() do
-    :ok = BotState.set_firmware_idle(true)
-    :ok = BotState.set_firmware_busy(false)
-  end
 
   @doc "Subscribe to BotState changes"
   def subscribe(bot_state_server \\ __MODULE__) do

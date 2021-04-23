@@ -2,6 +2,8 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
   @moduledoc """
   """
 
+  require FarmbotCore.Logger
+
   @response_codes %{
     "00" => :idle,
     "01" => :start,
@@ -93,8 +95,13 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     {response_code(code), parameterize(rest)}
   end
 
-  defp response_code(code), do: Map.fetch!(@response_codes, code)
-  defp param_code(code), do: Map.fetch!(@params, code)
+  defp response_code(code) do
+    map_get(@response_codes, code, "firmware response code")
+  end
+
+  defp param_code(code) do
+    map_get(@params, code, "firmware parameter code")
+  end
 
   defp parameterize(string) do
     string
@@ -106,10 +113,22 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     end)
     |> Enum.map(fn pair ->
       [number] = Regex.run(~r/-?\d+\.?\d?+/, pair)
-      [code] = Regex.run(~r/[A|B|C|E|M|N|P|Q|T|V|W|X|Y|Z]{1,2}/, pair)
+      [code] = Regex.run(~r/[A-Z]{1,2}/, pair)
       {float, _} = Float.parse(number)
       {param_code(code), float}
     end)
     |> Enum.reduce(%{}, fn {key, val}, acc -> Map.put(acc, key, val) end)
+  end
+
+  def map_get(map, value, what) do
+    value = Map.get(map, value)
+
+    if value do
+      value
+    else
+      msg = "Failed to look up unexpected #{what}: #{inspect(value)}"
+      FarmbotCore.Logger.error(3, msg)
+      raise msg
+    end
   end
 end

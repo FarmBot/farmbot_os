@@ -50,7 +50,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
 
   test "move_absolute/4 - unexpected error (not a tuple)" do
     msg = "kaboom"
-    formatted_msg = "Movement failed. " <> msg
+    formatted_msg = "Movement failed. " <> inspect(msg)
 
     expect(Command, :move_abs, 1, fn _ -> msg end)
 
@@ -65,7 +65,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   @tag :capture_log
   test "move_absolute/4 - error (in tuple)" do
     msg = "boom"
-    formatted_msg = "Movement failed. " <> msg
+    formatted_msg = "Movement failed. " <> inspect(msg)
 
     expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
       assert log.message == formatted_msg

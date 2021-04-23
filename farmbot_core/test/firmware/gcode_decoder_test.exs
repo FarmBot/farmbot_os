@@ -54,6 +54,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoderTest do
     expected = [
       encoder_position_scaled: %{queue: 0.0, x: 0.2, y: 0.2, z: -123.4}
     ]
+
     assert expected == GCodeDecoder.run(["R84 X0.20 Y0.20 Z-123.4 Q0"])
   end
 end

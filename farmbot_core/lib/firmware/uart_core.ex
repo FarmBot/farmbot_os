@@ -47,7 +47,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   alias __MODULE__, as: State
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.BotState
 
   alias FarmbotCore.Firmware.{
     RxBuffer,
@@ -88,7 +87,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def init(opts) do
     {:ok, circuits_pid} = Support.connect(Keyword.fetch!(opts, :path))
-    BotState.im_busy()
     {:ok, %State{circuits_pid: circuits_pid}}
   end
 
