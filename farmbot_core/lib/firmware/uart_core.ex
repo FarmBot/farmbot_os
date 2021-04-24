@@ -67,14 +67,15 @@ defmodule FarmbotCore.Firmware.UARTCore do
             # config from FBOS?
             config_phase: :not_started
 
-  @ten_minutes 1000 * 60 * 10
+  @minutes 3
+  @fw_timeout 1000 * 60 * @minutes
 
   # Schedule GCode to the MCU using the job queue. Blocks
   # the calling process until a response is received. Don't
   # use this function outside of the `/firmware` directory.
   def start_job(server \\ __MODULE__, gcode) do
     Logger.info("Scheduling #{inspect(gcode)}")
-    GenServer.call(server, {:start_job, gcode}, @ten_minutes)
+    GenServer.call(server, {:start_job, gcode}, @fw_timeout)
   end
 
   # Sends GCode directly to the MCU without any checks or
@@ -85,7 +86,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def restart_firmware(server \\ __MODULE__) do
     FarmbotCore.Logger.info(1, "Restarting firmware...")
-    send(server, :restart_firmware)
+    Process.send_after(server, :restart_firmware, 2_500)
+    :ok
   end
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -98,10 +100,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid}}
   end
 
-  # === SCENARIO: EMERGENCY LOCK - this one gets special
-  # treatment. It skips all queing mechanisms and dumps
-  # any tasks that were already queued.
-  def handle_info(:reboot, _state) do
+  def handle_info(:restart_firmware, _state) do
     raise "User requested firmware reboot."
   end
 

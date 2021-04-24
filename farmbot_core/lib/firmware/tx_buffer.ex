@@ -32,10 +32,12 @@ defmodule FarmbotCore.Firmware.TxBuffer do
 
   alias __MODULE__, as: State
 
-  # List of IDs that need to be processed
+  # List of IDs that need to be processed (FIFO)
   defstruct queue: [],
             # Last `Q` param that was sent to MCU.
             q: 1,
+            # How many Q codes sent vs. received (busy if != 0)
+            balance: 0,
             # Jobs pending, indexed by unique ID
             pending: %{}
 
@@ -51,35 +53,51 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   end
 
   def process_next_message(
-        %{tx_buffer: %{q: old_q, queue: [job | next_queue]}} = state
+        %{tx_buffer: %{q: q0, queue: [j | next_queue], balance: 0}} = state
       ) do
     last_buffer = state.tx_buffer
 
-    # 0. Create q param
-    q =
-      if Enum.member?(1..98, old_q) do
-        old_q + 1
-      else
-        1
-      end
+    if last_buffer.balance == 0 do
+      # 0. Create q param
+      q =
+        if Enum.member?(1..98, q0) do
+          q0 + 1
+        else
+          1
+        end
 
-    # 1. Attach a `Q` param to GCode.
-    gcode = job.gcode <> " Q#{q}"
+      # 1. Attach a `Q` param to GCode.
+      gcode = j.gcode <> " Q#{q}"
 
-    # 2. Move job to the "waiting area"
-    pending_updates = %{q => %{job | gcode: gcode}}
-    next_pending = Map.merge(last_buffer.pending, pending_updates)
+      # 2. Move job to the "waiting area"
+      pending_updates = %{q => %{j | gcode: gcode}}
+      next_pending = Map.merge(last_buffer.pending, pending_updates)
 
-    # 3. Send GCode down the wire with newly minted Q param
-    IO.inspect(gcode, label: "=== SENDING JOB")
-    FarmbotCore.Firmware.UARTCoreSupport.uart_send(state.circuits_pid, gcode)
+      # 3. Send GCode down the wire with newly minted Q param
+      IO.inspect(gcode, label: "=== SENDING JOB")
+      FarmbotCore.Firmware.UARTCoreSupport.uart_send(state.circuits_pid, gcode)
 
-    # 4. Update state.
-    updates = %{pending: next_pending, queue: next_queue, q: q}
-    %{state | tx_buffer: Map.merge(last_buffer, updates)}
+      # 4. Update state.
+      next_balance = state.tx_buffer.balance + 1
+
+      updates = %{
+        pending: next_pending,
+        queue: next_queue,
+        q: q,
+        balance: next_balance
+      }
+
+      %{state | tx_buffer: Map.merge(last_buffer, updates)}
+    else
+      IO.puts("THERE ARE OUTSTANDING REQUESTS. PLEASE WAIT!!!")
+      state
+    end
   end
 
-  def process_next_message(%{tx_buffer: %{queue: []}} = state) do
+  # Reasons you could hit this state:
+  # 1. No messages to process.
+  # 2. Still waiting for last command to finish (balance != 0)
+  def process_next_message(state) do
     state
   end
 
@@ -96,7 +114,14 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     if caller, do: GenServer.reply(caller, {:ok, nil})
 
     # 2. Remove job from state tree
-    new_txb = %{txb | pending: Map.delete(old_pending, q)}
+    next_balance = txb.balance - 1
+
+    new_txb = %{
+      txb
+      | pending: Map.delete(old_pending, q),
+        balance: next_balance
+    }
+
     %{state | tx_buffer: new_txb}
   end
 
@@ -111,7 +136,14 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     end
 
     # 2. Remove job from state tree
-    new_txb = %{txb | pending: Map.delete(old_pending, q)}
+    next_balanance = txb.balance - 1
+
+    new_txb = %{
+      txb
+      | pending: Map.delete(old_pending, q),
+        balance: next_balanance
+    }
+
     %{state | tx_buffer: new_txb}
   end
 
