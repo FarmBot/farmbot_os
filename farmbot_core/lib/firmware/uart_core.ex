@@ -56,6 +56,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   }
 
   require Logger
+  require FarmbotCore.Logger
 
   defstruct circuits_pid: nil,
             rx_buffer: RxBuffer.new(),
@@ -82,13 +83,26 @@ defmodule FarmbotCore.Firmware.UARTCore do
     send(server, {:send_raw, gcode})
   end
 
+  def restart_firmware(server \\ __MODULE__) do
+    FarmbotCore.Logger.info(1, "Restarting firmware...")
+    send(server, :restart_firmware)
+  end
+
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
   def init(opts) do
     {:ok, circuits_pid} = Support.connect(Keyword.fetch!(opts, :path))
+    FarmbotCore.BotState.firmware_offline()
     {:ok, %State{circuits_pid: circuits_pid}}
+  end
+
+  # === SCENARIO: EMERGENCY LOCK - this one gets special
+  # treatment. It skips all queing mechanisms and dumps
+  # any tasks that were already queued.
+  def handle_info(:reboot, _state) do
+    raise "User requested firmware reboot."
   end
 
   # === SCENARIO: EMERGENCY LOCK - this one gets special
@@ -144,6 +158,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # Always reject job requests if locked != false.
   def handle_call({:start_job, _gcode}, _, state) do
     {:reply, {:error, "Device is locked."}, state}
+  end
+
+  def terminate(_, _) do
+    FarmbotCore.BotState.firmware_offline()
   end
 
   defp process_incoming_text(rx_buffer, text) do

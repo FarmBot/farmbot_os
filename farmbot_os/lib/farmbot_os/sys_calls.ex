@@ -190,7 +190,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def firmware_reboot do
-    FarmbotCore.Logger.info(1, "Restarting firmware...")
+    FarmbotCore.Firmware.UARTCore.restart_firmware()
+    :ok
   end
 
   @impl true
