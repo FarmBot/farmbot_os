@@ -39,6 +39,8 @@ defmodule FarmbotCore.Firmware.TxBuffer do
             # Jobs pending, indexed by unique ID
             pending: %{}
 
+  require Logger
+
   def new() do
     %State{}
   end

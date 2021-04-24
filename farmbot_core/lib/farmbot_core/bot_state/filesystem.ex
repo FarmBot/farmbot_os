@@ -28,7 +28,6 @@ defmodule FarmbotCore.BotState.FileSystem do
         nil -> BotState.subscribe()
         pid -> BotState.subscribe(pid)
       end
-    IO.puts("RE-WRITE THIS")
     {:ok, %{root_dir: root_dir, bot_state: bot_state, sleep_time: sleep_time}}
   end
 

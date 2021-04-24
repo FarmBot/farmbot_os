@@ -4,6 +4,8 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Firmware.Command
   alias FarmbotCore.Firmware.TxBuffer
 
+  require Logger
+
   def upload(state) do
     %{} = do_upload(state, maybe_get_config())
   end
@@ -32,7 +34,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   end
 
   defp do_verify_param(_, {2, _}) do
-    IO.puts("==== Config upload complete")
+    Logger.info("==== Config upload complete")
   end
 
   defp do_verify_param(nil, _conf) do

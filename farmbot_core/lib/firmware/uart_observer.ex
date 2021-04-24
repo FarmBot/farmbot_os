@@ -1,4 +1,6 @@
 defmodule FarmbotCore.Firmware.UARTObserver do
+  require Logger
+
   alias __MODULE__, as: State
 
   defstruct uart_pid: nil
@@ -30,7 +32,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     uart_pid = maybe_get_uart_pid()
 
     unless uart_pid do
-      IO.puts("==== Retrying UART connection...")
+      Logger.info("==== Retrying UART connection...")
       try_to_attach_uart()
     end
 

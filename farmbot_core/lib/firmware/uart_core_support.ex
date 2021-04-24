@@ -1,4 +1,6 @@
 defmodule FarmbotCore.Firmware.UARTCoreSupport do
+  require Logger
+
   defstruct path: "null", circuits_pid: nil
 
   @default_opts [
@@ -12,11 +14,8 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   end
 
   def uart_send(uart_pid, text) do
-    if is_pid(uart_pid) && Process.alive?(uart_pid) do
-      :ok = Circuits.UART.write(uart_pid, text <> "\r\n")
-    else
-      raise "UART DIED!!"
-    end
+    Logger.info(" == SEND RAW: #{inspect(text)}")
+    :ok = Circuits.UART.write(uart_pid, text <> "\r\n")
   end
 
   defp maybe_open_uart_device(pid, path) do

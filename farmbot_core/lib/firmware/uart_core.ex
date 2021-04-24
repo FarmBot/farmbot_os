@@ -94,15 +94,13 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # treatment. It skips all queing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, state) do
-    Circuits.UART.write(state.circuits_pid, "E\r\n")
+    Support.uart_send(state.circuits_pid, "E\r\n")
     {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
   end
 
   # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, state) do
-    IO.puts(" == SEND RAW: #{inspect(text)}")
-    # TODO: Use `Support.uart_send`.
-    Circuits.UART.write(state.circuits_pid, "#{text}\r\n")
+    Support.uart_send(state.circuits_pid, "#{text}\r\n")
     {:noreply, state}
   end
 
@@ -135,7 +133,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def handle_call({:start_job, gcode}, caller, %{locked: false} = state) do
     next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
-    IO.puts("TODO: Add semaphore to avoid race conditions??")
 
     next_state =
       TxBuffer.process_next_message(%{state | tx_buffer: next_buffer})
