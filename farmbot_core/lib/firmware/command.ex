@@ -111,8 +111,7 @@ defmodule FarmbotCore.Firmware.Command do
 
   # F41(P, V, M) Set a value V on an arduino pin in mode M (digital=0/analog=1)
   def write_pin(pin, value, mode) do
-    gcode =
-      "F41 #{encode_param(pin)} V#{inspect(round(value))} #{encode_m(mode)}"
+    gcode = "F41 P#{inspect(pin)} V#{inspect(round(value))} #{encode_m(mode)}"
 
     schedule(gcode)
   end

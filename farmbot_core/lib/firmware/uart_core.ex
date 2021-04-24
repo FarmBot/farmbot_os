@@ -72,6 +72,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # the calling process until a response is received. Don't
   # use this function outside of the `/firmware` directory.
   def start_job(server \\ __MODULE__, gcode) do
+    Logger.info("Scheduling #{inspect(gcode)}")
     GenServer.call(server, {:start_job, gcode}, @ten_minutes)
   end
 
