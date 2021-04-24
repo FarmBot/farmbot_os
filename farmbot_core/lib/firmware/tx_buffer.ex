@@ -56,42 +56,36 @@ defmodule FarmbotCore.Firmware.TxBuffer do
         %{tx_buffer: %{q: q0, queue: [j | next_queue], balance: 0}} = state
       ) do
     last_buffer = state.tx_buffer
+    # 0. Create q param
+    q =
+      if Enum.member?(1..98, q0) do
+        q0 + 1
+      else
+        1
+      end
 
-    if last_buffer.balance == 0 do
-      # 0. Create q param
-      q =
-        if Enum.member?(1..98, q0) do
-          q0 + 1
-        else
-          1
-        end
+    # 1. Attach a `Q` param to GCode.
+    gcode = j.gcode <> " Q#{q}"
 
-      # 1. Attach a `Q` param to GCode.
-      gcode = j.gcode <> " Q#{q}"
+    # 2. Move job to the "waiting area"
+    pending_updates = %{q => %{j | gcode: gcode}}
+    next_pending = Map.merge(last_buffer.pending, pending_updates)
 
-      # 2. Move job to the "waiting area"
-      pending_updates = %{q => %{j | gcode: gcode}}
-      next_pending = Map.merge(last_buffer.pending, pending_updates)
+    # 3. Send GCode down the wire with newly minted Q param
+    IO.inspect(gcode, label: "=== SENDING JOB")
+    FarmbotCore.Firmware.UARTCoreSupport.uart_send(state.circuits_pid, gcode)
 
-      # 3. Send GCode down the wire with newly minted Q param
-      IO.inspect(gcode, label: "=== SENDING JOB")
-      FarmbotCore.Firmware.UARTCoreSupport.uart_send(state.circuits_pid, gcode)
+    # 4. Update state.
+    next_balance = state.tx_buffer.balance + 1
 
-      # 4. Update state.
-      next_balance = state.tx_buffer.balance + 1
+    updates = %{
+      pending: next_pending,
+      queue: next_queue,
+      q: q,
+      balance: next_balance
+    }
 
-      updates = %{
-        pending: next_pending,
-        queue: next_queue,
-        q: q,
-        balance: next_balance
-      }
-
-      %{state | tx_buffer: Map.merge(last_buffer, updates)}
-    else
-      IO.puts("THERE ARE OUTSTANDING REQUESTS. PLEASE WAIT!!!")
-      state
-    end
+    %{state | tx_buffer: Map.merge(last_buffer, updates)}
   end
 
   # Reasons you could hit this state:

@@ -13,6 +13,10 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     maybe_open_uart_device(pid, path)
   end
 
+  def disconnect(uart_pid) do
+    Circuits.UART.stop(uart_pid)
+  end
+
   def uart_send(uart_pid, text) do
     Logger.info(" == SEND RAW: #{inspect(text)}")
     :ok = Circuits.UART.write(uart_pid, text <> "\r\n")

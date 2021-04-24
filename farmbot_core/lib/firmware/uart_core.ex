@@ -59,6 +59,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   require FarmbotCore.Logger
 
   defstruct circuits_pid: nil,
+            uart_path: nil,
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new(),
             # Is the device emergency locked?
@@ -86,7 +87,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def restart_firmware(server \\ __MODULE__) do
     FarmbotCore.Logger.info(1, "Restarting firmware...")
-    Process.send_after(server, :restart_firmware, 2_500)
+    send(server, :restart_firmware)
     :ok
   end
 
@@ -95,13 +96,18 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def init(opts) do
-    {:ok, circuits_pid} = Support.connect(Keyword.fetch!(opts, :path))
     FarmbotCore.BotState.firmware_offline()
-    {:ok, %State{circuits_pid: circuits_pid}}
+    path = Keyword.fetch!(opts, :path)
+    {:ok, circuits_pid} = Support.connect(path)
+    {:ok, %State{circuits_pid: circuits_pid, uart_path: path}}
   end
 
-  def handle_info(:restart_firmware, _state) do
-    raise "User requested firmware reboot."
+  def handle_info(:restart_firmware, %{circuits_pid: pid, uart_path: path}) do
+    # Teardown existing connection.
+    Support.disconnect(pid)
+    # Reset state tree
+    {:ok, next_state} = init(path: path)
+    {:noreply, next_state}
   end
 
   # === SCENARIO: EMERGENCY LOCK - this one gets special

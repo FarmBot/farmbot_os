@@ -156,7 +156,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp reduce({:different_z_coordinate_than_given, _}, s), do: maxed(s, "z")
 
   defp reduce(unknown, state) do
-    IO.inspect(unknown, label: "=== Unhandled inbound side effects")
+    msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
+    FarmbotCore.Logger.info(3, msg)
     state
   end
 
