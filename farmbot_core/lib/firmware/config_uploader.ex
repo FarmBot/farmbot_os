@@ -76,6 +76,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       |> TxBuffer.push({nil, "F83"})
       # Request current position for good measure
       |> TxBuffer.push({nil, "F82"})
+      |> maybe_home_at_boot(config_data)
 
     %{state | tx_buffer: next_tx_buffer, config_phase: :in_progress}
   end
@@ -91,5 +92,31 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
 
   defp fw_config do
     Map.take(Asset.firmware_config(), Parameter.names())
+  end
+
+  defp maybe_home_at_boot(txb, conf) do
+    conf
+    |> Enum.map(fn
+      {:movement_home_at_boot_x, 1.0} -> :x
+      {:movement_home_at_boot_y, 1.0} -> :y
+      {:movement_home_at_boot_z, 1.0} -> :z
+      _ -> nil
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort()
+    |> Enum.reverse()
+    |> Enum.reduce(txb, fn
+      :x, tx_buffer ->
+        FarmbotCore.Logger.debug(3, "=== Finding home on x")
+        TxBuffer.push(tx_buffer, {nil, "F11"})
+
+      :y, tx_buffer ->
+        FarmbotCore.Logger.debug(3, "=== Finding home on y")
+        TxBuffer.push(tx_buffer, {nil, "F12"})
+
+      :z, tx_buffer ->
+        FarmbotCore.Logger.debug(3, "=== Finding home on z")
+        TxBuffer.push(tx_buffer, {nil, "F13"})
+    end)
   end
 end
