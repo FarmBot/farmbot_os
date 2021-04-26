@@ -5,6 +5,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Firmware.TxBuffer
 
   require Logger
+  require FarmbotCore.Logger
 
   def upload(state) do
     %{} = do_upload(state, maybe_get_config())
@@ -22,6 +23,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       end)
 
     if missing_key? do
+      FarmbotCore.Logger.debug(3, "Some configs nil; Can't send FW configuration.")
       nil
     else
       data
