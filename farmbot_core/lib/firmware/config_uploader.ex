@@ -23,7 +23,11 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       end)
 
     if missing_key? do
-      FarmbotCore.Logger.debug(3, "Some configs nil; Can't send FW configuration.")
+      FarmbotCore.Logger.debug(
+        3,
+        "Some configs nil; Can't send FW configuration."
+      )
+
       nil
     else
       data

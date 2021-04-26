@@ -173,8 +173,7 @@ defmodule FarmbotCore.Firmware.Command do
       |> Enum.map(mapper)
       |> Enum.join(" ")
 
-    gcode = "#{command} #{p}"
-    UARTCore.start_job(gcode)
+    UARTCore.start_job(String.trim("#{command} #{p}"))
   end
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
