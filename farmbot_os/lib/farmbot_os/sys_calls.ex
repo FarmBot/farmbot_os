@@ -8,30 +8,40 @@ defmodule FarmbotOS.SysCalls do
   require Logger
 
   alias FarmbotCeleryScript.AST
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotCore.Asset
+  alias FarmbotCore.BotState
+  alias FarmbotCore.Leds
+  alias FarmbotExt.API
+  alias FarmbotOS.Lua
 
   alias FarmbotCore.Asset.{
     BoxLed,
-    Private
+    Private,
+    Sync
+  }
+
+  alias FarmbotCore.Firmware.{
+    Command,
+    UARTCore
+  }
+
+  alias FarmbotExt.API.{
+    Reconciler,
+    SyncGroup
   }
 
   alias FarmbotOS.SysCalls.{
     ChangeOwnership,
     CheckUpdate,
-    Farmware,
     FactoryReset,
-    SendMessage,
-    SetPinIOMode,
-    PinControl,
-    ResourceUpdate,
+    Farmware,
     Movement,
-    PointLookup
+    PinControl,
+    PointLookup,
+    ResourceUpdate,
+    SendMessage,
+    SetPinIOMode
   }
-
-  alias FarmbotOS.Lua
-
-  alias FarmbotCore.{Asset, Asset.Private, Asset.Sync, BotState, Leds}
-  alias FarmbotExt.{API, API.SyncGroup, API.Reconciler}
 
   @behaviour FarmbotCeleryScript.SysCalls
 
@@ -45,9 +55,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate update_farmware(name), to: Farmware
 
   @impl true
-  def flash_firmware(_package) do
-    raise "TODO: Firmware flashing"
-  end
+  defdelegate flash_firmware(package), to: UARTCore
 
   @impl true
   defdelegate change_ownership(email, secret, server), to: ChangeOwnership

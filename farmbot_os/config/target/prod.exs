@@ -97,9 +97,6 @@ config :farmbot, FarmbotOS.Configurator,
 config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
-  firmware_flash_attempt_threshold: :infinity
-
 config :logger,
   backends: [RingLogger],
   handle_otp_reports: true,

@@ -71,6 +71,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
   @minutes 3
   @fw_timeout 1000 * 60 * @minutes
 
+  def flash_firmware(server \\ __MODULE__, package) do
+    Logger.info("Begin firmware flash (#{inspect(package)})")
+    GenServer.call(server, {:flash_firmware, package}, @fw_timeout)
+  end
+
   # Schedule GCode to the MCU using the job queue. Blocks
   # the calling process until a response is received. Don't
   # use this function outside of the `/firmware` directory.
@@ -102,11 +107,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid, uart_path: path}}
   end
 
-  def handle_info(:restart_firmware, %{circuits_pid: pid, uart_path: path}) do
+  def handle_info(:restart_firmware, %{uart_path: old_path} = state1) do
     # Teardown existing connection.
-    Support.disconnect(pid)
+    Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
-    {:ok, next_state} = init(path: path)
+    {:ok, next_state} = init(path: old_path)
     {:noreply, next_state}
   end
 
@@ -115,6 +120,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, state) do
     Support.uart_send(state.circuits_pid, "E\r\n")
+    TxBuffer.error_all(state, "Emergency locked")
     {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
   end
 
@@ -163,6 +169,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # Always reject job requests if locked != false.
   def handle_call({:start_job, _gcode}, _, state) do
     {:reply, {:error, "Device is locked."}, state}
+  end
+
+  def handle_call({:flash_firmware, package}, _, state) do
+    next_state = FarmbotCore.Firmware.Flash.run(state, package)
+    {:reply, {:error, "Work in progress"}, next_state}
   end
 
   def terminate(_, _) do

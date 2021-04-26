@@ -52,6 +52,11 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %{state | queue: state.queue ++ [job]}
   end
 
+  def error_all(%{tx_buffer: txb} = old_state, reason) do
+    reducer = fn job_id, state -> reply(state, job_id, {:error, reason}) end
+    Enum.reduce(txb.queue, old_state, reducer)
+  end
+
   def process_next_message(
         %{tx_buffer: %{q: q0, queue: [j | next_queue], balance: 0}} = state
       ) do
@@ -99,59 +104,17 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   # Q00, assume it was not sent via this module and
   # ignore it.
   def process_ok(state, 0), do: state
+  def process_ok(state, q), do: reply(state, q, {:ok, nil})
+  def process_error(state, q), do: reply(state, q, {:error, nil})
+  def process_echo(state, echo), do: handle_echo(state, echo, extract_q(echo))
 
-  def process_ok(%{tx_buffer: txb} = state, q) do
-    old_pending = txb.pending
-    # 0. Fetch job, crashing if it does not exist.
-    %{caller: caller} = Map.fetch!(old_pending, q)
-    # 1. If job had a caller, send a Genserver.reply.
-    if caller, do: GenServer.reply(caller, {:ok, nil})
-
-    # 2. Remove job from state tree
-    next_balance = txb.balance - 1
-
-    new_txb = %{
-      txb
-      | pending: Map.delete(old_pending, q),
-        balance: next_balance
-    }
-
-    %{state | tx_buffer: new_txb}
-  end
-
-  def process_error(%{tx_buffer: txb} = state, q) do
-    old_pending = txb.pending
-    # 0. Fetch job, crashing if it does not exist.
-    %{caller: pid} = Map.fetch!(old_pending, q)
-
-    if pid do
-      # 1. If job had a PID, and it is still alive, send a Genserver.reply.
-      GenServer.reply(pid, {:error, nil})
-    end
-
-    # 2. Remove job from state tree
-    next_balanance = txb.balance - 1
-
-    new_txb = %{
-      txb
-      | pending: Map.delete(old_pending, q),
-        balance: next_balanance
-    }
-
-    %{state | tx_buffer: new_txb}
-  end
-
-  def process_echo(state, echo) do
-    do_process_echo(state, echo, extract_q_param(echo))
-  end
-
-  defp do_process_echo(state, _echo, nil) do
+  defp handle_echo(state, _echo, nil) do
     # If there is no Q param, there's
     # no way to retrieve the job
     state
   end
 
-  defp do_process_echo(%{tx_buffer: txb} = state, echo, q) do
+  defp handle_echo(%{tx_buffer: txb} = state, echo, q) do
     # 0. Retrieve old job
     old_job = Map.fetch!(state.tx_buffer.pending, q)
 
@@ -170,7 +133,31 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %{state | tx_buffer: new_txb}
   end
 
-  defp extract_q_param(text) do
+  defp reply(%{tx_buffer: txb} = old_state, q, response) do
+    # 0. Fetch job.
+    # `false` means "NOT FOUND"
+    # `nil` means "DONT WANT REPLY"
+    %{caller: caller} = Map.get(txb.pending, q, %{caller: false})
+    # 1. If job exists and has a caller, send a Genserver.reply.
+    case caller do
+      # SCENARIO: Handler crashed or e-stopped.
+      false -> Logger.warn("Could not find firmware job #{q}.")
+      # SCENARIO: Something sent a raw message and didn't care
+      #           about reply. This is normal.
+      nil -> nil
+      # SCENARIOD: Routine call/response RPC to firmware.
+      real_caller -> GenServer.reply(real_caller, response)
+    end
+
+    updates = %{
+      pending: Map.delete(txb.pending, q),
+      balance: txb.balance - 1
+    }
+
+    %{old_state | tx_buffer: Map.merge(txb, updates)}
+  end
+
+  defp extract_q(text) do
     regex = ~r/Q\d\d?/
 
     if Regex.match?(regex, text) do
