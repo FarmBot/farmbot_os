@@ -173,7 +173,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def handle_call({:flash_firmware, package}, _, state) do
     next_state = FarmbotCore.Firmware.Flash.run(state, package)
-    {:reply, {:error, "Work in progress"}, next_state}
+    Process.send_after(self(), :restart_firmware, 1)
+    {:reply, :ok, next_state}
   end
 
   def terminate(_, _) do
