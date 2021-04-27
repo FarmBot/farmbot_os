@@ -101,7 +101,7 @@ defmodule FarmbotOS.SysCalls.Movement do
 
   def calibrate(axis) do
     case Command.find_length(assert_axis!(axis)) do
-      :ok ->
+      {:ok, _} ->
         :ok
 
       reason ->

@@ -29,7 +29,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
 
   test "calibrate/1" do
     expect(Command, :find_length, 2, fn
-      :x -> :ok
+      :x -> {:ok, nil}
       :y -> {:error, "nope"}
     end)
 
