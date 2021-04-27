@@ -155,6 +155,20 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp reduce({:different_y_coordinate_than_given, _}, s), do: maxed(s, "y")
   defp reduce({:different_z_coordinate_than_given, _}, s), do: maxed(s, "z")
 
+  defp reduce(
+         {:report_updated_param_during_calibration,
+          %{pin_or_param: p, value: v}},
+         state
+       ) do
+    k = FarmbotFirmware.Parameter.translate(trunc(p))
+
+    %{k => v}
+    |> Asset.update_firmware_config!()
+    |> Asset.Private.mark_dirty!(%{})
+
+    state
+  end
+
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
     FarmbotCore.Logger.info(3, msg)
