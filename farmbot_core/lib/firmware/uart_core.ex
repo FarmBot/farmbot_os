@@ -4,7 +4,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   from a serial device such as a Farmduino (1.3+) or Arduino
   Mega (FarmBot v1.2).
 
-  Guiding Principals:
+  Guiding Principles:
    * No cached state - Delay data fetching. Never duplicate.
    * No timeouts     - Push data, don't pull.
    * No polling      - Push data, don't pull.
@@ -30,19 +30,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
       ┌──────────────────┐ Triggers callbacks as the system ingests
       │InboundSideEffects│ GCode
       └──────────────────┘
-
-  Callbacks required:
-   * New message (UART -> App)
-   * Disconnect
-   * Reconnect
-
-  Functionality:
-   * Open serial
-   * Close serial
-
-  Things that can go wrong:
-   * `path` changes
-   * disconnect
   """
 
   alias __MODULE__, as: State

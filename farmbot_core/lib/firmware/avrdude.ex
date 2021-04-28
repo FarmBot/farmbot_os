@@ -1,6 +1,6 @@
 defmodule FarmbotCore.Firmware.Avrdude do
   @uart_speed 115_200
-  @max_attempts 3
+  @max_attempts 18
   require FarmbotCore.Logger
 
   def flash(hex_path, tty_path, reset_fun) do

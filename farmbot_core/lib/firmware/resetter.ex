@@ -34,13 +34,16 @@ defmodule FarmbotCore.Firmware.Resetter do
     :ok
   end
 
+  @waits [650, 850, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1350, 1500]
+
   defp express_reset_fun(gpio_module) do
     try do
-      FarmbotCore.Logger.debug(3, "Begin MCU reset")
+      wait = Enum.random(@waits)
+      FarmbotCore.Logger.debug(3, "Begin MCU reset (#{inspect(wait)} ms)")
       {:ok, gpio} = gpio_module.open(19, :output)
       :ok = gpio_module.write(gpio, 0)
       :ok = gpio_module.write(gpio, 1)
-      Process.sleep(1100)
+      Process.sleep(wait)
       :ok = gpio_module.write(gpio, 0)
       gpio_module.close(gpio)
       FarmbotCore.Logger.debug(3, "Finish MCU Reset")
