@@ -78,7 +78,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def restart_firmware(server \\ __MODULE__) do
-    FarmbotCore.Logger.info(1, "Restarting firmware...")
     send(server, :restart_firmware)
     :ok
   end
@@ -99,6 +98,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
     {:ok, next_state} = init(path: old_path)
+    FarmbotCore.Logger.info(1, "Firmware restart complete")
     {:noreply, next_state}
   end
 

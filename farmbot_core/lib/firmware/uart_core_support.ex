@@ -10,10 +10,18 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     maybe_open_uart_device(pid, path)
   end
 
-  def disconnect(state, reason) do
+  # Returns the uart path of the device that was disconnected
+  def disconnect(%{circuits_pid: pid, uart_path: tty} = state, reason) do
     # Genserer.reply to everyone with {:error, reason}
-    Circuits.UART.stop(state.circuits_pid)
     FarmbotCore.Firmware.TxBuffer.error_all(state, reason)
+
+    if Process.alive?(pid) do
+      Circuits.UART.stop(state.circuits_pid)
+    else
+      Logger.debug("==== TRIED TO STOP UART PID BUT IT IS ALREADY DEAD")
+    end
+
+    {:ok, tty}
   end
 
   def uart_send(circuits_pid, text) do

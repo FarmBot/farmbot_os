@@ -5,38 +5,38 @@ defmodule FarmbotCore.Firmware.Resetter do
     @gpio nil
   end
 
+  @waits [650, 875, 1100, 1300, 1500]
+
   alias FarmbotCore.Asset
+  alias FarmbotCore.Project
+
   require FarmbotCore.Logger
 
   def reset(package \\ nil) do
     pkg = package || Asset.fbos_config(:firmware_hardware)
     FarmbotCore.Logger.debug(3, "Attempting to retrieve #{pkg} reset function.")
-    {:ok, fun} = find_reset_fun(pkg)
+    {:ok, fun} = find_reset_fun(Project.target(), pkg)
     fun.()
   end
 
-  def find_reset_fun("express_k10") do
-    FarmbotCore.Logger.debug(3, "Using special express reset function")
-    {:ok, fn -> express_reset_fun(@gpio) end}
-  end
+  def find_reset_run(:rpi, "none"), do: use_special_fn(@gpio)
+  def find_reset_fun(:rpi, "express_k10"), do: use_special_fn(@gpio)
+  def find_reset_fun(_, _), do: use_default()
 
-  def find_reset_fun(_) do
+  def use_default() do
     FarmbotCore.Logger.debug(3, "Using default reset function")
     {:ok, fn -> :ok end}
   end
 
-  defp express_reset_fun(nil) do
-    FarmbotCore.Logger.debug(
-      3,
-      "GPIO module not found; Skipping firmware reset."
-    )
+  defp use_special_fn(nil), do: use_default()
 
-    :ok
+  defp use_special_fn(_) do
+    msg = "Using special express reset function"
+    FarmbotCore.Logger.debug(3, msg)
+    {:ok, fn -> maybe_special_fn(@gpio) end}
   end
 
-  @waits [650, 850, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1350, 1500]
-
-  defp express_reset_fun(gpio_module) do
+  defp maybe_special_fn(gpio_module) do
     try do
       wait = Enum.random(@waits)
       FarmbotCore.Logger.debug(3, "Begin MCU reset (#{inspect(wait)} ms)")

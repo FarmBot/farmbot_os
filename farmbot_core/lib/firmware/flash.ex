@@ -8,23 +8,26 @@ defmodule FarmbotCore.Firmware.Flash do
 
   require FarmbotCore.Logger
   @reason "Starting firmware flash."
-  @flash_ok "Success: Firmware flashed. Unlock FarmBot to continue. "
+  @flash_ok "Success: Firmware flashed."
 
-  def run(state0, package) do
+  def run(state, package) do
     FarmbotCore.Logger.info(3, @reason)
-    state1 = UARTCoreSupport.disconnect(state0, @reason)
+    {:ok, tty} = UARTCoreSupport.disconnect(state, @reason)
 
     try do
       {:ok, hex_file} = FarmbotFirmware.FlashUtils.find_hex_file(package)
-      tty = state1.uart_path
-      {:ok, fun} = Resetter.find_reset_fun(package)
+
+      {:ok, fun} =
+        Resetter.find_reset_fun(FarmbotCore.Project.target(), package)
+
       result = Avrdude.flash(hex_file, tty, fun)
       finish_flashing(result, hex_file)
-      state1
+      FarmbotCore.Firmware.UARTCore.restart_firmware()
+      state
     rescue
       err ->
         FarmbotCore.Logger.error(3, "Firmware flash error: #{inspect(err)}")
-        state1
+        state
     end
   end
 
