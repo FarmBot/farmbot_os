@@ -47,15 +47,18 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   defstruct circuits_pid: nil,
             uart_path: nil,
-            rx_buffer: RxBuffer.new(),
-            tx_buffer: TxBuffer.new(),
-            # Is the device emergency locked?
-            locked: false,
             # Has the MCU received a valid firmware
             # config from FBOS?
-            config_phase: :not_started
+            config_phase: :not_started,
+            # Is the device emergency locked?
+            locked: false,
+            rx_buffer: RxBuffer.new(),
+            tx_buffer: TxBuffer.new()
 
-  @minutes 3
+  # The Firmware has a 120 second default timeout.
+  # Queuing up 10 messages that take one minute each == 10 minutes.
+  # This is a reasonable (but not perfect) assumption. RC
+  @minutes 10
   @fw_timeout 1000 * 60 * @minutes
 
   def flash_firmware(server \\ __MODULE__, package) do
