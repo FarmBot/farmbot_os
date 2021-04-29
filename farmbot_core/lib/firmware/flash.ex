@@ -17,8 +17,7 @@ defmodule FarmbotCore.Firmware.Flash do
     try do
       {:ok, hex_file} = FarmbotFirmware.FlashUtils.find_hex_file(package)
 
-      {:ok, fun} =
-        Resetter.find_reset_fun(FarmbotCore.Project.target(), package)
+      {:ok, fun} = Resetter.find_reset_fun(package)
 
       result = Avrdude.flash(hex_file, tty, fun)
       finish_flashing(result, hex_file)

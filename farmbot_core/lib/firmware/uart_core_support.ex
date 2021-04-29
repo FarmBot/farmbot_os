@@ -3,7 +3,12 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
 
   defstruct path: "null", circuits_pid: nil
 
-  @default_opts [active: true, speed: 115_200]
+  @default_opts [
+    active: true,
+    speed: 115_200,
+    framing: Circuits.UART.Framing.FourByte,
+    rx_framing_timeout: 200
+  ]
 
   def connect(path) do
     {:ok, pid} = Circuits.UART.start_link()

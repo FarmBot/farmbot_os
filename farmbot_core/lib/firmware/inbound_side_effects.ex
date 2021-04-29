@@ -95,7 +95,15 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:echo, echo_string}, state) do
-    TxBuffer.process_echo(state, String.replace(echo_string, "*", ""))
+    clean_echo = String.replace(echo_string, "*", "")
+    next_state = TxBuffer.process_echo(state, clean_echo)
+
+    if echo_string == "*F09*" do
+      # INBOUND SIDE EFFECT: The Firmware echoed our unlock back.
+      %{next_state | locked: false}
+    else
+      next_state
+    end
   end
 
   defp reduce({:running, _}, state) do
@@ -166,6 +174,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
 
+    state
+  end
+
+  defp reduce({:movement_retry, _}, state) do
+    FarmbotCore.Logger.debug(1, "Retrying movement")
     state
   end
 
