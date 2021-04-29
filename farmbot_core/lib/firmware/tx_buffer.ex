@@ -141,7 +141,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     # 1. If job exists and has a caller, send a Genserver.reply.
     case caller do
       # SCENARIO: Handler crashed or e-stopped.
-      false -> Logger.warn("Could not find firmware job #{q}.")
+      false -> Logger.warn("Could not find firmware job #{inspect(q)}.")
       # SCENARIO: Something sent a raw message and didn't care
       #           about reply. This is normal.
       nil -> nil
