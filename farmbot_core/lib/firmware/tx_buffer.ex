@@ -97,6 +97,10 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   # 1. No messages to process.
   # 2. Still waiting for last command to finish (balance != 0)
   def process_next_message(state) do
+    if state.tx_buffer.balance != 0 do
+      Logger.debug("TXBuffer is idle, but not balanced.")
+    end
+
     state
   end
 

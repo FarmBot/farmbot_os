@@ -82,6 +82,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
       _ -> nil
     end)
     |> Enum.reject(&is_nil/1)
+    |> Enum.reject(fn {_, value} -> value < 100 end)
     |> Map.new()
     |> Asset.update_firmware_config!()
     |> Asset.Private.mark_dirty!(%{})
@@ -159,9 +160,14 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:different_x_coordinate_than_given, _}, s), do: maxed(s, "x")
-  defp reduce({:different_y_coordinate_than_given, _}, s), do: maxed(s, "y")
-  defp reduce({:different_z_coordinate_than_given, _}, s), do: maxed(s, "z")
+  defp reduce({:different_x_coordinate_than_given, %{x: v}}, s),
+    do: maxed(s, :x, v)
+
+  defp reduce({:different_y_coordinate_than_given, %{y: v}}, s),
+    do: maxed(s, :y, v)
+
+  defp reduce({:different_z_coordinate_than_given, %{z: v}}, s),
+    do: maxed(s, :z, v)
 
   defp reduce(
          {:report_updated_param_during_calibration,
@@ -188,8 +194,19 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp maxed(state, axis) do
-    FarmbotCore.Logger.info(3, "#{axis} stopped at max")
+  defp maxed(state, axis, value) do
+    axis = String.capitalize("#{axis}")
+    disclaimer = "instead of specified destination."
+
+    place =
+      if value < 1 do
+        "home"
+      else
+        "max"
+      end
+
+    msg = "Stopping at #{axis} #{place} " <> disclaimer
+    FarmbotCore.Logger.info(3, msg)
     state
   end
 

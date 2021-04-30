@@ -96,37 +96,38 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{circuits_pid: circuits_pid, uart_path: path}}
   end
 
-  def handle_info(:restart_firmware, %{uart_path: old_path} = state1) do
+  def handle_info(:restart_firmware, %State{uart_path: old_path} = state1) do
     # Teardown existing connection.
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
     {:ok, next_state} = init(path: old_path)
-    FarmbotCore.Logger.info(1, "Firmware restart complete")
+    FarmbotCore.Logger.info(1, "Firmware restart initiated")
     {:noreply, next_state}
   end
 
   # === SCENARIO: EMERGENCY LOCK - this one gets special
   # treatment. It skips all queing mechanisms and dumps
   # any tasks that were already queued.
-  def handle_info({:send_raw, "E"}, state) do
+  def handle_info({:send_raw, "E"}, %State{} = state) do
     Support.uart_send(state.circuits_pid, "E\r\n")
     TxBuffer.error_all(state, "Emergency locked")
     {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
   end
 
   # === SCENARIO: Direct GCode transmission without queueing
-  def handle_info({:send_raw, text}, state) do
+  def handle_info({:send_raw, text}, %State{} = state) do
     Support.uart_send(state.circuits_pid, "#{text}\r\n")
     {:noreply, state}
   end
 
   # === SCENARIO: Serial cable is unplugged.
-  def handle_info({:circuits_uart, _, {:error, :eio}}, state) do
+  def handle_info({:circuits_uart, _, {:error, :eio}}, %State{} = state) do
     {:noreply, %{state | rx_buffer: RxBuffer.new()}}
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
-  def handle_info({:circuits_uart, _, msg}, state1) when is_binary(msg) do
+  def handle_info({:circuits_uart, _, msg}, %State{} = state1)
+      when is_binary(msg) do
     # First, push all messages into a buffer. The result is a
     # list of stringly-typed Gcode blocks to be
     # processed (if any).
@@ -142,12 +143,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
-  def handle_info(message, state) do
+  def handle_info(message, %State{} = state) do
     Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
     {:noreply, state}
   end
 
-  def handle_call({:start_job, gcode}, caller, %{locked: false} = state) do
+  def handle_call({:start_job, gcode}, caller, %State{locked: false} = state) do
     next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
 
     next_state =
@@ -157,11 +158,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   # Always reject job requests if locked != false.
-  def handle_call({:start_job, _gcode}, _, state) do
+  def handle_call({:start_job, _gcode}, _, %State{} = state) do
     {:reply, {:error, "Device is locked."}, state}
   end
 
-  def handle_call({:flash_firmware, package}, _, state) do
+  def handle_call({:flash_firmware, package}, _, %State{} = state) do
     next_state = FarmbotCore.Firmware.Flash.run(state, package)
     Process.send_after(self(), :restart_firmware, 1)
     {:reply, :ok, next_state}

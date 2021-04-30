@@ -1,15 +1,12 @@
 defmodule FarmbotCore.Firmware.Resetter do
+  alias FarmbotCore.Asset
+  require FarmbotCore.Logger
+
   if Code.ensure_compiled(Circuits.GPIO) do
     @gpio Circuits.GPIO
   else
     @gpio nil
   end
-
-  @waits [650, 875, 1100, 1300, 1500]
-
-  alias FarmbotCore.Asset
-
-  require FarmbotCore.Logger
 
   def reset(package \\ nil) do
     pkg = package || Asset.fbos_config(:firmware_hardware)
@@ -36,7 +33,7 @@ defmodule FarmbotCore.Firmware.Resetter do
 
   defp maybe_special_fn(gpio_module) do
     try do
-      wait = Enum.random(@waits)
+      wait = 1100
       FarmbotCore.Logger.debug(3, "Begin MCU reset (#{inspect(wait)} ms)")
       {:ok, gpio} = gpio_module.open(19, :output)
       :ok = gpio_module.write(gpio, 0)
