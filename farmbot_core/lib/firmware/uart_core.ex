@@ -85,6 +85,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
     :ok
   end
 
+  # ================= BEGIN GENSERVER CODE =================
+
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end

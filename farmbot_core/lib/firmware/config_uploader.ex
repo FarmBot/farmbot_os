@@ -1,14 +1,16 @@
 defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Asset
+  alias FarmbotCore.BotState
+  alias FarmbotCore.Firmware.{Command, TxBuffer}
   alias FarmbotFirmware.Parameter
-  alias FarmbotCore.Firmware.Command
-  alias FarmbotCore.Firmware.TxBuffer
 
   require Logger
   require FarmbotCore.Logger
 
   def upload(state) do
-    %{} = do_upload(state, maybe_get_config())
+    FarmbotCeleryScript.SysCalls.sync()
+    Process.sleep(1000)
+    %{do_upload(state, maybe_get_config()) | locked: false}
   end
 
   def maybe_get_config() do
@@ -40,7 +42,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   end
 
   defp do_verify_param(_, {2, _}) do
-    Logger.info("==== Config upload complete")
+    FarmbotCore.Logger.debug(3, "Done sending firmware parameters")
   end
 
   defp do_verify_param(nil, _conf) do
@@ -55,12 +57,16 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       e = inspect(expected)
       k = inspect(key)
       raise "Expected #{k} to eq #{e}. Got: #{a}"
+    else
+      :ok = BotState.set_firmware_config(key, actual)
     end
   end
 
   defp do_upload(state, nil), do: state
 
   defp do_upload(state, config_data) do
+    FarmbotCore.Logger.debug(3, "Sending parameters to firmware")
+
     next_tx_buffer =
       config_data
       |> Map.to_list()
@@ -78,7 +84,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       |> TxBuffer.push({nil, "F82"})
       |> maybe_home_at_boot(config_data)
 
-    %{state | tx_buffer: next_tx_buffer, config_phase: :in_progress}
+    %{state | tx_buffer: next_tx_buffer, config_phase: :sent}
   end
 
   defp fetch_data() do
