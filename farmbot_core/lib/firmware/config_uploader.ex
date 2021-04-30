@@ -7,6 +7,19 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   require Logger
   require FarmbotCore.Logger
 
+  # Called at runtime when FirmwareConfig value(s) change.
+  def refresh(state) do
+    conf = maybe_get_config()
+
+    if conf do
+      FarmbotCore.Logger.info(3, "Updating firmware parameters")
+      %{state | tx_buffer: write_configs(conf, state)}
+    else
+      state
+    end
+  end
+
+  # Called right after firmware init.
   def upload(state) do
     FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(1000)
@@ -69,13 +82,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
 
     next_tx_buffer =
       config_data
-      |> Map.to_list()
-      |> Enum.filter(fn {k, _v} -> Parameter.is_param?(k) end)
-      |> Enum.map(fn {key, value} -> {Parameter.translate(key), value} end)
-      |> Enum.map(&Command.f22/1)
-      |> Enum.reduce(state.tx_buffer, fn gcode, tx_buffer ->
-        TxBuffer.push(tx_buffer, {nil, gcode})
-      end)
+      |> write_configs(state)
       # Approve configuration
       |> TxBuffer.push({nil, "F22 P2 V1"})
       # Request software version
@@ -96,6 +103,17 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
 
   defp fw_config do
     Map.take(Asset.firmware_config(), Parameter.names())
+  end
+
+  defp write_configs(config_data, state) do
+    config_data
+    |> Map.to_list()
+    |> Enum.filter(fn {k, _v} -> Parameter.is_param?(k) end)
+    |> Enum.map(fn {key, value} -> {Parameter.translate(key), value} end)
+    |> Enum.map(&Command.f22/1)
+    |> Enum.reduce(state.tx_buffer, fn gcode, tx_buffer ->
+      TxBuffer.push(tx_buffer, {nil, gcode})
+    end)
   end
 
   defp maybe_home_at_boot(txb, conf) do

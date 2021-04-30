@@ -61,6 +61,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
   @minutes 10
   @fw_timeout 1000 * 60 * @minutes
 
+  def refresh_config(server) do
+    send(server, :refresh_config)
+  end
+
   def flash_firmware(server \\ __MODULE__, package) do
     Logger.info("Begin firmware flash (#{inspect(package)})")
     GenServer.call(server, {:flash_firmware, package}, @fw_timeout)
@@ -142,6 +146,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
     state3 = InboundSideEffects.process(state2, gcodes)
 
     {:noreply, state3}
+  end
+
+  def handle_info(:refresh_config, state) do
+    {:noreply, FarmbotCore.Firmware.ConfigUploader.refresh(state)}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.

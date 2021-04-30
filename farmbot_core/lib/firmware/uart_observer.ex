@@ -2,6 +2,8 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   require Logger
 
   alias __MODULE__, as: State
+  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
+  alias FarmbotCore.Firmware.UARTCore
 
   defstruct uart_pid: nil
 
@@ -37,6 +39,14 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     end
 
     {:noreply, %State{uart_pid: uart_pid}}
+  end
+
+  def handle_info({:data_available, FirmwareConfig}, state) do
+    if is_pid(state.uart_pid) do
+      UARTCore.refresh_config(state.uart_pid)
+    end
+
+    {:noreply, state}
   end
 
   def handle_info({:data_available, from}, state) do
