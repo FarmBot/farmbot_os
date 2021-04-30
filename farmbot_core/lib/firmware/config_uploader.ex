@@ -80,8 +80,6 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       |> TxBuffer.push({nil, "F22 P2 V1"})
       # Request software version
       |> TxBuffer.push({nil, "F83"})
-      # Request current position for good measure
-      |> TxBuffer.push({nil, "F82"})
       |> maybe_home_at_boot(config_data)
 
     %{state | tx_buffer: next_tx_buffer, config_phase: :sent}

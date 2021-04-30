@@ -74,15 +74,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     result
     |> map_args(fn
       {:x, value} ->
-        log_axis_length_change("X", value)
         {:movement_axis_nr_steps_x, value}
 
       {:y, value} ->
-        log_axis_length_change("Y", value)
         {:movement_axis_nr_steps_y, value}
 
       {:z, value} ->
-        log_axis_length_change("Z", value)
         {:movement_axis_nr_steps_z, value}
 
       _ ->
@@ -249,9 +246,5 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp busy() do
     :ok = BotState.set_firmware_idle(false)
     :ok = BotState.set_firmware_busy(true)
-  end
-
-  defp log_axis_length_change(axis, length) do
-    FarmbotCore.Logger.info(3, "Setting #{axis} axis length to #{length}mm")
   end
 end
