@@ -3,6 +3,7 @@
 # 14.0.0
 
  * Complete overhaul of firmware handler in FBOS.
+ * Genesis and Express firmware updates.
 
 # 13.1.0
 
