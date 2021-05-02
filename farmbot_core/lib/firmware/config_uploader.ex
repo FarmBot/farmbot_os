@@ -8,12 +8,14 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   require FarmbotCore.Logger
 
   # Called at runtime when FirmwareConfig value(s) change.
-  def refresh(state) do
+  def refresh(state, new_keys) do
     conf = maybe_get_config()
 
     if conf do
-      FarmbotCore.Logger.info(3, "Updating firmware parameters")
-      %{state | tx_buffer: write_configs(conf, state)}
+      new_data = Map.take(conf, new_keys)
+      msg = "Updating firmware parameters: #{inspect(new_keys)}"
+      FarmbotCore.Logger.info(3, msg)
+      %{state | tx_buffer: write_configs(new_data, state)}
     else
       state
     end

@@ -42,8 +42,27 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def handle_info({:data_available, FirmwareConfig}, state) do
+    old_config = FarmbotCore.BotState.fetch().mcu_params
+    new_config = FarmbotCore.Asset.firmware_config()
+
+    diff =
+      old_config
+      |> Map.to_list()
+      |> Enum.map(fn {key, old_value} ->
+        new_value = Map.get(new_config, key)
+
+        if new_value do
+          if FarmbotFirmware.Parameter.is_param?(key) do
+            if new_value != old_value do
+              key
+            end
+          end
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
     if is_pid(state.uart_pid) do
-      UARTCore.refresh_config(state.uart_pid)
+      UARTCore.refresh_config(state.uart_pid, diff)
     end
 
     {:noreply, state}

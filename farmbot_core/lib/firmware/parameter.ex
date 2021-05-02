@@ -29,6 +29,7 @@ defmodule FarmbotFirmware.Parameter do
     {041, :movement_steps_acc_dec_x},
     {042, :movement_steps_acc_dec_y},
     {043, :movement_steps_acc_dec_z},
+    {044, :movement_steps_acc_dec_z2},
     {045, :movement_stop_at_home_x},
     {046, :movement_stop_at_home_y},
     {047, :movement_stop_at_home_z},
@@ -41,22 +42,18 @@ defmodule FarmbotFirmware.Parameter do
     {061, :movement_min_spd_x},
     {062, :movement_min_spd_y},
     {063, :movement_min_spd_z},
+    {064, :movement_min_spd_z2},
     {065, :movement_home_spd_x},
     {066, :movement_home_spd_y},
     {067, :movement_home_spd_z},
     {071, :movement_max_spd_x},
     {072, :movement_max_spd_y},
     {073, :movement_max_spd_z},
+    {074, :movement_max_spd_z2},
     {075, :movement_invert_2_endpoints_x},
     {076, :movement_invert_2_endpoints_y},
     {077, :movement_invert_2_endpoints_z},
-    #
-    # ==== BEGIN INVALID, POSSIBLY OBSOLETE PARAMS?? =======
-    # {074, :movement_max_spd_z2},
-    # {044, :movement_steps_acc_dec_z2},
-    # {064, :movement_min_spd_z2},
-    # ==== BEGIN INVALID, POSSIBLY OBSOLETE PARAMS?? =======
-    #
+
     # ==== BEGIN MODEL-SPECIFIC PARAMETERS (FIX LATER) =====
     # {081, :movement_motor_current_x},
     # {082, :movement_motor_current_y},
@@ -68,6 +65,7 @@ defmodule FarmbotFirmware.Parameter do
     # {092, :movement_microsteps_y},
     # {093, :movement_microsteps_z},
     # ==== END MODEL-SPECIFIC PARAMETERS (FIX LATER)   =====
+
     IO.inspect({101, :encoder_enabled_x}, label: "STILL NEED TO FIX THIS ^"),
     {102, :encoder_enabled_y},
     {103, :encoder_enabled_z},
@@ -95,6 +93,9 @@ defmodule FarmbotFirmware.Parameter do
     {145, :movement_stop_at_max_x},
     {146, :movement_stop_at_max_y},
     {147, :movement_stop_at_max_z},
+    {161, :movement_calibration_retry_x},
+    {162, :movement_calibration_retry_y},
+    {163, :movement_calibration_retry_z},
     {201, :pin_guard_1_pin_nr},
     {202, :pin_guard_1_time_out},
     {203, :pin_guard_1_active_state},

@@ -6,7 +6,7 @@ defmodule FarmbotFirmware.ParameterTest do
   # @how_many_params_there_are 104
 
   # VALUE DURING TESTING:
-  @how_many_params_there_are 92
+  @how_many_params_there_are 98
 
   test "decoding" do
     assert 61 == Parameter.translate(:movement_min_spd_x)
