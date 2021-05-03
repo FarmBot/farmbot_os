@@ -46,6 +46,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   require FarmbotCore.Logger
 
   defstruct circuits_pid: nil,
+            logs_enabled: false,
             uart_path: nil,
             # Has the MCU received a valid firmware
             # config from FBOS?
@@ -60,6 +61,13 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # This is a reasonable (but not perfect) assumption. RC
   @minutes 10
   @fw_timeout 1000 * 60 * @minutes
+
+  # This is a helper method that I use for inspecting GCode
+  # over SSH. It is not used by production systems except for
+  # debugging.
+  def toggle_logging(server \\ __MODULE__) do
+    send(server, :toggle_logging)
+  end
 
   def refresh_config(server, new_keys) do
     send(server, {:refresh_config, new_keys})
@@ -152,6 +160,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, FarmbotCore.Firmware.ConfigUploader.refresh(state, new_keys)}
   end
 
+  def handle_info(:toggle_logging, state) do
+    next_state = %{state | logs_enabled: !state.logs_enabled}
+    {:noreply, next_state}
+  end
+
   # === SCENARIO: Unexpected message from a library or FBOS.
   def handle_info(message, %State{} = state) do
     Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
@@ -179,6 +192,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def terminate(_, _) do
+    Logger.debug("Firmware terminated.")
     FarmbotCore.BotState.firmware_offline()
   end
 

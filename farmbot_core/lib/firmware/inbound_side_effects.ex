@@ -9,16 +9,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require FarmbotCore.Logger
 
   def process(state, gcode) do
-    # Uncomment this line for debugging:
-    Enum.map(gcode, fn
-      {:current_position, _} -> nil
-      {:emergency_lock, _} -> nil
-      {:encoder_position_raw, _} -> nil
-      {:encoder_position_scaled, _} -> nil
-      {:end_stops_report, _} -> nil
-      {:idle, _} -> nil
-      {name, values} -> IO.inspect(values, label: "==> #{inspect(name)}")
-    end)
+    if state.logs_enabled do
+      gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)
+    end
 
     Enum.reduce(gcode, state, &reduce/2)
   end
