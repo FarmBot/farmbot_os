@@ -150,7 +150,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:param_value_report, %{pin_or_param: p_float, value: v}}, s) do
+  defp reduce({:param_value_report, %{pin_or_param: p_float, value1: v}}, s) do
     FarmbotCore.Firmware.ConfigUploader.verify_param(s, {trunc(p_float), v})
   end
 
@@ -159,7 +159,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:pin_value_report, %{pin_or_param: pin, value: value}}, state) do
+  defp reduce({:pin_value_report, %{pin_or_param: pin, value1: value}}, state) do
     BotState.set_pin_value(trunc(pin), value)
     state
   end
@@ -175,7 +175,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
   defp reduce(
          {:report_updated_param_during_calibration,
-          %{pin_or_param: p, value: v}},
+          %{pin_or_param: p, value1: v}},
          state
        ) do
     k = FarmbotFirmware.Parameter.translate(trunc(p))
