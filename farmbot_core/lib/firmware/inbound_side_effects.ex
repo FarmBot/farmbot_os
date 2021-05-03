@@ -192,6 +192,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
+  defp reduce({:motor_load_report, %{x: x, y: y, z: z}}, state) do
+    :ok = BotState.set_load(x, y, z)
+    state
+  end
+
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
     FarmbotCore.Logger.info(3, msg)

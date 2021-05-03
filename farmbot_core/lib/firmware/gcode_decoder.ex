@@ -35,7 +35,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     "85" => :encoder_position_raw,
     "87" => :emergency_lock,
     "88" => :not_configured,
-    "89" => :missed_steps_per_500_report,
+    "89" => :motor_load_report,
     "99" => :debug_message
   }
 
