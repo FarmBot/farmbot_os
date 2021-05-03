@@ -61,9 +61,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
       end)
       |> Enum.reject(&is_nil/1)
 
-    if is_pid(state.uart_pid) do
-      UARTCore.refresh_config(state.uart_pid, diff)
-    end
+    refresh_config(state.uart_pid, diff)
 
     {:noreply, state}
   end
@@ -115,4 +113,8 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   defp filter_uart("ttyAMA" <> _), do: true
   defp filter_uart("ttyUSB" <> _), do: true
   defp filter_uart(_), do: false
+
+  defp refresh_config(nil, _), do: :noop
+  defp refresh_config(_, []), do: :noop
+  defp refresh_config(pid, keys), do: UARTCore.refresh_config(pid, keys)
 end
