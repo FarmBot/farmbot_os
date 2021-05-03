@@ -99,8 +99,18 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     map_get(@response_codes, code, "firmware response code")
   end
 
-  defp param_code(code) do
-    map_get(@params, code, "firmware parameter code")
+  defp fetch_param!(code, original_string) do
+    value = Map.get(@params, code)
+
+    if value do
+      value
+    else
+      msg1 = "(1/2) Parameter decode error: #{inspect(code)}"
+      msg2 = "(2/2) Parameter decode error: #{inspect(original_string)}"
+      FarmbotCore.Logger.error(3, msg1)
+      FarmbotCore.Logger.error(3, msg2)
+      raise "BAD PARAMETER: #{inspect(code)} / #{inspect(original_string)}"
+    end
   end
 
   defp parameterize(string) do
@@ -115,7 +125,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
       [number] = Regex.run(~r/-?\d+\.?\d?+/, pair)
       [code] = Regex.run(~r/[A-Z]{1,2}/, pair)
       {float, _} = Float.parse(number)
-      {param_code(code), float}
+      {fetch_param!(code, string), float}
     end)
     |> Enum.reduce(%{}, fn {key, val}, acc -> Map.put(acc, key, val) end)
   end
