@@ -25,7 +25,8 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   def upload(state) do
     FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(1000)
-    %{do_upload(state, maybe_get_config()) | locked: false}
+    BotState.set_firmware_locked()
+    do_upload(state, maybe_get_config())
   end
 
   def maybe_get_config() do

@@ -98,7 +98,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
     if echo_string == "*F09*" do
       # INBOUND SIDE EFFECT: The Firmware echoed our unlock back.
-      %{next_state | tx_buffer: TxBuffer.new(), locked: false}
+      BotState.set_firmware_unlocked()
+      %{next_state | tx_buffer: TxBuffer.new()}
     else
       next_state
     end

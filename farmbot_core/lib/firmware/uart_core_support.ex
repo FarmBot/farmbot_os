@@ -2,6 +2,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   require Logger
 
   defstruct path: "null", circuits_pid: nil
+  alias FarmbotCore.BotState
 
   @default_opts [
     active: true,
@@ -33,6 +34,10 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     Logger.info(" == SEND RAW: #{inspect(text)}")
     :ok = Circuits.UART.write(circuits_pid, text <> "\r\n")
   end
+
+  def lock!(), do: BotState.set_firmware_locked()
+  def unlock!(), do: BotState.set_firmware_unlocked()
+  def locked?(), do: BotState.fetch().informational_settings.locked
 
   defp maybe_open_uart_device(pid, path) do
     if device_available?(path) do

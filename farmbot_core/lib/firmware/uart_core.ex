@@ -51,8 +51,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
             # Has the MCU received a valid firmware
             # config from FBOS?
             config_phase: :not_started,
-            # Is the device emergency locked?
-            locked: false,
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new()
 
@@ -125,7 +123,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
   def handle_info({:send_raw, "E"}, %State{} = state) do
     Support.uart_send(state.circuits_pid, "E\r\n")
     TxBuffer.error_all(state, "Emergency locked")
-    {:noreply, %{state | tx_buffer: TxBuffer.new(), locked: true}}
+    Support.lock!()
+    {:noreply, %{state | tx_buffer: TxBuffer.new()}}
   end
 
   # === SCENARIO: Direct GCode transmission without queueing
@@ -171,18 +170,17 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, state}
   end
 
-  def handle_call({:start_job, gcode}, caller, %State{locked: false} = state) do
-    next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
+  def handle_call({:start_job, gcode}, caller, %State{} = state) do
+    if Support.locked?() do
+      {:reply, {:error, "Device is locked."}, state}
+    else
+      next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
 
-    next_state =
-      TxBuffer.process_next_message(%{state | tx_buffer: next_buffer})
+      next_state =
+        TxBuffer.process_next_message(%{state | tx_buffer: next_buffer})
 
-    {:noreply, next_state}
-  end
-
-  # Always reject job requests if locked != false.
-  def handle_call({:start_job, _gcode}, _, %State{} = state) do
-    {:reply, {:error, "Device is locked."}, state}
+      {:noreply, next_state}
+    end
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
