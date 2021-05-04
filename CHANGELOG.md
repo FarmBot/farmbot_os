@@ -5,6 +5,10 @@
  * Complete overhaul of firmware handler in FBOS.
  * Genesis and Express firmware updates.
 
+# 13.2.0
+
+ * Expose `set_pin_io_mode` to Lua (feature request from forum use @JoeHou)
+
 # 13.1.0
 
  * Finalize AMQP removal. MQTT is the only transport now.

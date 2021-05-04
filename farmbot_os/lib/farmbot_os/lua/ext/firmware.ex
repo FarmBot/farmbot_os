@@ -206,6 +206,25 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
 
   def read_pin([pin], lua), do: read_pin([pin, "digital"], lua)
 
+  @options ["input", "input_pullup", "output"]
+
+  def set_pin_io_mode([pin, mode], lua) when mode in @options do
+    result = SysCalls.set_pin_io_mode(pin, mode)
+
+    case result do
+      :ok ->
+        {[true, nil], lua}
+
+      other ->
+        {[false, inspect(other)], lua}
+    end
+  end
+
+  def set_pin_io_mode([_pin, _mode], lua) do
+    error = "Expected pin mode to be one of: #{inspect(@options)}"
+    {[false, error], lua}
+  end
+
   defp do_find_home(axes, lua, callback) do
     axes
     |> Enum.map(callback)
