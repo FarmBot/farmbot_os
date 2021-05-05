@@ -1,8 +1,7 @@
 defmodule FarmbotCore.Firmware.UARTCore do
   @moduledoc """
-  UARTCore is the topmost UART process. UARTCore handles RX/TX
-  from a serial device such as a Farmduino (1.3+) or Arduino
-  Mega (FarmBot v1.2).
+  UARTCore is the central logic and processing module for all
+  inbound and outbound UART data (GCode).
 
   Guiding Principles:
    * No cached state - Delay data fetching. Never duplicate.
@@ -10,26 +9,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
    * No polling      - Push data, don't pull.
    * No retries      - Fail fast / hard. Restarting the module
                        is the only recovery option.
-
-  SYSTEM DIAGRAM:
-
-    Incoming serial data
-       ▼
-      ┌────────────┐
-      │UARTCore    │ Top level process. If things go wrong,
-      └────────────┘ restart this process.
-       ▼
-      ┌────────────┐ Ensures that GCode is a fully formed
-      │RxBuffer    │ block.
-      └────────────┘
-       ▼
-      ┌────────────┐ Converts GCode strings to machine readable
-      │GCodeDecoder│ data structures. Crashes on bad input.
-      └────────────┘
-       ▼
-      ┌──────────────────┐ Triggers callbacks as the system ingests
-      │InboundSideEffects│ GCode
-      └──────────────────┘
   """
 
   alias __MODULE__, as: State
