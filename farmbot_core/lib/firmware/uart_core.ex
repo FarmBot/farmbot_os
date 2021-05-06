@@ -24,7 +24,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   require Logger
   require FarmbotCore.Logger
 
-  defstruct circuits_pid: nil,
+  defstruct uart_pid: nil,
             logs_enabled: false,
             uart_path: nil,
             # Has the MCU received a valid firmware
@@ -83,8 +83,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
   def init(opts) do
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
-    {:ok, circuits_pid} = Support.connect(path)
-    {:ok, %State{circuits_pid: circuits_pid, uart_path: path}}
+    {:ok, uart_pid} = Support.connect(path)
+    {:ok, %State{uart_pid: uart_pid, uart_path: path}}
   end
 
   def handle_info(:restart_firmware, %State{uart_path: old_path} = state1) do
@@ -100,15 +100,16 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # treatment. It skips all queing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, %State{} = state) do
-    Support.uart_send(state.circuits_pid, "E\r\n")
-    TxBuffer.error_all(state, "Emergency locked")
+    Support.uart_send(state.uart_pid, "E\r\n")
+    msg = "Emergency locked"
+    txb = TxBuffer.error_all(state.tx_buffer, msg)
     Support.lock!()
-    {:noreply, %{state | tx_buffer: TxBuffer.new()}}
+    {:noreply, %{state | tx_buffer: txb}}
   end
 
   # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, %State{} = state) do
-    Support.uart_send(state.circuits_pid, "#{text}\r\n")
+    Support.uart_send(state.uart_pid, "#{text}\r\n")
     {:noreply, state}
   end
 
@@ -153,10 +154,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
     if Support.locked?() do
       {:reply, {:error, "Device is locked."}, state}
     else
-      next_buffer = TxBuffer.push(state.tx_buffer, {caller, gcode})
+      next_buffer =
+        state.tx_buffer
+        |> TxBuffer.push({caller, gcode})
+        |> TxBuffer.process_next_message(state.uart_pid)
 
-      next_state =
-        TxBuffer.process_next_message(%{state | tx_buffer: next_buffer})
+      next_state = %{state | tx_buffer: next_buffer}
 
       {:noreply, next_state}
     end

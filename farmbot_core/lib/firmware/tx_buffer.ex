@@ -39,18 +39,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %{state | queue: state.queue ++ [job], autoinc: id}
   end
 
-  def error_all(%{tx_buffer: txb} = old_state, reason) do
-    reducer = fn %{id: id}, state ->
-      reply(state, id, {:error, reason})
-    end
-
-    Enum.reduce(txb.queue, old_state, reducer)
-  end
-
-  def process_next_message(
-        %{tx_buffer: %{current: nil, queue: [j | next_queue]}} = state
-      ) do
-    last_buffer = state.tx_buffer
+  def process_next_message(%State{current: nil, queue: [j | next]}, uart_pid) do
     q = j.id
     # 1. Attach a `Q` param to GCode.
     gcode = j.gcode <> " Q#{q}"
@@ -60,18 +49,23 @@ defmodule FarmbotCore.Firmware.TxBuffer do
 
     # 3. Send GCode down the wire with newly minted Q param
     IO.inspect(gcode, label: "=== SENDING JOB")
-    Support.uart_send(state.circuits_pid, gcode)
+    Support.uart_send(uart_pid, gcode)
 
     # 4. Update state.
-    updates = %{current: next_job, queue: next_queue, autoinc: q}
-
-    %{state | tx_buffer: Map.merge(last_buffer, updates)}
+    %State{current: next_job, queue: next, autoinc: q}
   end
 
-  # Reasons you could hit this state:
   # 1. No messages to process.
-  # 2. Still waiting for last command to finish (current != nil)
-  def process_next_message(state), do: state
+  def process_next_message(%State{current: nil, queue: []} = s, _), do: s
+
+  # Still waiting for last command to finish (current != nil)
+  def process_next_message(state, _uart_pid) do
+    current = inspect(state.current)
+    q = Enum.count(state.queue)
+    m = "Firmware handler waiting on #{q} responses. Next: #{current}"
+    Logger.debug(m)
+    state
+  end
 
   # Queue number 0 is special. If a response comes back on
   # Q00, assume it was not sent via this module and
@@ -80,13 +74,24 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   def process_ok(state, q), do: reply(state, q, {:ok, nil})
   def process_error(state, q), do: reply(state, q, {:error, nil})
   def process_echo(state, echo), do: do_process_echo(state, echo)
+  def error_all(state, reason) do
+    mapper = fn
+      %{id: id} -> reply(state, id, {:error, reason})
+      nil -> nil
+    end
 
-  defp reply(%{tx_buffer: txb} = old_state, q, response) when is_integer(q) do
-    # 0. Fetch job.
-    # `false` means "NOT FOUND"
-    # `nil` means "DONT WANT REPLY"
+    mapper.(state.current)
+    Enum.map(state.queue, mapper)
+    new()
+  end
+
+  defp reply(txb, q, response) when is_integer(q) do
+    if !txb.current || txb.current.id != q do
+      IO.inspect(txb, label: "===== PROCESSING TXB REPLY")
+    end
+
     finish_reply(txb.current, response)
-    %{old_state | tx_buffer: Map.merge(txb, %{current: nil})}
+    Map.merge(txb, %{current: nil})
   end
 
   defp do_process_echo(%{tx_buffer: txb} = state, echo) do

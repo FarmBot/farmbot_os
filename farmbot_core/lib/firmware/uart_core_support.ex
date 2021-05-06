@@ -1,7 +1,7 @@
 defmodule FarmbotCore.Firmware.UARTCoreSupport do
   require Logger
 
-  defstruct path: "null", circuits_pid: nil
+  defstruct path: "null", uart_pid: nil
   alias FarmbotCore.BotState
 
   @default_opts [
@@ -17,12 +17,12 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   end
 
   # Returns the uart path of the device that was disconnected
-  def disconnect(%{circuits_pid: pid, uart_path: tty} = state, reason) do
+  def disconnect(%{uart_pid: pid, uart_path: tty} = state, reason) do
     # Genserer.reply to everyone with {:error, reason}
-    FarmbotCore.Firmware.TxBuffer.error_all(state, reason)
+    FarmbotCore.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
 
     if Process.alive?(pid) do
-      Circuits.UART.stop(state.circuits_pid)
+      Circuits.UART.stop(state.uart_pid)
     else
       Logger.debug("==== TRIED TO STOP UART PID BUT IT IS ALREADY DEAD")
     end
@@ -30,9 +30,9 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     {:ok, tty}
   end
 
-  def uart_send(circuits_pid, text) do
+  def uart_send(uart_pid, text) do
     Logger.info(" == SEND RAW: #{inspect(text)}")
-    :ok = Circuits.UART.write(circuits_pid, text <> "\r\n")
+    :ok = Circuits.UART.write(uart_pid, text <> "\r\n")
   end
 
   def lock!(), do: BotState.set_firmware_locked()

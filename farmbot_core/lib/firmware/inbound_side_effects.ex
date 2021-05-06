@@ -25,7 +25,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     _ = FirmwareEstopTimer.cancel_timer()
     :ok = BotState.set_firmware_unlocked()
     idle()
-    TxBuffer.process_next_message(state)
+
+    txb = TxBuffer.process_next_message(state.tx_buffer, state.uart_pid)
+    %{state | tx_buffer: txb}
   end
 
   defp reduce({:complete_homing_x, _}, state), do: homing_done(state, :x)
@@ -113,17 +115,23 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   defp reduce({:error, %{queue: q_float}}, state) do
     idle()
 
-    state
-    |> TxBuffer.process_error(trunc(q_float))
-    |> TxBuffer.process_next_message()
+    next_txb =
+      state.tx_buffer
+      |> TxBuffer.process_error(trunc(q_float))
+      |> TxBuffer.process_next_message(state.uart_pid)
+
+    %{state | tx_buffer: next_txb}
   end
 
   defp reduce({:invalidation, _}, _), do: raise("FBOS SENT INVALID GCODE")
 
   defp reduce({:ok, %{queue: q_float}}, state) do
-    state
-    |> TxBuffer.process_ok(trunc(q_float))
-    |> TxBuffer.process_next_message()
+    next_txb =
+      state.tx_buffer
+      |> TxBuffer.process_ok(trunc(q_float))
+      |> TxBuffer.process_next_message(state.uart_pid)
+
+    %{state | tx_buffer: next_txb}
   end
 
   # USECASE I: MCU is not configured. FBOS did not try to
