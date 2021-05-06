@@ -95,10 +95,17 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     Map.merge(txb, %{current: nil})
   end
 
+  # EDGE CASE: Locking the device causes a state reset. Lots
+  #            of jobs will be undetecable during the time
+  #            between Lock => Unlock. Just ignore them.
+  defp do_process_echo(%{tx_buffer: %{current: nil}} = s, e) do
+    Logger.debug("Ignoring untracked echo: #{inspect(e)}")
+    s
+  end
+
   defp do_process_echo(%{tx_buffer: txb} = state, echo) do
     # 0. Retrieve old job
     no_echo = txb.current
-
     # 1. add `echo` to job record
     %{echo: echo, gcode: gcode} = has_echo = %{no_echo | echo: echo}
 
