@@ -38,6 +38,15 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   def lock!(), do: BotState.set_firmware_locked()
   def unlock!(), do: BotState.set_firmware_unlocked()
   def locked?(), do: BotState.fetch().informational_settings.locked
+  # This wrapper exists only because it felt strange to mock
+  # GenServer.reply/2
+  def reply(caller, resp), do: GenServer.reply(caller, resp)
+
+  def enumerate(), do: Circuits.UART.enumerate()
+
+  def device_available?(path) do
+    Map.has_key?(enumerate(), path)
+  end
 
   defp maybe_open_uart_device(pid, path) do
     if device_available?(path) do
@@ -50,9 +59,5 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   defp open_uart_device(pid, path) do
     :ok = Circuits.UART.open(pid, path, @default_opts)
     {:ok, pid}
-  end
-
-  defp device_available?(path) do
-    Map.has_key?(Circuits.UART.enumerate(), path)
   end
 end

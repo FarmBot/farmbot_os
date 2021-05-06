@@ -48,7 +48,6 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     next_job = %{j | gcode: gcode}
 
     # 3. Send GCode down the wire with newly minted Q param
-    IO.inspect(gcode, label: "=== SENDING JOB")
     Support.uart_send(uart_pid, gcode)
 
     # 4. Update state.
@@ -70,10 +69,10 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   # Queue number 0 is special. If a response comes back on
   # Q00, assume it was not sent via this module and
   # ignore it.
-  def process_ok(state, 0), do: state
-  def process_ok(state, q), do: reply(state, q, {:ok, nil})
-  def process_error(state, q), do: reply(state, q, {:error, nil})
-  def process_echo(state, echo), do: do_process_echo(state, echo)
+  def process_ok(%State{} = state, 0), do: state
+  def process_ok(%State{} = state, q), do: reply(state, q, {:ok, nil})
+  def process_error(%State{} = state, q), do: reply(state, q, {:error, nil})
+  def process_echo(%State{} = state, echo), do: do_process_echo(state, echo)
 
   def error_all(state, reason) do
     mapper = fn
@@ -87,10 +86,6 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   end
 
   defp reply(txb, q, response) when is_integer(q) do
-    if !txb.current || txb.current.id != q do
-      IO.inspect(txb, label: "===== PROCESSING TXB REPLY")
-    end
-
     finish_reply(txb.current, response)
     Map.merge(txb, %{current: nil})
   end
@@ -98,12 +93,12 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   # EDGE CASE: Locking the device causes a state reset. Lots
   #            of jobs will be undetecable during the time
   #            between Lock => Unlock. Just ignore them.
-  defp do_process_echo(%{tx_buffer: %{current: nil}} = s, e) do
+  defp do_process_echo(%{current: nil} = s, e) do
     Logger.debug("Ignoring untracked echo: #{inspect(e)}")
     s
   end
 
-  defp do_process_echo(%{tx_buffer: txb} = state, echo) do
+  defp do_process_echo(%State{} = txb, echo) do
     # 0. Retrieve old job
     no_echo = txb.current
     # 1. add `echo` to job record
@@ -116,7 +111,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     end
 
     # 3. Add updated record to state.
-    %{state | tx_buffer: Map.merge(txb, %{current: has_echo})}
+    Map.merge(txb, %{current: has_echo})
   end
 
   defp generate_next_q(q) do
@@ -134,6 +129,6 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   defp finish_reply(%{caller: nil}, _), do: false
   # Base case
   defp finish_reply(%{caller: caller}, response) do
-    GenServer.reply(caller, response)
+    Support.reply(caller, response)
   end
 end

@@ -1,9 +1,12 @@
 defmodule FarmbotCore.Firmware.UARTObserver do
   require Logger
+  require FarmbotCore.Logger
 
   alias __MODULE__, as: State
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
   alias FarmbotCore.Firmware.UARTCore
+  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotCore.Firmware.ConfigUploader
 
   defstruct uart_pid: nil
 
@@ -31,10 +34,10 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def handle_info(:connect_uart, %{uart_pid: nil}) do
-    uart_pid = maybe_get_uart_pid()
+    uart_pid = maybe_start_uart()
 
     unless uart_pid do
-      Logger.info("==== Retrying UART connection...")
+      Logger.info("No suitable UART devices found. Retrying.")
       try_to_attach_uart()
     end
 
@@ -66,25 +69,21 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     {:noreply, state}
   end
 
-  def handle_info({:data_available, from}, state) do
-    IO.inspect(from, label: "##### DATA AVAILABLE #####")
-    {:noreply, state}
-  end
-
   def handle_info(message, state) do
-    IO.inspect(message, label: "##### UNKNOWN #####")
+    Logger.debug("##### UNKNOWN ##### " <> inspect(message))
     {:noreply, state}
   end
 
   defp try_to_attach_uart() do
-    Process.send_after(self(), :connect_uart, 3_000)
+    Process.send_after(self(), :connect_uart, 5_000)
   end
 
-  defp maybe_get_uart_pid do
-    path = guess_uart(FarmbotCore.Firmware.ConfigUploader.maybe_get_config())
+  defp maybe_start_uart do
+    config = ConfigUploader.maybe_get_config()
+    path = guess_uart(config)
 
     if path do
-      {:ok, uart_pid} = FarmbotCore.Firmware.UARTCore.start_link(path: path)
+      {:ok, uart_pid} = UARTCore.start_link(path: path)
       uart_pid
     end
   end
@@ -99,12 +98,19 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     end
   end
 
-  defp guess_uart(config) do
-    config.firmware_path || guess_uart(nil)
+  defp guess_uart(%{firmware_path: path}) do
+    # Just because the user has a `firmware_path` doesn't
+    # mean the device is plugged in- verify before
+    # proceeding. Otherwise, try to guess.
+    if Support.device_available?(path) do
+      path
+    else
+      guess_uart(nil)
+    end
   end
 
   defp uart_list() do
-    Circuits.UART.enumerate()
+    Support.enumerate()
     |> Map.keys()
     |> Enum.filter(&filter_uart/1)
   end

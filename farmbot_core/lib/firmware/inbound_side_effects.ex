@@ -96,14 +96,15 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
   defp reduce({:echo, echo_string}, state) do
     clean_echo = String.replace(echo_string, "*", "")
-    next_state = TxBuffer.process_echo(state, clean_echo)
+    next_txb = TxBuffer.process_echo(state.tx_buffer, clean_echo)
 
     if echo_string == "*F09*" do
-      # INBOUND SIDE EFFECT: The Firmware echoed our unlock back.
+      # INBOUND SIDE EFFECT: The Firmware echoed back our
+      # unlock command. We can purge the old buffer.
       BotState.set_firmware_unlocked()
-      %{next_state | tx_buffer: TxBuffer.new()}
+      %{state | tx_buffer: TxBuffer.new()}
     else
-      next_state
+      %{state | tx_buffer: next_txb}
     end
   end
 

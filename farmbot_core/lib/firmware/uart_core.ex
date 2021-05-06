@@ -114,8 +114,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   # === SCENARIO: Serial cable is unplugged.
-  def handle_info({:circuits_uart, _, {:error, :eio}}, %State{} = state) do
-    {:noreply, %{state | rx_buffer: RxBuffer.new()}}
+  def handle_info({:circuits_uart, _, {:error, :eio}}, _) do
+    {:stop, :cable_unplugged, %State{}}
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
