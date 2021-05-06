@@ -74,6 +74,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   def process_ok(state, q), do: reply(state, q, {:ok, nil})
   def process_error(state, q), do: reply(state, q, {:error, nil})
   def process_echo(state, echo), do: do_process_echo(state, echo)
+
   def error_all(state, reason) do
     mapper = fn
       %{id: id} -> reply(state, id, {:error, reason})

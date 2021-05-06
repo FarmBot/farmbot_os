@@ -35,9 +35,10 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
         caller: nil,
         gcode: "E",
         echo: nil
-        },
+      },
       queue: []
     }
+
     result = TxBuffer.process_next_message(origin, self())
     assert result == origin
   end
