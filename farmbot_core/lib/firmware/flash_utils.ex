@@ -1,4 +1,6 @@
 defmodule FarmbotFirmware.FlashUtils do
+  require FarmbotCore.Logger
+
   @doc "Returns the absolute path to the hex file associated with `package`"
   def find_hex_file("arduino"), do: find("arduino_firmware.hex")
   def find_hex_file("farmduino"), do: find("farmduino.hex")
@@ -11,8 +13,16 @@ defmodule FarmbotFirmware.FlashUtils do
     {:error, "unknown firmware hardware: #{inspect(hardware)}"}
   end
 
+  @custom_firmware "/root/custom.hex"
+  @scary_warning "Using `custom.hex` firmware file. I hope you know what you are doing..."
+
   defp find(name) do
-    assert_exists(Application.app_dir(:farmbot_core, ["priv", name]))
+    if File.exists?(@custom_firmware) do
+      FarmbotCore.Logger.warn(3, @scary_warning)
+      {:ok, @custom_firmware}
+    else
+      assert_exists(Application.app_dir(:farmbot_core, ["priv", name]))
+    end
   end
 
   defp assert_exists(fname) do

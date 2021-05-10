@@ -13,7 +13,8 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
   FarmbotCore.Firmware.UARTCore,
   FarmbotCore.Firmware.UARTCoreSupport,
   FarmbotCore.LogExecutor,
-  Timex
+  Timex,
+  MuonTrap
 ]
 |> Enum.map(&Mimic.copy/1)
 

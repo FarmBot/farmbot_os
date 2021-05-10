@@ -4,12 +4,23 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   defstruct path: "null", uart_pid: nil
   alias FarmbotCore.BotState
 
-  @default_opts [
-    active: true,
-    speed: 115_200
-    # framing: Circuits.UART.Framing.FourByte,
-    # rx_framing_timeout: 200
-  ]
+  @default_opts [active: true, speed: 115_200]
+  @nine_minutes 9 * 60 * 1000
+
+  # This is a heuristic, but probably good enough given the
+  # requirements.
+  #
+  # PROBLEM:  We need to flash the Arduino firmware every
+  #           boot, if possible, but not every time a GenServer
+  #           restarts (an arduino can be flashed ~10,000
+  #           times according to spec).
+  #
+  # SOLUTION: Just check the system uptime instead of
+  #           maintaining a process to track that state.
+  def needs_flash?() do
+    {uptime_ms, _} = :erlang.statistics(:wall_clock)
+    uptime_ms < @nine_minutes
+  end
 
   def connect(path) do
     {:ok, pid} = Circuits.UART.start_link()
@@ -21,7 +32,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
     # Genserer.reply to everyone with {:error, reason}
     FarmbotCore.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
 
-    if Process.alive?(pid) do
+    if is_pid(pid) && Process.alive?(pid) do
       Circuits.UART.stop(state.uart_pid)
     else
       Logger.debug("==== TRIED TO STOP UART PID BUT IT IS ALREADY DEAD")

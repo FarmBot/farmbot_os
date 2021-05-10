@@ -83,6 +83,10 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     path = guess_uart(config)
 
     if path do
+      if config && Support.needs_flash?() do
+        FarmbotCore.Firmware.Flash.raw_flash(config.firmware_hardware, path)
+      end
+
       {:ok, uart_pid} = UARTCore.start_link(path: path)
       uart_pid
     end

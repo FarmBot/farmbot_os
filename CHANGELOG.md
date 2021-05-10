@@ -4,6 +4,7 @@
 
  * Complete overhaul of firmware handler in FBOS.
  * Genesis and Express firmware updates.
+ * Ability to use `custom.hex` firmware file in user data partition instead of default firmware.
 
 # 13.2.0
 

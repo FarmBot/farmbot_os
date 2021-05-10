@@ -13,7 +13,11 @@ defmodule FarmbotCore.Firmware.Flash do
   def run(state, package) do
     FarmbotCore.Logger.info(3, @reason)
     {:ok, tty} = UARTCoreSupport.disconnect(state, @reason)
+    raw_flash(package, tty)
+    state
+  end
 
+  def raw_flash(package, tty) do
     try do
       {:ok, hex_file} = FarmbotFirmware.FlashUtils.find_hex_file(package)
 
@@ -22,11 +26,9 @@ defmodule FarmbotCore.Firmware.Flash do
       result = Avrdude.flash(hex_file, tty, fun)
       finish_flashing(result, hex_file)
       FarmbotCore.Firmware.UARTCore.restart_firmware()
-      state
     rescue
       err ->
         FarmbotCore.Logger.error(3, "Firmware flash error: #{inspect(err)}")
-        state
     end
   end
 

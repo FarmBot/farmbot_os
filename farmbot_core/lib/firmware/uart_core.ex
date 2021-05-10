@@ -70,7 +70,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def restart_firmware(server \\ __MODULE__) do
-    send(server, :restart_firmware)
+    send(server, :reset_state)
     :ok
   end
 
@@ -87,7 +87,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:ok, %State{uart_pid: uart_pid, uart_path: path}}
   end
 
-  def handle_info(:restart_firmware, %State{uart_path: old_path} = state1) do
+  def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
     # Teardown existing connection.
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
@@ -167,7 +167,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
     next_state = FarmbotCore.Firmware.Flash.run(state, package)
-    Process.send_after(self(), :restart_firmware, 1)
+    Process.send_after(self(), :reset_state, 1)
     {:reply, :ok, next_state}
   end
 

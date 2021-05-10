@@ -3,7 +3,6 @@ defmodule FarmbotCore.Firmware.UARTObserverTest do
   use Mimic
   import ExUnit.CaptureLog
   alias FarmbotCore.Firmware.UARTObserver
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
 
   test "data_available/2" do
