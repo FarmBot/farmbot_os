@@ -8,7 +8,7 @@ defmodule FarmbotCore.Firmware.Flash do
 
   require FarmbotCore.Logger
   @reason "Starting firmware flash."
-  @flash_ok "Success: Firmware flashed."
+  @flash_ok "Success: Firmware flashed. MD5:"
 
   # Calls `raw_flash()`, plus makes additional calls to keep
   # UARTCore's state tree tidy.
