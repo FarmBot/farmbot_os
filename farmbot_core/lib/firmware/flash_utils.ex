@@ -13,7 +13,7 @@ defmodule FarmbotFirmware.FlashUtils do
     {:error, "unknown firmware hardware: #{inspect(hardware)}"}
   end
 
-  @custom_firmware "/root/custom.hex"
+  @custom_firmware "/boot/custom.hex"
   @scary_warning "Using `custom.hex` firmware file. I hope you know what you are doing..."
 
   defp find(name) do
