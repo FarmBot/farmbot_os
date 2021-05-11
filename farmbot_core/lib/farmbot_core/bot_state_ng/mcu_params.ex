@@ -12,6 +12,9 @@ defmodule FarmbotCore.BotStateNG.McuParams do
     field(:movement_timeout_x, :float)
     field(:movement_timeout_y, :float)
     field(:movement_timeout_z, :float)
+    field(:movement_calibration_retry_x, :float)
+    field(:movement_calibration_retry_y, :float)
+    field(:movement_calibration_retry_z, :float)
     field(:movement_keep_active_x, :float)
     field(:movement_keep_active_y, :float)
     field(:movement_keep_active_z, :float)
@@ -122,6 +125,9 @@ defmodule FarmbotCore.BotStateNG.McuParams do
       movement_timeout_x: mcu_params.movement_timeout_x,
       movement_timeout_y: mcu_params.movement_timeout_y,
       movement_timeout_z: mcu_params.movement_timeout_z,
+      movement_calibration_retry_x: mcu_params.movement_calibration_retry_x,
+      movement_calibration_retry_y: mcu_params.movement_calibration_retry_y,
+      movement_calibration_retry_z: mcu_params.movement_calibration_retry_z,
       movement_keep_active_x: mcu_params.movement_keep_active_x,
       movement_keep_active_y: mcu_params.movement_keep_active_y,
       movement_keep_active_z: mcu_params.movement_keep_active_z,
@@ -223,6 +229,9 @@ defmodule FarmbotCore.BotStateNG.McuParams do
   def changeset(mcu_params, params \\ %{}) do
     mcu_params
     |> cast(params, [
+      :movement_calibration_retry_x,
+      :movement_calibration_retry_y,
+      :movement_calibration_retry_z,
       :param_e_stop_on_mov_err,
       :param_mov_nr_retry,
       :movement_timeout_x,

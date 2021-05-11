@@ -36,16 +36,15 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       data
       |> Map.to_list()
       |> Enum.find(fn
-        {key, nil} -> key
-        {_, _} -> false
+        {key, nil} ->
+          Logger.debug("FW Config #{inspect(key)} is nil")
+          key
+
+        {_, _} ->
+          false
       end)
 
     if missing_key? do
-      FarmbotCore.Logger.debug(
-        3,
-        "Some configs nil; Can't send FW configuration."
-      )
-
       nil
     else
       data
