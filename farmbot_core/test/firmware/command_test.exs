@@ -78,45 +78,25 @@ defmodule FarmbotCore.Firmware.CommandTest do
     simple_case("write_param(param, val)", "F22 P4.00 V1.00", t)
   end
 
-  # test "report_end_stops()" do
-  #   simple_case(
-  #     "report_end_stops()",
-  #     "report_end_stops()",
-  #     fn -> Command.report_end_stops() end
-  #   )
-  # end
+  test "report_end_stops()" do
+    simple_case("report_end_stops()", "F81", fn -> Command.report_end_stops() end)
+  end
 
-  # test "report_software_version()" do
-  #   simple_case(
-  #     "report_software_version()",
-  #     "report_software_version()",
-  #     fn -> Command.report_software_version() end
-  #   )
-  # end
+  test "report_software_version()" do
+    simple_case("report_software_version()", "F83", fn -> Command.report_software_version() end)
+  end
 
-  # test "set_zero(:x)" do
-  #   simple_case(
-  #     "set_zero(:x)",
-  #     "set_zero(:x)",
-  #     fn -> Command.set_zer(:) end
-  #   )
-  # end
+  test "set_zero(:x)" do
+    simple_case("set_zero(:x)", "F84 X1 Y0 Z0", fn -> Command.set_zero(:x) end)
+  end
 
-  # test "set_zero(:y)" do
-  #   simple_case(
-  #     "set_zero(:y)",
-  #     "set_zero(:y)",
-  #     fn -> Command.set_zer(:) end
-  #   )
-  # end
+  test "set_zero(:y)" do
+    simple_case("set_zero(:y)", "F84 X0 Y1 Z0", fn -> Command.set_zero(:y) end)
+  end
 
-  # test "set_zero(:z)" do
-  #   simple_case(
-  #     "set_zero(:z)",
-  #     "set_zero(:z)",
-  #     fn -> Command.set_zer(:) end
-  #   )
-  # end
+  test "set_zero(:z)" do
+    simple_case("set_zero(:z)", "F84 X0 Y0 Z1", fn -> Command.set_zero(:z) end)
+  end
 
   # test "f22({param, val})" do
   #   simple_case(
