@@ -30,8 +30,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   def handle_info(:timeout, %{fwi: %{manifest: nil} = fwi} = state) do
-    FarmbotCore.Logger.busy(3, "Installing dependencies... ([source URL](#{fwi.url}))")
-
     with {:ok, %{} = manifest} <- get_manifest_json(fwi),
          %{valid?: true} = changeset <- FWI.changeset(fwi, %{manifest: manifest}),
          {:ok, %FWI{} = updated} <- Repo.update(changeset),
@@ -39,7 +37,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
          :ok <- install_zip(updated, zip_binary),
          :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
-      FarmbotCore.Logger.success(1, "Installed dependency: #{updated.manifest.package}")
+      FarmbotCore.Logger.success(3, "Installed dependency: #{updated.manifest.package}")
       # TODO(Connor) -> No reason to keep this process alive?
       BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
       {:noreply, %{state | backoff: 0}}

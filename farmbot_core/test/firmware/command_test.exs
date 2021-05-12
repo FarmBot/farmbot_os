@@ -79,11 +79,15 @@ defmodule FarmbotCore.Firmware.CommandTest do
   end
 
   test "report_end_stops()" do
-    simple_case("report_end_stops()", "F81", fn -> Command.report_end_stops() end)
+    simple_case("report_end_stops()", "F81", fn ->
+      Command.report_end_stops()
+    end)
   end
 
   test "report_software_version()" do
-    simple_case("report_software_version()", "F83", fn -> Command.report_software_version() end)
+    simple_case("report_software_version()", "F83", fn ->
+      Command.report_software_version()
+    end)
   end
 
   test "set_zero(:x)" do

@@ -29,6 +29,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def init(_) do
+    Logger.info("Inside UARTObserver init...")
     try_to_attach_uart()
     {:ok, %State{}}
   end
@@ -39,6 +40,8 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     unless uart_pid do
       Logger.info("No suitable UART devices found. Retrying.")
       try_to_attach_uart()
+    else
+      Logger.info("UART was found - continuing with UART connection")
     end
 
     {:noreply, %State{uart_pid: uart_pid}}
@@ -75,6 +78,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   defp try_to_attach_uart() do
+    Logger.info("Will try to attach UART again in 5000 ms")
     Process.send_after(self(), :connect_uart, 5_000)
   end
 
@@ -84,7 +88,11 @@ defmodule FarmbotCore.Firmware.UARTObserver do
 
     if path do
       if config && Support.needs_flash?() do
+        Logger.info("Will perform raw flash")
         FarmbotCore.Firmware.Flash.raw_flash(config.firmware_hardware, path)
+        nil
+      else
+        Logger.info("Can't perform raw flash")
       end
 
       {:ok, uart_pid} = UARTCore.start_link(path: path)
@@ -107,8 +115,10 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     # mean the device is plugged in- verify before
     # proceeding. Otherwise, try to guess.
     if Support.device_available?(path) do
+      Logger.info("guess_uart: #{inspect(path)} is actually available")
       path
     else
+      Logger.info("Path #{inspect(path)} was not available. Need to guess now.")
       guess_uart(nil)
     end
   end
