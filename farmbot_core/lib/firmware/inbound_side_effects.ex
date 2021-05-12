@@ -181,7 +181,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
           %{pin_or_param: p, value1: v}},
          state
        ) do
-    k = FarmbotFirmware.Parameter.translate(trunc(p))
+    k = FarmbotCore.Firmware.Parameter.translate(trunc(p))
 
     %{k => v}
     |> Asset.update_firmware_config!()

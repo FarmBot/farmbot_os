@@ -1,4 +1,4 @@
-defmodule FarmbotFirmware.FlashUtils do
+defmodule FarmbotCore.Firmware.FlashUtils do
   require FarmbotCore.Logger
 
   @doc "Returns the absolute path to the hex file associated with `package`"

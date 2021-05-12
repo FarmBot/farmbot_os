@@ -24,7 +24,7 @@ defmodule FarmbotCore.Firmware.Flash do
   # reference to UARTCore.
   def raw_flash(package, tty) do
     try do
-      {:ok, hex_file} = FarmbotFirmware.FlashUtils.find_hex_file(package)
+      {:ok, hex_file} = FarmbotCore.Firmware.FlashUtils.find_hex_file(package)
 
       {:ok, fun} = Resetter.find_reset_fun(package)
 

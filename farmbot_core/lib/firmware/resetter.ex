@@ -32,23 +32,14 @@ defmodule FarmbotCore.Firmware.Resetter do
   end
 
   defp maybe_special_fn(gpio_module) do
-    try do
-      wait = 1100
-      FarmbotCore.Logger.debug(3, "Begin MCU reset (#{inspect(wait)} ms)")
-      {:ok, gpio} = gpio_module.open(19, :output)
-      :ok = gpio_module.write(gpio, 0)
-      :ok = gpio_module.write(gpio, 1)
-      Process.sleep(wait)
-      :ok = gpio_module.write(gpio, 0)
-      gpio_module.close(gpio)
-      FarmbotCore.Logger.debug(3, "Finish MCU Reset")
-      :ok
-    rescue
-      ex ->
-        message = Exception.message(ex)
-        msg = "Express reset failed #{message}"
-        FarmbotCore.Logger.error(3, msg)
-        {:error, msg}
-    end
+    FarmbotCore.Logger.debug(3, "Begin MCU reset")
+    {:ok, gpio} = gpio_module.open(19, :output)
+    :ok = gpio_module.write(gpio, 0)
+    :ok = gpio_module.write(gpio, 1)
+    Process.sleep(1100)
+    :ok = gpio_module.write(gpio, 0)
+    gpio_module.close(gpio)
+    FarmbotCore.Logger.debug(3, "Finish MCU Reset")
+    :ok
   end
 end

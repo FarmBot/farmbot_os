@@ -2,7 +2,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Asset
   alias FarmbotCore.BotState
   alias FarmbotCore.Firmware.{Command, TxBuffer}
-  alias FarmbotFirmware.Parameter
+  alias FarmbotCore.Firmware.Parameter
 
   require Logger
   require FarmbotCore.Logger

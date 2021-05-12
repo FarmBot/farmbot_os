@@ -1,4 +1,4 @@
-defmodule FarmbotFirmware.Parameter do
+defmodule FarmbotCore.Firmware.Parameter do
   @all [
     {000, :param_version},
     {001, :param_test},

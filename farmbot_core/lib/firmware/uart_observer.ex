@@ -5,8 +5,6 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   alias __MODULE__, as: State
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
   alias FarmbotCore.Firmware.UARTCore
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.Firmware.ConfigUploader
 
   defstruct uart_pid: nil
 
@@ -29,8 +27,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def init(_) do
-    Logger.info("Inside UARTObserver init...")
-    try_to_attach_uart()
+    Process.send_after(self(), :connect_uart, 5_000)
     {:ok, %State{}}
   end
 
@@ -38,10 +35,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     uart_pid = maybe_start_uart()
 
     unless uart_pid do
-      Logger.info("No suitable UART devices found. Retrying.")
-      try_to_attach_uart()
-    else
-      Logger.info("UART was found - continuing with UART connection")
+      Process.send_after(self(), :connect_uart, 5_000)
     end
 
     {:noreply, %State{uart_pid: uart_pid}}
@@ -58,7 +52,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
         new_value = Map.get(new_config, key)
 
         if new_value do
-          if FarmbotFirmware.Parameter.is_param?(key) do
+          if FarmbotCore.Firmware.Parameter.is_param?(key) do
             if new_value != old_value do
               key
             end
@@ -77,62 +71,14 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     {:noreply, state}
   end
 
-  defp try_to_attach_uart() do
-    Logger.info("Will try to attach UART again in 5000 ms")
-    Process.send_after(self(), :connect_uart, 5_000)
-  end
-
   defp maybe_start_uart do
-    config = ConfigUploader.maybe_get_config()
-    path = guess_uart(config)
+    path = FarmbotCore.Firmware.UARTDetector.run()
 
     if path do
-      if config && Support.needs_flash?() do
-        Logger.info("Will perform raw flash")
-        FarmbotCore.Firmware.Flash.raw_flash(config.firmware_hardware, path)
-        nil
-      else
-        Logger.info("Can't perform raw flash")
-      end
-
       {:ok, uart_pid} = UARTCore.start_link(path: path)
       uart_pid
     end
   end
-
-  # If the `firmware_path` is not set, we can still try to
-  # guess. We only guess if there is _EXACTLY_ one serial
-  # device. This is to prevent interference with DIY setups.
-  defp guess_uart(nil) do
-    case uart_list() do
-      [default_uart] -> default_uart
-      _ -> nil
-    end
-  end
-
-  defp guess_uart(%{firmware_path: path}) do
-    # Just because the user has a `firmware_path` doesn't
-    # mean the device is plugged in- verify before
-    # proceeding. Otherwise, try to guess.
-    if Support.device_available?(path) do
-      Logger.info("guess_uart: #{inspect(path)} is actually available")
-      path
-    else
-      Logger.info("Path #{inspect(path)} was not available. Need to guess now.")
-      guess_uart(nil)
-    end
-  end
-
-  defp uart_list() do
-    Support.enumerate()
-    |> Map.keys()
-    |> Enum.filter(&filter_uart/1)
-  end
-
-  defp filter_uart("ttyACM" <> _), do: true
-  defp filter_uart("ttyAMA" <> _), do: true
-  defp filter_uart("ttyUSB" <> _), do: true
-  defp filter_uart(_), do: false
 
   defp refresh_config(nil, _), do: :noop
   defp refresh_config(_, []), do: :noop

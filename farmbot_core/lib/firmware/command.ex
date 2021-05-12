@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Firmware.Command do
-  alias FarmbotFirmware.Parameter
+  alias FarmbotCore.Firmware.Parameter
   alias FarmbotCore.Firmware.{UARTCore, FloatingPoint}
   alias FarmbotCore.BotState
 

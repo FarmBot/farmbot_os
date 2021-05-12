@@ -37,7 +37,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
          :ok <- install_zip(updated, zip_binary),
          :ok <- install_farmware_tools(updated),
          :ok <- write_manifest(updated) do
-      FarmbotCore.Logger.success(3, "Installed dependency: #{updated.manifest.package}")
       # TODO(Connor) -> No reason to keep this process alive?
       BotState.report_farmware_installed(updated.manifest.package, Manifest.view(updated.manifest))
       {:noreply, %{state | backoff: 0}}
