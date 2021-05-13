@@ -84,10 +84,20 @@ defmodule FarmbotCore.Firmware.UARTCore do
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
     {:ok, uart_pid} = Support.connect(path)
+    # This is important for Express bots-
+    # The Express bot's UART channel stays
+    # open even when not in use, leading to
+    # unpredictable behavior not seen in Genesis
+    # systems. Removing this line can cause the
+    # Farmduino to go into a zombie state because
+    # FBOS will never get the wake word (and ignore
+    # all fw messages as a result).
+    FarmbotCore.Firmware.Resetter.reset()
     {:ok, %State{uart_pid: uart_pid, uart_path: path}}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
+    Logger.info("===== RESET STATE")
     # Teardown existing connection.
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
