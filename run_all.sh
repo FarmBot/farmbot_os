@@ -59,11 +59,11 @@ clear
 echo "######### Build RPI3 FW"
 
 MIX_TARGET=rpi3 MIX_ENV=prod mix deps.get
-MIX_TARGET=rpi3 MIX_ENV=prod mix compile --force --force
+MIX_TARGET=rpi3 MIX_ENV=prod mix compile --force
 MIX_TARGET=rpi3 MIX_ENV=prod mix firmware
 
 clear
 echo "######### Build RPI0 FW"
 MIX_TARGET=rpi MIX_ENV=prod mix deps.get
-MIX_TARGET=rpi MIX_ENV=prod mix compile --force --force
+MIX_TARGET=rpi MIX_ENV=prod mix compile --force
 MIX_TARGET=rpi MIX_ENV=prod mix firmware

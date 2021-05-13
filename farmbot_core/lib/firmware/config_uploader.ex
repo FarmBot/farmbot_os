@@ -56,9 +56,17 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     state
   end
 
+  # Ignore :param_version
+  defp do_verify_param(_, {0, _}), do: nil
+  # Ignore :param_test
+  defp do_verify_param(_, {1, _}), do: nil
+  # Ignore :param_config_ok
   defp do_verify_param(_, {2, _}) do
     FarmbotCore.Logger.debug(3, "Done sending firmware parameters")
   end
+
+  # Ignore :param_use_eeprom
+  defp do_verify_param(_, {3, _}), do: nil
 
   defp do_verify_param(nil, _conf) do
   end
@@ -71,7 +79,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       a = inspect(actual)
       e = inspect(expected)
       k = inspect(key)
-      raise "Expected #{k} to eq #{e}. Got: #{a}"
+      Logger.warn("Expected #{k} to eq #{e}. Got: #{a}")
     else
       :ok = BotState.set_firmware_config(key, actual)
     end
