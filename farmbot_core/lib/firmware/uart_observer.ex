@@ -5,6 +5,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   alias __MODULE__, as: State
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
   alias FarmbotCore.Firmware.UARTCore
+  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   defstruct uart_pid: nil
 
@@ -72,9 +73,13 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   defp maybe_start_uart do
-    path = FarmbotCore.Firmware.UARTDetector.run()
+    {package, path} = FarmbotCore.Firmware.UARTDetector.run()
 
     if path do
+      if Support.needs_flash?() do
+        FarmbotCore.Firmware.Flash.raw_flash(package, path)
+      end
+
       {:ok, uart_pid} = UARTCore.start_link(path: path)
       uart_pid
     end

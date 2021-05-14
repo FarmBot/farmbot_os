@@ -4,7 +4,11 @@ defmodule FarmbotCore.Firmware.UARTDetector do
 
   # Returns nil or a string path to the Farmduino.
   # Example: "ttyAMA0", "ttyUSB0", etc..
-  def run, do: guess_uart(Asset.fbos_config().firmware_path)
+  def run do
+    conf = Asset.fbos_config()
+    path_or_nil = guess_uart(conf.firmware_path)
+    {conf.firmware_hardware, path_or_nil}
+  end
 
   # If the `firmware_path` is not set, we can still try to
   # guess. We only guess if there is _EXACTLY_ one serial
