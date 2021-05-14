@@ -112,7 +112,7 @@ defmodule FarmbotCore.Firmware.Parameter do
     {217, :pin_guard_4_active_state},
     {221, :pin_guard_5_pin_nr},
     {222, :pin_guard_5_time_out},
-    {223, :pin_guard_5_active_state},
+    {223, :pin_guard_5_active_state}
   ]
 
   @decoder Enum.reduce(@all, %{}, fn {number, name}, all ->

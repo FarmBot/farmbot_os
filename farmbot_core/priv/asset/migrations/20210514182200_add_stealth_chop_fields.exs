@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.Repo.Migrations.AddCalibrationRetryFields do
+defmodule FarmbotCore.Asset.Repo.Migrations.AddStealthChopFields do
   use Ecto.Migration
 
   def change do
