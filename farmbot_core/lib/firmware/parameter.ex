@@ -92,6 +92,12 @@ defmodule FarmbotCore.Firmware.Parameter do
     {161, :movement_calibration_retry_x},
     {162, :movement_calibration_retry_y},
     {163, :movement_calibration_retry_z},
+    {165, :movement_axis_stealth_x},
+    {166, :movement_axis_stealth_y},
+    {167, :movement_axis_stealth_z},
+    {171, :movement_calibration_deadzone_x},
+    {172, :movement_calibration_deadzone_y},
+    {173, :movement_calibration_deadzone_z},
     {201, :pin_guard_1_pin_nr},
     {202, :pin_guard_1_time_out},
     {203, :pin_guard_1_active_state},
@@ -106,7 +112,7 @@ defmodule FarmbotCore.Firmware.Parameter do
     {217, :pin_guard_4_active_state},
     {221, :pin_guard_5_pin_nr},
     {222, :pin_guard_5_time_out},
-    {223, :pin_guard_5_active_state}
+    {223, :pin_guard_5_active_state},
   ]
 
   @decoder Enum.reduce(@all, %{}, fn {number, name}, all ->

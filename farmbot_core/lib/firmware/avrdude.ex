@@ -31,7 +31,7 @@ defmodule FarmbotCore.Firmware.Avrdude do
 
   def call_avr_dude(reset_fun, args, attempts \\ 1) do
     call_reset_fun(reset_fun)
-    FarmbotCore.Logger.info(3, "Begin flash attempt #{attempts}")
+    FarmbotCore.Logger.debug(3, "Begin flash attempt #{attempts}")
     {msg, exit_code} = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
     give_up? = attempts > @max_attempts
 
