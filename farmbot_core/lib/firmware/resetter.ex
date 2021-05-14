@@ -10,7 +10,6 @@ defmodule FarmbotCore.Firmware.Resetter do
 
   def reset(package \\ nil) do
     pkg = package || Asset.fbos_config(:firmware_hardware)
-    FarmbotCore.Logger.debug(3, "Attempting to retrieve #{pkg} reset function.")
     {:ok, fun} = find_reset_fun(pkg)
     fun.()
   end

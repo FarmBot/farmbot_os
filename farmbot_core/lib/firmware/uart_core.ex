@@ -51,7 +51,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def flash_firmware(server \\ __MODULE__, package) do
-    Logger.info("Begin firmware flash (#{inspect(package)})")
     GenServer.call(server, {:flash_firmware, package}, @fw_timeout)
   end
 
@@ -59,7 +58,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # the calling process until a response is received. Don't
   # use this function outside of the `/firmware` directory.
   def start_job(server \\ __MODULE__, gcode) do
-    Logger.info("Scheduling #{inspect(gcode)}")
     GenServer.call(server, {:start_job, gcode}, @fw_timeout)
   end
 
@@ -97,8 +95,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
-    Logger.info(":reset_state")
-    Logger.info("===== RESET STATE")
     # Teardown existing connection.
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
@@ -111,7 +107,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # treatment. It skips all queing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, %State{} = state) do
-    Logger.info("{:send_raw, E}")
     Support.uart_send(state.uart_pid, "E\r\n")
     msg = "Emergency locked"
     txb = TxBuffer.error_all(state.tx_buffer, msg)
@@ -121,21 +116,18 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, %State{} = state) do
-    Logger.info("{:send_raw, #{inspect(text)}}")
     Support.uart_send(state.uart_pid, "#{text}\r\n")
     {:noreply, state}
   end
 
   # === SCENARIO: Serial cable is unplugged.
   def handle_info({:circuits_uart, _, {:error, :eio}}, _) do
-    Logger.info("CABLE UNPLUGGED")
     {:stop, :cable_unplugged, %State{}}
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
   def handle_info({:circuits_uart, _, msg}, %State{} = state1)
       when is_binary(msg) do
-    Logger.info("INCOMING: #{inspect(msg)}")
     # First, push all messages into a buffer. The result is a
     # list of stringly-typed Gcode blocks to be
     # processed (if any).
@@ -151,7 +143,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info({:refresh_config, new_keys}, state) do
-    Logger.info("{:refresh_config, #{inspect(new_keys)}}")
     {:noreply, FarmbotCore.Firmware.ConfigUploader.refresh(state, new_keys)}
   end
 
@@ -167,8 +158,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_call({:start_job, gcode}, caller, %State{} = state) do
-    Logger.info("{:start_job, #{inspect(gcode)}}")
-
     if Support.locked?() do
       {:reply, {:error, "Device is locked."}, state}
     else
@@ -184,7 +173,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
-    Logger.info("{:flash_firmware, #{inspect(package)}}")
     next_state = FarmbotCore.Firmware.Flash.run(state, package)
     Process.send_after(self(), :reset_state, 1)
     {:reply, :ok, next_state}

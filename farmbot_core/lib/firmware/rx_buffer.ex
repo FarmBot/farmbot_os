@@ -95,8 +95,6 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   }
   """
   def gets(state) do
-    IO.inspect(state.output, label: "==== CALLED `gets`")
-
     results =
       state.output
       |> Enum.chunk_by(fn token -> token == @new_line end)
@@ -105,6 +103,8 @@ defmodule FarmbotCore.Firmware.RxBuffer do
       |> String.replace(~r/\n /, @new_line)
       |> String.split(~r/\n/)
       |> Enum.filter(fn
+        # Valid GCode messages start with "R".
+        # Throw away anything that doesn't.
         "R" <> _ -> true
         "" -> false
         s -> oh_no(s)

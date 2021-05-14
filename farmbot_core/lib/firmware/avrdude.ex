@@ -2,6 +2,7 @@ defmodule FarmbotCore.Firmware.Avrdude do
   @uart_speed 115_200
   @max_attempts 10
   require FarmbotCore.Logger
+  require Logger
 
   def flash(hex_path, tty_path, reset_fun) do
     tty_path =
@@ -41,7 +42,6 @@ defmodule FarmbotCore.Firmware.Avrdude do
         FarmbotCore.Logger.info(3, "Firmware Flash OK")
       end
 
-      FarmbotCore.Logger.info(3, inspect(msg))
       {msg, exit_code}
     else
       FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")

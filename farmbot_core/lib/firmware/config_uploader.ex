@@ -61,10 +61,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   # Ignore :param_test
   defp do_verify_param(_, {1, _}), do: nil
   # Ignore :param_config_ok
-  defp do_verify_param(_, {2, _}) do
-    FarmbotCore.Logger.debug(3, "Done sending firmware parameters")
-  end
-
+  defp do_verify_param(_, {2, _}), do: nil
   # Ignore :param_use_eeprom
   defp do_verify_param(_, {3, _}), do: nil
 
@@ -88,8 +85,6 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   defp do_upload(state, nil), do: state
 
   defp do_upload(state, config_data) do
-    FarmbotCore.Logger.debug(3, "Sending parameters to firmware")
-
     next_tx_buffer =
       config_data
       |> write_configs(state)

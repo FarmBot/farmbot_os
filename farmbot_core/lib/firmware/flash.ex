@@ -23,6 +23,8 @@ defmodule FarmbotCore.Firmware.Flash do
   # This function resets the firmware, but makes no
   # reference to UARTCore.
   def raw_flash(package, tty) do
+    FarmbotCore.BotState.set_firmware_hardware(package)
+
     try do
       {:ok, hex_file} = FarmbotCore.Firmware.FlashUtils.find_hex_file(package)
 
