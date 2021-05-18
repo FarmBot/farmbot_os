@@ -37,7 +37,7 @@ defmodule FarmbotExt.API.PingTest do
   test "handle_response/3 (Error / misc)" do
     fake_state = %{timer: nil, failures: 0}
     expected = {:noreply, %{timer: :timer, failures: 1}}
-    Helpers.expect_log("Ping failed (1). {:error, nil}")
+    Helpers.expect_log("Ping failed. {:error, nil}")
     assert expected == Ping.handle_response({:error, nil}, fake_state, :timer)
   end
 

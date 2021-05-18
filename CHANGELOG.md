@@ -5,6 +5,9 @@
  * Complete overhaul of firmware handler in FBOS.
  * Genesis and Express firmware updates.
  * Ability to use `custom.hex` firmware file in user data partition instead of default firmware.
+ * Ability to detect missing boot loader.
+ * Bug fix for devices that became throttled after long disconnects.
+ * Alpha support for 3rd paty UART devices in Lua sandbox.
 
 # 13.2.0
 

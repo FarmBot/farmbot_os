@@ -172,6 +172,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
     end
   end
 
+  def handle_call({:flash_firmware, nil}, _, %State{} = state) do
+    msg = "Can't flash firmware yet because hardware is unknown."
+    FarmbotCore.Logger.info(1, msg)
+    {:reply, :ok, state}
+  end
+
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
     next_state = FarmbotCore.Firmware.Flash.run(state, package)
     Process.send_after(self(), :reset_state, 1)

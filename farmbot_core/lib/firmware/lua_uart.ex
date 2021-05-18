@@ -13,14 +13,19 @@ defmodule FarmbotCore.Firmware.LuaUART do
     {[Map.keys(Circuits.UART.enumerate())], lua}
   end
 
-  defp do_open(:ok, pid, lua) do
-    uart_object = [
+  def new_uart(pid) do
+    [
       {:read,
        fn [timeout], lua ->
          case Circuits.UART.read(pid, trunc(timeout)) do
            {:ok, data} -> {[data], lua}
            other -> {[nil, inspect(other)], lua}
          end
+       end},
+      {:close,
+       fn [], lua ->
+         close(pid)
+         {[], lua}
        end},
       {:write,
        fn [data], lua ->
@@ -32,12 +37,17 @@ defmodule FarmbotCore.Firmware.LuaUART do
          {[], lua}
        end}
     ]
-
-    {[uart_object, nil], lua}
   end
 
+  defp do_open(:ok, pid, lua), do: {[new_uart(pid), nil], lua}
+
   defp do_open(error, pid, lua) do
-    Circuits.UART.close(pid)
+    close(pid)
     {[inspect(error)], lua}
+  end
+
+  defp close(pid) do
+    Circuits.UART.close(pid)
+    Circuits.UART.stop(pid)
   end
 end
