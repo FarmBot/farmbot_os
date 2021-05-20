@@ -54,10 +54,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     GenServer.call(server, {:flash_firmware, package}, @fw_timeout)
   end
 
-  # Schedule GCode to the MCU using the job queue. Blocks
-  # the calling process until a response is received. Don't
-  # use this function outside of the `/firmware` directory.
-  def start_job(server \\ __MODULE__, gcode) do
+  def start_job_raw(server, gcode) do
     GenServer.call(server, {:start_job, gcode}, @fw_timeout)
   end
 

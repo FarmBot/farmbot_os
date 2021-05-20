@@ -159,7 +159,7 @@ defmodule FarmbotCore.Firmware.Command do
   def f22({param, val}), do: "F22 #{encode_param(param)} V#{encode_float(val)}"
 
   defp schedule(command, parameters) when is_binary(parameters) do
-    UARTCore.start_job("#{command} #{parameters}")
+    FarmbotCore.Firmware.UARTJob.start_job("#{command} #{parameters}")
   end
 
   defp schedule(command, parameters) do
@@ -173,7 +173,7 @@ defmodule FarmbotCore.Firmware.Command do
       |> Enum.map(mapper)
       |> Enum.join(" ")
 
-    UARTCore.start_job(String.trim("#{command} #{p}"))
+    FarmbotCore.Firmware.UARTJob.start_job(String.trim("#{command} #{p}"))
   end
 
   defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
