@@ -6,7 +6,7 @@ defmodule FarmbotCore.Firmware.CommandTest do
   setup :verify_on_exit!
 
   def simple_case(title, expected_gcode, t) do
-    expect(FarmbotCore.Firmware.UARTJob, :start_job, 1, fn gcode ->
+    expect(UARTCore, :start_job, 1, fn gcode ->
       actual = inspect(gcode)
 
       assert gcode == expected_gcode,

@@ -16,7 +16,6 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
   FarmbotCore.Firmware.Resetter,
   FarmbotCore.Firmware.UARTCore,
   FarmbotCore.Firmware.UARTCoreSupport,
-  FarmbotCore.Firmware.UARTJob,
   FarmbotCore.LogExecutor,
   MuonTrap,
   Timex

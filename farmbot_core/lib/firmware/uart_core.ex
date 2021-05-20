@@ -54,7 +54,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     GenServer.call(server, {:flash_firmware, package}, @fw_timeout)
   end
 
-  def start_job_raw(server, gcode) do
+  def start_job(server \\ __MODULE__, gcode) do
     GenServer.call(server, {:start_job, gcode}, @fw_timeout)
   end
 
