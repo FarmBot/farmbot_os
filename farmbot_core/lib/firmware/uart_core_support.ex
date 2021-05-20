@@ -37,7 +37,10 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
 
   def flush_uart(tty) do
     Circuits.UART.find_pids()
-    |> Enum.filter(fn {_, path} -> path == tty end)
+    |> Enum.filter(fn
+      {_, path} -> path == tty
+      _ -> false
+    end)
     |> Enum.map(fn {uart, _} -> uart end)
     |> Enum.map(fn uart ->
       Circuits.UART.drain(uart)
