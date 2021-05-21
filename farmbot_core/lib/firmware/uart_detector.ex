@@ -2,33 +2,55 @@ defmodule FarmbotCore.Firmware.UARTDetector do
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
   alias FarmbotCore.Asset
 
+  require FarmbotCore.Logger
+
+  @failure "UNABLE TO SELECT FARMDUINO! Please connect farmduino of set a valid firmware path."
+  @third_guess %{
+    "arduino" => "ttyACM0",
+    "express_k10" => "ttyAMA0",
+    "farmduino_k14" => "ttyACM0",
+    "farmduino_k15" => "ttyACM0",
+    "farmduino" => "ttyACM0"
+  }
+
   # Returns nil or a string path to the Farmduino.
   # Example: "ttyAMA0", "ttyUSB0", etc..
   def run do
+    uarts = inspect(uart_list())
+    FarmbotCore.Logger.info(1, "Available UART devices: #{uarts}")
     conf = Asset.fbos_config()
-    path_or_nil = guess_uart(conf.firmware_path)
-    {conf.firmware_hardware, path_or_nil}
+    p = conf.firmware_path
+    fwhw = conf.firmware_hardware
+    path_or_nil = maybe_use_path(p) || second_guess() || third_guess(fwhw)
+
+    if !path_or_nil do
+      FarmbotCore.Logger.error(1, @failure)
+    end
+
+    {fwhw, path_or_nil}
+  end
+
+  defp maybe_use_path(path) do
+    # Just because the user has a `firmware_path` doesn't
+    # mean the device is plugged in- verify before
+    # proceeding. Otherwise, try to guess.
+    if path && Support.device_available?(path) do
+      path
+    end
   end
 
   # If the `firmware_path` is not set, we can still try to
   # guess. We only guess if there is _EXACTLY_ one serial
   # device. This is to prevent interference with DIY setups.
-  defp guess_uart(nil) do
+  defp second_guess() do
     case uart_list() do
-      [default_uart] -> default_uart
+      [uart] -> uart
       _ -> nil
     end
   end
 
-  defp guess_uart(path) do
-    # Just because the user has a `firmware_path` doesn't
-    # mean the device is plugged in- verify before
-    # proceeding. Otherwise, try to guess.
-    if Support.device_available?(path) do
-      path
-    else
-      guess_uart(nil)
-    end
+  defp third_guess(firmware_hardware) do
+    maybe_use_path(Map.get(@third_guess, firmware_hardware))
   end
 
   defp uart_list() do
