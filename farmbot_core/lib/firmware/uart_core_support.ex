@@ -17,7 +17,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   #
   # SOLUTION: Just check the system uptime instead of
   #           maintaining a process to track that state.
-  def needs_flash?() do
+  def recent_boot?() do
     {uptime_ms, _} = :erlang.statistics(:wall_clock)
     uptime_ms < @four_minutes
   end

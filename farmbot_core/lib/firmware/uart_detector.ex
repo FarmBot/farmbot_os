@@ -16,14 +16,19 @@ defmodule FarmbotCore.Firmware.UARTDetector do
   # Returns nil or a string path to the Farmduino.
   # Example: "ttyAMA0", "ttyUSB0", etc..
   def run do
-    uarts = inspect(uart_list())
-    FarmbotCore.Logger.info(1, "Available UART devices: #{uarts}")
+    recent_boot = FarmbotCore.Firmware.UARTCoreSupport.recent_boot?()
+
+    if recent_boot do
+      uarts = inspect(uart_list())
+      FarmbotCore.Logger.info(1, "Waiting for UART: #{uarts}")
+    end
+
     conf = Asset.fbos_config()
     p = conf.firmware_path
     fwhw = conf.firmware_hardware
     path_or_nil = maybe_use_path(p) || second_guess() || third_guess(fwhw)
 
-    if !path_or_nil do
+    if !path_or_nil && recent_boot do
       FarmbotCore.Logger.error(1, @failure)
     end
 

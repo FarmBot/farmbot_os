@@ -44,8 +44,8 @@ defmodule FarmbotCore.Firmware.Avrdude do
 
       {msg, exit_code}
     else
-      FarmbotCore.Logger.info(3, "Attempt #{attempts} failed.")
-      FarmbotCore.Logger.info(3, "#{inspect(msg)}")
+      FarmbotCore.Logger.debug(3, "Attempt #{attempts} failed.")
+      FarmbotCore.Logger.debug(3, "#{inspect(msg)}")
       call_avr_dude(reset_fun, args, attempts + 1)
     end
   end

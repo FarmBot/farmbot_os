@@ -24,7 +24,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   # Called right after firmware init.
   def upload(state) do
     FarmbotCeleryScript.SysCalls.sync()
-    Process.sleep(1000)
+    Process.sleep(3000)
     BotState.set_firmware_locked()
     do_upload(state, maybe_get_config())
   end
@@ -102,7 +102,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
   end
 
   defp fbos_config do
-    keys = [:firmware_hardware, :firmware_path]
+    keys = [:firmware_hardware]
     Map.take(Asset.fbos_config(), keys)
   end
 

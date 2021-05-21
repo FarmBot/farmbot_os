@@ -76,7 +76,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
     {package, path} = FarmbotCore.Firmware.UARTDetector.run()
 
     if path && package do
-      if Support.needs_flash?() do
+      if Support.recent_boot?() do
         FarmbotCore.Firmware.Flash.raw_flash(package, path)
       end
 

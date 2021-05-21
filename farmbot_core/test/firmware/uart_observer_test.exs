@@ -18,7 +18,8 @@ defmodule FarmbotCore.Firmware.UARTObserverTest do
 
   test "unknown messages" do
     {:ok, pid} = UARTObserver.start_link([], [])
-    error = fn -> send(pid, :unknown_message) end
-    assert capture_log(error) =~ "##### UNKNOWN ##### :unknown_message"
+    send(pid, :unknown_message)
+    Process.sleep(1000)
+    assert Process.alive?(pid)
   end
 end

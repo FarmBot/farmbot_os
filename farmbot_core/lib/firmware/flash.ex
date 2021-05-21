@@ -13,7 +13,7 @@ defmodule FarmbotCore.Firmware.Flash do
   # Calls `raw_flash()`, plus makes additional calls to keep
   # UARTCore's state tree tidy.
   def run(state, package) do
-    FarmbotCore.Logger.info(3, @reason)
+    FarmbotCore.Logger.debug(3, @reason)
     {:ok, tty} = UARTCoreSupport.disconnect(state, @reason)
     raw_flash(package, tty)
     FarmbotCore.Firmware.UARTCore.restart_firmware()
