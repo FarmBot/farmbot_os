@@ -20,7 +20,7 @@ defmodule FarmbotCore.Firmware.UARTDetector do
 
     if recent_boot do
       uarts = inspect(uart_list())
-      FarmbotCore.Logger.info(1, "Waiting for UART: #{uarts}")
+      FarmbotCore.Logger.info(1, "Detecting available UARTs: #{uarts}")
     end
 
     conf = Asset.fbos_config()

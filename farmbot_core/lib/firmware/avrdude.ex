@@ -25,7 +25,7 @@ defmodule FarmbotCore.Firmware.Avrdude do
       "-Uflash:w:#{hex_path}:i"
     ]
 
-    FarmbotCore.Logger.info(3, "Writing firmware to MCU... #{inspect(args)}")
+    Logger.debug("Writing firmware to MCU... #{inspect(args)}")
     call_avr_dude(reset_fun, args)
   end
 
@@ -38,8 +38,6 @@ defmodule FarmbotCore.Firmware.Avrdude do
     if exit_code == 0 || give_up? do
       if give_up? do
         FarmbotCore.Logger.info(3, "Failed after #{attempts} attempts.")
-      else
-        FarmbotCore.Logger.info(3, "Firmware Flash OK")
       end
 
       {msg, exit_code}

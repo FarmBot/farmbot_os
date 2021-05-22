@@ -23,14 +23,12 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
 
   # Called right after firmware init.
   def upload(state) do
-    FarmbotCeleryScript.SysCalls.sync()
     Process.sleep(3000)
-    BotState.set_firmware_locked()
     do_upload(state, maybe_get_config())
   end
 
   def maybe_get_config() do
-    data = fetch_data()
+    data = fw_config()
 
     missing_key? =
       data
@@ -95,15 +93,6 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       |> maybe_home_at_boot(config_data)
 
     %{state | tx_buffer: next_tx_buffer, config_phase: :sent}
-  end
-
-  defp fetch_data() do
-    %{} |> Map.merge(fbos_config()) |> Map.merge(fw_config())
-  end
-
-  defp fbos_config do
-    keys = [:firmware_hardware]
-    Map.take(Asset.fbos_config(), keys)
   end
 
   defp fw_config do
