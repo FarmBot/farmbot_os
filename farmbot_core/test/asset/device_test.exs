@@ -16,4 +16,10 @@ defmodule FarmbotCore.Asset.DeviceTest do
     mapper = fn key -> assert Map.has_key?(result, key) end
     Enum.map(@expected_keys, mapper)
   end
+
+  test "render - part II" do
+    result = FarmbotCore.Asset.View.render(Device, %Device{})
+    mapper = fn key -> assert Map.has_key?(result, key) end
+    Enum.map(@expected_keys, mapper)
+  end
 end

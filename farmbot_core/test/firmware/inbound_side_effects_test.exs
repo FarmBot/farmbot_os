@@ -1,10 +1,16 @@
 defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   use ExUnit.Case
   use Mimic
+
   import ExUnit.CaptureLog
+
   alias FarmbotCore.Firmware.InboundSideEffects
+  alias FarmbotCore.Asset
 
   @fake_state %FarmbotCore.Firmware.UARTCore{}
+
+  test "" do
+  end
 
   test "Firmware debug logs" do
     msg = "Hello, world!"
@@ -31,10 +37,88 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     assert results == @fake_state
   end
 
-  test ":axis_state_report" do
-    expect(FarmbotCore.BotState, :set_axis_state, fn _axis, _value -> :ok end)
+  test ":calibration_state_report" do
+    expected = %{
+      movement_axis_nr_steps_y: 101.0,
+      movement_axis_nr_steps_z: 150.0
+    }
 
-    gcode = [{:axis_state_report, %{x: 2.0}}]
+    expect(Asset, :update_firmware_config!, fn actual ->
+      assert expected == actual
+      expected
+    end)
+
+    expect(Asset.Private, :mark_dirty!, fn value, params ->
+      assert params == %{}
+      assert value == expected
+    end)
+
+    gcode = [{:calibration_state_report, %{x: 50.0, y: 101.0, z: 150.0}}]
+    results = InboundSideEffects.process(@fake_state, gcode)
+    assert results == @fake_state
+  end
+
+  test ":end_stops_report" do
+    # This is a noop. Test is here for completeness.
+    gcode = [{:end_stops_report, %{z_endstop_a: 0, z_endstop_b: 0}}]
+    results = InboundSideEffects.process(@fake_state, gcode)
+    assert results == @fake_state
+  end
+
+  test ":encoder_position_scaled" do
+    expect(FarmbotCore.BotState, :set_encoders_scaled, 1, fn
+      1.2, 3.4, 5.6 -> :ok
+      _, _, _ -> raise "Unexpected input"
+    end)
+
+    gcode = [{:encoder_position_scaled, %{x: 1.2, y: 3.4, z: 5.6}}]
+    results = InboundSideEffects.process(@fake_state, gcode)
+    assert results == @fake_state
+  end
+
+  test ":encoder_position_raw" do
+    expect(FarmbotCore.BotState, :set_encoders_raw, 1, fn
+      1.2, 3.4, 5.6 -> :ok
+      _, _, _ -> raise "Unexpected input"
+    end)
+
+    gcode = [{:encoder_position_raw, %{x: 1.2, y: 3.4, z: 5.6}}]
+    results = InboundSideEffects.process(@fake_state, gcode)
+    assert results == @fake_state
+  end
+
+  test ":current_position" do
+    expect(FarmbotCore.BotState, :set_position, 1, fn
+      1.2, 3.4, 5.6 -> :ok
+      _, _, _ -> raise "Unexpected input"
+    end)
+
+    gcode = [{:current_position, %{x: 1.2, y: 3.4, z: 5.6}}]
+    results = InboundSideEffects.process(@fake_state, gcode)
+    assert results == @fake_state
+  end
+
+  test ":axis_state_report" do
+    expect(FarmbotCore.BotState, :set_axis_state, fn
+      :x, "idle" ->
+        :ok
+
+      :y, "begin" ->
+        :ok
+
+      :z, "accelerate" ->
+        :ok
+
+      axis, state ->
+        raise "Unexpected state: #{inspect({axis, state})}"
+    end)
+
+    gcode = [
+      {:axis_state_report, %{x: 0.0}},
+      {:axis_state_report, %{y: 1.0}},
+      {:axis_state_report, %{z: 2.0}}
+    ]
+
     results = InboundSideEffects.process(@fake_state, gcode)
     assert results == @fake_state
   end

@@ -1,7 +1,6 @@
 defmodule FarmbotCore.Firmware.UARTObserverTest do
   use ExUnit.Case
   use Mimic
-  import ExUnit.CaptureLog
   alias FarmbotCore.Firmware.UARTObserver
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
 

@@ -60,10 +60,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:end_stops_report, %{z_endstop_a: za, z_endstop_b: za}}, s) do
-    :noop
-    s
-  end
+  defp reduce({:end_stops_report, %{z_endstop_a: _, z_endstop_b: _}}, s), do: s
 
   defp reduce({:calibration_state_report, result}, state) do
     result
