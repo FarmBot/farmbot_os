@@ -14,6 +14,146 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     assert results == @fake_state
   end
 
+  test "unknown messages" do
+    t = fn -> simple_case([{:bleh, %{}}]) end
+    assert capture_log(t) =~ "Unhandled inbound side effects: {:bleh, %{}}"
+  end
+
+  test ":motor_load_report" do
+    params = %{x: 7.8, y: 9.0, z: 1.2}
+
+    expect(FarmbotCore.BotState, :set_load, 1, fn x, y, z ->
+      assert params.x == x
+      assert params.y == y
+      assert params.z == z
+      :ok
+    end)
+
+    simple_case([{:motor_load_report, params}])
+  end
+
+  test ":movement_retry" do
+    t = fn -> simple_case([{:movement_retry, %{}}]) end
+    assert capture_log(t) =~ "Retrying movement"
+  end
+
+  test ":report_updated_param_during_calibration" do
+    param = %{pin_or_param: 11.0, value1: 200.0}
+    gcode = [{:report_updated_param_during_calibration, param}]
+    expected = %{movement_timeout_x: 200.0}
+
+    expect(Asset, :update_firmware_config!, fn actual ->
+      assert expected == actual
+      expected
+    end)
+
+    expect(Asset.Private, :mark_dirty!, fn value, params ->
+      assert params == %{}
+      assert value == expected
+      expected
+    end)
+
+    simple_case(gcode)
+  end
+
+  test "different_(x|y|z)_coordinate_than_given" do
+    x = fn -> simple_case([{:different_x_coordinate_than_given, %{x: 0.0}}]) end
+    y = fn -> simple_case([{:different_y_coordinate_than_given, %{y: 3.4}}]) end
+    z = fn -> simple_case([{:different_z_coordinate_than_given, %{z: 5.6}}]) end
+
+    assert capture_log(x) =~
+             "Stopping at X home instead of specified destination."
+
+    assert capture_log(y) =~
+             "Stopping at Y max instead of specified destination."
+
+    assert capture_log(z) =~
+             "Stopping at Z max instead of specified destination."
+  end
+
+  test ":pin_value_report" do
+    expect(FarmbotCore.BotState, :set_pin_value, 1, fn p, v ->
+      assert p == 2.0
+      assert v == 4.5
+      :ok
+    end)
+
+    simple_case([{:pin_value_report, %{pin_or_param: 2.3, value1: 4.5}}])
+  end
+
+  test ":software_version" do
+    version = "v0.0.0-unit_test"
+
+    expect(FarmbotCore.BotState, :set_firmware_version, 1, fn v ->
+      assert v == version
+      :ok
+    end)
+
+    simple_case([{:software_version, version}])
+  end
+
+  test ":emergency_lock" do
+    expect(FarmbotCore.BotState, :set_firmware_locked, 1, fn ->
+      :ok
+    end)
+
+    simple_case([{:emergency_lock, %{}}])
+  end
+
+  test ":param_value_report" do
+    expect(FarmbotCore.Firmware.ConfigUploader, :verify_param, 1, fn s, val ->
+      assert val == {1.0, 3.4}
+      s
+    end)
+
+    simple_case([{:param_value_report, %{pin_or_param: 1.2, value1: 3.4}}])
+  end
+
+  test ":not_configured / :not_started" do
+    gcode = [{:not_configured, %{}}]
+    state = %{@fake_state | config_phase: :not_started}
+
+    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+      refute value
+      :ok
+    end)
+
+    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+      assert value
+      :ok
+    end)
+
+    expect(FarmbotCore.Firmware.ConfigUploader, :upload, 1, fn actual ->
+      assert state == actual
+      actual
+    end)
+
+    results = InboundSideEffects.process(state, gcode)
+    assert results == state
+  end
+
+  test ":not_configured / :sent" do
+    gcode = [{:not_configured, %{}}]
+    state = %{@fake_state | config_phase: :sent}
+
+    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+      refute value
+      :ok
+    end)
+
+    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+      assert value
+      :ok
+    end)
+
+    results = InboundSideEffects.process(state, gcode)
+    assert results == state
+  end
+
+  test ":ok" do
+    simple_case([{:ok, %{queue: 1.0}}])
+  end
+
   test ":error" do
     simple_case([{:error, %{queue: 1.0}}])
   end
