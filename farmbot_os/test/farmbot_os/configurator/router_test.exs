@@ -391,13 +391,6 @@ defmodule FarmbotOS.Configurator.RouterTest do
   end
 
   @tag :capture_log
-  test "/scheduler_debugger" do
-    kon = get_con("/scheduler_debugger")
-    assert String.contains?(kon.resp_body, "scheduler_debugger.js")
-    assert String.contains?(kon.resp_body, "<title>Scheduler Debugger</title>")
-  end
-
-  @tag :capture_log
   test "/logger" do
     kon = get_con("/logger")
 

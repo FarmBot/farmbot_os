@@ -11,10 +11,6 @@ defmodule FarmbotCore.Firmware.FloatingPoint do
       |> Float.round(2)
       |> :erlang.float_to_binary(decimals: 2)
 
-    # # Leaving this here. I don't think it matters?
-    if String.contains?(string, "e"),
-      do: raise("SCIENTIFIC NOTATION DETECTED!: #{inspect(string)}")
-
     string
   end
 

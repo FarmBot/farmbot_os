@@ -9,7 +9,57 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
 
   @fake_state %FarmbotCore.Firmware.UARTCore{}
 
-  test "" do
+  def simple_case(gcode_array) do
+    results = InboundSideEffects.process(@fake_state, gcode_array)
+    assert results == @fake_state
+  end
+
+  test ":error" do
+    simple_case([{:error, %{queue: 1.0}}])
+  end
+
+  test ":invalidation" do
+    boom = fn -> simple_case([{:invalidation, %{}}]) end
+    msg = "FBOS SENT INVALID GCODE"
+    assert_raise RuntimeError, msg, boom
+  end
+
+  test ":start" do
+    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+      refute value
+      :ok
+    end)
+
+    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+      assert value
+      :ok
+    end)
+
+    simple_case([{:start, %{queue: 9}}])
+  end
+
+  test ":echo (unlock device)" do
+    expect(FarmbotCore.BotState, :set_firmware_unlocked, 1, fn ->
+      :ok
+    end)
+
+    simple_case([{:echo, "*F09*"}])
+  end
+
+  test ":echo", do: simple_case([{:echo, "*F20*"}])
+
+  test ":running" do
+    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+      refute value
+      :ok
+    end)
+
+    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+      assert value
+      :ok
+    end)
+
+    simple_case([{:running, %{}}])
   end
 
   test "Firmware debug logs" do
@@ -27,14 +77,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test "complete_homing_x|y|z" do
-    gcode = [
+    simple_case([
       {:complete_homing_x, nil},
       {:complete_homing_y, nil},
       {:complete_homing_z, nil}
-    ]
-
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    ])
   end
 
   test ":calibration_state_report" do
@@ -54,15 +101,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     end)
 
     gcode = [{:calibration_state_report, %{x: 50.0, y: 101.0, z: 150.0}}]
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case(gcode)
   end
 
   test ":end_stops_report" do
     # This is a noop. Test is here for completeness.
-    gcode = [{:end_stops_report, %{z_endstop_a: 0, z_endstop_b: 0}}]
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case([{:end_stops_report, %{z_endstop_a: 0, z_endstop_b: 0}}])
   end
 
   test ":encoder_position_scaled" do
@@ -71,9 +115,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
       _, _, _ -> raise "Unexpected input"
     end)
 
-    gcode = [{:encoder_position_scaled, %{x: 1.2, y: 3.4, z: 5.6}}]
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case([{:encoder_position_scaled, %{x: 1.2, y: 3.4, z: 5.6}}])
   end
 
   test ":encoder_position_raw" do
@@ -82,9 +124,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
       _, _, _ -> raise "Unexpected input"
     end)
 
-    gcode = [{:encoder_position_raw, %{x: 1.2, y: 3.4, z: 5.6}}]
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case([{:encoder_position_raw, %{x: 1.2, y: 3.4, z: 5.6}}])
   end
 
   test ":current_position" do
@@ -93,9 +133,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
       _, _, _ -> raise "Unexpected input"
     end)
 
-    gcode = [{:current_position, %{x: 1.2, y: 3.4, z: 5.6}}]
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case([{:current_position, %{x: 1.2, y: 3.4, z: 5.6}}])
   end
 
   test ":axis_state_report" do
@@ -113,14 +151,11 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
         raise "Unexpected state: #{inspect({axis, state})}"
     end)
 
-    gcode = [
+    simple_case([
       {:axis_state_report, %{x: 0.0}},
       {:axis_state_report, %{y: 1.0}},
       {:axis_state_report, %{z: 2.0}}
-    ]
-
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    ])
   end
 
   test ":idle" do
@@ -163,9 +198,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
         raise "FAIL"
     end)
 
-    gcode = [{:idle, %{}}]
-
-    results = InboundSideEffects.process(@fake_state, gcode)
-    assert results == @fake_state
+    simple_case([{:idle, %{}}])
   end
 end
