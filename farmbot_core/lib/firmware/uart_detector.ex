@@ -4,7 +4,7 @@ defmodule FarmbotCore.Firmware.UARTDetector do
 
   require FarmbotCore.Logger
 
-  @failure "UNABLE TO SELECT FARMDUINO! Please connect farmduino of set a valid firmware path."
+  @failure "UNABLE TO SELECT FARMDUINO! Please connect farmduino or set a valid firmware path."
   @third_guess %{
     "arduino" => "ttyACM0",
     "express_k10" => "ttyAMA0",
