@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.SpecialValueTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Mimic
 
   alias FarmbotCeleryScript.SpecialValue

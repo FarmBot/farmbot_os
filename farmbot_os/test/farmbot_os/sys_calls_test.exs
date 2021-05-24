@@ -1,7 +1,8 @@
 defmodule FarmbotOS.SysCallsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotOS.SysCalls
   alias FarmbotCore.Asset
+  alias FarmbotCore.Firmware.Command
 
   alias FarmbotCore.Asset.{
     Repo,
@@ -13,18 +14,12 @@ defmodule FarmbotOS.SysCallsTest do
   setup :verify_on_exit!
 
   test "emergency_unlock" do
-    expect(FarmbotFirmware, :command, fn {:command_emergency_unlock, []} ->
-      :qqq
-    end)
-
+    expect(Command, :unlock, 1, fn -> :test end)
     assert :ok == SysCalls.emergency_unlock()
   end
 
   test "emergency_lock" do
-    expect(FarmbotFirmware, :command, fn {:command_emergency_lock, []} ->
-      :qqq
-    end)
-
+    expect(Command, :lock, 1, fn -> :test end)
     assert :ok == SysCalls.emergency_lock()
   end
 

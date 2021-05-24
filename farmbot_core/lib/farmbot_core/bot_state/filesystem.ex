@@ -28,8 +28,7 @@ defmodule FarmbotCore.BotState.FileSystem do
         nil -> BotState.subscribe()
         pid -> BotState.subscribe(pid)
       end
-
-    {:ok, %{root_dir: root_dir, bot_state: bot_state, sleep_time: sleep_time}, 0}
+    {:ok, %{root_dir: root_dir, bot_state: bot_state, sleep_time: sleep_time}}
   end
 
   def handle_info(:timeout, %{bot_state: bot_state} = state) do

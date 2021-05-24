@@ -48,7 +48,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       controller_version: informational_settings.controller_version,
       controller_uuid: informational_settings.controller_uuid,
       controller_commit: informational_settings.controller_commit,
-      # this field is required for the frontend. Maybe remove in the future.      
+      # this field is required for the frontend. Maybe remove in the future.
       commit: informational_settings.controller_commit,
       firmware_commit: informational_settings.firmware_commit,
       firmware_version: informational_settings.firmware_version,
@@ -62,7 +62,6 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
       memory_usage: informational_settings.memory_usage,
       disk_usage: informational_settings.disk_usage,
       scheduler_usage: informational_settings.scheduler_usage,
-      # this field is required for the frontend. Maybe remove in the future.      
       cpu_usage: informational_settings.scheduler_usage,
       sync_status: informational_settings.sync_status,
       locked: informational_settings.locked,

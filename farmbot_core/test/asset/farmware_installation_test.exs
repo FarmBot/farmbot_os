@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.FarmwareInstallationTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.FarmwareInstallation
 
   def fake_install() do

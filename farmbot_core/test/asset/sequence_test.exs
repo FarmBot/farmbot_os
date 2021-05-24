@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.SequenceTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.Sequence
 
   @expected_keys [:id, :name, :kind, :args, :body]

@@ -5,10 +5,22 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 |> FarmbotCore.Asset.Repo.insert_or_update!()
 
 [
+  Circuits.UART,
   FarmbotCeleryScript,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset,
+  FarmbotCore.Asset.Private,
+  FarmbotCore.BotState,
+  FarmbotCore.Firmware.Avrdude,
+  FarmbotCore.Firmware.ConfigUploader,
+  FarmbotCore.Firmware.FlashUtils,
+  FarmbotCore.Firmware.Resetter,
+  FarmbotCore.Firmware.TxBuffer,
+  FarmbotCore.Firmware.UARTCore,
+  FarmbotCore.Firmware.UARTCoreSupport,
+  FarmbotCore.FirmwareEstopTimer,
   FarmbotCore.LogExecutor,
+  MuonTrap,
   Timex
 ]
 |> Enum.map(&Mimic.copy/1)

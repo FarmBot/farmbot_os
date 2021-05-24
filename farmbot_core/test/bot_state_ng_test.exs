@@ -1,5 +1,5 @@
 defmodule FarmbotCore.BotStateNGTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias FarmbotCore.BotStateNG
 

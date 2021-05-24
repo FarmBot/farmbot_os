@@ -1,5 +1,5 @@
 defmodule FarmbotCore.BotState.FileSystemTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   alias FarmbotCore.{BotState, BotState.FileSystem}
   import ExUnit.CaptureLog
 

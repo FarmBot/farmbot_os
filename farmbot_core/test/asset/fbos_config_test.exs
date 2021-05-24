@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.FbosConfigTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.FbosConfig
 
   @expected_keys [

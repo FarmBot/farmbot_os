@@ -17,7 +17,8 @@ defmodule FarmbotCore.StorageSupervisor do
     default = [
       FarmbotCore.Logger.Supervisor,
       FarmbotCore.Config.Supervisor,
-      FarmbotCore.Asset.Supervisor
+      FarmbotCore.Asset.Supervisor,
+      FarmbotCore.Firmware.UARTObserver,
     ]
     config = Application.get_env(:farmbot_ext, __MODULE__) || []
     Keyword.get(config, :children, default)

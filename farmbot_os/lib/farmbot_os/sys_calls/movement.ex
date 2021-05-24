@@ -2,6 +2,8 @@ defmodule FarmbotOS.SysCalls.Movement do
   @moduledoc false
 
   require FarmbotCore.Logger
+  alias FarmbotCore.Firmware.Command
+  alias FarmbotCore.BotState
 
   def get_current_x do
     get_position(:x)
@@ -28,10 +30,8 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def zero(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:position_write_zero, [axis]}) do
-      :ok ->
+    case Command.set_zero(assert_axis!(axis)) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->
@@ -40,26 +40,22 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def get_position() do
-    case FarmbotFirmware.request({nil, {:position_read, []}}) do
-      {:ok, {_, {:report_position, params}}} ->
-        params
-
-      {:error, reason} ->
-        FarmbotOS.SysCalls.give_firmware_reason("get_position", reason)
+    # Update read cache
+    case Command.report_current_position() do
+      {:ok, %{x: x, y: y, z: z}} -> [x: x, y: y, z: z]
+      reason -> FarmbotOS.SysCalls.give_firmware_reason("get_position", reason)
     end
   end
 
   def get_position(axis) do
-    axis = assert_axis!(axis)
-
     case get_position() do
       {:error, _} = error -> error
-      position -> Keyword.fetch!(position, axis)
+      position -> Keyword.fetch!(position, assert_axis!(axis))
     end
   end
 
   def get_cached_position() do
-    %{x: x, y: y, z: z} = FarmbotCore.BotState.fetch().location_data.position
+    %{x: x, y: y, z: z} = BotState.fetch().location_data.position
     [x: x, y: y, z: z]
   end
 
@@ -77,22 +73,9 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   defp do_move_absolute(x, y, z, speed_x, speed_y, speed_z) do
-    with {:ok, max_speed_x} <- param_read(:movement_max_spd_x),
-         {:ok, max_speed_y} <- param_read(:movement_max_spd_y),
-         {:ok, max_speed_z} <- param_read(:movement_max_spd_z),
-         params <- [
-           x: x / 1.0,
-           y: y / 1.0,
-           z: z / 1.0,
-           a: speed_x / 100 * (max_speed_x || 1),
-           b: speed_y / 100 * (max_speed_y || 1),
-           c: speed_z / 100 * (max_speed_z || 1)
-         ] do
-      result = FarmbotFirmware.command({nil, {:command_movement, params}})
-      finish_movement(result)
-    else
-      error -> finish_movement(error)
-    end
+    %{x: x, y: y, z: z, a: speed_x, b: speed_y, c: speed_z}
+    |> Command.move_abs()
+    |> finish_movement()
   end
 
   @estopped "Cannot execute commands while E-stopped"
@@ -104,8 +87,8 @@ defmodule FarmbotOS.SysCalls.Movement do
     finish_movement(@estopped)
   end
 
-  def finish_movement(err) when is_binary(err) do
-    msg = "Movement failed. #{err}"
+  def finish_movement(nil) do
+    msg = "Movement failed."
     FarmbotCore.Logger.error(1, msg)
     {:error, msg}
   end
@@ -117,24 +100,17 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def calibrate(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_calibrate, [axis]}) do
-      :ok ->
+    case Command.find_length(assert_axis!(axis)) do
+      {:ok, _} ->
         :ok
 
-      {:error, reason} ->
+      reason ->
         FarmbotOS.SysCalls.give_firmware_reason("calibrate()", reason)
     end
   end
 
   def find_home(axis) do
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_find_home, [axis]}) do
-      :ok ->
-        :ok
-
+    case Command.find_home(assert_axis!(axis)) do
       {:ok, _} ->
         :ok
 
@@ -144,22 +120,12 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def home(axis, _speed) do
-    # TODO(Connor) fix speed
-    axis = assert_axis!(axis)
-
-    case FarmbotFirmware.command({:command_movement_home, [axis]}) do
-      :ok ->
+    case Command.go_home(assert_axis!(axis)) do
+      {:ok, _} ->
         :ok
 
       {:error, reason} ->
         FarmbotOS.SysCalls.give_firmware_reason("home", reason)
-    end
-  end
-
-  defp param_read(param) do
-    case FarmbotFirmware.request({:parameter_read, [param]}) do
-      {:ok, {_, {:report_parameter_value, [{^param, value}]}}} -> {:ok, value}
-      {:error, reason} -> {:error, reason}
     end
   end
 

@@ -37,7 +37,7 @@ defmodule FarmbotExt.API.Ping do
 
   def handle_response(error, state, timer) do
     failures = state.failures + 1
-    FarmbotCore.Logger.error(3, "Ping failed (#{failures}). #{inspect(error)}")
+    FarmbotCore.Logger.error(3, "Ping failed. #{inspect(error)}")
     {:noreply, %{state | timer: timer, failures: failures}}
   end
 
