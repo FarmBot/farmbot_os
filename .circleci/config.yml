@@ -193,41 +193,6 @@ jobs:
       - store_artifacts:
           path: farmbot_celery_script/cover
 
-  test_farmbot_firmware:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.10.4
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v14-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - run:
-          name: Test Farmbot Firmware
-          working_directory: /nerves/build/farmbot_firmware
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            mix coveralls.json
-            bash <(curl -s https://codecov.io/bash)
-      - save_cache:
-          key: v14-fbfw-test-dependency-cache-{{ checksum "farmbot_firmware/mix.lock" }}
-          paths:
-            - farmbot_firmware/_build/test
-            - farmbot_firmware/deps
-      - save_cache:
-          key: v14-fbfw-coverage-cache-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - farmbot_firmware/cover
-      - store_artifacts:
-          path: farmbot_firmware/cover
-
   test_farmbot_core:
     <<: *defaults
     environment:
@@ -459,12 +424,6 @@ workflows:
   test:
     jobs:
       - test_farmbot_celery_script:
-          context: org-global
-          filters:
-            branches:
-              ignore:
-                - main
-      - test_farmbot_firmware:
           context: org-global
           filters:
             branches:

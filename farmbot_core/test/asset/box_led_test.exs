@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.BoxLedTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   alias FarmbotCore.Asset.BoxLed
 
   test "to_string" do

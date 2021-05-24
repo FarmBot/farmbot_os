@@ -1,5 +1,5 @@
 defmodule FarmbotCeleryScript.Corpus.ArgTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCeleryScript.Corpus
 
   test "inspect" do

@@ -1,5 +1,5 @@
 defmodule FarmbotOS.UpdateSupportTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.UpdateSupport

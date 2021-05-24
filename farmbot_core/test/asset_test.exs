@@ -1,5 +1,5 @@
 defmodule FarmbotCore.AssetTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias FarmbotCore.Asset.{
     RegimenInstance,

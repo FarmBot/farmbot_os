@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.PointTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.Point
 
   @expected_keys [

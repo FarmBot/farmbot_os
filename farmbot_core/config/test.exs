@@ -15,11 +15,6 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
 config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotCeleryScript.SysCalls.Stubs
 
-config :farmbot_core, FarmbotCore.FirmwareOpenTask, attempt_threshold: 0
-
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FbosConfig,
-  firmware_flash_attempt_threshold: 0
-
 if Mix.env() == :test do
   config :ex_unit, capture_logs: true
   mapper = fn mod -> config :farmbot_core, mod, children: [] end

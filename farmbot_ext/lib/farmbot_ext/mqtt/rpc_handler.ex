@@ -47,7 +47,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   end
 
   def handle_info({:step_complete, ref, :ok}, state) do
-    Logger.info("CeleryScript ok [#{inspect(ref)}]: ")
+    Logger.info("CeleryScript OK")
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.FarmEvent.BodyNodeTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.FarmEvent.BodyNode
 
   @expected_keys [:kind, :args]

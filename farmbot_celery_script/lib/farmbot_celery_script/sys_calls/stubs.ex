@@ -172,7 +172,6 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
     CeleryScript syscall stubbed: #{fun}
     """
 
-    # Logger.error(msg)
     {:error, msg}
   end
 end

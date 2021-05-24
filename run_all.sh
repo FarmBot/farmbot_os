@@ -26,15 +26,6 @@ mix coveralls.html
 rm -f *.coverdata
 
 clear
-echo "######### farmbot_firmware"
-cd ../farmbot_firmware
-mix format
-mix deps.get --all
-MIX_ENV=test mix compile --force
-mix coveralls.html
-rm -f *.coverdata
-
-clear
 echo "######### farmbot_core"
 cd ../farmbot_core
 mix format
@@ -68,11 +59,11 @@ clear
 echo "######### Build RPI3 FW"
 
 MIX_TARGET=rpi3 MIX_ENV=prod mix deps.get
-MIX_TARGET=rpi3 MIX_ENV=prod mix compile --force --force
+MIX_TARGET=rpi3 MIX_ENV=prod mix compile --force
 MIX_TARGET=rpi3 MIX_ENV=prod mix firmware
 
 clear
 echo "######### Build RPI0 FW"
 MIX_TARGET=rpi MIX_ENV=prod mix deps.get
-MIX_TARGET=rpi MIX_ENV=prod mix compile --force --force
+MIX_TARGET=rpi MIX_ENV=prod mix compile --force
 MIX_TARGET=rpi MIX_ENV=prod mix firmware

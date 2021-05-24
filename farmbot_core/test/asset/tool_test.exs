@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.ToolTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.Tool
 
   @expected_keys [:id, :name]

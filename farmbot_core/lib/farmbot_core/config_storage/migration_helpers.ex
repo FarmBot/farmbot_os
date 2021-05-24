@@ -22,7 +22,6 @@ defmodule FarmbotCore.Config.MigrationHelpers do
   end
 
   def delete_settings_config(key, type) when type in [:string, :float, :bool] do
-    IO.puts "deleting #{key} #{type}"
     conf = Repo.one!(from c in Config, where: c.group_id == @settings_group_id and c.key == ^key)
     val_id = Map.fetch!(conf, :"#{type}_value_id")
     val = Repo.one!(from t in type_to_mod(type), where: t.id == ^val_id)

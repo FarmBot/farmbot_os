@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.RegimenTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias FarmbotCore.Asset.Regimen
 
   @expected_keys [:id, :name, :regimen_items, :body]

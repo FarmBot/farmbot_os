@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.PrivateTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
 
   alias FarmbotCore.Asset.{
     FbosConfig,

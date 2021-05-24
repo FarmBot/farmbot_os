@@ -29,11 +29,6 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
 
   def handle_info(:load_network_config, state) do
     if FarmbotCore.Config.get_network_config("eth0") do
-      FarmbotCore.Logger.warn(3, """
-      FarmBot configured to use ethernet
-      Disabling WiFi status reporting
-      """)
-
       VintageNet.subscribe(["interface", "eth0"])
 
       {:noreply, state}

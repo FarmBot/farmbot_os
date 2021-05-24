@@ -4,6 +4,7 @@
   "api_pin_bindings": "6.4.4",
   "assertion_block": "8.0.0",
   "backscheduled_regimens": "6.4.0",
+  "calibration_retries": "14.0.0",
   "change_ownership": "6.3.0",
   "computed_move": "11.0.0",
   "criteria_groups": "9.2.2",
@@ -24,6 +25,7 @@
   "none_firmware": "8.0.0",
   "api_ota_releases": "11.1.0",
   "ota_update_hour": "8.2.3",
+  "quiet_motors": "14.0.0",
   "rpi_led_control": "6.4.4",
   "safe_height_input": "12.1.0",
   "sensors": "6.3.0",
@@ -31,5 +33,6 @@
   "update_resource": "10.0.0",
   "use_update_channel": "6.4.12",
   "variables": "8.0.0",
-  "z2_firmware_params": "12.0.0"
+  "z2_firmware_params": "12.0.0",
+  "z2_firmware_params_all": "14.0.0"
 }

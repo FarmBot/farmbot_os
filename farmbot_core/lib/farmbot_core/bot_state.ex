@@ -6,6 +6,10 @@ defmodule FarmbotCore.BotState do
   require FarmbotCore.Logger
   use GenServer
 
+  def firmware_offline() do
+    FarmbotCore.BotState.set_firmware_version("")
+  end
+
   @doc "Subscribe to BotState changes"
   def subscribe(bot_state_server \\ __MODULE__) do
     GenServer.call(bot_state_server, :subscribe)

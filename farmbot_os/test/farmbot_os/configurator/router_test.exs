@@ -2,7 +2,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
   alias FarmbotOS.Configurator.Router
   alias FarmbotOS.Configurator.ConfigDataLayer
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Plug.Test
 
   use Mimic
@@ -388,13 +388,6 @@ defmodule FarmbotOS.Configurator.RouterTest do
     end
 
     assert capture_io(:stderr, crasher) =~ "render error"
-  end
-
-  @tag :capture_log
-  test "/scheduler_debugger" do
-    kon = get_con("/scheduler_debugger")
-    assert String.contains?(kon.resp_body, "scheduler_debugger.js")
-    assert String.contains?(kon.resp_body, "<title>Scheduler Debugger</title>")
   end
 
   @tag :capture_log

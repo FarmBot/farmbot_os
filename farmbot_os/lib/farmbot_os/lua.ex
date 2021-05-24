@@ -144,6 +144,10 @@ defmodule FarmbotOS.Lua do
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
     |> set_table([:update_device], &DataManipulation.update_device/2)
     |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
+    |> set_table([:uart], [
+      {:open, &FarmbotCore.Firmware.LuaUART.open/2},
+      {:list, &FarmbotCore.Firmware.LuaUART.list/2}
+    ])
     |> set_table(
       [:update_firmware_config],
       &DataManipulation.update_firmware_config/2

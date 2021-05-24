@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Asset.Sync.ItemTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias FarmbotCore.Asset.Sync.Item
 
