@@ -31,18 +31,4 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     state3 = :sys.get_state(pid)
     assert state3.rx_buffer.ready
   end
-
-  # test "scratchpad" do
-  #   # Use this when debugging a live bot.
-  #   IO.puts("\e[H\e[2J\e[3J")
-
-  #   unless Process.whereis(UARTCore) do
-  #     {:ok, _pid} = UARTCore.start_link(path: @path)
-  #   end
-
-  #   Process.sleep(3000)
-  #   FarmbotCore.Firmware.Command.lock()
-  #   FarmbotCore.Firmware.Command.unlock()
-  #   Process.sleep(50_000)
-  # end
 end

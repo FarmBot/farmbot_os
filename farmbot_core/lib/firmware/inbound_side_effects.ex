@@ -189,8 +189,18 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
+  defp reduce({:x_axis_timeout, _}, s), do: stalled(s, "x")
+  defp reduce({:y_axis_timeout, _}, s), do: stalled(s, "y")
+  defp reduce({:z_axis_timeout, _}, s), do: stalled(s, "z")
+
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
+    FarmbotCore.Logger.info(3, msg)
+    state
+  end
+
+  defp stalled(state, axis) do
+    msg = "Stall detected on #{inspect(axis)} axis."
     FarmbotCore.Logger.info(3, msg)
     state
   end
