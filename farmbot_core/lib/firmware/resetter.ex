@@ -22,7 +22,7 @@ defmodule FarmbotCore.Firmware.Resetter do
   defp use_special_fn(_) do
     msg = "Using special express reset function"
     FarmbotCore.Logger.debug(3, msg)
-    {:ok, fn -> maybe_special_fn(@gpio) end}
+    {:ok, fn -> run_special_reset(@gpio) end}
   end
 
   def use_default() do
@@ -30,7 +30,7 @@ defmodule FarmbotCore.Firmware.Resetter do
     {:ok, fn -> :ok end}
   end
 
-  defp maybe_special_fn(gpio_module) do
+  def run_special_reset(gpio_module) do
     FarmbotCore.Logger.debug(3, "Begin MCU reset")
     {:ok, gpio} = gpio_module.open(19, :output)
     :ok = gpio_module.write(gpio, 0)
