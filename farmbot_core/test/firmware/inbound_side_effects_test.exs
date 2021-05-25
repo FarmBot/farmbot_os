@@ -37,6 +37,24 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     assert capture_log(t) =~ "Retrying movement"
   end
 
+  test ":not_configured" do
+    gcode = [{:not_configured, %{}}]
+    state = @fake_state
+
+    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+      refute value
+      :ok
+    end)
+
+    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+      assert value
+      :ok
+    end)
+
+    results = InboundSideEffects.process(state, gcode)
+    assert results == state
+  end
+
   test ":report_updated_param_during_calibration" do
     param = %{pin_or_param: 11.0, value1: 200.0}
     gcode = [{:report_updated_param_during_calibration, param}]
@@ -107,47 +125,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     end)
 
     simple_case([{:param_value_report, %{pin_or_param: 1.2, value1: 3.4}}])
-  end
-
-  test ":not_configured / :not_started" do
-    gcode = [{:not_configured, %{}}]
-    state = %{@fake_state | config_phase: :not_started}
-
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
-      refute value
-      :ok
-    end)
-
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
-      assert value
-      :ok
-    end)
-
-    expect(FarmbotCore.Firmware.ConfigUploader, :upload, 1, fn actual ->
-      assert state == actual
-      actual
-    end)
-
-    results = InboundSideEffects.process(state, gcode)
-    assert results == state
-  end
-
-  test ":not_configured / :sent" do
-    gcode = [{:not_configured, %{}}]
-    state = %{@fake_state | config_phase: :sent}
-
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
-      refute value
-      :ok
-    end)
-
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
-      assert value
-      :ok
-    end)
-
-    results = InboundSideEffects.process(state, gcode)
-    assert results == state
   end
 
   test ":ok" do

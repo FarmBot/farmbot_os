@@ -132,14 +132,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     %{state | tx_buffer: next_txb}
   end
 
-  # USECASE I: MCU is not configured. FBOS did not try to
-  # upload yet.
-  defp reduce({:not_configured, _}, %{config_phase: :not_started} = state) do
-    busy()
-    FarmbotCore.Firmware.ConfigUploader.upload(state)
-  end
-
-  # USECASE II: MCU is not configured, but FBOS already started an upload.
   defp reduce({:not_configured, _}, state) do
     busy()
     state

@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.0.1
+
+ * Bugfix for CODE 30 error under rare circumstances.
+
 # 14.0.0
 
  * Complete overhaul of firmware handler in FBOS.
