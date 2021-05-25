@@ -109,47 +109,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     simple_case([{:param_value_report, %{pin_or_param: 1.2, value1: 3.4}}])
   end
 
-  test ":not_configured / :not_started" do
-    gcode = [{:not_configured, %{}}]
-    state = %{@fake_state | config_phase: :not_started}
-
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
-      refute value
-      :ok
-    end)
-
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
-      assert value
-      :ok
-    end)
-
-    expect(FarmbotCore.Firmware.ConfigUploader, :upload, 1, fn actual ->
-      assert state == actual
-      actual
-    end)
-
-    results = InboundSideEffects.process(state, gcode)
-    assert results == state
-  end
-
-  test ":not_configured / :sent" do
-    gcode = [{:not_configured, %{}}]
-    state = %{@fake_state | config_phase: :sent}
-
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
-      refute value
-      :ok
-    end)
-
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
-      assert value
-      :ok
-    end)
-
-    results = InboundSideEffects.process(state, gcode)
-    assert results == state
-  end
-
   test ":ok" do
     simple_case([{:ok, %{queue: 1.0}}])
   end

@@ -27,9 +27,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   defstruct uart_pid: nil,
             logs_enabled: false,
             uart_path: nil,
-            # Has the MCU received a valid firmware
-            # config from FBOS?
-            config_phase: :not_started,
+            needs_config: true,
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new()
 
@@ -136,7 +134,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
     # Example: send userl logs when firmware is locked.
     state3 = InboundSideEffects.process(state2, gcodes)
 
-    {:noreply, state3}
+    if state3.needs_config && state3.rx_buffer.ready do
+      Logger.debug("=== Uploading configuration")
+      {:noreply, FarmbotCore.Firmware.ConfigUploader.upload(state3)}
+    else
+      {:noreply, state3}
+    end
   end
 
   def handle_info({:refresh_config, new_keys}, state) do
