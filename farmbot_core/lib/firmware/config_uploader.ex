@@ -92,7 +92,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       |> TxBuffer.push({nil, "F83"})
       |> maybe_home_at_boot(config_data)
 
-    %{state | tx_buffer: next_tx_buffer, config_phase: :sent}
+    %{state | tx_buffer: next_tx_buffer, needs_config: false}
   end
 
   defp fw_config do
