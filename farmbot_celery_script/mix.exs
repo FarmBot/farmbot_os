@@ -55,11 +55,11 @@ defmodule FarmbotCeleryScript.MixProject do
   defp deps do
     [
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:timex, "~> 3.6.2"},
-      {:mimic, "~> 1.4.0", only: :test},
+      {:timex, "~> 3.7.5"},
+      {:mimic, "~> 1.5.0", only: :test},
       {:jason, "~> 1.2.2"},
-      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
-      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false}
+      {:excoveralls, "~> 0.14.1", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.24.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end
