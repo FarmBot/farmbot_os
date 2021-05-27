@@ -16,6 +16,19 @@ defmodule FarmbotCore.Firmware.CommandTest do
     assert t.() == true
   end
 
+  test "read_pin/2" do
+    expect(UARTCore, :start_job, 1, fn gcode ->
+      assert "F42 P13.00 M0.00" == gcode
+      {:ok, :not_really_used_just_stubbed}
+    end)
+
+    expect(FarmbotCore.BotState, :fetch, 1, fn ->
+      %{pins: %{13 => %{value: 1.0}}}
+    end)
+
+    assert {:ok, 1} == Command.read_pin(13.0, "digital")
+  end
+
   test "move_abs/1" do
     simple_case(
       "move_abs/1",

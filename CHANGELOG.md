@@ -1,5 +1,12 @@
 # Changelog
 
+# 14.0.2
+
+ * Better error output for Lua users
+ * Bug fix in Lua `read_pin` helper
+ * Bug fix in Lua `uart.*` helpers (ALPHA status - feedback welcome!)
+ * Routine dep. updates.
+
 # 14.0.1
 
  * Bugfix for CODE 30 error under rare circumstances.

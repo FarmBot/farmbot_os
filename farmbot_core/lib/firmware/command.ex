@@ -110,7 +110,10 @@ defmodule FarmbotCore.Firmware.Command do
   # F42(P, M) Read a value from an arduino pin P in mode M (digital=0/analog=1)
   def read_pin(pin, mode) do
     {:ok, _} = write_pm(42, pin, mode)
-    {:ok, round(Map.fetch!(BotState.fetch().pins, pin).value)}
+    pins = BotState.fetch().pins
+    key = trunc(pin)
+    value = Map.fetch!(pins, key).value
+    {:ok, round(value)}
   end
 
   defp write_pm(f_code, pin, mode) do
@@ -234,7 +237,9 @@ defmodule FarmbotCore.Firmware.Command do
         |> Enum.filter(&is_atom/1)
         |> Enum.sort()
 
-      raise "Expect pin mode to be one of #{valid_modes}. Got: #{inspect(mode)}"
+      raise "Expect pin mode to be one of #{inspect(valid_modes)}. Got: #{
+              inspect(mode)
+            }"
     end
   end
 end
