@@ -44,44 +44,21 @@ defmodule FarmbotOS.Lua do
   end
 
   @doc """
-  `eval_lua` evaluates Lua code. It is a more generalized
-  version of `eval_assertion`.
-  """
-  def raw_lua_eval(str) when is_binary(str) do
-    raw_lua_eval(str, [])
-  end
-
-  @doc """
   `extra_vm_args` is a set of extra args to place inside the
   Lua sandbox. The extra args are passed to set_table/3
   """
-  def raw_lua_eval(str, extra_vm_args) do
-    lua_code = add_implicit_return(str)
+  def perform_lua(lua_code, extra_vm_args, comment) do
+    comment = comment || "sequence"
+    lua_code = add_implicit_return(lua_code)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
-    eval(vm, lua_code)
-  end
 
-  @doc """
-  Evaluates some Lua code. The code should
-  return a boolean value.
-  """
-  def eval_assertion(comment, str) when is_binary(str) do
-    case raw_lua_eval(str) do
-      {:ok, [true | _]} ->
-        true
+    case eval(vm, lua_code) do
+      {:ok, value} ->
+        {:ok, value}
 
-      {:ok, [false | _]} ->
-        false
-
-      {:ok, [_, reason]} when is_binary(reason) ->
-        {:error, reason}
-
-      {:ok, _data} ->
-        {:error, "bad return value from expression evaluation"}
-
-      {:error, {:lua_error, _error, _lua}} ->
-        {:error, "lua runtime error evaluating expression"}
+      {:error, {:lua_error, error, _lua}} ->
+        {:error, "lua runtime error evaluating expression: #{inspect(error)}"}
 
       {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
         FarmbotCore.Logger.error(
@@ -100,8 +77,11 @@ defmodule FarmbotOS.Lua do
            IO.iodata_to_binary(parse_error)
          }"}
 
+      {:error, error} ->
+        {:error, error}
+
       error ->
-        error
+        {:error, inspect(error)}
     end
   end
 

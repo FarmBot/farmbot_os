@@ -13,13 +13,14 @@ defmodule FarmbotOS.LuaTest do
 
   @tag :capture_log
   test "evaluates Lua" do
-    assert Lua.eval_assertion("Returns 'true'", "true")
-    {:error, message1} = Lua.eval_assertion("Returns 'true'", "-1")
+    val1 = Lua.perform_lua("true", [], "Returns 'true'")
+    assert {:ok, [true]} == val1
 
-    assert message1 == "bad return value from expression evaluation"
+    val2 = Lua.perform_lua("-1", [], "Returns -1")
+    assert {:ok, [-1]} == val2
 
-    {:error, error} = Lua.eval_assertion("random error", "(1/0)")
-    assert error == :badarith
+    val3 = Lua.perform_lua("(1/0)", [], "random error")
+    assert {:error, :badarith} == val3
   end
 
   test "assertion logs" do

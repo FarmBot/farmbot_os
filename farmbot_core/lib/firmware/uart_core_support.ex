@@ -5,7 +5,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   alias FarmbotCore.BotState
 
   @default_opts [active: true, speed: 115_200]
-  @four_minutes 4 * 60 * 1000
+  @three_minutes 3 * 60 * 1000
 
   # This is a heuristic, but probably good enough given the
   # requirements.
@@ -19,7 +19,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   #           maintaining a process to track that state.
   def recent_boot?() do
     {uptime_ms, _} = :erlang.statistics(:wall_clock)
-    uptime_ms < @four_minutes
+    uptime_ms < @three_minutes
   end
 
   def connect(path) do

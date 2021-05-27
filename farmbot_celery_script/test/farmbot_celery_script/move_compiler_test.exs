@@ -214,11 +214,11 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
   end
 
   test "to_number() - Lua" do
-    expect(Stubs, :raw_lua_eval, 3, fn
-      "lol" ->
+    expect(Stubs, :perform_lua, 3, fn
+      "lol", _, _ ->
         "Something else"
 
-      lua ->
+      lua, _, _ ->
         {result, _} = Code.eval_string(lua)
         {:ok, [result]}
     end)
