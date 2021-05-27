@@ -23,11 +23,10 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
+      cmnt = unquote(comment)
+      lua_code = unquote(Compiler.compile_ast(expression, env))
 
-      case FarmbotCeleryScript.SysCalls.eval_assertion(
-             unquote(comment),
-             unquote(Compiler.compile_ast(expression, env))
-           ) do
+      case FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt) do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
@@ -37,7 +36,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           {:error, reason}
 
-        true ->
+        {:ok, [true]} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             true,
             assertion_type,
@@ -46,7 +45,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           :ok
 
-        false when assertion_type == "continue" ->
+        {:ok, _} when assertion_type == "continue" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
             assertion_type,
@@ -55,7 +54,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           :ok
 
-        false when assertion_type == "abort" ->
+        {:ok, _} when assertion_type == "abort" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
             assertion_type,
@@ -64,7 +63,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           {:error, "Assertion failed (aborting)"}
 
-        false when assertion_type == "recover" ->
+        {:ok, _} when assertion_type == "recover" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
             assertion_type,
@@ -73,7 +72,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
 
           unquote(compile_block(then_ast, env))
 
-        false when assertion_type == "abort_recover" ->
+        {:ok, _} when assertion_type == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
             assertion_type,

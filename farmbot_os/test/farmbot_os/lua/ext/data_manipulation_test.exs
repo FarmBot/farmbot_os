@@ -9,7 +9,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   defstruct [:key, :value]
 
   def lua(test_name, lua_code) do
-    FarmbotOS.Lua.eval_assertion(test_name, lua_code)
+    FarmbotOS.Lua.perform_lua(lua_code, [], test_name)
   end
 
   test "update_device()" do
@@ -22,7 +22,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     return true
     """
 
-    assert true == lua("update device test", lua_code)
+    assert {:ok, [true]} == lua("update device test", lua_code)
   end
 
   test "get_device/0" do
@@ -35,7 +35,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     return true
     """
 
-    assert true == lua("get device test", lua_code)
+    assert {:ok, [true]} == lua("get device test", lua_code)
   end
 
   test "get_device/1" do
@@ -47,7 +47,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     return get_device("id") == 23
     """
 
-    assert true == lua("get device test/1", lua_code)
+    assert {:ok, [true]} == lua("get device test/1", lua_code)
   end
 
   test "get_fbos_config/1" do
@@ -57,7 +57,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
 
     lua_code = "return 47 == get_fbos_config(\"id\")"
 
-    assert true == lua("get_fbos_config", lua_code)
+    assert {:ok, [true]} == lua("get_fbos_config", lua_code)
   end
 
   test "get_fbos_config/0" do
@@ -70,7 +70,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     return (c.id == 47) and (c.foo == "bar")
     """
 
-    assert true == lua("get_fbos_config/1", lua_code)
+    assert {:ok, [true]} == lua("get_fbos_config/1", lua_code)
   end
 
   test "get_firmware_config/1" do
@@ -81,7 +81,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
 
     lua_code = "return 47 == get_firmware_config(\"id\")"
 
-    assert true == lua("get_firmware_config", lua_code)
+    assert {:ok, [true]} == lua("get_firmware_config", lua_code)
   end
 
   test "get_firmware_config/0" do
@@ -95,7 +95,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     return (c.id == 47) and (c.foo == "bar")
     """
 
-    assert true == lua("get_firmware_config/1", lua_code)
+    assert {:ok, [true]} == lua("get_firmware_config/1", lua_code)
   end
 
   test "new_sensor_reading" do
@@ -123,7 +123,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     })
     """
 
-    assert true == lua("new_sensor_reading/1", lua_code)
+    assert {:ok, [true]} == lua("new_sensor_reading/1", lua_code)
   end
 
   test "take_photo - OK" do

@@ -124,12 +124,6 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def reboot(), do: error(:reboot, [])
 
   @impl true
-  def raw_lua_eval(expr), do: error(:raw_lua_eval, [expr])
-
-  @impl true
-  def raw_lua_eval(expr, extras), do: error(:raw_lua_eval, [expr, extras])
-
-  @impl true
   def send_message(type, message, channels),
     do: error(:send_message, [type, message, channels])
 
@@ -161,8 +155,8 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def zero(axis), do: error(:zero, [axis])
 
   @impl true
-  def eval_assertion(comment, expression),
-    do: error(:eval_assertion, [comment, expression])
+  def perform_lua(expression, extra_vars, comment),
+    do: error(:perform_lua, [expression, extra_vars, comment])
 
   @impl true
   def fbos_config(), do: error(:fbos_config, [])
