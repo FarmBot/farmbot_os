@@ -20,14 +20,7 @@ defmodule FarmbotCeleryScript.Compiler.Lua do
       _, _ -> %{error: "Invalid input. Please pass 1 variable name (string)."}
     end
 
-    args = [
-      lua,
-      [
-        [[:variables], lookup],
-        [[:variable], lookup]
-      ]
-    ]
-
-    SysCalls.raw_lua_eval(args)
+    args = [[[:variables], lookup], [[:variable], lookup]]
+    SysCalls.perform_lua(lua, args, nil)
   end
 end

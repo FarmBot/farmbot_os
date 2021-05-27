@@ -73,13 +73,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate set_pin_io_mode(pin, mode), to: SetPinIOMode
 
   @impl true
-  defdelegate eval_assertion(comment, expression), to: Lua
-
-  @impl true
-  defdelegate raw_lua_eval(expression), to: Lua
-
-  @impl true
-  defdelegate raw_lua_eval(expression, extra_vm_args), to: Lua
+  defdelegate perform_lua(expression, extra_vars, comment), to: Lua
 
   defdelegate log_assertion(passed?, type, message), to: Lua
 

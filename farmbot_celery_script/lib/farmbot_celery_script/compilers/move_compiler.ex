@@ -116,8 +116,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     raise "Unexpected Lua return: #{inspect(result)} #{inspect(lua)}"
   end
 
-  def to_number(_axis, %{args: %{lua: lua}, kind: :lua}) do
-    result = SysCalls.raw_lua_eval(lua)
+  def to_number(axis, %{args: %{lua: lua}, kind: :lua}) do
+    result = SysCalls.perform_lua(lua, [], "axis-#{inspect(axis)}")
 
     case result do
       {:ok, [data]} ->

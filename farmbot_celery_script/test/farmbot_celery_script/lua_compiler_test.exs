@@ -9,7 +9,7 @@ defmodule FarmbotCeleryScript.LuaTest do
     }
 
     result = Lua.do_lua("variables.parent.x", better_params)
-    expected = {:error, "CeleryScript syscall stubbed: raw_lua_eval\n"}
+    expected = {:error, "CeleryScript syscall stubbed: perform_lua\n"}
     assert result == expected
   end
 end

@@ -41,9 +41,14 @@ defmodule FarmbotCore.Firmware.LuaUART do
 
   defp do_open(:ok, pid, lua), do: {[new_uart(pid), nil], lua}
 
+  defp do_open({:error, :enoent}, pid, lua) do
+    close(pid)
+    {[nil, "UART device not found!"], lua}
+  end
+
   defp do_open(error, pid, lua) do
     close(pid)
-    {[inspect(error)], lua}
+    {[nil, inspect(error)], lua}
   end
 
   defp close(pid) do

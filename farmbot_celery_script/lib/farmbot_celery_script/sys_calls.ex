@@ -95,11 +95,11 @@ defmodule FarmbotCeleryScript.SysCalls do
   @callback log(message :: String.t(), force? :: boolean()) :: any()
   @callback sequence_init_log(message :: String.t()) :: any()
   @callback sequence_complete_log(message :: String.t()) :: any()
-  @callback eval_assertion(comment :: String.t(), expression :: String.t()) ::
-              true | false | error()
-  @callback raw_lua_eval(expression :: String.t()) :: ok_or_error
-  @callback raw_lua_eval(expression :: String.t(), extras :: list(any())) ::
-              ok_or_error
+  @callback perform_lua(
+              expression :: String.t(),
+              extra_vars :: any(),
+              comment :: String.t()
+            ) :: ok_or_error
   @callback find_points_via_group(String.t() | resource_id) :: %{
               required(:point_ids) => [resource_id]
             }
@@ -128,18 +128,9 @@ defmodule FarmbotCeleryScript.SysCalls do
     end
   end
 
-  def eval_assertion(sys_calls \\ @sys_calls, comment, expression)
+  def perform_lua(sys_calls \\ @sys_calls, expression, vm_args, comment)
       when is_binary(expression) do
-    case sys_calls.eval_assertion(comment, expression) do
-      true ->
-        true
-
-      false ->
-        false
-
-      {:error, reason} = error when is_binary(reason) ->
-        or_error(sys_calls, :eval_assertion, [comment, expression], error)
-    end
+    sys_calls.perform_lua(expression, vm_args, comment)
   end
 
   def log_assertion(sys_calls \\ @sys_calls, passed?, type, message) do
@@ -310,14 +301,6 @@ defmodule FarmbotCeleryScript.SysCalls do
 
   def power_off(sys_calls \\ @sys_calls) do
     ok_or_error(sys_calls, :power_off, [])
-  end
-
-  def raw_lua_eval(sys_calls \\ @sys_calls, args) do
-    if is_list(args) do
-      apply(sys_calls, :raw_lua_eval, args)
-    else
-      apply(sys_calls, :raw_lua_eval, [args])
-    end
   end
 
   def read_pin(sys_calls \\ @sys_calls, pin_num, pin_mode) do

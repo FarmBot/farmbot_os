@@ -88,7 +88,7 @@ defmodule FarmbotOS.SysCalls.Movement do
   end
 
   def finish_movement(nil) do
-    msg = "Movement failed."
+    msg = "Motor stalled."
     FarmbotCore.Logger.error(1, msg)
     {:error, msg}
   end

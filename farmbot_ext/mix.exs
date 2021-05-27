@@ -40,14 +40,14 @@ defmodule FarmbotExt.MixProject do
   defp deps do
     [
       {:tortoise, "~> 0.9.8"},
-      {:ex_doc, "~> 0.23.0", only: [:dev], targets: [:host], runtime: false},
-      {:excoveralls, "~> 0.13.4", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.24.2", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.14.1", only: [:test], targets: [:host]},
       {:extty, "~> 0.2.1"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:hackney, "~> 1.16"},
-      {:mimic, "~> 1.4.0", only: :test},
-      {:tesla, "~> 1.4.0"},
+      {:mimic, "~> 1.5.0", only: :test},
+      {:tesla, "~> 1.4.1"},
       {:uuid, "~> 1.1.8"}
     ]
   end
