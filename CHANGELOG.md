@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.0.3
+
+ * Fix bug where some FarmEvent and Regimen executions silently fail.
+
 # 14.0.2
 
  * Better error output for Lua users
