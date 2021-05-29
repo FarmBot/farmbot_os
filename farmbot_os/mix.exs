@@ -29,7 +29,7 @@ defmodule FarmbotOS.MixProject do
       commit: @commit,
       releases: [{:farmbot, release()}],
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
-      archives: [nerves_bootstrap: "~> 1.9"],
+      archives: [nerves_bootstrap: "~> 1.10"],
       start_permanent: Mix.env() == :prod,
       build_embedded: false,
       compilers: [:elixir_make | Mix.compilers()],
