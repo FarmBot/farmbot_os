@@ -13,15 +13,16 @@ defmodule FarmbotCore.Firmware.UARTCoreSupportTest do
     fake_uart = "ttyNull0"
 
     Circuits.UART
-    |> expect(:find_pids, 1, fn -> [{me, fake_uart}] end)
+    # |> expect(:find_pids, 1, fn -> [{me, fake_uart}] end)
     |> expect(:close, 1, assert_is_me)
-    |> expect(:drain, 1, assert_is_me)
-    |> expect(:flush, 1, assert_is_me)
-    |> expect(:send_break, 1, assert_is_me)
+    # |> expect(:drain, 1, assert_is_me)
+    # |> expect(:flush, 1, assert_is_me)
+    # |> expect(:send_break, 1, assert_is_me)
     |> expect(:stop, 1, assert_is_me)
 
     state = %UARTCore{
-      uart_path: fake_uart
+      uart_path: fake_uart,
+      uart_pid: me
     }
 
     result = UARTCoreSupport.disconnect(state, "It's a unit test")
