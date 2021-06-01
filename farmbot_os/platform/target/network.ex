@@ -168,10 +168,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         {VintageNet, ["interface", ifname, "lower_up"], _old, false, _meta},
         state
       ) do
-    FarmbotCore.Logger.debug(
-      1,
-      "Interface #{ifname} disconnected from access point"
-    )
+    Logger.debug("Interface #{ifname} disconnected from access point")
 
     FarmbotTelemetry.event(:network, :interface_disconnect, nil,
       interface: ifname
@@ -221,8 +218,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    FarmbotCore.Logger.warn(
-      1,
+    Logger.warn(
       "Interface #{ifname} disconnected from the internet: #{ifstate}"
     )
 
@@ -324,11 +320,6 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   defp cancel_network_not_found_timer(state) do
-    FarmbotCore.Logger.success(
-      1,
-      "Farmbot has been reconnected. Canceling scheduled factory reset"
-    )
-
     old_timer = state.network_not_found_timer
     FarmbotExt.Time.cancel_timer(old_timer)
     %{state | network_not_found_timer: nil}
@@ -342,11 +333,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
     new_timer =
       Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
-
-    FarmbotCore.Logger.warn(
-      1,
-      "FarmBot will factory reset in #{minutes} minutes if the network does not reassociate. If you see this message directly after configuration, this message can be safely ignored."
-    )
 
     %{state | network_not_found_timer: new_timer}
   end
