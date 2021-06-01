@@ -20,4 +20,8 @@ defmodule FarmbotOS.Lua.Ext.WaitTest do
 
     assert {[], :example} == Wait.wait([180_010.0], :example)
   end
+
+  test "wait/2 - legal value" do
+    assert {[1], :example} == Wait.wait([1.23], :example)
+  end
 end
