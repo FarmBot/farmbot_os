@@ -31,20 +31,12 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   def disconnect(%{uart_path: tty} = state, reason) do
     # Genserer.reply to everyone with {:error, reason}
     FarmbotCore.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
+    uart = state.uart_pid
 
-    Circuits.UART.find_pids()
-    |> Enum.filter(fn
-      {_, path} -> path == tty
-      _ -> false
-    end)
-    |> Enum.map(fn {uart, _} -> uart end)
-    |> Enum.map(fn uart ->
-      Circuits.UART.drain(uart)
-      Circuits.UART.flush(uart)
-      Circuits.UART.send_break(uart)
+    if is_pid(uart) && Process.alive?(uart) do
       Circuits.UART.close(uart)
       Circuits.UART.stop(uart)
-    end)
+    end
 
     {:ok, tty}
   end

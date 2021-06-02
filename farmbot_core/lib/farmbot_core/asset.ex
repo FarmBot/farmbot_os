@@ -106,13 +106,14 @@ defmodule FarmbotCore.Asset do
   end
 
   def get_farm_event_execution(%FarmEvent{} = farm_event, scheduled_at) do
-    Repo.one(
+    Repo.all(
       from(e in FarmEvent.Execution,
         where:
           e.farm_event_local_id == ^farm_event.local_id and
-            e.scheduled_at == ^scheduled_at
+            e.scheduled_at == ^scheduled_at,
+        limit: 1
       )
-    )
+    ) |> Enum.at(0)
   end
 
   ## End FarmEvent
@@ -223,13 +224,14 @@ defmodule FarmbotCore.Asset do
   end
 
   def get_regimen_instance_execution(%RegimenInstance{} = ri, scheduled_at) do
-    Repo.one(
+    Repo.all(
       from(e in RegimenInstance.Execution,
         where:
           e.regimen_instance_local_id == ^ri.local_id and
-            e.scheduled_at == ^scheduled_at
+            e.scheduled_at == ^scheduled_at,
+        limit: 1
       )
-    )
+    ) |> Enum.at(0)
   end
 
   ## End RegimenInstance
