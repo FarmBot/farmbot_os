@@ -133,7 +133,23 @@ defmodule FarmbotCore.Logger do
   @doc false
   def dispatch_log(params) do
     log = insert_log!(params)
+    maybe_espeak(params)
     FarmbotCore.LogExecutor.execute(log)
+  end
+
+  defp maybe_espeak(%{message: msg, meta: %{channels: c}}) when is_list(c) do
+    espeak? = Enum.member?(c, :espeak) && System.find_executable("espeak")
+    if espeak?, do: do_espeak(msg)
+  end
+
+  defp maybe_espeak(_), do: nil
+
+  def do_espeak(message) do
+    speech = message
+      |> String.trim()
+      |> String.slice(1..400)
+      |> inspect()
+    :os.cmd('espeak #{speech} --stdout | aplay')
   end
 
   @doc "Helper function for deciding if a message should be logged or not."

@@ -4,8 +4,9 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
   VintageNet
   """
 
-  require FarmbotCore.Logger
   @behaviour FarmbotOS.Configurator.NetworkLayer
+
+  require Logger
 
   @impl FarmbotOS.Configurator.NetworkLayer
   def list_interfaces() do
@@ -56,7 +57,7 @@ defmodule FarmbotOS.Platform.Target.Configurator.VintageNetworkLayer do
 
     case VintageNet.get_by_prefix(["interface", ifname, "wifi", "access_points"]) do
       [{_, []}] ->
-        FarmbotCore.Logger.debug(3, "AP list was empty. Trying again")
+        Logger.debug("AP list was empty. Trying again")
         Process.sleep(100)
         do_scan(ifname)
 

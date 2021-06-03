@@ -7,7 +7,6 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   @report_interval 7_000
 
   use GenServer
-  require FarmbotCore.Logger
   alias FarmbotCore.BotState
 
   @doc false

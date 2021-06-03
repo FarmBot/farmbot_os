@@ -29,6 +29,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
 
   def init(_) do
     Process.send_after(self(), :connect_uart, 5_000)
+    FarmbotCore.Leds.red(:slow_blink)
     {:ok, %State{}}
   end
 

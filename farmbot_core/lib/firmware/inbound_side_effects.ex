@@ -139,6 +139,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
   defp reduce({:emergency_lock, _}, state) do
     :ok = BotState.set_firmware_locked()
+    FarmbotCore.Leds.red(:off)
     state
   end
 
@@ -148,6 +149,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
   defp reduce({:software_version, version}, state) do
     :ok = BotState.set_firmware_version(version)
+    FarmbotCore.Leds.red(:solid)
     state
   end
 

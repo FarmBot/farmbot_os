@@ -5,7 +5,6 @@ defmodule FarmbotOS.Platform.Target.Configurator.CaptivePortal do
   """
 
   @behaviour VintageNet.Technology
-  require FarmbotCore.Logger
 
   @impl VintageNet.Technology
   def normalize(%{vintage_net_wifi: _} = config) do

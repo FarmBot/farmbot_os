@@ -67,7 +67,7 @@ defmodule FarmbotOS.Init.FSCheckup do
   # TODO(Connor) move this somewhere else.
   # This function used to be for setting up logger_backend_sqlite.
   # It needed to be here because that lib needed filesystem to be up
-  # and running. Now we just need this function to remove the `console` 
+  # and running. Now we just need this function to remove the `console`
   # backend because `ecto` decided it wanted to add `console` and not remove
   # it when it's done. This function needs to be called _after_ migrations are
   # Called.
@@ -75,7 +75,6 @@ defmodule FarmbotOS.Init.FSCheckup do
     Logger.flush()
 
     try do
-      _ = Logger.add_backend(LoggerBackendEspeak)
       _ = Logger.remove_backend(:console)
     catch
       :exit, r ->
