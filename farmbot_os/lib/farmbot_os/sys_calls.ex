@@ -214,6 +214,9 @@ defmodule FarmbotOS.SysCalls do
   def emergency_lock do
     Command.lock()
     FarmbotCore.Logger.error(1, "E-stopped")
+    FarmbotCore.FirmwareEstopTimer.start_timer()
+    Leds.red(:off)
+    Leds.yellow(:slow_blink)
     :ok
   end
 
