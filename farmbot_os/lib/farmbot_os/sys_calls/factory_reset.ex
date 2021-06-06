@@ -5,13 +5,7 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
   alias FarmbotExt.APIFetcher
 
   def factory_reset("farmbot_os") do
-    _ =
-      APIFetcher.put!(APIFetcher.client(), "/api/device", %{needs_reset: false})
-
-    FarmbotOS.System.factory_reset(
-      "Factory reset requested by Sequence or frontend",
-      true
-    )
+    FarmbotOS.System.implode("Factory reset requested by Sequence or frontend")
 
     :ok
   end

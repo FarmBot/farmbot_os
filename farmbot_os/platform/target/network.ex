@@ -15,9 +15,8 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   alias FarmbotOS.Platform.Target.Network.PreSetup
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
-  alias FarmbotCore.{Asset, Config, Leds}
 
-  @default_network_not_found_timer_minutes 20
+  alias FarmbotCore.{Config, Leds}
 
   def host do
     me = "192.168.24.1"
@@ -231,7 +230,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :failure}, _meta},
         state
       ) do
-    FarmbotOS.System.factory_reset("""
+    FarmbotOS.System.implode("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
@@ -244,15 +243,17 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    FarmbotCore.Logger.warn(1, """
-    Farmbot has been disconnected from the network for
-    #{minutes} minutes. Going down for factory reset.
-    """)
+    if state.first_connect? do
+      FarmbotCore.Logger.warn(1, """
+      Farmbot has been disconnected from the network for
+      #{minutes} minutes. Going down for factory reset.
+      """)
 
-    FarmbotOS.System.factory_reset("""
-    Farmbot has been disconnected from the network for
-    #{minutes} minutes.
-    """)
+      FarmbotOS.System.implode("""
+      Farmbot could not connect to WiFi.
+      Please re-enter your credentials.
+      """)
+    end
 
     {:noreply, state}
   end
@@ -298,11 +299,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   # thresh so that user won't have to wait 20 minutes to reconfigurate
   # due to bad wifi credentials.
   defp network_not_found_timer_minutes(%{first_connect?: true}), do: 1
-
-  defp network_not_found_timer_minutes(_state) do
-    Asset.fbos_config(:network_not_found_timer) ||
-      @default_network_not_found_timer_minutes
-  end
+  defp network_not_found_timer_minutes(_state), do: 99999
 
   def reset_ntp do
     FarmbotTelemetry.event(:ntp, :reset)

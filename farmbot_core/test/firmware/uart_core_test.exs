@@ -17,7 +17,7 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     assert is_pid(pid)
     noise = fn -> send(pid, "nonsense") end
     expected = "UNEXPECTED FIRMWARE MESSAGE: \"nonsense\""
-    Process.sleep(600)
+    Process.sleep(800)
     assert capture_log(noise) =~ expected
 
     state1 = :sys.get_state(pid)

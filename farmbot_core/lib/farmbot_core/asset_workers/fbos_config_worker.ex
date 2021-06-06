@@ -40,8 +40,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   def set_config_to_state(new_fbos_config, old_fbos_config) do
     interesting_params = [
-      :disable_factory_reset,
-      :network_not_found_timer,
       :os_auto_update,
       :sequence_body_log,
       :sequence_complete_log,
@@ -53,12 +51,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
     Enum.each(difference, fn
       {:os_auto_update, bool} ->
         FarmbotCore.Logger.success 1, "Set OS auto update to #{bool}"
-
-      {:disable_factory_reset, bool} ->
-        FarmbotCore.Logger.success 1, "Set automatic factory reset to #{!bool}"
-
-      {:network_not_found_timer, minutes} ->
-        FarmbotCore.Logger.success 1, "Set connection attempt period to #{minutes} minutes"
 
       {:sequence_body_log, bool} ->
         FarmbotCore.Logger.success 1, "Set sequence step log messages to #{bool}"
@@ -77,8 +69,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   def set_config_to_state(fbos_config) do
     # firmware_hardware is set by FarmbotCore.Firmware.SideEffects
-    :ok = BotState.set_config_value(:disable_factory_reset, fbos_config.disable_factory_reset)
-    :ok = BotState.set_config_value(:network_not_found_timer, fbos_config.network_not_found_timer)
     :ok = BotState.set_config_value(:os_auto_update, fbos_config.os_auto_update)
 
     # CeleryScript

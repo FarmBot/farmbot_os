@@ -1,6 +1,5 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
   alias FarmbotCore.{Asset, Asset.Device}
-  alias FarmbotCeleryScript.AST
   use GenServer
   require FarmbotCore.Logger
 
@@ -13,27 +12,11 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
   end
 
   def init(%Device{} = device) do
-    send(self(), :check_factory_reset)
     {:ok, %Device{} = device, 0}
   end
 
   def handle_info(:timeout, %Device{} = device) do
     {:noreply, device}
-  end
-
-  def handle_info(:check_factory_reset, %Device{needs_reset: true} = state) do
-    ast =
-      AST.Factory.new()
-      |> AST.Factory.rpc_request("RESET_DEVICE_NOW")
-      |> AST.Factory.factory_reset("farmbot_os")
-
-    :ok = FarmbotCeleryScript.execute(ast, make_ref())
-
-    {:noreply, state}
-  end
-
-  def handle_info(:check_factory_reset, state) do
-    {:noreply, state}
   end
 
   def handle_info({:step_complete, _ref, _}, state) do
@@ -42,7 +25,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
 
   def handle_cast({:new_data, new_device}, old_device) do
     _ = log_changes(new_device, old_device)
-    send(self(), :check_factory_reset)
     {:noreply, new_device}
   end
 

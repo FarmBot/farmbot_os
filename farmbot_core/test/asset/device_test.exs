@@ -7,7 +7,6 @@ defmodule FarmbotCore.Asset.DeviceTest do
     :name,
     :timezone,
     :ota_hour,
-    :needs_reset,
     :mounted_tool_id
   ]
 
