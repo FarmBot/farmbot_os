@@ -10,7 +10,6 @@ config :vintage_net,
   persistence: VintageNet.Persistence.Null,
   config: [
     {"wlan0", %{type: VintageNet.Technology.Null}},
-    {"usb0", %{type: VintageNetDirect}}
   ]
 
 config :mdns_lite,
