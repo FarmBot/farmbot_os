@@ -15,7 +15,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   alias FarmbotOS.Platform.Target.Network.PreSetup
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
-
   alias FarmbotCore.{Config, Leds}
 
   def host do
@@ -65,8 +64,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def is_first_connect?() do
-    token = Config.get_config_value(:string, "authorization", "token")
-    is_nil(token)
+    is_nil(Config.get_config_value(:string, "authorization", "token"))
   end
 
   def start_link(args) do
@@ -122,8 +120,12 @@ defmodule FarmbotOS.Platform.Target.Network do
         state
       )
       when type in [PreSetup, VintageNet.Technology.Null] do
+    Logger.debug("Network interface needs configuration: #{ifname}")
+
     case Config.get_network_config(ifname) do
       %Config.NetworkInterface{} = config ->
+        Logger.debug("Setting up network interface: #{ifname}")
+
         case reset_ntp() do
           :ok ->
             :ok
@@ -133,12 +135,15 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
+        Logger.info("Vintage Config: #{inspect(vintage_net_config)}")
 
         FarmbotTelemetry.event(:network, :interface_configure, nil,
           interface: ifname
         )
 
-        _ = VintageNet.configure(config.name, vintage_net_config)
+        configure_result = VintageNet.configure(config.name, vintage_net_config)
+
+        Logger.debug("#{config.name} setup: #{inspect(configure_result)}")
 
         state = start_network_not_found_timer(state)
         {:noreply, state}
@@ -166,6 +171,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         {VintageNet, ["interface", ifname, "lower_up"], _old, true, _meta},
         state
       ) do
+    Logger.debug("Interface #{ifname} connected access point")
     FarmbotTelemetry.event(:network, :interface_connect, nil, interface: ifname)
     state = cancel_network_not_found_timer(state)
     {:noreply, state}
@@ -176,6 +182,8 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
+    Logger.debug("Interface #{ifname} connected to local area network")
+
     FarmbotTelemetry.event(:network, :lan_connect, nil, interface: ifname)
     {:noreply, state}
   end
@@ -185,6 +193,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
+    Logger.debug("Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
     FarmbotTelemetry.event(:network, :wan_connect, nil, interface: ifname)
     {:noreply, %{state | first_connect?: false}}
@@ -219,9 +228,14 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def handle_info(
         {VintageNet, ["interface", _ifname, "eap_status"], _old,
-         %{status: :success}, _meta},
+         %{status: :success} = eap_status, _meta},
         state
       ) do
+    Logger.debug("""
+    Farmbot successfully completed EAP Authentication.
+    #{inspect(eap_status, limit: :infinity)}
+    """)
+
     {:noreply, state}
   end
 
@@ -230,6 +244,11 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :failure}, _meta},
         state
       ) do
+    Logger.error("""
+    Farmbot was unable to associate with the EAP network.
+    Please check the identity, password and method of connection
+    """)
+
     FarmbotOS.System.implode("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
@@ -238,23 +257,37 @@ defmodule FarmbotOS.Platform.Target.Network do
     {:noreply, state}
   end
 
-  def handle_info({VintageNet, _property, _old, _new, _meta}, state) do
+  def handle_info({VintageNet, property, old, new, _meta}, state) do
+    Logger.debug("""
+    Unknown property change: #{inspect(property)}
+    old:
+
+    #{inspect(old, limit: :infinity)}
+
+    new:
+
+    #{inspect(new, limit: :infinity)}
+    """)
+
     {:noreply, state}
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    if state.first_connect? do
-      FarmbotCore.Logger.warn(1, """
-      Farmbot has been disconnected from the network for
-      #{minutes} minutes. Going down for factory reset.
-      """)
+    FarmbotCore.Logger.warn(1, """
+    Farmbot has been disconnected from the network for
+    #{minutes} minutes. Going down for factory reset.
+    """)
 
-      FarmbotOS.System.implode("""
-      Farmbot could not connect to WiFi.
-      Please re-enter your credentials.
-      """)
-    end
+    FarmbotOS.System.implode("""
+    Farmbot has been disconnected from the network for
+    #{minutes} minutes.
+    """)
 
+    {:noreply, state}
+  end
+
+  def handle_info(msg, state) do
+    Logger.debug("=== UNKNOWN MESAGE IN NETWORK.EX: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -284,22 +317,29 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   defp start_network_not_found_timer(state) do
-    state = cancel_network_not_found_timer(state)
-    # Stored in minutes
-    minutes = network_not_found_timer_minutes(state)
-    millis = minutes * 60000
+    if state.first_connect? do
+      state = cancel_network_not_found_timer(state)
+      # Stored in minutes
+      minutes = network_not_found_timer_minutes(state)
+      millis = minutes * 60000
 
-    new_timer =
-      Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
+      new_timer =
+        Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
 
-    %{state | network_not_found_timer: new_timer}
+      %{state | network_not_found_timer: new_timer}
+    end
+
+    # == Legacy problems / deprecated features:
+    # Never start network reset timer after first boot.
+    state
   end
 
-  # if the network has never connected before, make a low
-  # thresh so that user won't have to wait 20 minutes to reconfigurate
-  # due to bad wifi credentials.
-  defp network_not_found_timer_minutes(%{first_connect?: true}), do: 1
-  defp network_not_found_timer_minutes(_state), do: 99999
+  defp network_not_found_timer_minutes(%{first_connect?: true}) do
+    Logger.debug("========= FIRST TIME CONNECTING. USING SMALL TIMER!!!")
+    1
+  end
+
+  defp network_not_found_timer_minutes(_state), do: 99_999_999
 
   def reset_ntp do
     FarmbotTelemetry.event(:ntp, :reset)

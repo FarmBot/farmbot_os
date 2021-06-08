@@ -19,7 +19,7 @@ defmodule FarmbotCore.DeviceWorkerTest do
     dev = fresh_device()
     {:ok, _} = AssetWorker.start_link(dev, [])
 
-    stub(Stubs, :factory_reset, fn _pkg, _ ->
+    stub(Stubs, :factory_reset, fn _pkg ->
       nooo = "SHOULD NOT HAPPEN!"
       flunk(nooo)
       raise nooo

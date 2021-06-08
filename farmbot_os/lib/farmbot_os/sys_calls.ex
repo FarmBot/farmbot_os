@@ -67,7 +67,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate read_status(), to: FarmbotExt.MQTT.BotStateHandler
 
   @impl true
-  defdelegate factory_reset(package, reason \\ nil), to: FactoryReset
+  defdelegate factory_reset(package), to: FactoryReset
 
   @impl true
   defdelegate set_pin_io_mode(pin, mode), to: SetPinIOMode

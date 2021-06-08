@@ -13,9 +13,7 @@ defmodule FarmbotExt.BootstrapTest do
         {:error, "Bad email or password."}
     end)
 
-    f = fn "farmbot_os", "Password auth failed! Check again and reconfigurate." ->
-      :ok
-    end
+    f = fn "farmbot_os" -> :ok end
 
     expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, f)
 
