@@ -246,7 +246,8 @@ defmodule FarmbotCeleryScript.Compiler do
   def factory_reset(%{args: %{package: package}}, env) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.factory_reset(
-        unquote(compile_ast(package, env))
+        unquote(compile_ast(package, env)),
+        nil
       )
     end
   end

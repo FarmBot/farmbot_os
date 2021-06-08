@@ -67,7 +67,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate read_status(), to: FarmbotExt.MQTT.BotStateHandler
 
   @impl true
-  defdelegate factory_reset(package), to: FactoryReset
+  defdelegate factory_reset(package, reason \\ nil), to: FactoryReset
 
   @impl true
   defdelegate set_pin_io_mode(pin, mode), to: SetPinIOMode
@@ -180,13 +180,13 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def reboot do
-    FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
+    FarmbotOS.System.reboot("Rebooting...")
     :ok
   end
 
   @impl true
   def power_off do
-    FarmbotOS.System.shutdown("Shut down requested by Sequence or frontend")
+    FarmbotOS.System.shutdown("Shutting down...")
     :ok
   end
 

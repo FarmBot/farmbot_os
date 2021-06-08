@@ -191,8 +191,8 @@ defmodule FarmbotCeleryScript.SysCalls do
     ok_or_error(sys_calls, :update_farmware, [package])
   end
 
-  def factory_reset(sys_calls \\ @sys_calls, package) do
-    ok_or_error(sys_calls, :factory_reset, [package])
+  def factory_reset(sys_calls \\ @sys_calls, package, reason \\ nil) do
+    ok_or_error(sys_calls, :factory_reset, [package, reason])
   end
 
   def find_home(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do

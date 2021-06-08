@@ -74,7 +74,7 @@ defmodule FarmbotOS.System do
   end
 
   def set_shutdown_reason(reason) do
-    FarmbotCore.Logger.debug(3, "power down event: #{inspect(reason)}")
+    FarmbotCore.Logger.debug(3, "#{inspect(reason)}")
     file = FarmbotOS.FileSystem.shutdown_reason_path()
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end

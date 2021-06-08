@@ -4,13 +4,13 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
   alias FarmbotCore.{Asset, BotState}
   alias FarmbotExt.APIFetcher
 
-  def factory_reset("farmbot_os") do
-    FarmbotOS.System.implode("Factory reset requested by Sequence or frontend")
+  def factory_reset("farmbot_os", reason) do
+    FarmbotOS.System.implode(reason || "Soft resetting...")
 
     :ok
   end
 
-  def factory_reset("arduino_firmware") do
+  def factory_reset("arduino_firmware", _) do
     FarmbotCore.Logger.warn(1, "Arduino Firmware going down for factory reset!")
 
     id = Asset.firmware_config(:id)

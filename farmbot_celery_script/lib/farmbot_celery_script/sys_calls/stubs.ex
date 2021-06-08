@@ -41,7 +41,8 @@ defmodule FarmbotCeleryScript.SysCalls.Stubs do
   def update_farmware(package), do: error(:update_farmware, [package])
 
   @impl true
-  def factory_reset(package), do: error(:factory_reset, [package])
+  def factory_reset(package, reason \\ nil),
+    do: error(:factory_reset, [package, reason])
 
   @impl true
   def find_home(axis), do: error(:find_home, [axis])

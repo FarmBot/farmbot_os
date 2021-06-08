@@ -61,27 +61,48 @@ defmodule FarmbotExt.Bootstrap do
       # will break this handler. Hmm...
       {:error, "Bad email or password."} ->
         msg = "Password auth failed! Check again and reconfigurate."
-        Logger.error(msg)
-        FarmbotCore.Logger.debug(3, msg)
-        FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os")
+        implode(msg)
         FarmbotExt.Time.no_reply(nil, 5000)
 
       er ->
         msg = "Bootstrap try_auth: #{inspect(er)} "
         Logger.error(msg)
         FarmbotCore.Logger.debug(3, msg)
+
+        case er do
+          # EDGE CASE: No token + network errors means the
+          #            user probably entered a bad password.
+          {:error, {:failed_connect, _}} ->
+            if is_nil(auth_config("token")) do
+              implode("Bad WiFi Credentials!")
+            end
+
+          _ ->
+            nil
+        end
+
         FarmbotExt.Time.no_reply(nil, 5000)
     end
   end
 
   def reauth do
-    email = get_config_value(:string, "authorization", "email")
-    server = get_config_value(:string, "authorization", "server")
-    secret = get_config_value(:string, "authorization", "secret")
+    email = auth_config("email")
+    server = auth_config("server")
+    secret = auth_config("secret")
 
     with {:ok, tkn} <- Authorization.authorize_with_secret(email, secret, server),
          _ <- update_config_value(:string, "authorization", "token", tkn) do
       {:ok, tkn}
     end
+  end
+
+  defp auth_config(key) do
+    get_config_value(:string, "authorization", key)
+  end
+
+  defp implode(msg) do
+    Logger.error(msg)
+    FarmbotCore.Logger.debug(3, msg)
+    FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os", msg)
   end
 end
