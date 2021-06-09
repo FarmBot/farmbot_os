@@ -3,7 +3,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   use GenServer, shutdown: 10_000
   require Logger
-  require FarmbotCore.Logger
   require FarmbotTelemetry
 
   import FarmbotOS.Platform.Target.Network.Utils,
@@ -64,7 +63,8 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def is_first_connect?() do
-    is_nil(Config.get_config_value(:string, "authorization", "token"))
+    token = Config.get_config_value(:string, "authorization", "token")
+    is_nil(token)
   end
 
   def start_link(args) do
@@ -135,7 +135,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
-        Logger.info("Vintage Config: #{inspect(vintage_net_config)}")
+        Logger.info("network.ex:142 " <> inspect(vintage_net_config))
 
         FarmbotTelemetry.event(:network, :interface_configure, nil,
           interface: ifname
@@ -231,7 +231,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :success} = eap_status, _meta},
         state
       ) do
-    Logger.debug("""
+    Logger.debug(3, """
     Farmbot successfully completed EAP Authentication.
     #{inspect(eap_status, limit: :infinity)}
     """)
@@ -244,12 +244,12 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :failure}, _meta},
         state
       ) do
-    Logger.error("""
+    Logger.error(1, """
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
 
-    FarmbotOS.System.implode("""
+    dont_factory_reset("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
@@ -273,21 +273,16 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    FarmbotCore.Logger.warn(1, """
+    Logger.warn(1, """
     Farmbot has been disconnected from the network for
     #{minutes} minutes. Going down for factory reset.
     """)
 
-    FarmbotOS.System.implode("""
+    dont_factory_reset("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
 
-    {:noreply, state}
-  end
-
-  def handle_info(msg, state) do
-    Logger.debug("=== UNKNOWN MESAGE IN NETWORK.EX: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -317,29 +312,30 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   defp start_network_not_found_timer(state) do
-    if state.first_connect? do
-      state = cancel_network_not_found_timer(state)
-      # Stored in minutes
-      minutes = network_not_found_timer_minutes(state)
-      millis = minutes * 60000
+    state = cancel_network_not_found_timer(state)
+    # Stored in minutes
+    minutes = network_not_found_timer_minutes(state)
+    millis = minutes * 60000
 
-      new_timer =
-        Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
+    new_timer =
+      Process.send_after(self(), {:network_not_found_timer, minutes}, millis)
 
-      %{state | network_not_found_timer: new_timer}
-    end
-
-    # == Legacy problems / deprecated features:
-    # Never start network reset timer after first boot.
-    state
+    %{state | network_not_found_timer: new_timer}
   end
 
-  defp network_not_found_timer_minutes(%{first_connect?: true}) do
-    Logger.debug("========= FIRST TIME CONNECTING. USING SMALL TIMER!!!")
-    1
-  end
+  # if the network has never connected before, make a low
+  # thresh so that user won't have to wait 20 minutes to reconfigurate
+  # due to bad wifi credentials.
+  defp network_not_found_timer_minutes(%{first_connect?: true}), do: 1
 
   defp network_not_found_timer_minutes(_state), do: 99_999_999
+
+  # WiFi auto-reset had a lot of technical debt issues that created
+  # numerous hazardous conditions.
+  defp dont_factory_reset(msg) do
+    Logger.debug(msg)
+    Logger.debug("=== netowrk.ex has disabled factory resets. Not resetting!")
+  end
 
   def reset_ntp do
     FarmbotTelemetry.event(:ntp, :reset)

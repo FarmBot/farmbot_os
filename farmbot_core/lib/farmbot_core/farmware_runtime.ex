@@ -106,6 +106,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       Keyword.merge(@muontrap_opts,
         env: env,
         cd: installation_path,
+        log_output: :debug,
         into: IO.stream(:stdio, :line)
       )
 
