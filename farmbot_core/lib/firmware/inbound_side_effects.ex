@@ -19,7 +19,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
       gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)
     end
 
-    Enum.reduce(gcode, state, &reduce/2)
+    next_pup = FarmbotCore.Firmware.Watchdog.pet(state.watchdog)
+    state = Enum.reduce(gcode, state, &reduce/2)
+    %{state | watchdog: next_pup}
   end
 
   defp reduce({:debug_message, string}, state) do

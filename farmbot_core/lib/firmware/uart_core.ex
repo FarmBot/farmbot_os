@@ -15,10 +15,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   alias FarmbotCore.Firmware.{
+    GCodeDecoder,
+    InboundSideEffects,
     RxBuffer,
     TxBuffer,
-    GCodeDecoder,
-    InboundSideEffects
+    Watchdog
   }
 
   require Logger
@@ -28,6 +29,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
             logs_enabled: false,
             uart_path: nil,
             needs_config: true,
+            # See `init()`
+            watchdog: %Watchdog{},
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new()
 
@@ -77,16 +80,14 @@ defmodule FarmbotCore.Firmware.UARTCore do
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
     {:ok, uart_pid} = Support.connect(path)
-    # This is important for Express bots-
-    # The Express bot's UART channel stays
-    # open even when not in use, leading to
-    # unpredictable behavior not seen in Genesis
-    # systems. Removing this line can cause the
-    # Farmduino to go into a zombie state because
-    # FBOS will never get the wake word (and ignore
-    # all fw messages as a result).
-    FarmbotCore.Firmware.Resetter.reset()
-    {:ok, %State{uart_pid: uart_pid, uart_path: path}}
+
+    s = %State{
+      uart_pid: uart_pid,
+      uart_path: path,
+      watchdog: Watchdog.new(self())
+    }
+
+    {:ok, s}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
@@ -149,6 +150,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
   def handle_info(:toggle_logging, state) do
     next_state = %{state | logs_enabled: !state.logs_enabled}
     {:noreply, next_state}
+  end
+
+  def handle_info(:watchdog_bark!, state) do
+    {:noreply, %{state | watchdog: state.watchdog.bark()}}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
