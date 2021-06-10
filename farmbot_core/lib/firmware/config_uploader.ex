@@ -123,15 +123,15 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     |> Enum.reverse()
     |> Enum.reduce(txb, fn
       :x, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "=== Finding home on x")
+        FarmbotCore.Logger.debug(3, "Finding home on x")
         TxBuffer.push(tx_buffer, {nil, "F11"})
 
       :y, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "=== Finding home on y")
+        FarmbotCore.Logger.debug(3, "Finding home on y")
         TxBuffer.push(tx_buffer, {nil, "F12"})
 
       :z, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "=== Finding home on z")
+        FarmbotCore.Logger.debug(3, "Finding home on z")
         TxBuffer.push(tx_buffer, {nil, "F13"})
     end)
   end

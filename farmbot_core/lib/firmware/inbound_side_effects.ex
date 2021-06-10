@@ -1,14 +1,20 @@
 defmodule FarmbotCore.Firmware.InboundSideEffects do
   @moduledoc """
   """
-  alias FarmbotCore.{BotState, FirmwareEstopTimer}
-  alias FarmbotCore.Firmware.TxBuffer
-  alias FarmbotCore.Asset
+  alias FarmbotCore.{
+    Asset,
+    BotState,
+    Firmware.TxBuffer,
+    FirmwareEstopTimer,
+    Leds
+  }
 
   require Logger
   require FarmbotCore.Logger
 
   def process(state, gcode) do
+    Leds.red(:solid)
+
     if state.logs_enabled do
       gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)
     end

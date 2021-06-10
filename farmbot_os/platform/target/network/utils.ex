@@ -2,7 +2,6 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
   @moduledoc "common network related utilities"
 
   import FarmbotCore.Config, only: [get_config_value: 3]
-  require FarmbotCore.Logger
 
   def build_hostap_ssid do
     {:ok, hostname} = :inet.gethostname()

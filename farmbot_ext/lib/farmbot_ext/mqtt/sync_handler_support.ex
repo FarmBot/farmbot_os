@@ -24,7 +24,7 @@ defmodule FarmbotExt.MQTT.SyncHandlerSupport do
   def finalize_preload(state, reason) do
     BotState.set_sync_status("sync_error")
     _ = Leds.green(:slow_blink)
-    FarmbotCore.Logger.error(1, "Error preloading. #{inspect(reason)}")
+    Logger.debug("Error preloading. #{inspect(reason)}")
     FarmbotTelemetry.event(:asset_sync, :preload_error, nil, error: inspect(reason))
     FarmbotExt.Time.send_after(self(), :preload, 5000)
 

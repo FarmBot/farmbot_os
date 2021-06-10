@@ -3,7 +3,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   use GenServer, shutdown: 10_000
   require Logger
-  require FarmbotCore.Logger
   require FarmbotTelemetry
 
   import FarmbotOS.Platform.Target.Network.Utils,
@@ -123,27 +122,22 @@ defmodule FarmbotOS.Platform.Target.Network do
         state
       )
       when type in [PreSetup, VintageNet.Technology.Null] do
-    FarmbotCore.Logger.debug(
-      1,
-      "Network interface needs configuration: #{ifname}"
-    )
+    Logger.debug("Network interface needs configuration: #{ifname}")
 
     case Config.get_network_config(ifname) do
       %Config.NetworkInterface{} = config ->
-        FarmbotCore.Logger.busy(3, "Setting up network interface: #{ifname}")
+        Logger.debug("Setting up network interface: #{ifname}")
 
         case reset_ntp() do
           :ok ->
             :ok
 
           error ->
-            FarmbotCore.Logger.error(1, """
-            Failed to configure NTP: #{inspect(error)}
-            """)
+            Logger.error("Failed to configure NTP: #{inspect(error)}")
         end
 
         vintage_net_config = to_vintage_net(config)
-        FarmbotCore.Logger.info(3, inspect(vintage_net_config))
+        Logger.info(inspect(vintage_net_config))
 
         FarmbotTelemetry.event(:network, :interface_configure, nil,
           interface: ifname
@@ -151,10 +145,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
         configure_result = VintageNet.configure(config.name, vintage_net_config)
 
-        FarmbotCore.Logger.success(
-          3,
-          "#{config.name} setup: #{inspect(configure_result)}"
-        )
+        Logger.debug("#{config.name} setup: #{inspect(configure_result)}")
 
         state = start_network_not_found_timer(state)
         {:noreply, state}
@@ -182,7 +173,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         {VintageNet, ["interface", ifname, "lower_up"], _old, true, _meta},
         state
       ) do
-    FarmbotCore.Logger.success(1, "Interface #{ifname} connected access point")
+    Logger.debug("Interface #{ifname} connected access point")
     FarmbotTelemetry.event(:network, :interface_connect, nil, interface: ifname)
     state = cancel_network_not_found_timer(state)
     {:noreply, state}
@@ -193,10 +184,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    FarmbotCore.Logger.success(
-      1,
-      "Interface #{ifname} connected to local area network"
-    )
+    Logger.debug("Interface #{ifname} connected to local area network")
 
     FarmbotTelemetry.event(:network, :lan_connect, nil, interface: ifname)
     {:noreply, state}
@@ -207,7 +195,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    FarmbotCore.Logger.success(1, "Interface #{ifname} connected to internet")
+    Logger.debug("Interface #{ifname} connected to internet")
     state = cancel_network_not_found_timer(state)
     FarmbotTelemetry.event(:network, :wan_connect, nil, interface: ifname)
     {:noreply, %{state | first_connect?: false}}
@@ -245,10 +233,8 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :success} = eap_status, _meta},
         state
       ) do
-    FarmbotCore.Logger.debug(3, """
-    Farmbot successfully completed EAP Authentication.
-    #{inspect(eap_status, limit: :infinity)}
-    """)
+    Logger.debug("Farmbot successfully completed EAP Authentication.
+    #{inspect(eap_status, limit: :infinity)}")
 
     {:noreply, state}
   end
@@ -258,7 +244,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :failure}, _meta},
         state
       ) do
-    FarmbotCore.Logger.error(1, """
+    Logger.error("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
@@ -287,7 +273,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    FarmbotCore.Logger.warn(1, """
+    Logger.warn("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes. Going down for factory reset.
     """)

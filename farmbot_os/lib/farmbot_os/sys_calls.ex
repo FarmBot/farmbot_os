@@ -180,13 +180,13 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def reboot do
-    FarmbotOS.System.reboot("Reboot requested by Sequence or frontend")
+    FarmbotOS.System.reboot("Rebooting...")
     :ok
   end
 
   @impl true
   def power_off do
-    FarmbotOS.System.shutdown("Shut down requested by Sequence or frontend")
+    FarmbotOS.System.shutdown("Shutting down...")
     :ok
   end
 
@@ -214,6 +214,9 @@ defmodule FarmbotOS.SysCalls do
   def emergency_lock do
     Command.lock()
     FarmbotCore.Logger.error(1, "E-stopped")
+    FarmbotCore.FirmwareEstopTimer.start_timer()
+    Leds.red(:off)
+    Leds.yellow(:slow_blink)
     :ok
   end
 
