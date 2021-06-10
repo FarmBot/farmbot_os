@@ -5,8 +5,10 @@ defmodule FarmbotCore.Asset.FbosConfigTest do
   @expected_keys [
     :id,
     :updated_at,
+    :disable_factory_reset,
     :firmware_hardware,
     :firmware_path,
+    :network_not_found_timer,
     :os_auto_update,
     :sequence_body_log,
     :sequence_complete_log,

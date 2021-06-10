@@ -36,7 +36,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
     )
 
     # Force a factory reset.
-    FarmbotOS.System.implode(
+    FarmbotOS.System.factory_reset(
       "Farmbot app: #{app} exited #{count}: #{inspect(reason, limit: :infinity)}"
     )
 

@@ -14,7 +14,9 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   alias FarmbotOS.Platform.Target.Network.PreSetup
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
-  alias FarmbotCore.{Config, Leds}
+  alias FarmbotCore.{Asset, Config, Leds}
+
+  @default_network_not_found_timer_minutes 20
 
   def host do
     me = "192.168.24.1"
@@ -135,7 +137,7 @@ defmodule FarmbotOS.Platform.Target.Network do
         end
 
         vintage_net_config = to_vintage_net(config)
-        Logger.info("network.ex:142 " <> inspect(vintage_net_config))
+        Logger.info(inspect(vintage_net_config))
 
         FarmbotTelemetry.event(:network, :interface_configure, nil,
           interface: ifname
@@ -231,10 +233,8 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :success} = eap_status, _meta},
         state
       ) do
-    Logger.debug(3, """
-    Farmbot successfully completed EAP Authentication.
-    #{inspect(eap_status, limit: :infinity)}
-    """)
+    Logger.debug("Farmbot successfully completed EAP Authentication.
+    #{inspect(eap_status, limit: :infinity)}")
 
     {:noreply, state}
   end
@@ -244,12 +244,12 @@ defmodule FarmbotOS.Platform.Target.Network do
          %{status: :failure}, _meta},
         state
       ) do
-    Logger.error(1, """
+    Logger.error("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
 
-    dont_factory_reset("""
+    FarmbotOS.System.factory_reset("""
     Farmbot was unable to associate with the EAP network.
     Please check the identity, password and method of connection
     """)
@@ -273,12 +273,12 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    Logger.warn(1, """
+    Logger.warn("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes. Going down for factory reset.
     """)
 
-    dont_factory_reset("""
+    FarmbotOS.System.factory_reset("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
@@ -328,13 +328,9 @@ defmodule FarmbotOS.Platform.Target.Network do
   # due to bad wifi credentials.
   defp network_not_found_timer_minutes(%{first_connect?: true}), do: 1
 
-  defp network_not_found_timer_minutes(_state), do: 99_999_999
-
-  # WiFi auto-reset had a lot of technical debt issues that created
-  # numerous hazardous conditions.
-  defp dont_factory_reset(msg) do
-    Logger.debug(msg)
-    Logger.debug("=== netowrk.ex has disabled factory resets. Not resetting!")
+  defp network_not_found_timer_minutes(_state) do
+    Asset.fbos_config(:network_not_found_timer) ||
+      @default_network_not_found_timer_minutes
   end
 
   def reset_ntp do

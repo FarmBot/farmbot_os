@@ -7,10 +7,12 @@ defmodule FarmbotCore.BotStateNG.Configuration do
   @primary_key false
 
   embedded_schema do
+    field(:disable_factory_reset, :boolean)
     field(:firmware_hardware, :string)
     field(:firmware_input_log, :boolean)
     field(:firmware_output_log, :boolean)
     field(:firmware_debug_log, :boolean)
+    field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
     field(:sequence_body_log, :boolean)
     field(:sequence_complete_log, :boolean)
@@ -25,7 +27,9 @@ defmodule FarmbotCore.BotStateNG.Configuration do
 
   def view(configuration) do
     %{
+      disable_factory_reset: configuration.disable_factory_reset,
       firmware_hardware: configuration.firmware_hardware,
+      network_not_found_timer: configuration.network_not_found_timer,
       os_auto_update: configuration.os_auto_update,
       sequence_body_log: configuration.sequence_body_log,
       sequence_complete_log: configuration.sequence_complete_log,
@@ -36,7 +40,9 @@ defmodule FarmbotCore.BotStateNG.Configuration do
   def changeset(configuration, params \\ %{}) do
     configuration
     |> cast(params, [
+      :disable_factory_reset,
       :firmware_hardware,
+      :network_not_found_timer,
       :os_auto_update,
       :sequence_body_log,
       :sequence_complete_log,

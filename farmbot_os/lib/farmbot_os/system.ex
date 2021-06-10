@@ -4,6 +4,7 @@ defmodule FarmbotOS.System do
   """
   require FarmbotCore.Logger
   require Logger
+  alias FarmbotCore.Asset
   alias FarmbotCore.Firmware.Command
 
   error_msg = """
@@ -48,13 +49,18 @@ defmodule FarmbotOS.System do
   end
 
   @doc "Remove all configuration data, and reboot."
-  @spec implode(any) :: no_return
-  def implode(reason) do
-    try_lock_fw()
-    set_shutdown_reason(reason)
-    _ = FarmbotCore.EctoMigrator.drop()
-    reboot(reason)
-    :ok
+  @spec factory_reset(any) :: no_return
+  def factory_reset(reason, force \\ false) do
+    if force || should_factory_reset?() do
+      try_lock_fw()
+      set_shutdown_reason(reason)
+      _ = FarmbotCore.EctoMigrator.drop()
+      reboot(reason)
+      :ok
+    else
+      FarmbotCore.Logger.error(1, "Factory Reset disabled.")
+      :ok
+    end
   end
 
   @doc "Reboot."
@@ -74,7 +80,7 @@ defmodule FarmbotOS.System do
   end
 
   def set_shutdown_reason(reason) do
-    FarmbotCore.Logger.debug(3, "#{inspect(reason)}")
+    FarmbotCore.Logger.debug(3, "power down event: #{inspect(reason)}")
     file = FarmbotOS.FileSystem.shutdown_reason_path()
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end
@@ -85,6 +91,17 @@ defmodule FarmbotOS.System do
     rescue
       _ ->
         FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down.")
+    end
+  end
+
+  # This is wrapped in a try/catch because it's possible that
+  # the `Asset.Repo` server is not running. We want to ensure if it isn't
+  # Running, we are still able to reset.
+  defp should_factory_reset? do
+    try do
+      if Asset.fbos_config(:disable_factory_reset), do: false, else: true
+    catch
+      _, _ -> true
     end
   end
 end

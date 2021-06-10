@@ -20,6 +20,7 @@ defmodule FarmbotCore.Asset.Device do
     field(:ota_hour, :integer)
     field(:mounted_tool_id, :integer)
     field(:monitor, :boolean, default: true)
+    field(:needs_reset, :boolean, default: false)
     timestamps()
   end
 
@@ -29,6 +30,7 @@ defmodule FarmbotCore.Asset.Device do
       name: device.name,
       timezone: device.timezone,
       ota_hour: device.ota_hour,
+      needs_reset: device.needs_reset,
       mounted_tool_id: device.mounted_tool_id
     }
   end
@@ -44,6 +46,7 @@ defmodule FarmbotCore.Asset.Device do
       :monitor,
       :created_at,
       :updated_at,
+      :needs_reset
     ])
     |> validate_required([])
   end
