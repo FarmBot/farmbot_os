@@ -26,7 +26,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   require FarmbotCore.Logger
 
   defstruct uart_pid: nil,
-            logs_enabled: false,
+            logs_enabled: true,
             uart_path: nil,
             needs_config: true,
             # See `init()`
@@ -153,7 +153,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:watchdog_bark!, state) do
-    {:noreply, %{state | watchdog: state.watchdog.bark()}}
+    {:noreply, %{state | watchdog: Watchdog.bark(state.watchdog)}}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
