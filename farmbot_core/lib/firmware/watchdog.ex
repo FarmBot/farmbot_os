@@ -39,18 +39,9 @@ defmodule FarmbotCore.Firmware.Watchdog do
     end
   end
 
+  # Once it barks, it is deactivated.
   def bark(%State{} = state) do
     FarmbotCore.Logger.debug(3, "Firmware watchdog activated.")
-    # This is important for Express bots-
-    # The Express bot's UART channel stays
-    # open even when not in use, leading to
-    # unpredictable behavior not seen in Genesis
-    # systems. Removing this line can cause the
-    # Farmduino to go into a zombie state because
-    # FBOS will never get the wake word (and ignore
-    # all fw messages as a result).
-    FarmbotCore.Firmware.Resetter.reset()
-
     state
     |> cancel_timer()
     |> increment_barks()

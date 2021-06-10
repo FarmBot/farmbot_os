@@ -153,7 +153,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:watchdog_bark!, state) do
-    {:noreply, %{state | watchdog: Watchdog.bark(state.watchdog)}}
+    state2 = FarmbotCore.Firmware.ConfigUploader.upload(state)
+    {:noreply, %{state2 | watchdog: Watchdog.bark(state.watchdog)}}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
