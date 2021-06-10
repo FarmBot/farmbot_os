@@ -9,8 +9,7 @@ config :vintage_net,
   regulatory_domain: "00",
   persistence: VintageNet.Persistence.Null,
   config: [
-    {"wlan0", %{type: VintageNet.Technology.Null}},
-    {"usb0", %{type: VintageNetDirect}}
+    {"wlan0", %{type: VintageNet.Technology.Null}}
   ]
 
 config :mdns_lite,

@@ -1,5 +1,19 @@
 # Changelog
 
+# 14.1.0
+
+ * Routine system upgrades.
+ * Fix box LEDs (solid red when firmware online).
+ * Fix espeak logs.
+ * Remove useless / developer-centric logs
+
+# 14.0.3
+
+ * Fix bug where some FarmEvent and Regimen executions silently fail
+ * Add `wait()` helper to Lua
+ * Minor changes to firmware restart logic
+ * Remove non-actionable disconnect logs.
+
 # 14.0.2
 
  * Better error output for Lua users

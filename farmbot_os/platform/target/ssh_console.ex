@@ -4,7 +4,6 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   """
   use GenServer
   require Logger
-  require FarmbotCore.Logger
   alias FarmbotCore.Asset.PublicKey
 
   @behaviour FarmbotCore.Asset.PublicKey
@@ -50,7 +49,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
         {:noreply, %{state | ssh: ssh}}
 
       error ->
-        FarmbotCore.Logger.warn(3, "Could not start SSH: #{inspect(error)}")
+        Logger.warn("Could not start SSH: #{inspect(error)}")
         {:noreply, %{state | ssh: nil}}
     end
   end

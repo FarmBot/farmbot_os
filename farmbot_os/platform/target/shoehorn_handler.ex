@@ -6,7 +6,6 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
   use Shoehorn.Handler
   require FarmbotTelemetry
-  require FarmbotCore.Logger
   require Logger
 
   @impl true
@@ -79,7 +78,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
   def error_log(msg) do
     try do
-      FarmbotCore.Logger.error(1, msg)
+      Logger.error(msg)
       :ok
     catch
       _, _ ->
@@ -89,7 +88,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
   def success_log(msg) do
     try do
-      FarmbotCore.Logger.success(1, msg)
+      Logger.info(msg)
       :ok
     catch
       _, _ ->

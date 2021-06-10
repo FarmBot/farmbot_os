@@ -12,7 +12,8 @@ defmodule FarmbotOS.Lua do
   alias FarmbotOS.Lua.Ext.{
     DataManipulation,
     Firmware,
-    Info
+    Info,
+    Wait
   }
 
   # this function is used by SysCalls, but isn't a direct requirement.
@@ -89,6 +90,7 @@ defmodule FarmbotOS.Lua do
   def init do
     :luerl.init()
     |> set_table([:check_position], &Firmware.check_position/2)
+    |> set_table([:wait], &Wait.wait/2)
     |> set_table([:coordinate], &Firmware.coordinate/2)
     |> set_table([:current_hour], &Info.current_hour/2)
     |> set_table([:current_minute], &Info.current_minute/2)
