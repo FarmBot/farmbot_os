@@ -141,6 +141,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:not_configured, _}, state) do
+    core = FarmbotCore.Firmware.UARTCore
+
+    if Process.whereis(core) do
+      core.send_raw("F83 Q0")
+    end
+
     busy()
     state
   end
