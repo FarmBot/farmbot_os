@@ -96,6 +96,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     # Reset state tree
     {:ok, next_state} = init(path: old_path)
     FarmbotCore.Logger.info(1, "Firmware restart initiated")
+    Support.uart_send(next_state.uart_pid, "F83 Q0")
     {:noreply, next_state}
   end
 
@@ -153,6 +154,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:watchdog_bark!, state) do
+    Support.uart_send(state.uart_pid, "F83 Q0")
     state2 = FarmbotCore.Firmware.ConfigUploader.upload(state)
     {:noreply, %{state2 | watchdog: Watchdog.bark(state.watchdog)}}
   end

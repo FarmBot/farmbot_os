@@ -42,6 +42,7 @@ defmodule FarmbotCore.Firmware.Watchdog do
   # Once it barks, it is deactivated.
   def bark(%State{} = state) do
     FarmbotCore.Logger.debug(3, "Firmware watchdog activated.")
+
     state
     |> cancel_timer()
     |> increment_barks()
