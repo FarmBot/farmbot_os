@@ -153,10 +153,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, next_state}
   end
 
-  def handle_info(:watchdog_bark!, state) do
+  def handle_info(:watchdog_bark!, state1) do
     package = FarmbotCore.Asset.fbos_config().firmware_hardware
-    Process.send_after(self(), {:flash_firmware, package}, 1)
-    {:noreply, %{state | watchdog: Watchdog.bark(state.watchdog)}}
+    state2 = do_flash_firmware(package, state1)
+    {:noreply, %{state2 | watchdog: Watchdog.bark(state2.watchdog)}}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
@@ -187,9 +187,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
-    next_state = FarmbotCore.Firmware.Flash.run(state, package)
-    Process.send_after(self(), :reset_state, 1)
-    {:reply, :ok, next_state}
+    {:reply, :ok, do_flash_firmware(package, state)}
   end
 
   def terminate(_, _) do
@@ -201,5 +199,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     rx_buffer
     |> RxBuffer.puts(text)
     |> RxBuffer.gets()
+  end
+
+  defp do_flash_firmware(package, state) do
+    next_state = FarmbotCore.Firmware.Flash.run(state, package)
+    Process.send_after(self(), :reset_state, 1)
+    next_state
   end
 end
