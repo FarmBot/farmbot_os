@@ -125,6 +125,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # === SCENARIO: Serial sent us some chars to consume.
   def handle_info({:circuits_uart, _, msg}, %State{} = state1)
       when is_binary(msg) do
+    Logger.debug("RAW UART: " <> inspect(msg))
     # First, push all messages into a buffer. The result is a
     # list of stringly-typed Gcode blocks to be
     # processed (if any).
