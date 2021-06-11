@@ -26,7 +26,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   require FarmbotCore.Logger
 
   defstruct uart_pid: nil,
-            logs_enabled: true,
+            logs_enabled: false,
             uart_path: nil,
             needs_config: true,
             # See `init()`
@@ -125,7 +125,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # === SCENARIO: Serial sent us some chars to consume.
   def handle_info({:circuits_uart, _, msg}, %State{} = state1)
       when is_binary(msg) do
-    Logger.debug("RAW UART: " <> inspect(msg))
     # First, push all messages into a buffer. The result is a
     # list of stringly-typed Gcode blocks to be
     # processed (if any).
@@ -155,7 +154,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:watchdog_bark!, state) do
-    flash_firmware(FarmbotCore.Asset.fbos_config().firmware_hardware)
+    package = FarmbotCore.Asset.fbos_config().firmware_hardware
+    Process.send_after(self(), {:flash_firmware, package}, 1)
     {:noreply, %{state | watchdog: Watchdog.bark(state.watchdog)}}
   end
 
