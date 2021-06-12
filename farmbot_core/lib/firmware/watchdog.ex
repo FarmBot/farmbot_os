@@ -10,7 +10,6 @@ defmodule FarmbotCore.Firmware.Watchdog do
   # petting watch
   alias __MODULE__, as: State
 
-  require FarmbotCore.Logger
   require Logger
 
   defstruct [
@@ -21,8 +20,8 @@ defmodule FarmbotCore.Firmware.Watchdog do
     pets: 0
   ]
 
-  @timeout 60 * 1000
-  @max_pets 10
+  @timeout 70 * 1000
+  @max_pets 12
 
   def new(parent) when is_pid(parent) do
     Logger.debug("==== NEW WATCHDOG")
@@ -41,7 +40,7 @@ defmodule FarmbotCore.Firmware.Watchdog do
 
   # Once it barks, it is deactivated.
   def bark(%State{} = state) do
-    FarmbotCore.Logger.debug(3, "Firmware watchdog activated.")
+    Logger.debug("Firmware watchdog activated.")
 
     state
     |> cancel_timer()
