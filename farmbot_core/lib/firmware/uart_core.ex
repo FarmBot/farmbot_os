@@ -15,10 +15,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   alias FarmbotCore.Firmware.{
+    GCodeDecoder,
+    InboundSideEffects,
     RxBuffer,
     TxBuffer,
-    GCodeDecoder,
-    InboundSideEffects
+    Watchdog
   }
 
   require Logger
@@ -28,6 +29,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
             logs_enabled: false,
             uart_path: nil,
             needs_config: true,
+            # See `init()`
+            watchdog: %Watchdog{},
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new()
 
@@ -77,16 +80,14 @@ defmodule FarmbotCore.Firmware.UARTCore do
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
     {:ok, uart_pid} = Support.connect(path)
-    # This is important for Express bots-
-    # The Express bot's UART channel stays
-    # open even when not in use, leading to
-    # unpredictable behavior not seen in Genesis
-    # systems. Removing this line can cause the
-    # Farmduino to go into a zombie state because
-    # FBOS will never get the wake word (and ignore
-    # all fw messages as a result).
-    FarmbotCore.Firmware.Resetter.reset()
-    {:ok, %State{uart_pid: uart_pid, uart_path: path}}
+
+    s = %State{
+      uart_pid: uart_pid,
+      uart_path: path,
+      watchdog: Watchdog.new(self())
+    }
+
+    {:ok, s}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
@@ -95,6 +96,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     # Reset state tree
     {:ok, next_state} = init(path: old_path)
     FarmbotCore.Logger.info(1, "Firmware restart initiated")
+    Support.uart_send(next_state.uart_pid, "F83 Q0")
     {:noreply, next_state}
   end
 
@@ -151,6 +153,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, next_state}
   end
 
+  def handle_info(:watchdog_bark!, state1) do
+    package = FarmbotCore.Asset.fbos_config().firmware_hardware
+    state2 = do_flash_firmware(package, state1)
+    {:noreply, %{state2 | watchdog: Watchdog.bark(state2.watchdog)}}
+  end
+
   # === SCENARIO: Unexpected message from a library or FBOS.
   def handle_info(message, %State{} = state) do
     Logger.error("UNEXPECTED FIRMWARE MESSAGE: #{inspect(message)}")
@@ -179,9 +187,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
-    next_state = FarmbotCore.Firmware.Flash.run(state, package)
-    Process.send_after(self(), :reset_state, 1)
-    {:reply, :ok, next_state}
+    {:reply, :ok, do_flash_firmware(package, state)}
   end
 
   def terminate(_, _) do
@@ -193,5 +199,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     rx_buffer
     |> RxBuffer.puts(text)
     |> RxBuffer.gets()
+  end
+
+  defp do_flash_firmware(package, state) do
+    next_state = FarmbotCore.Firmware.Flash.run(state, package)
+    Process.send_after(self(), :reset_state, 1)
+    next_state
   end
 end
