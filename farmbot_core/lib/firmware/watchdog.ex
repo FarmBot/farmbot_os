@@ -30,6 +30,8 @@ defmodule FarmbotCore.Firmware.Watchdog do
     |> new_timer()
   end
 
+  def pet(nil), do: nil
+
   def pet(%State{} = state) do
     if state.pets < @max_pets do
       do_pet(state)
@@ -38,6 +40,7 @@ defmodule FarmbotCore.Firmware.Watchdog do
     end
   end
 
+  def bark(nil), do: nil
   # Once it barks, it is deactivated.
   def bark(%State{} = state) do
     Logger.debug("Firmware watchdog activated.")

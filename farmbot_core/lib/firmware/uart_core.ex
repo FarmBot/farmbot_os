@@ -77,17 +77,23 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def init(opts) do
+    Logger.debug("UARTCore Opts: " <> inspect(opts))
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
+    fw_type = Keyword.get(opts, :fw_package, "")
+    # Only express requires the use of a watchdog:
+    wd =
+      if String.contains?(fw_type, "express") do
+        Logger.debug("Using watchdog timer for Express model.")
+        Watchdog.new(self())
+      else
+        Logger.debug("No watchdog required (not an Express)")
+        nil
+      end
+
     {:ok, uart_pid} = Support.connect(path)
 
-    s = %State{
-      uart_pid: uart_pid,
-      uart_path: path,
-      watchdog: Watchdog.new(self())
-    }
-
-    {:ok, s}
+    {:ok, %State{uart_pid: uart_pid, uart_path: path, watchdog: wd}}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
