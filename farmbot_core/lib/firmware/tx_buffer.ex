@@ -105,7 +105,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     %{echo: echo, gcode: gcode} = has_echo = %{no_echo | echo: echo}
 
     # 2. Cross-check gcode with echo, crash if not ==
-    if echo != gcode do
+    if echo != gcode && !String.contains?(echo, "Q0") do
       err = "CORRUPT ECHO! Expected echo "
       raise err <> "#{inspect(echo)} to equal #{inspect(gcode)}"
     end

@@ -8,10 +8,20 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   alias FarmbotCore.Asset
 
   @fake_state %FarmbotCore.Firmware.UARTCore{}
+  @relevant_keys [
+    :logs_enabled,
+    :needs_config,
+    :rx_buffer,
+    :tx_buffer,
+    :uart_path,
+    :uart_pid
+  ]
 
   def simple_case(gcode_array) do
     results = InboundSideEffects.process(@fake_state, gcode_array)
-    assert results == @fake_state
+    l = Map.take(results, @relevant_keys)
+    r = Map.take(@fake_state, @relevant_keys)
+    assert l == r
   end
 
   test "(x|y|z)_axis_timeout" do
@@ -68,7 +78,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     end)
 
     results = InboundSideEffects.process(state, gcode)
-    assert results == state
+    l = Map.take(results, @relevant_keys)
+    r = Map.take(@fake_state, @relevant_keys)
+    assert l == r
   end
 
   test ":report_updated_param_during_calibration" do

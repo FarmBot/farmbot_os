@@ -2,7 +2,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
   @moduledoc """
   """
 
-  require FarmbotCore.Logger
+  require Logger
 
   @response_codes %{
     "00" => :idle,
@@ -108,8 +108,8 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     else
       msg1 = "(1/2) Parameter decode error: #{inspect(code)}"
       msg2 = "(2/2) Parameter decode error: #{inspect(original_string)}"
-      FarmbotCore.Logger.error(3, msg1)
-      FarmbotCore.Logger.error(3, msg2)
+      Logger.debug(msg1)
+      Logger.debug(msg2)
       raise "BAD PARAMETER: #{inspect(code)} / #{inspect(original_string)}"
     end
   end
@@ -138,7 +138,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
       value
     else
       msg = "Failed to look up unexpected #{what}: #{inspect(value)}"
-      FarmbotCore.Logger.error(3, msg)
+      Logger.debug(msg)
       raise msg
     end
   end
