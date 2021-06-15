@@ -195,6 +195,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :ok
 
       {:error, reason} ->
+        Logger.error("BAD AST: " <> inspect(reason))
         FarmbotCore.Logger.error(1, "error executing #{state.pin_binding}: #{reason}")
     end
 

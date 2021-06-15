@@ -13,6 +13,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   alias __MODULE__, as: State
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotCore.BotState
 
   alias FarmbotCore.Firmware.{
     RxBuffer,
@@ -77,7 +78,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def init(opts) do
     Logger.debug("UARTCore Opts: " <> inspect(opts))
-    FarmbotCore.BotState.firmware_offline()
+    BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
     {:ok, uart_pid} = Support.connect(path)
     fw_type = Keyword.get(opts, :fw_package)
@@ -90,7 +91,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     # Teardown existing connection.
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
-    {:ok, next_state} = init(path: old_path)
+    {:ok, next_state} = init(path: old_path, fw_type: state1.fw_type)
     FarmbotCore.Logger.info(1, "Firmware restart initiated")
     {:noreply, next_state}
   end
@@ -149,13 +150,20 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_info(:best_effort_bug_fix, state) do
-    if state.rx_count < 1 do
-      System.cmd("espeak", ["Ding ding ding"])
+    silent = state.rx_count < 1
+    borked = BotState.fetch().informational_settings.firmware_version == nil
+
+    if silent || borked do
       msg = "Rebooting inactive Farmduino. Uptime ms: #{Support.uptime_ms()}"
       FarmbotCore.Logger.debug(3, msg)
-      spawn(__MODULE__, :flash_firmware, [state.fw_type])
+
+      package =
+        state.fw_type ||
+          FarmbotCore.Asset.fbos_config().firmware_hardware
+
+      spawn(__MODULE__, :flash_firmware, [package])
     else
-      FarmbotCore.Logger.debug(3, "Farmduino OK.")
+      FarmbotCore.Logger.debug(3, "Farmduino OK")
     end
 
     {:noreply, state}
@@ -196,7 +204,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def terminate(_, _) do
     Logger.debug("Firmware terminated.")
-    FarmbotCore.BotState.firmware_offline()
+    BotState.firmware_offline()
   end
 
   defp process_incoming_text(rx_buffer, text) do
