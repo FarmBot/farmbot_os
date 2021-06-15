@@ -15,11 +15,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
 
   alias FarmbotCore.Firmware.{
-    GCodeDecoder,
-    InboundSideEffects,
     RxBuffer,
     TxBuffer,
-    Watchdog
+    GCodeDecoder,
+    InboundSideEffects
   }
 
   require Logger
@@ -29,8 +28,8 @@ defmodule FarmbotCore.Firmware.UARTCore do
             logs_enabled: false,
             uart_path: nil,
             needs_config: true,
-            # See `init()`
-            watchdog: %Watchdog{},
+            fw_type: nil,
+            rx_count: 0,
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new()
 
@@ -39,7 +38,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # This is a reasonable (but not perfect) assumption. RC
   @minutes 10
   @fw_timeout 1000 * 60 * @minutes
-
+  @bugfix_timeout 60_000
   # This is a helper method that I use for inspecting GCode
   # over SSH. It is not used by production systems except for
   # debugging.
@@ -80,20 +79,11 @@ defmodule FarmbotCore.Firmware.UARTCore do
     Logger.debug("UARTCore Opts: " <> inspect(opts))
     FarmbotCore.BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
-    fw_type = Keyword.get(opts, :fw_package, "")
-    # Only express requires the use of a watchdog:
-    wd =
-      if String.contains?(fw_type, "express") do
-        Logger.debug("Using watchdog timer for Express model.")
-        Watchdog.new(self())
-      else
-        Logger.debug("No watchdog required (not an Express)")
-        nil
-      end
-
     {:ok, uart_pid} = Support.connect(path)
-
-    {:ok, %State{uart_pid: uart_pid, uart_path: path, watchdog: wd}}
+    fw_type = Keyword.get(opts, :fw_package)
+    state = %State{uart_pid: uart_pid, uart_path: path, fw_type: fw_type}
+    Process.send_after(self(), :best_effort_bug_fix, @bugfix_timeout)
+    {:ok, state}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do
@@ -102,7 +92,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
     # Reset state tree
     {:ok, next_state} = init(path: old_path)
     FarmbotCore.Logger.info(1, "Firmware restart initiated")
-    Support.uart_send(next_state.uart_pid, "F83 Q0")
     {:noreply, next_state}
   end
 
@@ -159,10 +148,17 @@ defmodule FarmbotCore.Firmware.UARTCore do
     {:noreply, next_state}
   end
 
-  def handle_info(:watchdog_bark!, state1) do
-    package = FarmbotCore.Asset.fbos_config().firmware_hardware
-    state2 = do_flash_firmware(package, state1)
-    {:noreply, %{state2 | watchdog: Watchdog.bark(state2.watchdog)}}
+  def handle_info(:best_effort_bug_fix, state) do
+    if state.rx_count < 1 do
+      System.cmd("espeak", ["Ding ding ding"])
+      msg = "Rebooting inactive Farmduino. Uptime ms: #{Support.uptime_ms()}"
+      FarmbotCore.Logger.debug(3, msg)
+      spawn(__MODULE__, :flash_firmware, [state.fw_type])
+    else
+      FarmbotCore.Logger.debug(3, "Farmduino OK.")
+    end
+
+    {:noreply, state}
   end
 
   # === SCENARIO: Unexpected message from a library or FBOS.
@@ -193,7 +189,9 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
-    {:reply, :ok, do_flash_firmware(package, state)}
+    next_state = FarmbotCore.Firmware.Flash.run(state, package)
+    Process.send_after(self(), :reset_state, 1)
+    {:reply, :ok, next_state}
   end
 
   def terminate(_, _) do
@@ -205,11 +203,5 @@ defmodule FarmbotCore.Firmware.UARTCore do
     rx_buffer
     |> RxBuffer.puts(text)
     |> RxBuffer.gets()
-  end
-
-  defp do_flash_firmware(package, state) do
-    next_state = FarmbotCore.Firmware.Flash.run(state, package)
-    Process.send_after(self(), :reset_state, 1)
-    next_state
   end
 end
