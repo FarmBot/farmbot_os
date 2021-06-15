@@ -39,7 +39,18 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # This is a reasonable (but not perfect) assumption. RC
   @minutes 10
   @fw_timeout 1000 * 60 * @minutes
+
+  # ==== HISTORICAL NOTE ABOUT FBExpress 1.0 ===============
+  # Unlike USB serial ports, FBExpress serial uses GPIO.
+  # This means the GPIO is always running with no definitive
+  # start/stop signal. This means the parser gets "stuck" on
+  # the wrong GCode block. The end result is a firmware handler
+  # that sits there and does nothing. To get around this,
+  # we do a "health check" after a certain amount of time to
+  # ensure the farmduion is actually running.
   @bugfix_timeout 60_000
+  # ===== END HISTORICAL CODE ==============================
+
   # This is a helper method that I use for inspecting GCode
   # over SSH. It is not used by production systems except for
   # debugging.
@@ -77,7 +88,6 @@ defmodule FarmbotCore.Firmware.UARTCore do
   end
 
   def init(opts) do
-    Logger.debug("UARTCore Opts: " <> inspect(opts))
     BotState.firmware_offline()
     path = Keyword.fetch!(opts, :path)
     {:ok, uart_pid} = Support.connect(path)
@@ -92,7 +102,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     Support.disconnect(state1, "Rebooting firmware")
     # Reset state tree
     {:ok, next_state} = init(path: old_path, fw_type: state1.fw_type)
-    FarmbotCore.Logger.info(1, "Firmware restart initiated")
+    Logger.debug("Firmware restart initiated")
     {:noreply, next_state}
   end
 
@@ -154,7 +164,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     borked = BotState.fetch().informational_settings.firmware_version == nil
 
     if silent || borked do
-      msg = "Rebooting inactive Farmduino. Uptime ms: #{Support.uptime_ms()}"
+      msg = "Rebooting inactive Farmduino. #{Support.uptime_ms()}"
       FarmbotCore.Logger.debug(3, msg)
 
       package =
