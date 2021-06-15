@@ -7,6 +7,11 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   @default_opts [active: true, speed: 115_200]
   @three_minutes 3 * 60 * 1000
 
+  def uptime_ms() do
+    {ms, _} = :erlang.statistics(:wall_clock)
+    ms
+  end
+
   # This is a heuristic, but probably good enough given the
   # requirements.
   #
@@ -18,8 +23,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   # SOLUTION: Just check the system uptime instead of
   #           maintaining a process to track that state.
   def recent_boot?() do
-    {uptime_ms, _} = :erlang.statistics(:wall_clock)
-    uptime_ms < @three_minutes
+    uptime_ms() < @three_minutes
   end
 
   def connect(path) do

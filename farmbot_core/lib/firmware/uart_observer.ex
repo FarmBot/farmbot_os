@@ -81,7 +81,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
         FarmbotCore.Firmware.Flash.raw_flash(package, path)
       end
 
-      {:ok, uart_pid} = UARTCore.start_link(path: path)
+      {:ok, uart_pid} = UARTCore.start_link(path: path, fw_type: package)
       uart_pid
     end
   end

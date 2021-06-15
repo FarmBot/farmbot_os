@@ -1,5 +1,13 @@
 # Changelog
 
+# 14.1.2
+
+ * Remove WatchDog timer.
+
+# 14.1.1
+
+ * Add WatchDog timer to handle unresponsive firmware.
+
 # 14.1.0
 
  * Routine system upgrades.
