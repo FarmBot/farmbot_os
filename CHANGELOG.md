@@ -2,7 +2,7 @@
 
 # 14.1.2
 
- * Remove WatchDog timer from non-express models.
+ * Remove WatchDog timer.
 
 # 14.1.1
 

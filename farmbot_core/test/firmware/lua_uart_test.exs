@@ -5,6 +5,27 @@ defmodule FarmbotCore.Firmware.LuaUARTTest do
 
   alias FarmbotCore.Firmware.LuaUART
 
+  test "open/2" do
+    lua = %{fake_lua: true}
+
+    expect(Circuits.UART, :start_link, 1, fn ->
+      {:ok, self()}
+    end)
+
+    expect(Circuits.UART, :open, 1, fn pid, device, opts ->
+      assert pid == self()
+      assert device == "null"
+      assert opts == [{:speed, 300}, {:active, false}]
+      :ok
+    end)
+
+    result = LuaUART.open(["null", 300.0], lua)
+    {[uart, errors], lua2} = result
+    refute errors
+    assert lua2 == lua
+    assert [read: _, close: _, write: _] = uart
+  end
+
   test "new_uart/2" do
     me = self()
 

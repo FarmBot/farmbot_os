@@ -5,7 +5,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     Asset,
     BotState,
     Firmware.TxBuffer,
-    Firmware.Watchdog,
     FirmwareEstopTimer,
     Leds
   }
@@ -21,7 +20,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     end
 
     state = Enum.reduce(gcode, state, &reduce/2)
-    %{state | watchdog: Watchdog.pet(state.watchdog)}
+    %{state | rx_count: state.rx_count + 1}
   end
 
   defp reduce({:debug_message, string}, state) do
@@ -141,8 +140,6 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:not_configured, _}, state) do
-    core = FarmbotCore.Firmware.UARTCore
-    if Process.whereis(core), do: core.send_raw("F83 Q0")
     busy()
     state
   end

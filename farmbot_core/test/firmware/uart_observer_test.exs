@@ -45,4 +45,26 @@ defmodule FarmbotCore.Firmware.UARTObserverTest do
     results = UARTObserver.handle_info({:data_available, FirmwareConfig}, state)
     assert {:noreply, state} == results
   end
+
+  test ":connect_uart" do
+    me = self()
+
+    expect(FarmbotCore.Firmware.UARTCore, :start_link, 1, fn opts ->
+      assert opts == [path: "path", fw_type: "package"]
+      {:ok, me}
+    end)
+
+    expect(FarmbotCore.Firmware.UARTDetector, :run, 1, fn ->
+      {"package", "path"}
+    end)
+
+    expect(FarmbotCore.Firmware.UARTCoreSupport, :recent_boot?, 1, fn ->
+      false
+    end)
+
+    {:noreply, state2} =
+      UARTObserver.handle_info(:connect_uart, %{uart_pid: nil})
+
+    assert state2.uart_pid == me
+  end
 end
