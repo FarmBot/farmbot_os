@@ -7,9 +7,70 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
   alias FarmbotCore.Firmware.UARTCore
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
   alias FarmbotCore.Firmware.ConfigUploader
+  alias FarmbotCore.BotState
+
   setup :set_mimic_global
   setup :verify_on_exit!
   @path "ttyACM0"
+
+  test ":best_effort_bug_fix - KO" do
+    state1 = %UARTCore{fw_type: nil}
+
+    expect(BotState, :fetch, 1, fn ->
+      %{informational_settings: %{firmware_version: nil}}
+    end)
+
+    expect(FarmbotCore.Asset, :fbos_config, 1, fn ->
+      %{firmware_hardware: "none"}
+    end)
+
+    t = fn ->
+      {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
+      assert state2 == state1
+    end
+
+    assert capture_log(t) =~ "Rebooting inactive Farmduino."
+    assert_receive {:"$gen_call", _, {:flash_firmware, "none"}}
+  end
+
+  test ":best_effort_bug_fix - OK" do
+    state1 = %UARTCore{rx_count: 100}
+
+    expect(BotState, :fetch, 1, fn ->
+      %{informational_settings: %{firmware_version: "1.1.1"}}
+    end)
+
+    t = fn ->
+      {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
+      assert state2 == state1
+    end
+
+    assert capture_log(t) =~ "Farmduino OK"
+  end
+
+  test ":reset_state" do
+    state = %UARTCore{uart_path: "null"}
+
+    expect(BotState, :firmware_offline, 1, fn -> :ok end)
+
+    expect(Support, :connect, 1, fn path ->
+      assert path == "null"
+      {:ok, self()}
+    end)
+
+    expect(Support, :disconnect, 1, fn state1, msg ->
+      assert msg == "Rebooting firmware"
+      assert state1 == state
+      :ok
+    end)
+
+    t = fn ->
+      {:noreply, result} = UARTCore.handle_info(:reset_state, state)
+      assert result.uart_pid == self()
+    end
+
+    assert capture_log(t) =~ "Firmware restart initiated"
+  end
 
   test "lifecycle" do
     expect(Support, :connect, 1, fn @path -> {:ok, self()} end)
@@ -115,7 +176,7 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
 
   test "terminate" do
     t = fn -> UARTCore.terminate("", "") end
-    expect(FarmbotCore.BotState, :firmware_offline, 1, fn -> nil end)
+    expect(BotState, :firmware_offline, 1, fn -> nil end)
     assert capture_log(t) =~ "Firmware terminated."
   end
 end

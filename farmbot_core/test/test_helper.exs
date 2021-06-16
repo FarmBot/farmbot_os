@@ -9,6 +9,7 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
   MuonTrap,
   FarmbotCore.LogExecutor,
   FarmbotCore.FirmwareEstopTimer,
+  FarmbotCore.Firmware.UARTDetector,
   FarmbotCore.Firmware.UARTCoreSupport,
   FarmbotCore.Firmware.UARTCore,
   FarmbotCore.Firmware.TxBuffer,
