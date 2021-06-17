@@ -21,6 +21,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.API.Reconciler,
   FarmbotExt.API,
   FarmbotCore.LogExecutor,
+  FarmbotCore.Leds,
   FarmbotCore.Firmware.Command,
   FarmbotCore.FarmwareRuntime,
   FarmbotCore.Config,

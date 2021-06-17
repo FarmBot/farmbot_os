@@ -14,11 +14,31 @@ defmodule FarmbotOS.SysCallsTest do
   setup :verify_on_exit!
 
   test "emergency_unlock" do
+    expect(FarmbotCore.Leds, :yellow, 1, fn mode ->
+      assert mode == :off
+      :ok
+    end)
+
+    expect(FarmbotCore.Leds, :red, 1, fn mode ->
+      assert mode == :solid
+      :ok
+    end)
+
     expect(Command, :unlock, 1, fn -> :test end)
     assert :ok == SysCalls.emergency_unlock()
   end
 
   test "emergency_lock" do
+    expect(FarmbotCore.Leds, :red, 1, fn mode ->
+      assert mode == :off
+      :ok
+    end)
+
+    expect(FarmbotCore.Leds, :yellow, 1, fn mode ->
+      assert mode == :slow_blink
+      :ok
+    end)
+
     expect(Command, :lock, 1, fn -> :test end)
     assert :ok == SysCalls.emergency_lock()
   end

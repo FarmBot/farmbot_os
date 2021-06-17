@@ -5,21 +5,16 @@ defmodule FarmbotCore.FarmwareLogger do
   def new(name), do: %__MODULE__{name: name}
 
   defimpl Collectable do
-    def into(%FarmbotCore.FarmwareLogger{} = logger) do
-      {logger, &collector/2}
-    end
+    alias FarmbotCore.FarmwareLogger, as: S
 
-    defp collector(%FarmbotCore.FarmwareLogger{name: name} = logger, {:cont, text}) do
-      Logger.debug("[#{inspect(name)}] " <> text)
+    def into(%S{} = logger), do: {logger, &collector/2}
+    defp collector(%S{} = logger, :done), do: logger
+    defp collector(%S{} = _, :halt), do: :ok
+    defp collector(%S{} = logger, {:cont, text}) do
+      Logger.debug("[#{inspect(logger.name)}] " <> text)
       logger
     end
 
-    defp collector(logger, :done), do: logger
-
-    defp collector(%FarmbotCore.FarmwareLogger{name: name}, :halt) do
-      Logger.debug("#{inspect(name)} Halted.")
-      :ok
-    end
   end
 end
 
