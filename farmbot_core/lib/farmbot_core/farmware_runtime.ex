@@ -1,3 +1,28 @@
+defmodule FarmbotCore.FarmwareLogger do
+  require Logger
+
+  defstruct name: "UNKNOWN FARMARE?"
+  def new(name), do: %__MODULE__{name: name}
+
+  defimpl Collectable do
+    def into(%FarmbotCore.FarmwareLogger{} = logger) do
+      {logger, &collector/2}
+    end
+
+    defp collector(%FarmbotCore.FarmwareLogger{name: name} = logger, {:cont, text}) do
+      Logger.debug("[#{inspect(name)}] " <> text)
+      logger
+    end
+
+    defp collector(logger, :done), do: logger
+
+    defp collector(%FarmbotCore.FarmwareLogger{name: name}, :halt) do
+      Logger.debug("#{inspect(name)} Halted.")
+      :ok
+    end
+  end
+end
+
 defmodule FarmbotCore.FarmwareRuntime do
   @moduledoc """
   Handles execution of Farmware plugins.
@@ -106,7 +131,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       Keyword.merge(@muontrap_opts,
         env: env,
         cd: installation_path,
-        into: IO.stream(:stdio, :line)
+        into: FarmbotCore.FarmwareLogger.new(package)
       )
 
     # Start the plugin.
