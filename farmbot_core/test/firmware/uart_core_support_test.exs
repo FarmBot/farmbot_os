@@ -7,6 +7,15 @@ defmodule FarmbotCore.Firmware.UARTCoreSupportTest do
     UARTCore
   }
 
+  test "connect/1" do
+    expect(Circuits.UART, :start_link, 1, fn ->
+      {:ok, self()}
+    end)
+
+    result = UARTCoreSupport.connect("null")
+    assert result == {:error, :device_not_available}
+  end
+
   test "disconnect/2" do
     me = self()
     assert_is_me = fn uart -> assert uart == me end

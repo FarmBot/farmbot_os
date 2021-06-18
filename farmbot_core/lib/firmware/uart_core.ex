@@ -171,7 +171,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
         state.fw_type ||
           FarmbotCore.Asset.fbos_config().firmware_hardware
 
-      spawn(__MODULE__, :flash_firmware, [package])
+      spawn(__MODULE__, :flash_firmware, [self(), package])
     else
       FarmbotCore.Logger.debug(3, "Farmduino OK")
     end

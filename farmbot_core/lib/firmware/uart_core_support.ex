@@ -51,7 +51,6 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   end
 
   def lock!(), do: BotState.set_firmware_locked()
-  def unlock!(), do: BotState.set_firmware_unlocked()
   def locked?(), do: BotState.fetch().informational_settings.locked
   # This wrapper exists only because it felt strange to mock
   # GenServer.reply/2

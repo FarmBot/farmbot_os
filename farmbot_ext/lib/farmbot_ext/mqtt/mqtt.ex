@@ -14,6 +14,8 @@ defmodule FarmbotExt.MQTT do
     TopicSupervisor
   }
 
+  alias FarmbotCore.Leds
+
   alias __MODULE__, as: State
 
   def publish(client_id, topic, payload, opts \\ [qos: 0]) do
@@ -58,4 +60,8 @@ defmodule FarmbotExt.MQTT do
   def connection(status, state), do: {:ok, %{state | connection_status: status}}
 
   def subscription(_stat, _filter, state), do: {:ok, state}
+
+  def terminate(_, _) do
+    Leds.blue(:off)
+  end
 end

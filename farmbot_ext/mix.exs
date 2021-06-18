@@ -39,7 +39,7 @@ defmodule FarmbotExt.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:tortoise, "~> 0.9.8"},
+      {:tortoise, "~> 0.9.9"},
       {:ex_doc, "~> 0.24.2", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14.1", only: [:test], targets: [:host]},
       {:extty, "~> 0.2.1"},
