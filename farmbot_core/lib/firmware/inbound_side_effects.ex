@@ -5,6 +5,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     Asset,
     BotState,
     Firmware.TxBuffer,
+    Firmware.UARTCoreSupport,
     FirmwareEstopTimer,
     Leds
   }
@@ -13,7 +14,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require FarmbotCore.Logger
 
   def process(state, gcode) do
-    Leds.red(:solid)
+    unless UARTCoreSupport.locked?() do
+      Leds.red(:solid)
+    end
 
     if state.logs_enabled do
       gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)

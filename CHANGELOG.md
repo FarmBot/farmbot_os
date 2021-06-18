@@ -1,5 +1,11 @@
 # Changelog
 
+# 14.1.3
+
+ * Box LED fixes.
+ * Impoved internal diagnostic tools for diagnosing camera problems.
+ * Routine dependency updates.
+
 # 14.1.2
 
  * Remove WatchDog timer.

@@ -4,6 +4,15 @@ defmodule FarmbotExt.MQTTTest do
   alias FarmbotExt.MQTT
   alias FarmbotExt.MQTT.Support
 
+  test "terminate/2" do
+    expect(FarmbotCore.Leds, :blue, fn mode ->
+      assert mode == :off
+      :ok
+    end)
+
+    MQTT.terminate(nil, nil)
+  end
+
   test "publish/4" do
     client_id = "client_id_123"
     topic = "foo/bar/baz"
