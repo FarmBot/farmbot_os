@@ -15,14 +15,6 @@ MIX_ENV=test mix compile --force
 mix coveralls.html
 rm -f *.coverdata
 
-echo "######### farmbot_celery_script"
-cd ../farmbot_celery_script
-mix format
-mix deps.get --all
-MIX_ENV=test mix compile --force
-mix coveralls.html
-rm -f *.coverdata
-
 echo "######### farmbot_core"
 cd ../farmbot_core
 mix format

@@ -14,9 +14,9 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require FarmbotCore.Logger
 
   def process(state, gcode) do
-    unless UARTCoreSupport.locked?() do
-      Leds.red(:solid)
-    end
+    # Spawn() so that LED problems don't cause FW Handler to
+    # hang or crash
+    unless UARTCoreSupport.locked?(), do: spawn(Leds, :red, [:solid])
 
     if state.logs_enabled do
       gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)

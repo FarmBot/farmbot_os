@@ -12,7 +12,7 @@ config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent,
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
   checkup_time_ms: 1000
 
-config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
+config :farmbot_core, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotCeleryScript.SysCalls.Stubs
 
 if Mix.env() == :test do
