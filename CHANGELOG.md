@@ -1,5 +1,18 @@
 # Changelog
 
+# 14.2.0
+
+ * Expose the following point attributes to the Lua `variable()` helper:
+    * gantry_mounted
+    * id
+    * meta
+    * openfarm_slug
+    * plant_stage
+    * pointer_type
+    * pullout_direction
+    * radius
+    * tool_id
+
 # 14.1.3
 
  * Box LED fixes.

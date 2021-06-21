@@ -40,7 +40,11 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
     p = point(expected)
 
-    assert expected == PointLookup.point("GenericPointer", p.id)
+    actual =
+      PointLookup.point("GenericPointer", p.id)
+      |> Map.take([:name, :x, :y, :z, :resource_id, :resource_type])
+
+    assert expected == actual
   end
 
   test "PointLookup.get_toolslot_for_tool/1 (gantry mounted tool)" do
@@ -68,7 +72,11 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       gantry_mounted: true
     }
 
-    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+    result =
+      PointLookup.get_toolslot_for_tool(t.id)
+      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+
+    assert important_part == result
   end
 
   test "PointLookup.get_toolslot_for_tool/1" do
@@ -91,7 +99,12 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     }
 
     point(Map.merge(important_part, other_stuff))
-    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+
+    actual =
+      PointLookup.get_toolslot_for_tool(t.id)
+      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+
+    assert important_part == actual
   end
 
   test "PointLookup.get_point_group/1 - int" do
