@@ -150,10 +150,8 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  def send_message(
-        %{args: %{message: msg, message_type: type}, body: channels},
-        env
-      ) do
+  def send_message(args, env) do
+    %{args: %{message: msg, message_type: type}, body: channels} = args
     # body gets turned into a list of atoms.
     # Example:
     #   [{kind: "channel", args: {channel_name: "email"}}]

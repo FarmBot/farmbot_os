@@ -40,11 +40,11 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
       :ok
     end)
 
-    SetPinIOMode.set_pin_io_mode(1, "input_pullup")
-    SetPinIOMode.set_pin_io_mode(2, "input")
-    SetPinIOMode.set_pin_io_mode(3, "output")
-    SetPinIOMode.set_pin_io_mode(4, 0x0)
-    SetPinIOMode.set_pin_io_mode(5, 0x1)
-    SetPinIOMode.set_pin_io_mode(6, 0x2)
+    FarmbotOS.SysCalls.set_pin_io_mode(1, "input_pullup")
+    FarmbotOS.SysCalls.set_pin_io_mode(2, "input")
+    FarmbotOS.SysCalls.set_pin_io_mode(3, "output")
+    FarmbotOS.SysCalls.set_pin_io_mode(4, 0x0)
+    FarmbotOS.SysCalls.set_pin_io_mode(5, 0x1)
+    FarmbotOS.SysCalls.set_pin_io_mode(6, 0x2)
   end
 end

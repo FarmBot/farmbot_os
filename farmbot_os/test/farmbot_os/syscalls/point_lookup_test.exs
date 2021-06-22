@@ -1,6 +1,7 @@
 defmodule FarmbotOS.SysCalls.PointLookupTest do
   use ExUnit.Case
   use Mimic
+  import ExUnit.CaptureLog
 
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotCore.Asset.Point
@@ -14,6 +15,19 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   }
 
   setup :verify_on_exit!
+
+  test "catch malfored return values" do
+    expect(FarmbotCore.Asset, :get_point, 1, fn _ ->
+      :example_error_for_unit_tests
+    end)
+
+    t = fn -> PointLookup.point("GenericPointer", 1) end
+
+    expected_log =
+      "Point error: Please notify support :example_error_for_unit_tests"
+
+    assert(capture_log(t)) =~ expected_log
+  end
 
   test "failure cases" do
     err1 = PointLookup.point("GenericPointer", 24)
@@ -40,7 +54,11 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
     p = point(expected)
 
-    assert expected == PointLookup.point("GenericPointer", p.id)
+    actual =
+      PointLookup.point("GenericPointer", p.id)
+      |> Map.take([:name, :x, :y, :z, :resource_id, :resource_type])
+
+    assert expected == actual
   end
 
   test "PointLookup.get_toolslot_for_tool/1 (gantry mounted tool)" do
@@ -68,7 +86,11 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       gantry_mounted: true
     }
 
-    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+    result =
+      PointLookup.get_toolslot_for_tool(t.id)
+      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+
+    assert important_part == result
   end
 
   test "PointLookup.get_toolslot_for_tool/1" do
@@ -91,7 +113,12 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     }
 
     point(Map.merge(important_part, other_stuff))
-    assert important_part == PointLookup.get_toolslot_for_tool(t.id)
+
+    actual =
+      PointLookup.get_toolslot_for_tool(t.id)
+      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+
+    assert important_part == actual
   end
 
   test "PointLookup.get_point_group/1 - int" do

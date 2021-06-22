@@ -3,14 +3,19 @@
 defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
   alias FarmbotCeleryScript.SysCalls
 
+  def run!(%{ resource_id: id, resource_type: t }) do
+    [SysCalls.point(t, id)]
+  end
+
+
+  def run!(%{args: %{pointer_id: id, pointer_type: t}}) do
+    [SysCalls.point(t, id)]
+  end
+
   def run!(%{x: _, y: _, z: _} = vec), do: [vec]
 
   def run!(%{args: %{x: _, y: _, z: _} = args} = vec) do
     [Map.merge(vec, args)]
-  end
-
-  def run!(%{args: %{pointer_id: id, pointer_type: t}}) do
-    [SysCalls.point(t, id)]
   end
 
   def run!(nil) do

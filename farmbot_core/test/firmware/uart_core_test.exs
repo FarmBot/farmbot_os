@@ -179,4 +179,22 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     expect(BotState, :firmware_offline, 1, fn -> nil end)
     assert capture_log(t) =~ "Firmware terminated."
   end
+
+  test "handle_info({:send_raw, E}, %State{} = state)" do
+    expect(Support, :uart_send, 1, fn _uart_pid, msg ->
+      assert msg == "E\r\n"
+      :ok
+    end)
+
+    expect(FarmbotCore.Firmware.TxBuffer, :error_all, 1, fn buffer, msg ->
+      assert msg == "Emergency locked"
+      buffer
+    end)
+
+    expect(Support, :lock!, 1, fn -> :ok end)
+
+    s1 = %UARTCore{}
+    {:noreply, s2} = UARTCore.handle_info({:send_raw, "E"}, s1)
+    assert s1 == s2
+  end
 end

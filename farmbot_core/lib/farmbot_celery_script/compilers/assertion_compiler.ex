@@ -23,10 +23,11 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
-      cmnt = unquote(comment)
+      # cmnt = unquote(comment)
       lua_code = unquote(Compiler.compile_ast(expression, env))
-
-      case FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt) do
+      result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, better_params)
+      # result = FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt)
+      case result do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
             false,
