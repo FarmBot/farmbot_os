@@ -31,7 +31,7 @@ defmodule FarmbotOS.LuaTest do
       assert log.meta == %{assertion_passed: true, assertion_type: :assertion}
     end)
 
-    Lua.log_assertion(true, :assertion, "this is an assertion")
+    FarmbotOS.SysCalls.log_assertion(true, :assertion, "this is an assertion")
   end
 
   @documentation_examples [

@@ -1,6 +1,7 @@
 defmodule FarmbotOS.SysCalls.PointLookupTest do
   use ExUnit.Case
   use Mimic
+  import ExUnit.CaptureLog
 
   alias FarmbotOS.SysCalls.PointLookup
   alias FarmbotCore.Asset.Point
@@ -14,6 +15,19 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   }
 
   setup :verify_on_exit!
+
+  test "catch malfored return values" do
+    expect(FarmbotCore.Asset, :get_point, 1, fn _ ->
+      :example_error_for_unit_tests
+    end)
+
+    t = fn -> PointLookup.point("GenericPointer", 1) end
+
+    expected_log =
+      "Point error: Please notify support :example_error_for_unit_tests"
+
+    assert(capture_log(t)) =~ expected_log
+  end
 
   test "failure cases" do
     err1 = PointLookup.point("GenericPointer", 24)
