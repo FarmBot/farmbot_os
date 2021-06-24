@@ -18,6 +18,10 @@ defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
     [Map.merge(vec, args)]
   end
 
+  def run!(%{args: %{tool_id: tool_id}}) do
+    [FarmbotCeleryScript.SysCalls.get_toolslot_for_tool(tool_id)]
+  end
+
   def run!(nil) do
     error = "LUA ERROR: Sequence does not contain variable"
     SysCalls.log(error)
