@@ -18,6 +18,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     |> do_perform_movement()
   end
 
+  # If the user provides Lua, we need to evaluate the Lua and
+  # tranform it to a `numeric` node type.
   def expand_lua(body, better_params) do
     Enum.map(body, fn
       %{ args: %{ speed_setting: %{ args: %{lua: lua} } }} = p ->
@@ -33,6 +35,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
         data = convert_lua_to_number(lua, better_params)
         new_operand = %{args: %{number: data}, kind: :numeric}
         %{ p | args: %{ p.args | axis_operand: new_operand } }
+      # Non-Lua nodes just pass through.
       item ->
         item
     end)
@@ -199,8 +202,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   def cz, do: SysCalls.get_current_z()
 
   def convert_lua_to_number(lua, better_params) do
-    output = FarmbotCeleryScript.Compiler.Lua.do_lua(lua, better_params)
-    case output do
+    case FarmbotCeleryScript.Compiler.Lua.do_lua(lua, better_params) do
       {:ok, [data]} ->
         if is_number(data) do
           data
