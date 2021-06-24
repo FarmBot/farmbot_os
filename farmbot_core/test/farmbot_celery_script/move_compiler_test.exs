@@ -213,32 +213,32 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     assert_raise RuntimeError, "Not permitted", boom
   end
 
-  test "to_number() - Lua" do
-    expect(Stubs, :perform_lua, 3, fn
-      "lol", _, _ ->
-        "Something else"
+  # test "to_number() - Lua" do
+  #   expect(Stubs, :perform_lua, 3, fn
+  #     "lol", _, _ ->
+  #       "Something else"
 
-      lua, _, _ ->
-        {result, _} = Code.eval_string(lua)
-        {:ok, [result]}
-    end)
+  #     lua, _, _ ->
+  #       {result, _} = Code.eval_string(lua)
+  #       {:ok, [result]}
+  #   end)
 
-    # Base case: Returns {:ok, [number]}
-    lua1 = %{kind: :lua, args: %{lua: "2 + 2"}}
-    Compiler.Move.to_number(:x, lua1)
+  #   # Base case: Returns {:ok, [number]}
+  #   # lua1 = %{kind: :lua, args: %{lua: "2 + 2"}}
+  #   # Compiler.Move.to_number(:x, lua1)
 
-    # Error case: Returns {:ok, [not_a_number]}
-    lua2 = %{kind: :lua, args: %{lua: "\"Not a number\""}}
-    boom = fn -> Compiler.Move.to_number(:x, lua2) end
-    err_msg = "Unexpected Lua return: \"Not a number\" \"\\\"Not a number\\\"\""
-    assert_raise RuntimeError, err_msg, boom
+  #   # Error case: Returns {:ok, [not_a_number]}
+  #   # lua2 = %{kind: :lua, args: %{lua: "\"Not a number\""}}
+  #   # boom = fn -> Compiler.Move.to_number(:x, lua2) end
+  #   # err_msg = "Unexpected Lua return: \"Not a number\" \"\\\"Not a number\\\"\""
+  #   # assert_raise RuntimeError, err_msg, boom
 
-    # Error case: Returns some other shape of data.
-    lua3 = %{kind: :lua, args: %{lua: "lol"}}
-    boom = fn -> Compiler.Move.to_number(:x, lua3) end
-    err_msg = "Unexpected Lua return: \"Something else\" \"lol\""
-    assert_raise RuntimeError, err_msg, boom
-  end
+  #   # Error case: Returns some other shape of data.
+  #   # lua3 = %{kind: :lua, args: %{lua: "lol"}}
+  #   # boom = fn -> Compiler.Move.to_number(:x, lua3) end
+  #   # err_msg = "Unexpected Lua return: \"Something else\" \"lol\""
+  #   # assert_raise RuntimeError, err_msg, boom
+  # end
 
   test "to_number()" do
     boom = fn -> Compiler.Move.to_number(:foo, :bar) end
