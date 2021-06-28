@@ -43,7 +43,7 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
       "beta"
     )
 
-config :farmbot_celery_script, FarmbotCeleryScript.SysCalls,
+config :farmbot_core, FarmbotCeleryScript.SysCalls,
   sys_calls: FarmbotOS.SysCalls
 
 config :farmbot_core, FarmbotCore.BotState.FileSystem,

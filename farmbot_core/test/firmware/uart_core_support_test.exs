@@ -7,6 +7,8 @@ defmodule FarmbotCore.Firmware.UARTCoreSupportTest do
     UARTCore
   }
 
+  alias FarmbotCore.BotState
+
   test "connect/1" do
     expect(Circuits.UART, :start_link, 1, fn ->
       {:ok, self()}
@@ -36,5 +38,13 @@ defmodule FarmbotCore.Firmware.UARTCoreSupportTest do
 
     result = UARTCoreSupport.disconnect(state, "It's a unit test")
     assert {:ok, fake_uart} == result
+  end
+
+  test "lock!()" do
+    expect(BotState, :set_firmware_locked, 1, fn ->
+      :ok
+    end)
+
+    assert UARTCoreSupport.lock!() == :ok
   end
 end

@@ -1,9 +1,58 @@
 defmodule FarmbotCeleryScript.CompilerTest do
   use ExUnit.Case
+  use Mimic
+
   alias FarmbotCeleryScript.{AST, Compiler}
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false
   alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
+
+  test "change_ownership" do
+    email = "t@g.com"
+    secret = "super duper"
+    server = "https://my.farm.bot"
+
+    body = [
+      %{args: %{label: "email", value: email}},
+      %{args: %{label: "secret", value: secret}},
+      %{args: %{label: "server", value: server}}
+    ]
+
+    expect(FarmbotCeleryScript.SysCalls, :change_ownership, 1, fn eml,
+                                                                  scrt,
+                                                                  srvr ->
+      assert eml == email
+      assert scrt == "\xB2\xEA^\xAD۩z"
+      assert srvr == server
+      :ok
+    end)
+
+    result =
+      FarmbotCeleryScript.Compiler.change_ownership(%{body: body}, [])
+      |> Code.eval_quoted()
+
+    assert result == {:ok, []}
+  end
+
+  test "send_message/2" do
+    channels = [%{kind: :channel, args: %{channel_name: "email"}}]
+    type = "fun"
+    msg = "Hello, world!"
+    args = %{args: %{message: msg, message_type: type}, body: channels}
+
+    expect(FarmbotCeleryScript.SysCalls, :send_message, 1, fn t, m, c ->
+      assert t == type
+      assert m == msg
+      assert c == [:email]
+      :ok
+    end)
+
+    result =
+      FarmbotCeleryScript.Compiler.send_message(args, [])
+      |> Code.eval_quoted()
+
+    assert result == {:ok, []}
+  end
 
   test "compiles a sequence with unbound variables" do
     sequence = %AST{

@@ -4,10 +4,10 @@ defmodule FarmbotCeleryScript.SysCalls do
   """
   alias FarmbotCeleryScript.{AST, RuntimeError}
 
-  @sys_calls Application.get_env(:farmbot_celery_script, __MODULE__)[:sys_calls]
+  @sys_calls Application.get_env(:farmbot_core, __MODULE__)[:sys_calls]
   @sys_calls ||
     Mix.raise("""
-    config :farmbot_celery_script, FarmbotCeleryScript.SysCalls, [
+    config :farmbot_core, FarmbotCeleryScript.SysCalls, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
     ]
     """)

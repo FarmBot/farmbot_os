@@ -2,7 +2,6 @@ defmodule Farmbot.TestSupport.AssetFixtures do
   alias FarmbotCore.Asset.{
     Device,
     FarmEvent,
-    FbosConfig,
     Regimen,
     RegimenInstance,
     Repo,
@@ -17,18 +16,6 @@ defmodule Farmbot.TestSupport.AssetFixtures do
     RegimenInstance.changeset(%RegimenInstance{}, params)
     |> Ecto.Changeset.put_assoc(:regimen, regimen)
     |> Ecto.Changeset.put_assoc(:farm_event, farm_event)
-    |> Repo.insert!()
-  end
-
-  def fbos_config(params \\ %{}) do
-    default = %{
-      id: :rand.uniform(10000),
-      monitor: false
-    }
-
-    FbosConfig
-    |> struct()
-    |> FbosConfig.changeset(Map.merge(default, params))
     |> Repo.insert!()
   end
 

@@ -12,14 +12,14 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   test "read_pin with %Peripheral{}, pin is 1" do
     expect(Command, :read_pin, 1, fn 13, 0 -> {:ok, 1} end)
     peripheral = %Peripheral{pin: 13, label: "xyz"}
-    assert 1 == PinControl.read_pin(peripheral, @digital)
+    assert 1 == FarmbotOS.SysCalls.read_pin(peripheral, @digital)
   end
 
   @tag :capture_log
   test "read_pin with %Peripheral{}, pin is 0" do
     expect(Command, :read_pin, 1, fn 13, 0 -> {:ok, 0} end)
     peripheral = %Peripheral{pin: 13, label: "xyz"}
-    assert 0 == PinControl.read_pin(peripheral, @digital)
+    assert 0 == FarmbotOS.SysCalls.read_pin(peripheral, @digital)
   end
 
   @tag :capture_log
@@ -46,7 +46,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       {:ok, 1}
     end)
 
-    assert :ok = PinControl.toggle_pin(12)
+    assert :ok = FarmbotOS.SysCalls.toggle_pin(12)
   end
 
   @tag :capture_log
@@ -73,11 +73,11 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       {:ok, nil}
     end)
 
-    assert :ok = PinControl.toggle_pin(12)
+    assert :ok = FarmbotOS.SysCalls.toggle_pin(12)
   end
 
   test "toggle_pin, unknown" do
-    assert {:error, "Unknown pin data: :x"} == PinControl.toggle_pin(:x)
+    assert {:error, "Unknown pin data: :x"} == FarmbotOS.SysCalls.toggle_pin(:x)
   end
 
   test "set_servo_angle" do
@@ -86,11 +86,11 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       40, 180 -> {:ok, nil}
     end)
 
-    assert :ok = PinControl.set_servo_angle(40, 180)
+    assert :ok = FarmbotOS.SysCalls.set_servo_angle(40, 180)
 
     message = "Firmware error @ \"set_servo_angle\": \"opps\""
 
-    assert {:error, ^message} = PinControl.set_servo_angle(20, 90)
+    assert {:error, ^message} = FarmbotOS.SysCalls.set_servo_angle(20, 90)
   end
 
   test "read_cached_pin" do
@@ -98,6 +98,6 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       %FarmbotCore.BotStateNG{pins: %{4 => %{value: 6}}}
     end)
 
-    assert 6 == PinControl.read_cached_pin(4)
+    assert 6 == FarmbotOS.SysCalls.read_cached_pin(4)
   end
 end

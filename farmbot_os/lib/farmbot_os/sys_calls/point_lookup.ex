@@ -6,20 +6,35 @@ defmodule FarmbotOS.SysCalls.PointLookup do
 
   require Logger
 
+  @relevant_keys [
+    :id,
+    :tool_id,
+    :gantry_mounted,
+    :meta,
+    :name,
+    :openfarm_slug,
+    :plant_stage,
+    :pointer_type,
+    :pullout_direction,
+    :resource_id,
+    :resource_type,
+    :radius,
+    :x,
+    :y,
+    :z
+  ]
+
   def point(kind, id) do
     case Asset.get_point(id: id) do
       nil ->
         {:error, "#{kind || "point"} #{id} not found"}
 
-      %{name: name, x: x, y: y, z: z, pointer_type: type} ->
-        %{
-          name: name,
-          resource_type: type,
-          resource_id: id,
-          x: x,
-          y: y,
-          z: z
-        }
+      %{x: _x, y: _y, z: _z} = s ->
+        type = Map.get(s, :pointer_type, kind)
+
+        %{resource_type: type, resource_id: id}
+        |> Map.merge(s)
+        |> Map.take(@relevant_keys)
 
       other ->
         Logger.debug("Point error: Please notify support #{inspect(other)}")
@@ -48,14 +63,10 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     p = Asset.get_point(tool_id: id)
 
     with %{id: ^id} <- tool,
-         %{name: name, x: x, y: y, z: z, gantry_mounted: mounted} <- p do
-      maybe_adjust_coordinates(%{
-        name: name,
-        x: x,
-        y: y,
-        z: z,
-        gantry_mounted: mounted
-      })
+         %{name: _name, x: _x, y: _y, z: _z, gantry_mounted: _mounted} <- p do
+      p
+      |> Map.take(@relevant_keys)
+      |> maybe_adjust_coordinates()
     else
       nil -> {:error, "Could not find point for tool by id: #{id}"}
     end
