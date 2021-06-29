@@ -118,9 +118,10 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":pin_value_report" do
-    expect(FarmbotCore.BotState, :set_pin_value, 1, fn p, v ->
+    expect(FarmbotCore.BotState, :set_pin_value, 1, fn p, v, m ->
       assert p == 2.0
       assert v == 4.5
+      assert m in [0, nil]
       :ok
     end)
 
