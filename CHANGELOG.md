@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.2.1
+
+ * Genesis and Express firmware updates.
+
 # 14.2.0
 
  * Expose the following point attributes to the Lua `variable()` helper:
