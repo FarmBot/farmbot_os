@@ -120,6 +120,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
+    |> set_table([:write_pin], &Firmware.write_pin/2)
     |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
