@@ -4,7 +4,6 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
 
   alias FarmbotCeleryScript.{
     Compiler,
-    Compiler.Move,
     SysCalls.Stubs
   }
 
@@ -27,20 +26,6 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     y: -3,
     z: -2
   }
-
-  defp rand_coord(), do: trunc(:rand.uniform() * 1000)
-
-  defp stub_current_location(call_count) do
-    x = rand_coord()
-    y = rand_coord()
-    z = rand_coord()
-
-    expect(Stubs, :get_current_x, call_count, fn -> x end)
-    expect(Stubs, :get_current_y, call_count, fn -> y end)
-    expect(Stubs, :get_current_z, call_count, fn -> z end)
-
-    {x, y, z}
-  end
 
   test "MOVE + `tool` node" do
     stub_current_location(1)
@@ -72,7 +57,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       %{kind: :axis_overwrite, args: %{axis: "z", axis_operand: tool}}
     ]
 
-    Move.perform_movement(body, %{})
+    Compiler.Move.perform_movement(body, %{})
   end
 
   test "extract_variables" do
@@ -82,7 +67,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     ]
 
     better_params = %{"q" => %{foo: :bar}}
-    result = Move.extract_variables(body, better_params)
+    result = Compiler.Move.extract_variables(body, better_params)
 
     assert result == [
              %{args: %{axis_operand: %{foo: :bar}}},
@@ -99,7 +84,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     end)
 
     needs = Map.merge(@fake_movment_needs, %{safe_z: true})
-    Move.do_perform_movement(needs)
+    Compiler.Move.do_perform_movement(needs)
   end
 
   test "do_perform_movement(%{safe_z: false})" do
@@ -107,7 +92,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       :ok
     end)
 
-    Move.do_perform_movement(@fake_movment_needs)
+    Compiler.Move.do_perform_movement(@fake_movment_needs)
   end
 
   test "retract_z" do
@@ -126,7 +111,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.retract_z(@fake_movment_needs)
+    Compiler.Move.retract_z(@fake_movment_needs)
   end
 
   test "move_xy" do
@@ -147,7 +132,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.move_xy(@fake_movment_needs)
+    Compiler.Move.move_xy(@fake_movment_needs)
   end
 
   test "extend_z" do
@@ -166,13 +151,13 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.extend_z(@fake_movment_needs)
+    Compiler.Move.extend_z(@fake_movment_needs)
   end
 
   test "calculate_movement_needs" do
     {x, y, z} = stub_current_location(1)
 
-    assert Move.calculate_movement_needs([]) == %{
+    assert Compiler.Move.calculate_movement_needs([]) == %{
              safe_z: false,
              speed_x: 100,
              speed_y: 100,
@@ -185,8 +170,8 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
 
   test "reducer" do
     needs = %{speed_x: 23, y: 32}
-    result1 = Move.reducer({:speed_x, :=, 44}, needs)
-    result2 = Move.reducer({:y, :+, 32}, needs)
+    result1 = Compiler.Move.reducer({:speed_x, :=, 44}, needs)
+    result2 = Compiler.Move.reducer({:y, :+, 32}, needs)
     assert result1[:speed_x] == 44
     assert result2[:y] == 64
   end
@@ -210,13 +195,13 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       args: %{axis: "z", axis_operand: numeric}
     }
 
-    assert Move.mapper(safe_z) == {:safe_z, :=, true}
-    assert Move.mapper(speed_overwrite) == {:speed_x, :=, 26}
-    assert Move.mapper(axis_addition) == {:y, :+, 26}
-    assert Move.mapper(axis_overwrite) == {:z, :=, 26}
+    assert Compiler.Move.mapper(safe_z) == {:safe_z, :=, true}
+    assert Compiler.Move.mapper(speed_overwrite) == {:speed_x, :=, 26}
+    assert Compiler.Move.mapper(axis_addition) == {:y, :+, 26}
+    assert Compiler.Move.mapper(axis_overwrite) == {:z, :=, 26}
 
     boom = fn ->
-      Move.mapper(%{
+      Compiler.Move.mapper(%{
         kind: :axis_addition,
         args: %{
           axis: "all",
@@ -228,8 +213,35 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     assert_raise RuntimeError, "Not permitted", boom
   end
 
+  test "to_number() - Lua" do
+    expect(Stubs, :perform_lua, 3, fn
+      "lol", _, _ ->
+        "Something else"
+
+      lua, _, _ ->
+        {result, _} = Code.eval_string(lua)
+        {:ok, [result]}
+    end)
+
+    # Base case: Returns {:ok, [number]}
+    lua1 = %{kind: :lua, args: %{lua: "2 + 2"}}
+    Compiler.Move.to_number(:x, lua1)
+
+    # Error case: Returns {:ok, [not_a_number]}
+    lua2 = %{kind: :lua, args: %{lua: "\"Not a number\""}}
+    boom = fn -> Compiler.Move.to_number(:x, lua2) end
+    err_msg = "Unexpected Lua return: \"Not a number\" \"\\\"Not a number\\\"\""
+    assert_raise RuntimeError, err_msg, boom
+
+    # Error case: Returns some other shape of data.
+    lua3 = %{kind: :lua, args: %{lua: "lol"}}
+    boom = fn -> Compiler.Move.to_number(:x, lua3) end
+    err_msg = "Unexpected Lua return: \"Something else\" \"lol\""
+    assert_raise RuntimeError, err_msg, boom
+  end
+
   test "to_number()" do
-    boom = fn -> Move.to_number(:foo, :bar) end
+    boom = fn -> Compiler.Move.to_number(:foo, :bar) end
     err_msg = "Can't handle numeric conversion for :bar"
     assert_raise RuntimeError, err_msg, boom
     {x, y, z} = stub_current_location(3)
@@ -264,33 +276,33 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     expect(FarmbotCeleryScript.SpecialValue, :safe_height, fn -> 1.23 end)
     expect(FarmbotCeleryScript.SpecialValue, :soil_height, fn -> 3.45 end)
 
-    assert Move.to_number(:z, @soil_height) == 3.45
-    assert Move.to_number(:z, @safe_height) == 1.23
-    assert Move.to_number(:x, vec) == x
-    assert Move.to_number(:y, vec) == y
-    assert Move.to_number(:z, vec) == z
-    assert Move.to_number(:x, @current_location) == x
-    assert Move.to_number(:y, @current_location) == y
-    assert Move.to_number(:z, @current_location) == z
-    assert Move.to_number(:x, fake_pointer) == 776.0
-    assert Move.to_number(:x, fake_resource) == 776.0
-    assert Move.to_number(:y, fake_pointer) == 633.0
-    assert Move.to_number(:y, fake_resource) == 633.0
-    assert Move.to_number(:z, fake_pointer) == 5.0
-    assert Move.to_number(:z, fake_resource) == 5.0
-    assert Move.to_number(:z, fake_numeric) == 101
-    assert Move.to_number(:y, fake_coordinate) == 404
-    v = Move.to_number(:y, fake_variance)
+    assert Compiler.Move.to_number(:z, @soil_height) == 3.45
+    assert Compiler.Move.to_number(:z, @safe_height) == 1.23
+    assert Compiler.Move.to_number(:x, vec) == x
+    assert Compiler.Move.to_number(:y, vec) == y
+    assert Compiler.Move.to_number(:z, vec) == z
+    assert Compiler.Move.to_number(:x, @current_location) == x
+    assert Compiler.Move.to_number(:y, @current_location) == y
+    assert Compiler.Move.to_number(:z, @current_location) == z
+    assert Compiler.Move.to_number(:x, fake_pointer) == 776.0
+    assert Compiler.Move.to_number(:x, fake_resource) == 776.0
+    assert Compiler.Move.to_number(:y, fake_pointer) == 633.0
+    assert Compiler.Move.to_number(:y, fake_resource) == 633.0
+    assert Compiler.Move.to_number(:z, fake_pointer) == 5.0
+    assert Compiler.Move.to_number(:z, fake_resource) == 5.0
+    assert Compiler.Move.to_number(:z, fake_numeric) == 101
+    assert Compiler.Move.to_number(:y, fake_coordinate) == 404
+    v = Compiler.Move.to_number(:y, fake_variance)
     assert v <= 10
     assert v >= -10
   end
 
   test "cx(), cy(), cz(), initial_state()" do
     {x, y, z} = stub_current_location(2)
-    state = Move.initial_state()
-    assert(Move.cx() == x)
-    assert(Move.cy() == y)
-    assert(Move.cz() == z)
+    state = Compiler.Move.initial_state()
+    assert(Compiler.Move.cx() == x)
+    assert(Compiler.Move.cy() == y)
+    assert(Compiler.Move.cz() == z)
     assert Enum.member?(state, {:x, :=, x})
     assert Enum.member?(state, {:y, :=, y})
     assert Enum.member?(state, {:z, :=, z})
@@ -321,68 +333,20 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.move_abs(params)
+    Compiler.Move.move_abs(params)
   end
 
-  test "expand_lua" do
-    expect(Compiler.Lua, :do_lua, 4, fn lua, _ ->
-      {res, _} = Code.eval_string(lua)
-      {:ok, [res]}
-    end)
+  defp rand_coord(), do: trunc(:rand.uniform() * 1000)
 
-    results =
-      Move.expand_lua(
-        [
-          %{kind: :test, args: %{speed_setting: %{args: %{lua: "2+2"}}}},
-          %{kind: :test, args: %{speed_setting: %{args: %{lua: "8+8"}}}},
-          %{kind: :nothing, args: %{}},
-          %{kind: :test, args: %{lua: "4+4"}},
-          %{kind: :test, args: %{axis_operand: %{args: %{lua: "1+2"}}}}
-        ],
-        %{}
-      )
+  defp stub_current_location(call_count) do
+    x = rand_coord()
+    y = rand_coord()
+    z = rand_coord()
 
-    assert Enum.at(results, 0) == %{
-             kind: :test,
-             args: %{speed_setting: %{args: %{number: 4}, kind: :numeric}}
-           }
+    expect(Stubs, :get_current_x, call_count, fn -> x end)
+    expect(Stubs, :get_current_y, call_count, fn -> y end)
+    expect(Stubs, :get_current_z, call_count, fn -> z end)
 
-    assert Enum.at(results, 1) == %{
-             kind: :test,
-             args: %{speed_setting: %{args: %{number: 16}, kind: :numeric}}
-           }
-
-    assert Enum.at(results, 2) == %{args: %{}, kind: :nothing}
-
-    assert Enum.at(results, 3) == %{
-             kind: :test,
-             args: %{args: %{number: 8}, kind: :numeric}
-           }
-
-    assert Enum.at(results, 4) == %{
-             kind: :test,
-             args: %{axis_operand: %{args: %{number: 3}, kind: :numeric}}
-           }
-  end
-
-  test "convert_lua_to_number" do
-    expect(Compiler.Lua, :do_lua, 2, fn
-      "example1()", _ ->
-        {:ok, [false]}
-
-      "example2()", _ ->
-        "random error"
-    end)
-
-    test1 = fn -> Move.convert_lua_to_number("example1()", %{}) end
-    test2 = fn -> Move.convert_lua_to_number("example2()", %{}) end
-
-    assert_raise RuntimeError,
-                 "Expected Lua to return number, got false. \"example1()\"",
-                 test1
-
-    assert_raise RuntimeError,
-                 "Expected Lua to return number, got \"random error\". \"example2()\"",
-                 test2
+    {x, y, z}
   end
 end

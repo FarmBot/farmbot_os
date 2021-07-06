@@ -13,32 +13,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   # === "private" API starts here:
   def perform_movement(body, better_params) do
     extract_variables(body, better_params)
-    |> expand_lua(better_params)
     |> calculate_movement_needs()
     |> do_perform_movement()
-  end
-
-  # If the user provides Lua, we need to evaluate the Lua and
-  # tranform it to a `numeric` node type.
-  def expand_lua(body, better_params) do
-    Enum.map(body, fn
-      %{ args: %{ speed_setting: %{ args: %{lua: lua} } }} = p ->
-        data = convert_lua_to_number(lua, better_params)
-        new_setting = %{kind: :numeric, args: %{number: data}}
-        %{ p | args: %{ speed_setting: new_setting } }
-
-      %{args: %{lua: lua}} = p ->
-        data = convert_lua_to_number(lua, better_params)
-        %{ p | args: %{kind: :numeric, args: %{number: data}} }
-
-      %{ args: %{ axis_operand: %{ args: %{lua: lua} } } } = p ->
-        data = convert_lua_to_number(lua, better_params)
-        new_operand = %{args: %{number: data}, kind: :numeric}
-        %{ p | args: %{ p.args | axis_operand: new_operand } }
-      # Non-Lua nodes just pass through.
-      item ->
-        item
-    end)
   end
 
   def extract_variables(body, better_params) do
@@ -136,6 +112,26 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     ]
   end
 
+  def lua_fail(result, lua) do
+    raise "Unexpected Lua return: #{inspect(result)} #{inspect(lua)}"
+  end
+
+  def to_number(axis, %{args: %{lua: lua}, kind: :lua}) do
+    result = SysCalls.perform_lua(lua, [], "axis-#{inspect(axis)}")
+
+    case result do
+      {:ok, [data]} ->
+        if is_number(data) do
+          data
+        else
+          lua_fail(data, lua)
+        end
+
+      data ->
+        lua_fail(data, lua)
+    end
+  end
+
   def to_number(_axis, %{args: %{variance: v}, kind: :random}) do
     Enum.random((-1 * v)..v)
   end
@@ -200,22 +196,4 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   def cx, do: SysCalls.get_current_x()
   def cy, do: SysCalls.get_current_y()
   def cz, do: SysCalls.get_current_z()
-
-  def convert_lua_to_number(lua, better_params) do
-    case FarmbotCeleryScript.Compiler.Lua.do_lua(lua, better_params) do
-      {:ok, [data]} ->
-        if is_number(data) do
-          data
-        else
-          lua_fail(data, lua)
-        end
-
-      data ->
-        lua_fail(data, lua)
-    end
-  end
-
-  def lua_fail(result, lua) do
-    raise "Expected Lua to return number, got #{inspect(result)}. #{inspect(lua)}"
-  end
 end
