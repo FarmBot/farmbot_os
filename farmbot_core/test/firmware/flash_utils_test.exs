@@ -8,6 +8,7 @@ defmodule FarmbotCore.Firmware.FlashUtilsTest do
       "farmduino" => "/priv/farmduino.hex",
       "farmduino_k14" => "/priv/farmduino_k14.hex",
       "farmduino_k15" => "/priv/farmduino_k15.hex",
+      "farmduino_k16" => "/priv/farmduino_k16.hex",
       "express_k10" => "/priv/express_k10.hex",
       "none" => "/priv/eeprom_clear.ino.hex"
     }

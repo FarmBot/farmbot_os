@@ -161,8 +161,10 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:pin_value_report, %{pin_or_param: pin, value1: value}}, state) do
-    BotState.set_pin_value(trunc(pin), value)
+  defp reduce({:pin_value_report, %{pin_or_param: p, value1: v}}, state) do
+    # We don't know the pin's mode, nor does the firmware
+    # provide it. We must set the mode to `nil`.
+    BotState.set_pin_value(trunc(p), v, nil)
     state
   end
 

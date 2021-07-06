@@ -2,9 +2,12 @@
 
 # 14.2.1
 
- * Firmware updates
- * Add v1.6 firmware
+ * Firmware updates.
+ * Add new v1.6 firmware.
  * Fix problem where writing to an analog peripheral did not update device state.
+ * Bug fix for some Lua formulas.
+ * Full removal of factory reset timers.
+ * `write_pin` lua helper.
 
 # 14.2.0
 
