@@ -1,11 +1,28 @@
 use Mix.Config
 
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent,
+  checkup_time_ms: 10_000
+
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
+  checkup_time_ms: 10_000
+
+config :farmbot_core,
+       FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation,
+       error_retry_time_ms: 30_000,
+       install_dir: "/tmp/farmware"
+
+config :farmbot_core, FarmbotCore.FarmwareRuntime,
+  runtime_dir: "/tmp/farmware_runtime"
+
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
+  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
+  error_retry_time_ms: 30_000
 
 config :farmbot_core,
        Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
        ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+
+config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core, FarmbotCore.Leds,
   gpio_handler: FarmbotCore.Leds.StubHandler
@@ -27,35 +44,6 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
       "beta"
     )
 
-config :ecto, json_library: FarmbotCore.JSON
-
-config :farmbot_core,
-  ecto_repos: [
-    FarmbotCore.Config.Repo,
-    FarmbotCore.Logger.Repo,
-    FarmbotCore.Asset.Repo
-  ]
-
-config :farmbot_core, FarmbotCore.Config.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "config.#{Mix.env()}.db",
-  priv: "priv/config"
-
-config :farmbot_core, FarmbotCore.Logger.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "logger.#{Mix.env()}.db",
-  priv: "priv/logger"
-
-config :farmbot_core, FarmbotCore.Asset.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  database: "asset.#{Mix.env()}.db",
-  priv: "priv/asset"
-
-config :logger,
-  handle_otp_reports: false,
-  handle_sasl_reports: false
-
+import_config "ecto.exs"
+import_config "logger.exs"
 import_config "#{Mix.env()}.exs"

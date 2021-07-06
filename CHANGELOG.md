@@ -1,11 +1,5 @@
 # Changelog
 
-# 14.2.1
-
- * Firmware updates
- * Add v1.6 firmware
- * Fix problem where writing to an analog peripheral did not update device state.
-
 # 14.2.0
 
  * Expose the following point attributes to the Lua `variable()` helper:

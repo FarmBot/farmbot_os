@@ -29,13 +29,27 @@ config :farmbot_core, FarmbotCore.Asset.Repo,
   database: "asset.#{Mix.env()}.db",
   priv: "../farmbot_core/priv/asset"
 
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmEvent, checkup_time_ms: 10_000
+
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.RegimenInstance,
+  checkup_time_ms: 10_000
+
 config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
+  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler,
+  error_retry_time_ms: 30_000
 
 config :farmbot_core, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
   ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
 
+config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation,
+  error_retry_time_ms: 30_000,
+  install_dir: "/tmp/farmware"
+
+config :farmbot_core, FarmbotCore.FarmwareRuntime, runtime_dir: "/tmp/farmware_runtime"
+
 config :farmbot_core, FarmbotCore.BotState.FileSystem, root_dir: "/tmp/farmbot_state"
+
+config :farmbot_core, FarmbotCore.AssetMonitor, checkup_time_ms: 30_000
 
 config :farmbot_core, FarmbotCore.Leds, gpio_handler: FarmbotCore.Leds.StubHandler
 

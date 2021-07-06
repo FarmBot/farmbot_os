@@ -6,9 +6,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   alias FarmbotCore.Asset.FarmwareInstallation, as: FWI
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
 
-  @install_dir "/tmp/farmware"
-  @error_retry_time_ms 25_000
-  @back_off_time_ms  5_000
+  config = Application.get_env(:farmbot_core, __MODULE__)
+  @install_dir config[:install_dir] || Mix.raise("Missing Install Dir")
+  @error_retry_time_ms config[:error_retry_time_ms] || 25_000
+  @back_off_time_ms  config[:back_off_time_ms] || 5_000
   @manifest_name "manifest.json"
 
   def preload(%FWI{}), do: []
