@@ -13,14 +13,15 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   # === "private" API starts here:
   def perform_movement(body, better_params) do
     extract_variables(body, better_params)
-    |> expand_lua(better_params)
+    |> preprocess_lua(better_params)
     |> calculate_movement_needs()
+    |> postprocess_soil_height()
     |> do_perform_movement()
   end
 
   # If the user provides Lua, we need to evaluate the Lua and
   # tranform it to a `numeric` node type.
-  def expand_lua(body, better_params) do
+  def preprocess_lua(body, better_params) do
     Enum.map(body, fn
       %{ args: %{ speed_setting: %{ args: %{lua: lua} } }} = p ->
         data = convert_lua_to_number(lua, better_params)
@@ -54,6 +55,12 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     end)
   end
 
+  def postprocess_soil_height(%{soil_height: true} = needs) do
+    Map.put(needs, :z, SpecialValue.soil_height(needs))
+  end
+
+  def postprocess_soil_height(needs), do: needs
+
   def do_perform_movement(%{safe_z: true} = needs) do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
@@ -84,6 +91,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     reducer = &FarmbotCeleryScript.Compiler.Move.reducer/2
     list = initial_state() ++ Enum.map(body, mapper)
     Enum.reduce(list, %{}, reducer)
+  end
+
+  def reducer({_, _, {:skip, :soil_height}}, state) do
+    Map.put(state, :soil_height, true)
   end
 
   def reducer({key, :+, value}, state) do
@@ -163,7 +174,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def to_number(_, %{args: %{label: "soil_height"}, kind: :special_value}) do
-    SpecialValue.soil_height()
+    # As the `kind` label suggests, `soil_height` is a special
+    # value. It cannot be treated as a number. We must skip
+    # this value when performing axis math.
+    {:skip, :soil_height}
   end
 
   def to_number(axis, %{

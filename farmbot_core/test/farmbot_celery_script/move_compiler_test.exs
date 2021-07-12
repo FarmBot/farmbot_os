@@ -262,9 +262,8 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     fake_variance = %{kind: :random, args: %{variance: 10}}
 
     expect(FarmbotCeleryScript.SpecialValue, :safe_height, fn -> 1.23 end)
-    expect(FarmbotCeleryScript.SpecialValue, :soil_height, fn -> 3.45 end)
 
-    assert Move.to_number(:z, @soil_height) == 3.45
+    assert Move.to_number(:z, @soil_height) == {:skip, :soil_height}
     assert Move.to_number(:z, @safe_height) == 1.23
     assert Move.to_number(:x, vec) == x
     assert Move.to_number(:y, vec) == y
@@ -324,14 +323,14 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     Move.move_abs(params)
   end
 
-  test "expand_lua" do
+  test "preprocess_lua" do
     expect(Compiler.Lua, :do_lua, 4, fn lua, _ ->
       {res, _} = Code.eval_string(lua)
       {:ok, [res]}
     end)
 
     results =
-      Move.expand_lua(
+      Move.preprocess_lua(
         [
           %{kind: :test, args: %{speed_setting: %{args: %{lua: "2+2"}}}},
           %{kind: :test, args: %{speed_setting: %{args: %{lua: "8+8"}}}},

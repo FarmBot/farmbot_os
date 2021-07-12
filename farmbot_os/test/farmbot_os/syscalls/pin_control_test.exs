@@ -4,7 +4,6 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   setup :verify_on_exit!
   alias FarmbotCore.Asset.Peripheral
   alias FarmbotCore.Firmware.Command
-  alias FarmbotOS.SysCalls.PinControl
 
   @digital 0
 
