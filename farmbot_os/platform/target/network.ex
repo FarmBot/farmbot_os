@@ -16,7 +16,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
   alias FarmbotCore.{Asset, Config, Leds}
 
-  @default_network_not_found_timer_minutes 20
+  @default_network_not_found_timer_minutes 999_999
 
   def host do
     me = "192.168.24.1"
@@ -274,11 +274,6 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   def handle_info({:network_not_found_timer, minutes}, state) do
     Logger.warn("""
-    Farmbot has been disconnected from the network for
-    #{minutes} minutes. Going down for factory reset.
-    """)
-
-    FarmbotOS.System.factory_reset("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
