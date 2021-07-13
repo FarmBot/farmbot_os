@@ -8,6 +8,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotExt.HTTP
+  alias FarmbotCeleryScript.SpecialValue
 
   @methods %{
     "connect" => :connect,
@@ -164,4 +165,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
 
     {[true], lua}
   end
+
+  def soil_height([x, y], lua),
+    do: {[SpecialValue.soil_height(%{x: x, y: y})], lua}
 end

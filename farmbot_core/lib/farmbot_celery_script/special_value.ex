@@ -1,9 +1,10 @@
 defmodule FarmbotCeleryScript.SpecialValue do
+  alias FarmbotCeleryScript.Interpolation
   alias FarmbotCore.Asset.{ Repo, Point }
   import Ecto.Query
-  alias FarmbotCeleryScript.Interpolation
-  require Logger
   require FarmbotCore.Logger
+  require Logger
+
   @msg "Need at least 3 soil height samples to guess soil height. "
     <> "Using fallback value instead: "
   def safe_height() do
@@ -47,12 +48,14 @@ defmodule FarmbotCeleryScript.SpecialValue do
   #   the latest value.
   def index_by_location(list) do
     list
-    |> Enum.reduce(%{}, fn value, acc ->
-      %{x: x, y: y} = value
+    |> Enum.reduce(%{}, fn
+      %{x: x, y: y} = value, acc ->
       # If two values have the same X/Y coords, last write
       # wins.
       key = {round_to_10(x), round_to_10(y)}
       Map.put(acc, key, value)
+      _, acc ->
+        acc
     end)
     |> Map.values()
   end
