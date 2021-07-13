@@ -13,8 +13,7 @@ defmodule FarmbotCeleryScript.SpecialValue do
 
   def soil_height(%{x: _, y: _} = xy) do
     points = soil_samples()
-    count  = Enum.count(points)
-    if count < 3 do
+    if Enum.count(points) < 3 do
       fallback = FarmbotCore.Asset.fbos_config(:soil_height) || 0.0
       FarmbotCore.Logger.error(3, @msg <> inspect(fallback))
       fallback
