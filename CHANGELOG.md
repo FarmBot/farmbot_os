@@ -8,6 +8,7 @@
  * Bug fix for some Lua formulas.
  * Full removal of factory reset timers.
  * `write_pin` lua helper.
+ * Genesis and Express firmware updates.
 
 # 14.2.0
 
