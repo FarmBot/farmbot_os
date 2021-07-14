@@ -90,7 +90,6 @@ defmodule FarmbotOS.Lua do
   def init do
     :luerl.init()
     |> set_table([:check_position], &Firmware.check_position/2)
-    |> set_table([:wait], &Wait.wait/2)
     |> set_table([:coordinate], &Firmware.coordinate/2)
     |> set_table([:current_hour], &Info.current_hour/2)
     |> set_table([:current_minute], &Info.current_minute/2)
@@ -120,21 +119,23 @@ defmodule FarmbotOS.Lua do
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
-    |> set_table([:write_pin], &Firmware.write_pin/2)
-    |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
+    |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
+    |> set_table([:soil_height], &DataManipulation.soil_height/2)
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
-    |> set_table([:update_device], &DataManipulation.update_device/2)
-    |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
     |> set_table([:uart], [
       {:open, &FarmbotCore.Firmware.LuaUART.open/2},
       {:list, &FarmbotCore.Firmware.LuaUART.list/2}
     ])
+    |> set_table([:update_device], &DataManipulation.update_device/2)
+    |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
     |> set_table(
       [:update_firmware_config],
       &DataManipulation.update_firmware_config/2
     )
+    |> set_table([:wait], &Wait.wait/2)
+    |> set_table([:write_pin], &Firmware.write_pin/2)
   end
 
   @spec set_table(t(), Path.t(), any()) :: t()

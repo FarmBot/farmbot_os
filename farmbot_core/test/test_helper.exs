@@ -12,6 +12,7 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
   FarmbotCeleryScript.SysCalls,
   FarmbotCeleryScript.SysCalls.Stubs,
   FarmbotCore.Asset,
+  FarmbotCore.Asset.Repo,
   FarmbotCore.Asset.Private,
   FarmbotCore.BotState,
   FarmbotCore.Firmware.Avrdude,

@@ -262,9 +262,8 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     fake_variance = %{kind: :random, args: %{variance: 10}}
 
     expect(FarmbotCeleryScript.SpecialValue, :safe_height, fn -> 1.23 end)
-    expect(FarmbotCeleryScript.SpecialValue, :soil_height, fn -> 3.45 end)
 
-    assert Move.to_number(:z, @soil_height) == 3.45
+    assert Move.to_number(:z, @soil_height) == {:skip, :soil_height}
     assert Move.to_number(:z, @safe_height) == 1.23
     assert Move.to_number(:x, vec) == x
     assert Move.to_number(:y, vec) == y
@@ -324,14 +323,14 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     Move.move_abs(params)
   end
 
-  test "expand_lua" do
+  test "preprocess_lua" do
     expect(Compiler.Lua, :do_lua, 4, fn lua, _ ->
       {res, _} = Code.eval_string(lua)
       {:ok, [res]}
     end)
 
     results =
-      Move.expand_lua(
+      Move.preprocess_lua(
         [
           %{kind: :test, args: %{speed_setting: %{args: %{lua: "2+2"}}}},
           %{kind: :test, args: %{speed_setting: %{args: %{lua: "8+8"}}}},
@@ -384,5 +383,46 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
     assert_raise RuntimeError,
                  "Expected Lua to return number, got \"random error\". \"example2()\"",
                  test2
+  end
+
+  test "soil height interpolation" do
+    ops = [
+      {:x, :=, 0.0},
+      {:y, :=, 0.0},
+      {:speed_x, :=, 100},
+      {:speed_y, :=, 100},
+      {:y, :=, 80.0},
+      {:x, :=, 0.0},
+      {:y, :=, 3},
+      {:y, :+, 2.0},
+      {:speed_y, :=, 50},
+      {:z, :=, 0.0},
+      {:speed_z, :=, 100},
+      {:safe_z, :=, false},
+      {:z, :=, 0.0},
+      {:z, :=, {:skip, :soil_height}},
+      {:z, :+, -21},
+      {:safe_z, :=, true}
+    ]
+
+    expect(FarmbotCeleryScript.SpecialValue, :soil_height, 1, fn coord ->
+      assert coord.x == 0.0
+      assert coord.y == 5.0
+
+      3.141
+    end)
+
+    expected = %{
+      safe_z: true,
+      speed_x: 100,
+      speed_y: 50,
+      speed_z: 100,
+      x: 0.0,
+      y: 5.0,
+      z: -17.859
+    }
+
+    result = Enum.reduce(ops, %{}, &Move.reducer/2)
+    assert result == expected
   end
 end

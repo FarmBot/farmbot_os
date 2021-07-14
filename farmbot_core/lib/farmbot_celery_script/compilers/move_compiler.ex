@@ -13,14 +13,14 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   # === "private" API starts here:
   def perform_movement(body, better_params) do
     extract_variables(body, better_params)
-    |> expand_lua(better_params)
+    |> preprocess_lua(better_params)
     |> calculate_movement_needs()
     |> do_perform_movement()
   end
 
   # If the user provides Lua, we need to evaluate the Lua and
   # tranform it to a `numeric` node type.
-  def expand_lua(body, better_params) do
+  def preprocess_lua(body, better_params) do
     Enum.map(body, fn
       %{ args: %{ speed_setting: %{ args: %{lua: lua} } }} = p ->
         data = convert_lua_to_number(lua, better_params)
@@ -79,11 +79,73 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     needs
   end
 
-  def calculate_movement_needs(body) do
+  # Creates a list of operations that will look something like
+  # this:
+  #
+  # [
+  #   {:x, :=, 0.0},
+  #   {:y, :=, 0.0},
+  #   {:speed_x, :=, 100},
+  #   {:speed_y, :=, 100},
+  #   {:y, :=, 80.0},
+  #   {:x, :=, 0.0},
+  #   {:y, :=, 3},
+  #   {:y, :+, 2.0},
+  #   {:speed_y, :=, 50},
+  #   {:z, :=, 0.0},
+  #   {:speed_z, :=, 100},
+  #   {:safe_z, :=, false},
+  #   {:z, :=, 0.0},
+  #   {:z, :=, {:skip, :soil_height}},
+  #   {:z, :+, -21},
+  #   {:safe_z, :=, true}
+  # ]
+  #
+  # These operations are fed into a reducer function that creates
+  # a proper x/y/z/speed map that we can use for move_abs calls.
+  #
+  # A few things to keep in mind:
+  #  * ORDER MATTERS: Each operation will change the shape of
+  #                   the final output map. This means we can't
+  #                   arbitrarily sort operations for readability,
+  #                   uniqueness, etc..
+  #  * Z AXIS LAST:   The Z axis operations are special. They
+  #                   require all X/Y operations to be completed
+  #                   first. This is because `soil_height`
+  #                   interpolation relies on X/Y data to calculate
+  #                   Z height. If X/Y values were to change, it
+  #                   would invalidate the Z height calculation.
+  def create_list_of_operations(body) do
     mapper = &FarmbotCeleryScript.Compiler.Move.mapper/1
-    reducer = &FarmbotCeleryScript.Compiler.Move.reducer/2
-    list = initial_state() ++ Enum.map(body, mapper)
-    Enum.reduce(list, %{}, reducer)
+    # Move X/Y operations to the front of the list and move
+    # Z operations to the back, but DO NOT SORT!:
+    {xy, z} = initial_state() ++ Enum.map(body, mapper)
+         |> Enum.split_with(fn
+      {:safe_z, _, _}  ->
+        false
+      {:speed_z, _, _} ->
+        false
+      {:z, _, _} ->
+        false
+      _ ->
+        true
+    end)
+
+    xy ++ z
+  end
+
+  def calculate_movement_needs(body) do
+    body
+    |> create_list_of_operations()
+    |> Enum.reduce(%{}, &reducer/2)
+  end
+
+  def reducer({_, _, {:skip, :soil_height}}, state) do
+    z = state
+    |> Map.take([:x, :y])
+    |> SpecialValue.soil_height()
+
+    Map.put(state, :z, z)
   end
 
   def reducer({key, :+, value}, state) do
@@ -163,7 +225,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   end
 
   def to_number(_, %{args: %{label: "soil_height"}, kind: :special_value}) do
-    SpecialValue.soil_height()
+    # As the `kind` label suggests, `soil_height` is a special
+    # value. It cannot be treated as a number. We must skip
+    # this value when performing axis math.
+    {:skip, :soil_height}
   end
 
   def to_number(axis, %{
