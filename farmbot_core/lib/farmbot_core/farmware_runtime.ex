@@ -36,7 +36,12 @@ defmodule FarmbotCore.FarmwareRuntime do
   require Logger
 
   @error_timeout_ms 5000
-  @runtime_dir "/tmp/farmware_runtime"
+  @runtime_dir Application.get_env(:farmbot_core, __MODULE__)[:runtime_dir]
+  @runtime_dir ||
+    Mix.raise("""
+    config :farmbot_core, FarmwareRuntime,
+      runtime_dir: "/tmp/farmware_runtime"
+    """)
 
   @muontrap_opts Application.get_env(:farmbot_core, __MODULE__)[:muontrap_opts]
   @muontrap_opts @muontrap_opts || []

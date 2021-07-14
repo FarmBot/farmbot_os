@@ -21,6 +21,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
     field(:firmware_path, :string)
 
     # system
+    field(:disable_factory_reset, :boolean)
     field(:network_not_found_timer, :integer)
     field(:os_auto_update, :boolean)
 
@@ -41,6 +42,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
     %{
       id: fbos_config.id,
       updated_at: fbos_config.updated_at,
+      disable_factory_reset: fbos_config.disable_factory_reset,
       firmware_hardware: fbos_config.firmware_hardware,
       firmware_path: fbos_config.firmware_path,
       network_not_found_timer: fbos_config.network_not_found_timer,
@@ -60,6 +62,7 @@ defmodule FarmbotCore.Asset.FbosConfig do
       :created_at,
       :updated_at,
       :monitor,
+      :disable_factory_reset,
       :firmware_hardware,
       :firmware_path,
       :network_not_found_timer,
