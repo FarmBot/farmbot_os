@@ -15,7 +15,7 @@ defmodule FarmbotCeleryScript.SpecialValue do
     points = soil_samples()
     if Enum.count(points) < 3 do
       fallback = FarmbotCore.Asset.fbos_config(:soil_height) || 0.0
-      FarmbotCore.Logger.error(3, @msg <> inspect(fallback))
+      FarmbotCore.Logger.warn(3, @msg <> inspect(fallback))
       fallback
     else
       Interpolation.guess_z_value(points, xy)
