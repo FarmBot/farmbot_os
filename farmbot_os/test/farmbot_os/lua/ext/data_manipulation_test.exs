@@ -12,6 +12,36 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     FarmbotOS.Lua.perform_lua(lua_code, [], test_name)
   end
 
+  test "update_firmware_config([table], lua)" do
+    expect(FarmbotCore.Asset, :update_firmware_config!, 1, fn resource ->
+      assert Map.fetch!(resource, "movement_axis_stealth_x") == 1.0
+      resource
+    end)
+
+    expect(FarmbotCore.Asset.Private, :mark_dirty!, 1, fn resource, opts ->
+      assert Map.fetch!(resource, "movement_axis_stealth_x") == 1.0
+      assert opts == %{}
+      resource
+    end)
+
+    lua_code = """
+    return update_firmware_config({movement_axis_stealth_x = 1.0})
+    """
+
+    assert {:ok, [true]} == lua("update_firmware_config", lua_code)
+  end
+
+  test "soil_height" do
+    expect(FarmbotCeleryScript.SpecialValue, :soil_height, 1, fn params ->
+      assert params.x == 9.9
+      assert params.y == 8.8
+      5.55
+    end)
+
+    result = DataManipulation.soil_height([9.9, 8.8], :fake_lua)
+    assert result == {[5.55], :fake_lua}
+  end
+
   test "update_device()" do
     expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
       assert %{"name" => "Test Farmbot"} == params

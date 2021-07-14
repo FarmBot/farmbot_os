@@ -54,8 +54,6 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     end)
   end
 
-  def postprocess_soil_height(needs), do: needs
-
   def do_perform_movement(%{safe_z: true} = needs) do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
