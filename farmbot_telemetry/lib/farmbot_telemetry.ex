@@ -87,7 +87,7 @@ defmodule FarmbotTelemetry do
 
   @doc """
   Function responsible for firing telemetry events
-  stores telemetry event in `dets` table to be cached until 
+  stores telemetry event in `dets` table to be cached until
   farmbot has a chance to dispatch them.  This is required because
   dispatching can only be done when farmbot as an active internet
   connection.
@@ -173,10 +173,10 @@ defmodule FarmbotTelemetry do
   @doc """
   Syncronously consume telemetry events.
 
-  Function will be evaluated once for every telemetry event, 
-  blocking until complete. Function should complete within 
+  Function will be evaluated once for every telemetry event,
+  blocking until complete. Function should complete within
   5 seconds per each event. Function should return `:ok` if
-  the event was successfully consumed, anything else will 
+  the event was successfully consumed, anything else will
   cause the event to be put back on the queue
   """
   @spec consume_telemetry(consumer_fun()) :: :ok
@@ -190,7 +190,17 @@ defmodule FarmbotTelemetry do
 
     _ =
       Enum.map(tasks, fn {uuid, task} ->
-        case Task.await(task) do
+        result =
+          try do
+            Task.await(task)
+          catch
+            kind, err ->
+              msg = "Telemetry error: #{kind} #{inspect(err)}"
+              IO.warn(msg, __STACKTRACE__)
+              nil
+          end
+
+        case result do
           :ok -> :dets.delete(:farmbot_telemetry, uuid)
           _ -> :ok
         end

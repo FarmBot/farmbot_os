@@ -105,6 +105,7 @@ defmodule FarmbotCore.AssetMonitor do
 
   defp assert_result!(:ignore, _), do: :ok
   defp assert_result!({:ok, _}, _), do: :ok
+  defp assert_result!({:error, {:already_started, _pid}}, _), do: :ok
   defp assert_result!(result, asset),
     do: exit("Failed to start or update child: #{inspect(asset)} #{inspect(result)}")
 

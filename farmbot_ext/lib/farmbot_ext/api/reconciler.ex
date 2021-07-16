@@ -135,12 +135,17 @@ defmodule FarmbotExt.API.Reconciler do
 
     # Check if remote data is newer
     if compare_datetimes(sync_item_updated_at, local_item.updated_at) == :gt do
-      # Logger.info(
-      #   "Local data: #{local_item.__struct__} is out of date. Using HTTP to get newer data."
-      # )
+      result = API.get_changeset(local_item, "#{sync_item_id}")
 
-      {:ok, changeset} = API.get_changeset(local_item, "#{sync_item_id}")
-      {:update, changeset}
+      case result do
+        {:ok, changeset} ->
+          {:update, changeset}
+
+        other ->
+          msg = "Can't get changeset: #{inspect(other)}"
+          Logger.info(msg)
+          nil
+      end
     end
   end
 
