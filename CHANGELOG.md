@@ -8,6 +8,7 @@
  * Bug fix for some Lua formulas.
  * Full removal of factory reset timers.
  * MOVE block now attempts to guess soil height when more than three soil height readings are available (previous versions relied on `soil_height` setting in device panel)
+ * Genesis and Express firmware updates.
 
 # 14.2.0
 

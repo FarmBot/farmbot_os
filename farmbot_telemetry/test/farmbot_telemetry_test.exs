@@ -23,4 +23,24 @@ defmodule FarmbotTelemetryTest do
 
     assert meta[:hello] == "world"
   end
+
+  test "consumes telemetry" do
+    me = self()
+
+    FarmbotTelemetry.consume_telemetry(fn
+      {uuid, date, event, :test_subsystem, kind, value, meta} ->
+        assert is_binary(uuid)
+        assert %DateTime{} = date
+        assert event == :event
+        assert kind == :measurement
+        assert value == 1.0
+        %{file: _, function: _, line: _, module: _} = meta
+        send(me, :ok)
+
+      _ ->
+        :ok
+    end)
+
+    assert_receive :ok
+  end
 end

@@ -74,7 +74,6 @@ defmodule FarmbotCore.BotStateNG do
 
   @doc "Add or update a farmware to state.farmwares"
   def add_or_update_farmware(state, name, %{} = manifest) do
-    # TODO(Connor) finish this.
     cs = changeset(state, %{})
 
     new_farmwares =
