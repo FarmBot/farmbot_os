@@ -83,7 +83,6 @@ defmodule FarmbotExt.API.Reconciler do
         sync_changeset
       end)
 
-    # TODO(Connor) make this reduce async with Task/Agent
     Enum.reduce(items, sync_changeset, &sync_reduce(module, &1, &2))
   end
 
