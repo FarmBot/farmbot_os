@@ -89,13 +89,13 @@ defmodule FarmbotCore.BotState.FileSystemTest do
       send(pid, :timeout)
 
       _ = BotState.subscribe(bot_state_pid)
-      :ok = BotState.set_pin_value(bot_state_pid, 1, 1)
+      :ok = BotState.set_pin_value(bot_state_pid, 1, 1, 0)
       assert_received {BotState, _}, 200
       # sleep to allow changes to propagate.
       Process.sleep(2000)
       pins_dir = Path.join([root_dir, "pins", "1"])
       # default value
-      assert File.read!(Path.join(pins_dir, "mode")) == "-1"
+      assert File.read!(Path.join(pins_dir, "mode")) == "0"
       assert File.read!(Path.join(pins_dir, "value")) == "1"
       Process.exit(pid, :normal)
     end

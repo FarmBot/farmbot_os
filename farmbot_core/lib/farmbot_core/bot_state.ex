@@ -55,8 +55,8 @@ defmodule FarmbotCore.BotState do
   end
 
   @doc "Sets pins.pin.value"
-  def set_pin_value(bot_state_server \\ __MODULE__, pin, value) do
-    GenServer.call(bot_state_server, {:set_pin_value, pin, value})
+  def set_pin_value(bot_state_server \\ __MODULE__, pin, value, mode) do
+    GenServer.call(bot_state_server, {:set_pin_value, pin, value, mode})
   end
 
   @doc "Sets mcu_params[param] = value"
@@ -267,12 +267,14 @@ defmodule FarmbotCore.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:set_pin_value, pin, value}, _from, state) do
-    {reply, state} =
-      BotStateNG.add_or_update_pin(state.tree, pin, -1, value)
-      |> dispatch_and_apply(state)
+  def handle_call({:set_pin_value, pin, val, mode}, _from, state1) do
+    # Under some circumstanes, `m` (mode) will be nil.
+    # We must guess
+    {reply, state2} =
+      BotStateNG.add_or_update_pin(state1.tree, pin, mode || -1, val)
+      |> dispatch_and_apply(state1)
 
-    {:reply, reply, state}
+    {:reply, reply, state2}
   end
 
   def handle_call({:set_firmware_config, param, value}, _from, state) do

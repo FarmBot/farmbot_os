@@ -4,7 +4,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
 
   @moduledoc """
     The PointGroup asset declares a list
-    of criteria to query points. This
+    of criteria to query points. The CriteriaRetriever
     module then converts that criteria to
     a list of real points that match the
     criteria of a point group.

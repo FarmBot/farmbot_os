@@ -2,25 +2,16 @@ defmodule FarmbotCeleryScript.Compiler.Execute do
   import FarmbotCeleryScript.Compiler.Utils
   alias FarmbotCeleryScript.Compiler
 
-  @iterables [:point_group, :every_point]
-
   # Compiles an `execute` block.
-  # This one is actually pretty complex and is split into two parts. 
+  # This one is actually pretty complex and is split into two parts.
   def execute(%{body: parameter_applications} = ast, env) do
-    # if there is an iterable AST here, 
+    # if there is an iterable AST here,
     # we need to compile _many_ sequences, not just one.
 
-    loop_parameter_appl_ast =
-      Enum.find_value(parameter_applications, fn
-        # check if this parameter_application is a iterable type
-        %{kind: :parameter_application, args: %{data_value: %{kind: kind}}} =
-            iterable
-        when kind in @iterables ->
-          iterable
-
-        _other ->
-          false
-      end)
+    loop_parameter_appl_ast = FarmbotCeleryScript
+      .Compiler
+      .ParameterSupport
+      .extract_iterable(parameter_applications)
 
     if loop_parameter_appl_ast,
       do: compile_execute_iterable(loop_parameter_appl_ast, ast, env),

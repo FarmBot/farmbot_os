@@ -26,11 +26,7 @@ defmodule FarmbotCore.AssetMonitor do
 
   require Logger
 
-  @checkup_time_ms Application.get_env(:farmbot_core, __MODULE__)[:checkup_time_ms]
-  @checkup_time_ms ||
-    Mix.raise("""
-    config :farmbot_core, #{__MODULE__}, checkup_time_ms: 30_000
-    """)
+  @checkup_time_ms 10000
 
   @doc false
   def start_link(args) do
@@ -109,6 +105,7 @@ defmodule FarmbotCore.AssetMonitor do
 
   defp assert_result!(:ignore, _), do: :ok
   defp assert_result!({:ok, _}, _), do: :ok
+  defp assert_result!({:error, {:already_started, _pid}}, _), do: :ok
   defp assert_result!(result, asset),
     do: exit("Failed to start or update child: #{inspect(asset)} #{inspect(result)}")
 

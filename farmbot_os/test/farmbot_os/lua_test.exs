@@ -68,7 +68,8 @@ defmodule FarmbotOS.LuaTest do
     "variable().x",
     "variable(\"parent\").x",
     "variables().x",
-    "variables(\"parent\").x"
+    "variables(\"parent\").x",
+    "write_pin(13, \"analog\", 64)"
   ]
   test "documentation examples" do
     expect(Firmware, :calibrate, 3, fn [_axis], lua -> {[true], lua} end)
@@ -77,6 +78,7 @@ defmodule FarmbotOS.LuaTest do
     expect(Firmware, :emergency_unlock, 1, fn [], lua -> {[], lua} end)
     expect(Firmware, :find_home, 3, fn [_axis], lua -> {[true], lua} end)
     expect(Firmware, :read_pin, 1, fn _, lua -> {[55.22], lua} end)
+    expect(Firmware, :write_pin, 1, fn _, lua -> {[], lua} end)
     expect(Firmware, :go_to_home, 4, fn [_axis], lua -> {[true], lua} end)
     expect(Info, :fbos_version, 1, fn _args, lua -> {["12.3.4"], lua} end)
     expect(Info, :firmware_version, 1, fn _args, lua -> {["12.3.4"], lua} end)

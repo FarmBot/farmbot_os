@@ -10,6 +10,7 @@ defmodule FarmbotCore.Firmware.UARTDetector do
     "express_k10" => "ttyAMA0",
     "farmduino_k14" => "ttyACM0",
     "farmduino_k15" => "ttyACM0",
+    "farmduino_k16" => "ttyACM0",
     "farmduino" => "ttyACM0"
   }
 

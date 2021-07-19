@@ -21,18 +21,12 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   alias FarmbotCeleryScript.AST
 
-  # @error_retry_time_ms Application.get_env(:farmbot_core, __MODULE__)[:error_retry_time_ms]
   @error_retry_time_ms 5000
 
   @gpio_handler Application.get_env(:farmbot_core, __MODULE__)[:gpio_handler]
   @gpio_handler ||
     Mix.raise("""
       config :farmbot_core, #{__MODULE__}, gpio_handler: MyModule
-    """)
-
-  @error_retry_time_ms ||
-    Mix.raise("""
-      config :farmbot_core, #{__MODULE__}, error_retry_time_ms: 30_000
     """)
 
   @typedoc "Opaque function that should be called upon a trigger"

@@ -2,23 +2,14 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
   import FarmbotCeleryScript.Compiler.Utils
   alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
 
-  @iterables [:point_group, :every_point]
-
   def sequence(%{args: %{locals: %{body: params_or_iterables}}} = ast, env) do
     # if there is an iterable AST here,
     # we need to compile _many_ sequences, not just one.
 
-    iterable_ast =
-      Enum.find_value(params_or_iterables, fn
-        # check if this parameter_application is a iterable type
-        %{kind: :parameter_application, args: %{data_value: %{kind: kind}}} =
-            iterable
-        when kind in @iterables ->
-          iterable
-
-        _other ->
-          false
-      end)
+    iterable_ast = FarmbotCeleryScript
+    .Compiler
+    .ParameterSupport
+    .extract_iterable(params_or_iterables)
 
     if iterable_ast do
       compile_sequence_iterable(iterable_ast, ast, env)

@@ -192,11 +192,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
   end
 
   def read_pin([pin, mode], lua) do
-    m =
-      case mode do
-        "analog" -> 1
-        _ -> 0
-      end
+    m = parse_mode_string(mode)
 
     case Command.read_pin(pin, m) do
       {:ok, v} -> {[v], lua}
@@ -225,6 +221,13 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
     {[false, error], lua}
   end
 
+  def write_pin([p, m, v], lua) do
+    case SysCalls.write_pin(trunc(p), parse_mode_string(m), trunc(v)) do
+      :ok -> {[], lua}
+      {:error, error} -> {[inspect(error)], lua}
+    end
+  end
+
   defp do_find_home(axes, lua, callback) do
     axes
     |> Enum.map(callback)
@@ -241,4 +244,7 @@ defmodule FarmbotOS.Lua.Ext.Firmware do
       reasons -> {[nil, Enum.join(reasons, " ")], lua}
     end
   end
+
+  defp parse_mode_string("analog"), do: 1
+  defp parse_mode_string(_), do: 0
 end

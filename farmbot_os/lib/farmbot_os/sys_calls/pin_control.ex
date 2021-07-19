@@ -314,6 +314,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   def do_write_pin(pin_number, mode, value) do
     case Command.write_pin(pin_number, value, mode) do
       {:ok, _} ->
+        FarmbotCore.BotState.set_pin_value(pin_number, value / 1, mode)
         :ok
 
       {:error, reason} ->

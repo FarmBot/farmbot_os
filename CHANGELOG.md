@@ -1,5 +1,15 @@
 # Changelog
 
+# 14.2.1
+
+ * Add new v1.6 firmware with beta support for quiet mode.
+ * Fix problem where writing to an analog peripheral did not update device state.
+ * Add a `write_pin()` lua helper.
+ * Bug fix for some Lua formulas.
+ * Full removal of factory reset timers.
+ * MOVE block now attempts to guess soil height when more than three soil height readings are available (previous versions relied on `soil_height` setting in device panel)
+ * Genesis and Express firmware updates.
+
 # 14.2.0
 
  * Expose the following point attributes to the Lua `variable()` helper:
