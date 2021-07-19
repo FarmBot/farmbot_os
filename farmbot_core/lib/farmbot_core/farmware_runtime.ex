@@ -165,7 +165,7 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   def handle_info({:step_complete, ref, {:error, reason}}, %{scheduler_ref: ref} = state) do
     send(state.caller, {:error, reason})
-    {:noreply, %{state | ref: nil, context: :error}}
+    {:noreply, %{state | scheduler_ref: nil, context: :error}}
   end
 
   def handle_info({:step_complete, ref, :ok}, %{scheduler_ref: ref} = state) do
