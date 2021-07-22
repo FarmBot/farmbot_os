@@ -102,7 +102,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:echo, echo_string}, state) do
-    clean_echo = String.replace(echo_string, "*", "")
+    clean_echo = String.replace(echo_string, ["\r", "*"], "")
     next_txb = TxBuffer.process_echo(state.tx_buffer, clean_echo)
 
     if echo_string == "*F09*" do
