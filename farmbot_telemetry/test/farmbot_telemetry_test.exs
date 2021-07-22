@@ -41,6 +41,6 @@ defmodule FarmbotTelemetryTest do
         :ok
     end)
 
-    assert_receive :ok
+    assert_receive :ok, 999
   end
 end

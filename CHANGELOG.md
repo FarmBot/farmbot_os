@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.2.2
+
+ * Genesis and Express firmware updates.
+
 # 14.2.1
 
  * Add new v1.6 firmware with beta support for quiet mode.

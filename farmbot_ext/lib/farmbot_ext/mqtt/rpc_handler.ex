@@ -29,7 +29,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     ast = JSON.decode!(payload) |> AST.decode()
     channel_pid = self()
     ref = make_ref()
-    _pid = spawn(StepRunner, :step, [channel_pid, ref, ast])
+    _pid = spawn(fn -> StepRunner.step(channel_pid, ref, ast) end)
 
     timer =
       if ast.args[:timeout] && ast.args[:timeout] > 0 do

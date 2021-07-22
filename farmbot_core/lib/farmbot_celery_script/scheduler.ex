@@ -88,12 +88,12 @@ defmodule FarmbotCeleryScript.Scheduler do
     GenServer.call(sch, :get_next)
   end
 
-  def get_next_from_now(sch \\ __MODULE__) do
-    case get_next_at(sch) do
-      nil -> nil
-      at -> Timex.from_now(at)
-    end
-  end
+  # def get_next_from_now(sch \\ __MODULE__) do
+  #   case get_next_at(sch) do
+  #     nil -> nil
+  #     at -> Timex.from_now(at)
+  #   end
+  # end
 
   def get_next_at(sch \\ __MODULE__) do
     case get_next(sch) do
