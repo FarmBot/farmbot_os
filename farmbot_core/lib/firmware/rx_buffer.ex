@@ -53,6 +53,10 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   }
   """
   def puts(state, string) do
+    %{state | output: [string], ready: true}
+  end
+
+  def puts_rc(state, string) do
     string
     |> String.upcase()
     |> String.replace(~r/\r*/, "")
@@ -95,6 +99,10 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   }
   """
   def gets(state) do
+    {%{state | output: []}, state.output}
+  end
+
+  def gets_rc(state) do
     results =
       state.output
       |> Enum.chunk_by(fn token -> token == @new_line end)
