@@ -8,25 +8,39 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   }
   use GenServer
 
+  # Allow 'catchup' executions for ocurrences due in the past 15 minutes
+  # This matches CeleryScript.Scheduler setting
+  @grace_period_s 900
+
   @impl GenServer
   def init([farm_event, args]) do
     send self(), :schedule
-    {:ok, %{farm_event: farm_event, args: args}}
+    {:ok, %{farm_event: farm_event, args: args, timesync_waits: 0}}
   end
 
   @impl GenServer
   def handle_info(:schedule, state) do
-    farm_event = state.farm_event
+    unless NervesTime.synchronized? do
+      {:noreply, %{state | timesync_waits: state.timesync_waits + 1}, 3_000}
+    else
+      base_time = DateTime.add(DateTime.utc_now(), 0 - @grace_period_s)
+      farm_event = state.farm_event
 
-    farm_event
-    |> FarmEvent.build_calendar(DateTime.utc_now())
-    # get rid of any item that has already been scheduled/executed
-    |> Enum.reject(fn(scheduled_at) ->
-      Asset.get_farm_event_execution(farm_event, scheduled_at)
-    end)
-    |> Enum.each(fn(at) ->
-      schedule_sequence(farm_event, at)
-    end)
+      farm_event
+      |> FarmEvent.build_calendar(base_time)
+      # get rid of any item that has already been scheduled/executed
+      |> Enum.reject(fn(scheduled_at) ->
+        Asset.get_farm_event_execution(farm_event, scheduled_at)
+      end)
+      |> Enum.each(fn(at) ->
+        schedule_sequence(farm_event, at)
+      end)
+      {:noreply, state}
+    end
+  end
+
+  def handle_info(:timeout, state) do
+    Process.send_after(self(), :schedule, 1_000)
     {:noreply, state}
   end
 
