@@ -68,6 +68,7 @@ defmodule FarmbotCore.MixProject do
       {:jason, "~> 1.2.2"},
       {:mimic, "~> 1.5.0", only: :test},
       {:muontrap, "~> 0.6"},
+      {:nerves_time, "~> 0.4.2", targets: [:rpi, :rpi3]},
       {:sqlite_ecto2, "~> 2.3"},
       {:timex, "~> 3.7.5"}
     ]
