@@ -4,12 +4,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   defstruct path: "null", uart_pid: nil
   alias FarmbotCore.BotState
 
-  @default_opts [
-    active: true,
-    speed: 115_200,
-    framing: {Circuits.UART.Framing.Line, separator: "\r\n"},
-    rx_framing_timeout: 200
-    ]
+  @default_opts [active: true, speed: 115_200]
   @three_minutes 3 * 60 * 1000
 
   def uptime_ms() do
@@ -51,8 +46,8 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   end
 
   def uart_send(uart_pid, text) do
-#    Logger.info(" == SEND RAW: #{inspect(text)}")
-    :ok = Circuits.UART.write(uart_pid, text)
+    Logger.info(" == SEND RAW: #{inspect(text)}")
+    :ok = Circuits.UART.write(uart_pid, text <> "\r\n")
   end
 
   def lock!(), do: BotState.set_firmware_locked()
