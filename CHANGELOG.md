@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.3.0
+
+ * Genesis and Express firmware updates.
+
 # 14.2.2
 
  * Genesis and Express firmware updates.
