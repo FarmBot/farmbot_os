@@ -5,7 +5,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCeleryScript.{AST, StepRunner}
+  alias FarmbotCeleryScript.AST
   alias FarmbotCore.JSON
   alias FarmbotExt.MQTT
   alias __MODULE__, as: State
@@ -29,11 +29,11 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     ast = JSON.decode!(payload) |> AST.decode()
     channel_pid = self()
     ref = make_ref()
-    _pid = spawn(fn -> StepRunner.step(channel_pid, ref, ast) end)
+    _pid = spawn(fn -> FarmbotCeleryScript.execute(ast, ref, channel_pid) end)
 
     timer =
       if ast.args[:timeout] && ast.args[:timeout] > 0 do
-        msg = {:step_complete, {:error, "timeout"}}
+        msg = {:csvm_done, {:error, "timeout"}}
         FarmbotExt.Time.send_after(self(), msg, ast.args[:timeout])
       end
 
@@ -46,7 +46,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     {:noreply, %{state | rpc_requests: Map.put(state.rpc_requests, ref, req)}}
   end
 
-  def handle_info({:step_complete, ref, :ok}, state) do
+  def handle_info({:csvm_done, ref, :ok}, state) do
     Logger.info("CeleryScript OK")
 
     case state.rpc_requests[ref] do
@@ -61,7 +61,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     end
   end
 
-  def handle_info({:step_complete, ref, {:error, reason}}, state) do
+  def handle_info({:csvm_done, ref, {:error, reason}}, state) do
     Logger.error("CeleryScript error [#{inspect(ref)}]: #{inspect(reason)}")
 
     case state.rpc_requests[ref] do

@@ -6,67 +6,69 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.SysCalls.Stubs
 
   import ExUnit.CaptureIO
-  import ExUnit.CaptureLog
+  # import ExUnit.CaptureLog
 
   setup :verify_on_exit!
 
-  test "uses default values when no parameter is found" do
-    sequence_ast =
-      %{
-        kind: :sequence,
-        args: %{
-          version: 1,
-          locals: %{
-            kind: :scope_declaration,
-            args: %{},
-            body: [
-              %{
-                kind: :parameter_declaration,
-                args: %{
-                  label: "foo",
-                  default_value: %{
-                    kind: :coordinate,
-                    args: %{x: 12, y: 11, z: 10}
-                  }
-                }
-              }
-            ]
-          }
-        },
-        body: [
-          %{
-            kind: :move_absolute,
-            args: %{
-              speed: 921,
-              location: %{
-                kind: :identifier,
-                args: %{label: "foo"}
-              },
-              offset: %{
-                kind: :coordinate,
-                args: %{x: 0, y: 0, z: 0}
-              }
-            }
-          }
-        ]
-      }
-      |> AST.decode()
+  # test "uses default values when no parameter is found" do
+  #   IO.puts("\e[H\e[2J\e[3J")
 
-    me = self()
+  #   sequence_ast =
+  #     %{
+  #       kind: :sequence,
+  #       args: %{
+  #         version: 1,
+  #         locals: %{
+  #           kind: :scope_declaration,
+  #           args: %{},
+  #           body: [
+  #             %{
+  #               kind: :parameter_declaration,
+  #               args: %{
+  #                 label: "foo",
+  #                 default_value: %{
+  #                   kind: :coordinate,
+  #                   args: %{x: 12, y: 11, z: 10}
+  #                 }
+  #               }
+  #             }
+  #           ]
+  #         }
+  #       },
+  #       body: [
+  #         %{
+  #           kind: :move_absolute,
+  #           args: %{
+  #             speed: 921,
+  #             location: %{
+  #               kind: :identifier,
+  #               args: %{label: "foo"}
+  #             },
+  #             offset: %{
+  #               kind: :coordinate,
+  #               args: %{x: 0, y: 0, z: 0}
+  #             }
+  #           }
+  #         }
+  #       ]
+  #     }
+  #     |> AST.decode()
 
-    expect(Stubs, :coordinate, 2, fn x, y, z ->
-      %{x: x, y: y, z: z}
-    end)
+  #   me = self()
 
-    expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
-      :ok
-    end)
+  #   expect(Stubs, :coordinate, 2, fn x, y, z ->
+  #     %{x: x, y: y, z: z}
+  #   end)
 
-    capture_log(fn ->
-      result = FarmbotCeleryScript.execute(sequence_ast, me)
-      assert :ok == result
-    end) =~ "[error] CeleryScript syscall stubbed: log"
-  end
+  #   expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
+  #     :ok
+  #   end)
+
+  #   capture_log(fn ->
+  #     result = FarmbotCeleryScript.execute(sequence_ast, me)
+  #     assert :ok == result
+  #   end) =~ "[error] CeleryScript syscall stubbed: log"
+  # end
 
   test "syscall errors" do
     execute_ast =
@@ -83,8 +85,7 @@ defmodule FarmbotCeleryScriptTest do
     result = FarmbotCeleryScript.execute(execute_ast, execute_ast)
     assert {:error, "failed to read pin!"} = result
 
-    assert_receive {:step_complete, ^execute_ast,
-                    {:error, "failed to read pin!"}}
+    assert_receive {:csvm_done, ^execute_ast, {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
@@ -109,6 +110,6 @@ defmodule FarmbotCeleryScriptTest do
       end)
 
     assert io =~ "CeleryScript Exception"
-    assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
+    assert_receive {:csvm_done, ^execute_ast, {:error, "big oops"}}
   end
 end

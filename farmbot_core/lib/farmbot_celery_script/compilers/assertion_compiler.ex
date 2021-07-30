@@ -1,6 +1,5 @@
 defmodule FarmbotCeleryScript.Compiler.Assertion do
   alias FarmbotCeleryScript.Compiler
-  import Compiler.Utils
   @doc "`Assert` is a internal node useful for self testing."
   def assertion(
         %{
@@ -10,9 +9,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             _then: then_ast
           },
           comment: comment
-        },
-        env
-      ) do
+        }, cs_scope) do
     comment_header =
       if comment do
         "[#{comment}] "
@@ -24,8 +21,8 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
       # cmnt = unquote(comment)
-      lua_code = unquote(Compiler.compile_ast(expression, env))
-      result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, better_params)
+      lua_code = unquote(Compiler.celery_to_elixir(expression, cs_scope))
+      result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, cs_scope)
       # result = FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt)
       case result do
         {:error, reason} ->
@@ -71,7 +68,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             "#{comment_header}failed, recovering and continuing"
           )
 
-          unquote(compile_block(then_ast, env))
+          unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
 
         {:ok, _} when assertion_type == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
@@ -80,14 +77,11 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             "#{comment_header}failed, recovering and aborting"
           )
 
-          then_block = unquote(compile_block(then_ast, env))
-
+          then_block = unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
+          abort = %AST{kind: :abort, args: %{}}
           then_block ++
             [
-              FarmbotCeleryScript.Compiler.compile(
-                %AST{kind: :abort, args: %{}},
-                []
-              )
+              FarmbotCeleryScript.Compiler.compile(abort, cs_scope)
             ]
       end
     end

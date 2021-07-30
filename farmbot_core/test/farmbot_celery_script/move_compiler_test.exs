@@ -81,8 +81,8 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       :something_else
     ]
 
-    better_params = %{"q" => %{foo: :bar}}
-    result = Move.extract_variables(body, better_params)
+    cs_scope = %{"q" => %{foo: :bar}}
+    result = Move.extract_variables(body, cs_scope)
 
     assert result == [
              %{args: %{axis_operand: %{foo: :bar}}},

@@ -132,7 +132,7 @@ defmodule FarmbotOS.LuaTest do
     Enum.map(@documentation_examples, fn lua ->
       result =
         FarmbotCeleryScript.Compiler.Lua.do_lua(lua, %{
-          "parent" => %{"x" => 1000}
+          declarations: %{"parent" => %{"x" => 1000}}
         })
 
       case result do

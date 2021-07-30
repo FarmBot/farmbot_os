@@ -2,37 +2,39 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   alias FarmbotCeleryScript.SysCalls
   alias FarmbotCeleryScript.SpecialValue
 
-  def move(%{body: body}, _env) do
+  def move(%{body: body}, cs_scope) do
     quote location: :keep do
+      # move_compiler.ex
+      var_declarations = unquote(cs_scope.declarations)
       node_body = unquote(body)
       mod = unquote(__MODULE__)
-      mod.perform_movement(node_body, better_params)
+      mod.perform_movement(node_body, var_declarations)
     end
   end
 
   # === "private" API starts here:
-  def perform_movement(body, better_params) do
-    extract_variables(body, better_params)
-    |> preprocess_lua(better_params)
+  def perform_movement(body, var_declarations) do
+    extract_variables(body, var_declarations)
+    |> preprocess_lua(var_declarations)
     |> calculate_movement_needs()
     |> do_perform_movement()
   end
 
   # If the user provides Lua, we need to evaluate the Lua and
   # tranform it to a `numeric` node type.
-  def preprocess_lua(body, better_params) do
+  def preprocess_lua(body, var_declarations) do
     Enum.map(body, fn
       %{ args: %{ speed_setting: %{ args: %{lua: lua} } }} = p ->
-        data = convert_lua_to_number(lua, better_params)
+        data = convert_lua_to_number(lua, var_declarations)
         new_setting = %{kind: :numeric, args: %{number: data}}
         %{ p | args: %{ speed_setting: new_setting } }
 
       %{args: %{lua: lua}} = p ->
-        data = convert_lua_to_number(lua, better_params)
+        data = convert_lua_to_number(lua, var_declarations)
         %{ p | args: %{kind: :numeric, args: %{number: data}} }
 
       %{ args: %{ axis_operand: %{ args: %{lua: lua} } } } = p ->
-        data = convert_lua_to_number(lua, better_params)
+        data = convert_lua_to_number(lua, var_declarations)
         new_operand = %{args: %{number: data}, kind: :numeric}
         %{ p | args: %{ p.args | axis_operand: new_operand } }
       # Non-Lua nodes just pass through.
@@ -41,10 +43,10 @@ defmodule FarmbotCeleryScript.Compiler.Move do
     end)
   end
 
-  def extract_variables(body, better_params) do
+  def extract_variables(body, var_declarations) do
     Enum.map(body, fn
       %{args: %{axis_operand: %{args: %{label: label}, kind: :identifier}}} = x ->
-        new_operand = Map.fetch!(better_params, label)
+        new_operand = Map.fetch!(var_declarations, label)
         old_args = Map.fetch!(x, :args)
         new_args = Map.put(old_args, :axis_operand, new_operand)
         Map.put(x, :args, new_args)
@@ -266,8 +268,8 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   def cy, do: SysCalls.get_current_y()
   def cz, do: SysCalls.get_current_z()
 
-  def convert_lua_to_number(lua, better_params) do
-    case FarmbotCeleryScript.Compiler.Lua.do_lua(lua, better_params) do
+  def convert_lua_to_number(lua, var_declarations) do
+    case FarmbotCeleryScript.Compiler.Lua.do_lua(lua, var_declarations) do
       {:ok, [data]} ->
         if is_number(data) do
           data

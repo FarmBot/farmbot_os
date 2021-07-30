@@ -2,21 +2,23 @@ defmodule FarmbotCeleryScript.Compiler.Lua do
   alias FarmbotCeleryScript.SysCalls
   alias FarmbotCeleryScript.Compiler.VariableTransformer
 
-  def lua(%{args: %{lua: lua}}, _env) do
+  def lua(%{args: %{lua: lua}}, cs_scope) do
     quote location: :keep do
+      # lua.ex
       mod = unquote(__MODULE__)
-      mod.do_lua(unquote(lua), better_params)
+      mod.do_lua(unquote(lua), unquote(cs_scope))
     end
   end
 
-  def do_lua(lua, better_params) do
+  def do_lua(lua, cs_scope) do
     go = fn params, label, lua ->
       {VariableTransformer.run!(params[label]), lua}
     end
 
+    declarations = cs_scope.declarations
     lookup = fn
-      [label], lua -> go.(better_params, label, lua)
-      [], lua -> go.(better_params, "parent", lua)
+      [label], lua -> go.(declarations, label, lua)
+      [], lua -> go.(declarations, "parent", lua)
       _, _ -> %{error: "Invalid input. Please pass 1 variable name (string)."}
     end
 
