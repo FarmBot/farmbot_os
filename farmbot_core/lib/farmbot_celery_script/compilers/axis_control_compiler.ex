@@ -3,19 +3,16 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
 
   # Compiles move_absolute
   def move_absolute(%{args: %{location: location,offset: offset,speed: speed}}, cs_scope) do
+    [locx , locy , locz] = cs_to_xyz(location, cs_scope)
+    [offx, offy, offz] = cs_to_xyz(offset, cs_scope)
+
     quote location: :keep do
-      # Extract the location arg
-      with %{x: locx, y: locy, z: locz} =
-             unquote(Compiler.celery_to_elixir(location, cs_scope)),
-           # Extract the offset arg
-           %{x: offx, y: offy, z: offz} =
-             unquote(Compiler.celery_to_elixir(offset, cs_scope)) do
         # Subtract the location from offset.
         # Note: list syntax here for readability.
         [x, y, z] = [
-          locx + offx,
-          locy + offy,
-          locz + offz
+          unquote(locx) + unquote(offx),
+          unquote(locy) + unquote(offy),
+          unquote(locz) + unquote(offz)
         ]
 
         x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
@@ -33,7 +30,6 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
           z,
           unquote(Compiler.celery_to_elixir(speed, cs_scope))
         )
-      end
     end
   end
 
@@ -193,4 +189,32 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
       end
     end
   end
+
+  defp cs_to_xyz(%{kind: :identifier} = ast, cs_scope) do
+    label = ast.args.label
+    variable = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, label)
+    # Prevent circular refernces.
+    # I doubt end users would intentionally do this, so treat
+    # it like an error.
+    if variable.kind == :identifier, do: raise "Refusing to perform recursion"
+    cs_to_xyz(variable, cs_scope)
+  end
+
+  defp cs_to_xyz(%{kind: :coordinate} = ast, _) do
+    vec_map_to_array(ast.args)
+  end
+
+  defp cs_to_xyz(%{kind: :tool, args: args}, _) do
+    slot = FarmbotCeleryScript.SysCalls.get_toolslot_for_tool(args.tool_id)
+    vec_map_to_array(slot)
+  end
+
+  defp cs_to_xyz(%{kind: :point} = ast, _) do
+    %{ pointer_type: t, pointer_id: id } = ast.args
+    vec_map_to_array(FarmbotCeleryScript.SysCalls.point(t, id))
+  end
+
+  defp cs_to_xyz(other, _), do: raise "Unexpected location or offset: #{inspect(other)}"
+
+  defp vec_map_to_array(xyz), do: [ xyz.x, xyz.y, xyz.z ]
 end

@@ -102,11 +102,6 @@ defmodule FarmbotCeleryScript.CompilerTest do
     assert variable.args.z == 555
   end
 
-  test "compiles execute" do
-    compiled = "RE-WRITE THIS TEST"
-    assert compiled == compiled
-  end
-
   test "compiles execute_script" do
     compiled =
       compile(%AST{
@@ -191,20 +186,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
         body: []
       })
 
-    assert compiled ==
-             strip_nl("""
-             with(
-               %{x: locx, y: locy, z: locz} = FarmbotCeleryScript.SysCalls.coordinate(100, 100, 100),
-               %{x: offx, y: offy, z: offz} = FarmbotCeleryScript.SysCalls.coordinate(-20, -20, -20)
-             ) do
-               [x, y, z] = [locx + offx, locy + offy, locz + offz]
-               x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
-               y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
-               z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-               FarmbotCeleryScript.SysCalls.log("Moving to (\#{x_str}, \#{y_str}, \#{z_str})", true)
-               FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
-             end
-             """)
+    expected =
+      "[x, y, z] = [100 + -20, 100 + -20, 100 + -20] x_str = FarmbotCeleryScript.FormatUtil.format_float(x) y_str = FarmbotCeleryScript.FormatUtil.format_float(y) z_str = FarmbotCeleryScript.FormatUtil.format_float(z) FarmbotCeleryScript.SysCalls.log(\"Moving to (\#{x_str}, \#{y_str}, \#{z_str})\", true) FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)"
+
+    assert compiled == expected
   end
 
   test "compiles move_relative" do
