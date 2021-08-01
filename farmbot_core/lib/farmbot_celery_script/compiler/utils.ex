@@ -1,5 +1,9 @@
 defmodule FarmbotCeleryScript.Compiler.Utils do
-  alias FarmbotCeleryScript.{Compiler, AST}
+  alias FarmbotCeleryScript.{
+    Compiler,
+    AST,
+    Compiler.Scope
+  }
   @doc """
   Recursively compiles a list or single Celery AST into an Elixir `__block__`
   """
@@ -31,65 +35,34 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
     end)
   end
 
-  def add_sequence_init_and_complete_logs(steps, sequence_name)
-      when is_binary(sequence_name) do
-    # This looks really weird because of the logs before and
-    # after the compiled steps
-    List.flatten([
-      quote location: :keep do
+  def add_init_logs(steps, scope, sequence_name) do
+    message = if Scope.has_key?(scope, "__GROUP__") do
+      meta = Scope.fetch!(scope, "__GROUP__")
+      "[#{meta.current_index}/#{meta.size}] Starting #{sequence_name}"
+    else
+      "Starting #{sequence_name}"
+    end
+
+    front = [
+      quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_init_log(
-            "Starting #{unquote(sequence_name)}"
-          )
-        end
-      end,
-      steps,
-      quote  location: :keep do
+          FarmbotCeleryScript
+            .SysCalls
+            .sequence_init_log(unquote(message))
+            :ok
+          end
+      end
+    ]
+    back = [
+      quote do
         fn ->
-          FarmbotCeleryScript.SysCalls.sequence_complete_log(
-            "Completed #{unquote(sequence_name)}"
-          )
+          FarmbotCeleryScript
+          .SysCalls
+          .sequence_complete_log("Completed #{unquote(sequence_name)}")
+          :ok
         end
       end
-    ])
-  end
-
-  def add_sequence_init_and_complete_logs(steps, _) do
-    steps
-  end
-
-  def add_sequence_init_and_complete_logs_ittr(steps, sequence_name)
-      when is_binary(sequence_name) do
-    # This looks really weird because of the logs before and
-    # after the compiled steps
-    List.flatten([
-      quote location: :keep do
-        fn _ ->
-          [
-            fn ->
-              FarmbotCeleryScript.SysCalls.sequence_init_log(
-                "Starting #{unquote(sequence_name)}"
-              )
-            end
-          ]
-        end
-      end,
-      steps,
-      quote location: :keep do
-        fn _ ->
-          [
-            fn ->
-              FarmbotCeleryScript.SysCalls.sequence_complete_log(
-                "Completed #{unquote(sequence_name)}"
-              )
-            end
-          ]
-        end
-      end
-    ])
-  end
-
-  def add_sequence_init_and_complete_logs_ittr(steps, _) do
-    steps
+    ]
+    front ++ steps ++ back
   end
 end

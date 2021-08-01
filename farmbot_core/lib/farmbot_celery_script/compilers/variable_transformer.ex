@@ -29,8 +29,6 @@ defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
   end
 
   def run!(other) do
-    error = "UNEXPECTED VARIABLE SCHEMA: #{inspect(other)}"
-    SysCalls.log(error)
-    [other, error]
+    [other]
   end
 end

@@ -16,6 +16,7 @@ defmodule FarmbotCeleryScript.Compiler.Sequence do
       steps = ast.body
       |> Utils.compile_block(cs_scope)
       |> Utils.decompose_block_to_steps()
+      |> Utils.add_init_logs(cs_scope, Map.get(ast.args, :sequence_name, "sequence"))
       quote location: :keep do
         fn ->
           cs_scope = unquote(cs_scope)

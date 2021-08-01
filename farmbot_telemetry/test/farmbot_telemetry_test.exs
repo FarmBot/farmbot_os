@@ -37,8 +37,7 @@ defmodule FarmbotTelemetryTest do
         %{file: _, function: _, line: _, module: _} = meta
         send(me, :ok)
 
-      x ->
-        IO.inspect(x, label: "$$$$$$$$$$$$$$$$$$$$$$$")
+      _ ->
         :ok
     end)
 

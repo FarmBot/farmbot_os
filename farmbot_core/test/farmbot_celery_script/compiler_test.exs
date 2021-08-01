@@ -94,7 +94,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
     variable =
       executable
       |> apply([])
-      |> Enum.at(0)
+      |> Enum.at(1)
       |> apply([])
 
     assert variable.args.x == 333

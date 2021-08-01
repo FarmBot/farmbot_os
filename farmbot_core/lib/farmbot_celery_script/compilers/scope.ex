@@ -88,10 +88,17 @@ defmodule FarmbotCeleryScript.Compiler.Scope do
       nil ->
         {:error, "Point group not found: #{label}/#{group_id}"}
       pg ->
+        group_size = Enum.count(pg.point_ids)
         pg
-      |> Map.fetch!(:point_ids)
-      |> Enum.map(&point/1)
-      |> Enum.map(fn point_ast -> set(scope, label, point_ast) end)
+        |> Map.fetch!(:point_ids)
+        |> Enum.map(&point/1)
+        |> Enum.with_index(1)
+        |> Enum.map(fn { point_ast, index } ->
+          meta = %{ name: pg.name, current_index: index, size: group_size }
+          scope
+          |> set(label, point_ast)
+          |> set("__GROUP__", meta)
+      end)
     end
   end
 
