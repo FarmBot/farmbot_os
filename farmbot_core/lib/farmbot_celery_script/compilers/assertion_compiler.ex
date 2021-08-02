@@ -20,10 +20,8 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
-      # cmnt = unquote(comment)
       lua_code = unquote(Compiler.celery_to_elixir(expression, cs_scope))
       result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, cs_scope)
-      # result = FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt)
       case result do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
@@ -78,7 +76,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
           )
 
           then_block = unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
-          abort = %AST{kind: :abort, args: %{}}
+          abort = %FarmbotCeleryScript.AST{kind: :abort, args: %{}}
           then_block ++
             [
               FarmbotCeleryScript.Compiler.compile(abort, cs_scope)
