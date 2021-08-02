@@ -46,7 +46,7 @@ defmodule FarmbotCeleryScript.Compiler.Farmware do
     quote location: :keep do
       package = unquote(Compiler.celery_to_elixir(package, cs_scope))
       FarmbotCeleryScript.SysCalls.log("Updating Farmware: #{package}", true)
-      FarmbotCeleryScript.SysCalls.update_farmware(package, cs_scope)
+      FarmbotCeleryScript.SysCalls.update_farmware(package)
     end
   end
 
