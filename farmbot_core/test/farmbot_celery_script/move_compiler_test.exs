@@ -81,7 +81,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       :something_else
     ]
 
-    cs_scope = %{"q" => %{foo: :bar}}
+    cs_scope = %{declarations: %{"q" => %{foo: :bar}}}
     result = Move.extract_variables(body, cs_scope)
 
     assert result == [
