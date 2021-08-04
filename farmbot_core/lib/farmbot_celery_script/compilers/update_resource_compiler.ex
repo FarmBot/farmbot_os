@@ -12,7 +12,7 @@ defmodule FarmbotCeleryScript.Compiler.UpdateResource do
         %FarmbotCeleryScript.AST{kind: :identifier} ->
           args = Map.fetch!(variable, :args)
           label = Map.fetch!(args, :label)
-          resource = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, label)
+          {:ok, resource} = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, label)
           me.do_update(resource, update)
 
         %FarmbotCeleryScript.AST{kind: :point} ->

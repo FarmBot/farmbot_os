@@ -82,19 +82,18 @@ defmodule FarmbotCeleryScript.Compiler.ScopeTest do
     prev = Scope.new(nil, @parent_declarations)
     expected = Enum.at(@parent_declarations, 0).args.data_value
     assert expected.kind == :point
-    assert expected == Scope.fetch!(prev, "defined_elsewhere")
+    {:ok, actual} = Scope.fetch!(prev, "defined_elsewhere")
+    assert expected == actual
     curr = Scope.new(prev, @fixture.body)
-    assert expected == Scope.fetch!(curr, "var3")
+    {:ok, actual2} = Scope.fetch!(curr, "var3")
+    assert expected == actual2
     with_defaults = Scope.apply_defaults(curr, @default_declarations)
     assert Scope.has_key?(with_defaults, "example_default")
-    default = Scope.fetch!(with_defaults, "example_default")
+    {:ok, default} = Scope.fetch!(with_defaults, "example_default")
     assert default == Enum.at(@default_declarations, 0).args.default_value
-    assert Scope.fetch!(with_defaults, "var4").args.pointer_id == 444
+    {:ok, p} = Scope.fetch!(with_defaults, "var4")
+    assert p.args.pointer_id == 444
   end
-
-  # test "expansion of a single point_group node" do
-  #   "farmbot_core/fixture/point_group_sequence.json"
-  # end
 
   test "prevent multiple iterables in the same scope" do
     t = fn -> Scope.new(nil, @too_many_groups) |> Scope.expand() end

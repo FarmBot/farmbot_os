@@ -150,7 +150,8 @@ defmodule FarmbotCeleryScript.Compiler do
 
   def identifier(%{args: %{label: var_name}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, unquote(var_name))
+      {:ok, var} = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, unquote(var_name))
+      var
     end
   end
 

@@ -192,7 +192,7 @@ defmodule FarmbotCeleryScript.Compiler.AxisControl do
 
   defp cs_to_xyz(%{kind: :identifier} = ast, cs_scope) do
     label = ast.args.label
-    variable = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, label)
+    {:ok, variable} = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, label)
     # Prevent circular refernces.
     # I doubt end users would intentionally do this, so treat
     # it like an error.

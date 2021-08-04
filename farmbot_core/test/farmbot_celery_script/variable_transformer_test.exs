@@ -25,10 +25,6 @@ defmodule FarmbotCeleryScript.VariableTransformerTest do
 
     error2 = "LUA ERROR: Sequence does not contain variable"
 
-    expect(FarmbotCeleryScript.SysCalls, :log, 1, fn
-      ^error2 -> :ok
-    end)
-
     actual = VariableTransformer.run!(:misc)
     expected = [:misc]
     assert actual == expected

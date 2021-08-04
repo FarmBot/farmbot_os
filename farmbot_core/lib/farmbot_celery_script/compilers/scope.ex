@@ -50,7 +50,13 @@ defmodule FarmbotCeleryScript.Compiler.Scope do
   # GIVEN A scope object and a label
   # PRODUCES an %AST{}
   # Raises KeyError if the identifier does not exist.
-  def fetch!(scope, label), do: Map.fetch!(scope.declarations, label)
+  def fetch!(scope, label) do
+    if has_key?(scope, label) do
+      {:ok, Map.fetch!(scope.declarations, label)}
+    else
+      warn_user_of_bad_var_name!(scope, label)
+    end
+  end
 
   # GIVEN
   #  * a parent scope
@@ -66,7 +72,9 @@ defmodule FarmbotCeleryScript.Compiler.Scope do
     end)
     |> Enum.map(fn %{args: a} -> {a.data_value.kind, a.label, a.data_value} end)
     |> Enum.map(fn
-      {:identifier, key, value} -> {key, fetch!(scope.parent, value.args.label)}
+      {:identifier, key, value} ->
+        {:ok, new_value} = fetch!(scope.parent, value.args.label)
+        {key, new_value}
       {_, key, value} -> {key, value}
     end)
     |> Enum.reduce(scope, fn {k,v}, declr -> set(declr, k, v) end)
@@ -114,7 +122,24 @@ defmodule FarmbotCeleryScript.Compiler.Scope do
   defp point(id) do
     %AST{
       kind: :point,
-      args: %{ pointer_type: "GenericPointer", pointer_id: id }
+      args: %{
+        pointer_type: "GenericPointer",
+        pointer_id: id
+      }
     }
+  end
+
+  defp warn_user_of_bad_var_name!(scope, label) do
+    vars = scope.declarations
+    |> Map.keys()
+    |> Enum.map(&inspect/1)
+
+    msg = if Enum.count(vars) == 0 do
+       "Attempted to access variable #{inspect(label)}, but no variables are declared."
+      else
+        all = Enum.join(vars, ", ")
+        "Can't find variable #{inspect(label)}. Available variables: " <> all
+      end
+      {:error, msg}
   end
 end

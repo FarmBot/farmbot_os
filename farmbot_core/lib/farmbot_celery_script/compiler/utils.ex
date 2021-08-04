@@ -37,7 +37,7 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
 
   def add_init_logs(steps, scope, sequence_name) do
     message = if Scope.has_key?(scope, "__GROUP__") do
-      meta = Scope.fetch!(scope, "__GROUP__")
+      {:ok, meta} = Scope.fetch!(scope, "__GROUP__")
       "[#{meta.current_index}/#{meta.size}] Starting #{sequence_name}"
     else
       "Starting #{sequence_name}"

@@ -44,7 +44,7 @@ defmodule FarmbotCeleryScript.Compiler.Move do
   def extract_variables(body, cs_scope) do
     Enum.map(body, fn
       %{args: %{axis_operand: %{args: %{label: label}, kind: :identifier}}} = x ->
-        new_operand = Scope.fetch!(cs_scope, label)
+        {:ok, new_operand} = Scope.fetch!(cs_scope, label)
         old_args = Map.fetch!(x, :args)
         new_args = Map.put(old_args, :axis_operand, new_operand)
         Map.put(x, :args, new_args)

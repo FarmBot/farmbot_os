@@ -19,17 +19,10 @@ defmodule FarmbotCeleryScript.StepRunner do
       # The step returned a list of compiled function.
       # We need to execute them next.
       # Use case: `_if` blocks, `execute` calls, etc..
-      [_next_ast_or_fun | _] = more ->
-        do_step(listener, tag, more ++ rest)
-
+      [_next_ast_or_fun | _] = more -> do_step(listener, tag, more ++ rest)
       # The step failed for a specific reason.
-      {:error, reason} ->
-        message = if is_binary(reason) do reason else inspect(reason) end
-        err = {:error, message}
-        send(listener, {:csvm_done, tag, err})
-        err
-      _ ->
-        do_step(listener, tag, rest)
+      {:error, _} = error -> not_ok(listener, tag, error)
+      _ -> do_step(listener, tag, rest)
     end
   end
 
@@ -44,24 +37,32 @@ defmodule FarmbotCeleryScript.StepRunner do
   end
 
   defp execute(listener, tag, fun) do
-    try do
-      fun.()
-    rescue
-      e ->
-        IO.warn("CeleryScript Exception: ", __STACKTRACE__)
-        result = {:error, Exception.message(e)}
-        send(listener, {:csvm_done, tag, result})
-        result
-    catch
-      _kind, error when is_binary(error) ->
-        IO.warn("CeleryScript Error: #{error}", __STACKTRACE__)
-        send(listener, {:csvm_done, tag, {:error, error}})
-        {:error, error}
-
-      _kind, error ->
-        IO.warn("CeleryScript Error: #{inspect(error)}", __STACKTRACE__)
-        send(listener, {:csvm_done, tag, {:error, inspect(error)}})
-        {:error, inspect(error)}
+    if FarmbotCore.BotState.fetch().informational_settings.locked do
+      {:error, "Device is locked."}
+    else
+      try do
+        fun.()
+      rescue
+        e -> not_ok(listener, tag, e, __STACKTRACE__)
+      catch
+        _kind, e -> not_ok(listener, tag, e, __STACKTRACE__)
+      end
     end
   end
+
+  defp not_ok(listener, tag, original_error, trace \\ nil) do
+    IO.warn("CeleryScript Exception: #{inspect({original_error, trace})}")
+    error = format_error(original_error)
+    send(listener, {:csvm_done, tag, error})
+    error
+  end
+
+  defp format_error(%RuntimeError{message: e}), do: format_error(e)
+  defp format_error({:badmatch, error}), do: format_error(error)
+  defp format_error({:error, {:error, e}}), do: format_error(e)
+  defp format_error({:error, {:badmatch, error}}), do: format_error({:error, error})
+  defp format_error({:error, e}) when is_binary(e), do: {:error, e}
+  defp format_error({:error, e}), do: {:error, inspect(e)}
+  defp format_error(err) when is_binary(err), do: {:error, err}
+  defp format_error(err), do: {:error, inspect(err)}
 end
