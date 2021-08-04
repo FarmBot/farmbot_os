@@ -37,9 +37,9 @@ defmodule FarmbotCeleryScript.StepRunner do
   end
 
   defp execute(listener, tag, fun) do
-    if FarmbotCore.BotState.fetch().informational_settings.locked do
-      {:error, "Device is locked."}
-    else
+    # if FarmbotCore.BotState.fetch().informational_settings.locked do
+    #   {:error, "Device is locked."}
+    # else
       try do
         fun.()
       rescue
@@ -47,7 +47,7 @@ defmodule FarmbotCeleryScript.StepRunner do
       catch
         _kind, e -> not_ok(listener, tag, e, __STACKTRACE__)
       end
-    end
+    # end
   end
 
   defp not_ok(listener, tag, original_error, trace \\ nil) do
