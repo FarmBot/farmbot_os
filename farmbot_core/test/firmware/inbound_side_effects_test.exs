@@ -25,11 +25,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test "(x|y|z)_axis_timeout" do
-    mapper = fn {gcode, axis} ->
-      t = fn -> simple_case([{gcode, %{}}]) end
-      msg = "Stall detected on #{inspect(axis)} axis."
-      assert capture_log(t) =~ msg
-    end
+    mapper = fn {gcode, axis} -> simple_case([{gcode, %{}}]) end
 
     tests = [
       {:x_axis_timeout, "x"},
