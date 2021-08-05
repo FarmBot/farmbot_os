@@ -5,7 +5,6 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.AST
   alias FarmbotCeleryScript.SysCalls.Stubs
 
-  import ExUnit.CaptureIO
   import ExUnit.CaptureLog
 
   setup :verify_on_exit!
@@ -98,7 +97,7 @@ defmodule FarmbotCeleryScriptTest do
     end)
 
     io =
-      capture_io(:stderr, fn ->
+      capture_log(fn ->
         assert {:error, "big oops"} ==
                  FarmbotCeleryScript.execute(execute_ast, execute_ast)
       end)

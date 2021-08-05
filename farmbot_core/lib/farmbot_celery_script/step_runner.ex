@@ -5,6 +5,7 @@ defmodule FarmbotCeleryScript.StepRunner do
   alias FarmbotCeleryScript.{AST, Compiler}
   alias FarmbotCeleryScript.Compiler.Scope
 
+  require Logger
   @doc """
   Steps through an entire AST.
   """
@@ -47,7 +48,7 @@ defmodule FarmbotCeleryScript.StepRunner do
   end
 
   defp not_ok(listener, tag, original_error, trace \\ nil) do
-    IO.warn("CeleryScript Exception: #{inspect({original_error, trace})}")
+    Logger.warn("CeleryScript Exception: #{inspect(original_error)} / #{inspect(trace)}")
     error = format_error(original_error)
     send(listener, {:csvm_done, tag, error})
     error
