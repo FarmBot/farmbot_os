@@ -1,11 +1,18 @@
 defmodule FarmbotCeleryScript.Compiler.Execute do
   alias FarmbotCeleryScript.{
     AST,
-    # Compiler,
     Compiler.Scope
   }
 
   def execute(%AST{kind: :execute} = execute_ast, previous_scope) do
+    if FarmbotCore.BotState.fetch().informational_settings.locked do
+      {:error, "Device is locked."}
+    else
+      do_execute(execute_ast, previous_scope)
+    end
+  end
+
+  defp do_execute(execute_ast, previous_scope) do
     id = execute_ast.args.sequence_id
     case FarmbotCeleryScript.SysCalls.get_sequence(id) do
       %AST{kind: :sequence} = sequence_ast ->
