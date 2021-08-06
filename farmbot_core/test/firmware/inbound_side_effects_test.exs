@@ -25,7 +25,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test "(x|y|z)_axis_timeout" do
-    mapper = fn {gcode, axis} -> simple_case([{gcode, %{}}]) end
+    mapper = fn {gcode, _axis} -> simple_case([{gcode, %{}}]) end
 
     tests = [
       {:x_axis_timeout, "x"},

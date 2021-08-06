@@ -5,22 +5,23 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
   import ExUnit.CaptureLog
 
   alias FarmbotCore.Firmware.TxBuffer
+  alias FarmbotCore.Firmware.GCode
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
   doctest FarmbotCore.Firmware.TxBuffer, import: true
 
   @fake_buffer1 TxBuffer.new()
-                |> TxBuffer.push({nil, "A"})
-                |> TxBuffer.push({nil, "B"})
-                |> TxBuffer.push({nil, "C"})
-                |> TxBuffer.push({nil, "D"})
-                |> TxBuffer.push({nil, "E"})
+                |> TxBuffer.push(nil, GCode.new(:A, []))
+                |> TxBuffer.push(nil, GCode.new(:B, []))
+                |> TxBuffer.push(nil, GCode.new(:C, []))
+                |> TxBuffer.push(nil, GCode.new(:D, []))
+                |> TxBuffer.push(nil, GCode.new(:E, []))
 
   @busy_buffer %TxBuffer{
     autoinc: 0,
     current: %{
       id: 1,
       caller: :fake_caller,
-      gcode: "E",
+      gcode: GCode.new(:E, []),
       echo: nil
     },
     queue: []
@@ -33,7 +34,7 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
       %{
         id: 1,
         caller: :this_is_a_fake_caller,
-        gcode: "E",
+        gcode: GCode.new(:E, []),
         echo: nil
       }
     ]
@@ -71,13 +72,13 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
     end)
 
     expected = %TxBuffer{
-      autoinc: 1,
       current: %{
-        id: 1,
         caller: :this_is_a_fake_caller,
-        echo: nil,
-        gcode: "E Q1"
+        gcode: %GCode{command: :E, echo: nil, params: [], string: "E Q1"},
+        id: 1,
+        echo: nil
       },
+      autoinc: 1,
       queue: []
     }
 
@@ -118,7 +119,7 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
       :ok
     end)
 
-    result = TxBuffer.process_error(@busy_buffer, 1)
+    result = TxBuffer.process_error(@busy_buffer, {1, 0})
 
     expected = %TxBuffer{
       autoinc: @busy_buffer.autoinc,
@@ -137,7 +138,7 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
 
   test "process_echo() - capture well formed echo" do
     job = TxBuffer.process_echo(@busy_buffer, "E").current
-    assert job.echo == job.gcode
+    assert job.gcode.echo == job.gcode.string
   end
 
   test "process_echo() - ignore untracked command echoes" do

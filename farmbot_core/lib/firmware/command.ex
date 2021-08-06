@@ -1,7 +1,6 @@
 defmodule FarmbotCore.Firmware.Command do
-  alias FarmbotCore.Firmware.Parameter
-  alias FarmbotCore.Firmware.{UARTCore, FloatingPoint}
   alias FarmbotCore.BotState
+  alias FarmbotCore.Firmware.{GCode, UARTCore}
 
   # G00(X, Y, Z, A, B, C) Move to location at given speed
   # for axis in absolute coordinates
@@ -81,22 +80,6 @@ defmodule FarmbotCore.Firmware.Command do
   # F83
   def report_software_version(), do: schedule(:F83, [])
 
-  @m_codes %{
-    0 => 0,
-    :input => 0,
-    "input" => 0,
-    "digital" => 0,
-    :digital => 0,
-    1 => 1,
-    "output" => 1,
-    :output => 1,
-    "analog" => 1,
-    :analog => 1,
-    2 => 2,
-    :input_pullup => 2,
-    "input_pullup" => 2
-  }
-
   # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
   def set_pin_io_mode(pin, mode) do
     write_pm(43, pin, mode)
@@ -126,22 +109,18 @@ defmodule FarmbotCore.Firmware.Command do
   end
 
   # F84(X, Y, Z) Set axis current position to zero (yes=1/no=0)
-  def set_zero(:x), do: set_zero("x")
-  def set_zero(:y), do: set_zero("y")
-  def set_zero(:z), do: set_zero("z")
+  def set_zero(:x), do: set_zero(:X)
+  def set_zero(:y), do: set_zero(:Y)
+  def set_zero(:z), do: set_zero(:Z)
 
   def set_zero(axis) do
     yes = 1
     no = 0
-    defaults = %{"x" => no, "y" => no, "z" => no}
 
     params =
-      %{defaults | axis => yes}
+      %{X: no, Y: no, Z: no}
+      |> Map.put(axis, yes)
       |> Map.to_list()
-      |> Enum.map(fn {axis, value} ->
-        "#{String.upcase(axis)}#{inspect(value)}"
-      end)
-      |> Enum.join(" ")
 
     schedule(:F84, params)
   end
@@ -159,42 +138,12 @@ defmodule FarmbotCore.Firmware.Command do
     schedule(:F22, P: param, V: val)
   end
 
-  def f22({param, val}), do: "F22 #{encode_param(param)} V#{encode_float(val)}"
-
-  defp schedule(command, parameters) when is_binary(parameters) do
-    UARTCore.start_job("#{command} #{parameters}")
+  defp schedule(_command, parameters) when is_binary(parameters) do
+    raise "Dead code?"
   end
 
   defp schedule(command, parameters) do
-    mapper = fn
-      {:M, mode} -> "M#{fetch_m!(mode)}"
-      {key, value} -> "#{key}#{FloatingPoint.encode(value)}"
-    end
-
-    p =
-      parameters
-      |> Enum.map(mapper)
-      |> Enum.join(" ")
-
-    UARTCore.start_job(String.trim("#{command} #{p}"))
-  end
-
-  defp encode_float(v), do: :erlang.float_to_binary(v, decimals: 2)
-
-  defp encode_param(p) when is_number(p) do
-    # Crash on bad input:
-    _ = Parameter.translate(p)
-    "P#{p}"
-  end
-
-  defp encode_param(p) do
-    number = Parameter.translate(p)
-
-    if is_integer(number) do
-      encode_param(number)
-    else
-      raise "Bad parameter value: #{inspect(p)}"
-    end
+    UARTCore.start_job(GCode.new(command, parameters))
   end
 
   @temp_fallback %{
@@ -224,22 +173,4 @@ defmodule FarmbotCore.Firmware.Command do
 
   defp missing_cache?(), do: Enum.member?(Map.values(cached_position()), nil)
   defp cached_position(), do: BotState.fetch().location_data.position
-
-  defp fetch_m!(mode) do
-    m = Map.get(@m_codes, mode)
-
-    if m do
-      FloatingPoint.encode(m)
-    else
-      valid_modes =
-        @m_codes
-        |> Map.keys()
-        |> Enum.filter(&is_atom/1)
-        |> Enum.sort()
-
-      raise "Expect pin mode to be one of #{inspect(valid_modes)}. Got: #{
-              inspect(mode)
-            }"
-    end
-  end
 end

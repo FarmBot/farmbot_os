@@ -7,7 +7,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
 
   alias __MODULE__, as: State
   alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-
+  alias FarmbotCore.Firmware.{GCode, ErrorDetector}
   # List of IDs that need to be processed (FIFO)
   defstruct queue: [],
             # Last `Q` param that was sent to MCU.
@@ -24,31 +24,41 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   @doc ~S"""
   Append a GCode line to the TxBufer.
 
-  iex> push(new(), {nil, "E"})
+  iex> push(new(), nil, FarmbotCore.Firmware.GCode.new("E", []))
   %FarmbotCore.Firmware.TxBuffer{
     current: nil,
     autoinc: 2,
     queue: [
-      %{id: 2, caller: nil, echo: nil, gcode: "E"}
+      %{
+        id: 2,
+        caller: nil,
+        gcode: %FarmbotCore.Firmware.GCode{
+          command: "E",
+          echo: nil,
+          params: [],
+          string: "E"
+        }
+      }
     ]
   }
   """
-  def push(state, {caller, gcode}) do
+  def push(state, caller, %GCode{} = gcode) do
+    if is_binary(gcode), do: raise("gcode is not a string any more.")
     id = generate_next_q(state.autoinc)
-    job = %{id: id, caller: caller, gcode: gcode, echo: nil}
+    job = %{id: id, caller: caller, gcode: gcode}
     %{state | queue: state.queue ++ [job], autoinc: id}
   end
 
-  def process_next_message(%State{current: nil, queue: [j | next]}, uart_pid) do
-    q = j.id
+  def process_next_message(%State{current: nil, queue: [job | next]}, uart_pid) do
+    q = job.id
     # 1. Attach a `Q` param to GCode.
-    gcode = j.gcode <> " Q#{q}"
+    next_gcode = %{job.gcode | string: job.gcode.string <> " Q#{q}"}
 
     # 2. Move job to the "waiting area"
-    next_job = %{j | gcode: gcode}
+    next_job = %{job | gcode: next_gcode}
 
     # 3. Send GCode down the wire with newly minted Q param
-    Support.uart_send(uart_pid, gcode)
+    Support.uart_send(uart_pid, next_gcode.string)
 
     # 4. Update state.
     %State{current: next_job, queue: next, autoinc: q}
@@ -71,8 +81,13 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   # ignore it.
   def process_ok(%State{} = state, 0), do: state
   def process_ok(%State{} = state, q), do: reply(state, q, {:ok, nil})
-  def process_error(%State{} = state, q), do: reply(state, q, {:error, nil})
   def process_echo(%State{} = state, echo), do: do_process_echo(state, echo)
+
+  def process_error(%State{} = state, {queue, error_code}) do
+    current = state.current
+    if state.current, do: ErrorDetector.detect(error_code, current.gcode)
+    reply(state, queue, {:error, nil})
+  end
 
   def error_all(state, reason) do
     mapper = fn
@@ -98,18 +113,19 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     s
   end
 
-  defp do_process_echo(%State{} = txb, echo) do
-    # 0. Retrieve old job
-    no_echo = txb.current
-    # 1. add `echo` to job record
-    %{echo: echo, gcode: gcode} = has_echo = %{no_echo | echo: echo}
+  defp do_process_echo(%State{} = txb, echo_string) do
+    job = txb.current
+    gcode = job.gcode
 
-    # 2. Cross-check gcode with echo, crash if not ==
-    if echo != gcode do
+    # Delete this after refactor:
+    %GCode{} = gcode
+
+    if echo_string != gcode.string do
       err = "CORRUPT ECHO! Expected echo "
-      raise err <> "#{inspect(echo)} to equal #{inspect(gcode)}"
+      raise err <> "#{inspect(echo_string)} to equal #{inspect(gcode.string)}"
     end
 
+    has_echo = %{job | gcode: %{gcode | echo: echo_string}}
     # 3. Add updated record to state.
     Map.merge(txb, %{current: has_echo})
   end

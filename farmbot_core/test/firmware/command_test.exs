@@ -7,10 +7,13 @@ defmodule FarmbotCore.Firmware.CommandTest do
 
   def simple_case(title, expected_gcode, t) do
     expect(UARTCore, :start_job, 1, fn gcode ->
-      actual = inspect(gcode)
+      actual = gcode.string
 
-      assert gcode == expected_gcode,
-             "Simple test case #{title} failed: #{actual}"
+      message =
+        "Simple test case #{title} failed. " <>
+          "Expected #{inspect(expected_gcode)}, got #{inspect(actual)}"
+
+      assert actual == expected_gcode, message
     end)
 
     assert t.() == true
@@ -18,7 +21,7 @@ defmodule FarmbotCore.Firmware.CommandTest do
 
   test "read_pin/2" do
     expect(UARTCore, :start_job, 1, fn gcode ->
-      assert "F42 P13.00 M0.00" == gcode
+      assert "F42 P13.00 M0.00" == gcode.string
       {:ok, :not_really_used_just_stubbed}
     end)
 
@@ -42,15 +45,21 @@ defmodule FarmbotCore.Firmware.CommandTest do
   end
 
   test "go_home(\"x\")" do
-    simple_case("go_home(\"x\")", "F84 X1 Y0 Z0", fn -> Command.go_home("x") end)
+    simple_case("go_home(\"x\")", "F84 X1.00 Y0.00 Z0.00", fn ->
+      Command.go_home("x")
+    end)
   end
 
   test "go_home(\"y\")" do
-    simple_case("go_home(\"y\")", "F84 X0 Y1 Z0", fn -> Command.go_home("y") end)
+    simple_case("go_home(\"y\")", "F84 X0.00 Y1.00 Z0.00", fn ->
+      Command.go_home("y")
+    end)
   end
 
   test "go_home(\"z\")" do
-    simple_case("go_home(\"z\")", "F84 X0 Y0 Z1", fn -> Command.go_home("z") end)
+    simple_case("go_home(\"z\")", "F84 X0.00 Y0.00 Z1.00", fn ->
+      Command.go_home("z")
+    end)
   end
 
   test "find_home(:x)" do
@@ -104,34 +113,20 @@ defmodule FarmbotCore.Firmware.CommandTest do
   end
 
   test "set_zero(:x)" do
-    simple_case("set_zero(:x)", "F84 X1 Y0 Z0", fn -> Command.set_zero(:x) end)
+    simple_case("set_zero(:x)", "F84 X1.00 Y0.00 Z0.00", fn ->
+      Command.set_zero(:x)
+    end)
   end
 
   test "set_zero(:y)" do
-    simple_case("set_zero(:y)", "F84 X0 Y1 Z0", fn -> Command.set_zero(:y) end)
+    simple_case("set_zero(:y)", "F84 X0.00 Y1.00 Z0.00", fn ->
+      Command.set_zero(:y)
+    end)
   end
 
   test "set_zero(:z)" do
-    simple_case("set_zero(:z)", "F84 X0 Y0 Z1", fn -> Command.set_zero(:z) end)
+    simple_case("set_zero(:z)", "F84 X0.00 Y0.00 Z1.00", fn ->
+      Command.set_zero(:z)
+    end)
   end
-
-  # test "f22({param, val})" do
-  #   simple_case(
-  #     "f22({param, val})",
-  #     "f22({param, val})",
-  #     fn -> Command.f22({param,val) end
-  #   )
-  # end
-
-  # test "lock()" do
-  #   simple_case("lock()", "lock()", fn -> Command.lock() end )
-  # end
-
-  # test "unlock()" do
-  #   simple_case(
-  #     "unlock()",
-  #     "unlock()",
-  #     fn -> Command.unlock() end
-  #   )
-  # end
 end

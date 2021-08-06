@@ -1,8 +1,12 @@
 defmodule FarmbotCore.Firmware.ConfigUploader do
   alias FarmbotCore.Asset
   alias FarmbotCore.BotState
-  alias FarmbotCore.Firmware.{Command, TxBuffer}
-  alias FarmbotCore.Firmware.Parameter
+
+  alias FarmbotCore.Firmware.{
+    GCode,
+    Parameter,
+    TxBuffer
+  }
 
   require Logger
   require FarmbotCore.Logger
@@ -87,9 +91,9 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
       config_data
       |> write_configs(state)
       # Approve configuration
-      |> TxBuffer.push({nil, "F22 P2 V1"})
+      |> TxBuffer.push(nil, GCode.new(:F22, P: 2, V: 1))
       # Request software version
-      |> TxBuffer.push({nil, "F83"})
+      |> TxBuffer.push(nil, GCode.new(:F83, []))
       |> maybe_home_at_boot(config_data)
 
     %{state | tx_buffer: next_tx_buffer, needs_config: false}
@@ -104,9 +108,13 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     |> Map.to_list()
     |> Enum.filter(fn {k, _v} -> Parameter.is_param?(k) end)
     |> Enum.map(fn {key, value} -> {Parameter.translate(key), value} end)
-    |> Enum.map(&Command.f22/1)
+    |> Enum.map(fn {p, v} ->
+      # Crash on bad input:
+      _ = Parameter.translate(p)
+      GCode.new(:F22, P: p, V: v)
+    end)
     |> Enum.reduce(state.tx_buffer, fn gcode, tx_buffer ->
-      TxBuffer.push(tx_buffer, {nil, gcode})
+      TxBuffer.push(tx_buffer, nil, gcode)
     end)
   end
 
@@ -124,15 +132,15 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     |> Enum.reduce(txb, fn
       :x, tx_buffer ->
         FarmbotCore.Logger.debug(3, "Finding home on x")
-        TxBuffer.push(tx_buffer, {nil, "F11"})
+        TxBuffer.push(tx_buffer, nil, GCode.new(:F11, []))
 
       :y, tx_buffer ->
         FarmbotCore.Logger.debug(3, "Finding home on y")
-        TxBuffer.push(tx_buffer, {nil, "F12"})
+        TxBuffer.push(tx_buffer, nil, GCode.new(:F12, []))
 
       :z, tx_buffer ->
         FarmbotCore.Logger.debug(3, "Finding home on z")
-        TxBuffer.push(tx_buffer, {nil, "F13"})
+        TxBuffer.push(tx_buffer, nil, GCode.new(:F13, []))
     end)
   end
 end

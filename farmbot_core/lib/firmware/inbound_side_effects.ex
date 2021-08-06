@@ -13,21 +13,34 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   require Logger
   require FarmbotCore.Logger
 
-  def process(state, gcode) do
+  def process(state, gcode_list) do
     # Spawn() so that LED problems don't cause FW Handler to
     # hang or crash
     unless UARTCoreSupport.locked?(), do: spawn(Leds, :red, [:solid])
 
     if state.logs_enabled do
-      gcode |> Enum.map(&inspect/1) |> Enum.map(&Logger.debug/1)
+      reject = [
+        :current_position,
+        :idle,
+        :encoder_position_raw,
+        :encoder_position_scaled,
+        :end_stops_report
+      ]
+
+      gcode_list
+      |> Enum.map(fn {k, _v} = gcode ->
+        unless Enum.member?(reject, k) do
+          Logger.debug(inspect(gcode))
+        end
+      end)
     end
 
-    state = Enum.reduce(gcode, state, &reduce/2)
+    state = Enum.reduce(gcode_list, state, &reduce/2)
     %{state | rx_count: state.rx_count + 1}
   end
 
   defp reduce({:debug_message, string}, state) do
-    FarmbotCore.Firmware.LogHandler.handle(string)
+    Logger.info("Firmware Message: " <> string)
     state
   end
 
@@ -120,12 +133,13 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
     state
   end
 
-  defp reduce({:error, %{queue: q_float}}, state) do
+  defp reduce({:error, %{queue: q_float} = code}, state) do
     idle()
+    err_info = {trunc(q_float), trunc(Map.get(code, :value1) || 0.0)}
 
     next_txb =
       state.tx_buffer
-      |> TxBuffer.process_error(trunc(q_float))
+      |> TxBuffer.process_error(err_info)
       |> TxBuffer.process_next_message(state.uart_pid)
 
     %{state | tx_buffer: next_txb}
