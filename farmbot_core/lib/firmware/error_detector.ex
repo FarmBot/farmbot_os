@@ -2,33 +2,16 @@ defmodule FarmbotCore.Firmware.ErrorDetector do
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCore.Firmware.GCode
-  # @no_error 0
-  # @emergency_stop 1
-  @timeout 2
-  # @stall_detected 3
-  # @calibration_error 4
-  # @invalid_command 14
-  # @no_config 15
+  # See `ErrorListEnum` in Farmbot Arduino firmware for
+  # complete list of error codes.
+  def detect(2), do: log("Movement timed out")
+  def detect(31), do: log_stall("X")
+  def detect(32), do: log_stall("Y")
+  def detect(33), do: log_stall("Z")
+  def detect(_), do: nil
 
-  def detect(@timeout, %GCode{}) do
-    FarmbotCore.Logger.error(1, "Movement timeout detected")
-  end
-
-  def detect(error_code, gcode_struct) do
-    Logger.info("Unhandled GCode error #{error_code}")
-    Logger.info("==== gcode_struct: #{inspect(gcode_struct)}")
-  end
-
-  # defp get_bad_axis(params) do
-  #   {axis, _value} =
-  #     params
-  #     |> Enum.filter(&is_axis?/1)
-  #     |> Enum.max_by(fn {_k, v} -> v end)
-
-  #   axis
-  # end
-
-  # defp is_axis?({axis, _value}) when axis in [:X, :Y, :Z], do: true
-  # defp is_axis?(_), do: false
+  # TODO: We could mark the map with stall points in the
+  #       function below.
+  defp log_stall(n), do: log("Stall detected on #{n} axis")
+  defp log(msg), do: FarmbotCore.Logger.error(1, msg)
 end

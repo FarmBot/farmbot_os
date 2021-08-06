@@ -84,8 +84,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   def process_echo(%State{} = state, echo), do: do_process_echo(state, echo)
 
   def process_error(%State{} = state, {queue, error_code}) do
-    current = state.current
-    if state.current, do: ErrorDetector.detect(error_code, current.gcode)
+    ErrorDetector.detect(error_code)
     reply(state, queue, {:error, nil})
   end
 
