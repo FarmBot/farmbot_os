@@ -54,9 +54,8 @@ defmodule FarmbotCeleryScript.StepRunner do
     error
   end
 
-  defp format_error(%MatchError{term: e}), do: format_error(e)
-  defp format_error(%CaseClauseError{term: e}), do: format_error(e)
-  defp format_error(%RuntimeError{message: e}), do: format_error(e)
+  defp format_error(%{message: e}), do: format_error(e)
+  defp format_error(%{term: e}), do: format_error(e)
   defp format_error({:badmatch, error}), do: format_error(error)
   defp format_error({:error, {:error, e}}), do: format_error(e)
   defp format_error({:error, {:badmatch, error}}), do: format_error({:error, error})
