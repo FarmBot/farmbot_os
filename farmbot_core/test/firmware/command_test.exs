@@ -19,6 +19,17 @@ defmodule FarmbotCore.Firmware.CommandTest do
     assert t.() == true
   end
 
+  test "lock / unlock" do
+    expect(UARTCore, :send_raw, 2, fn
+      "E" -> :ok
+      "F09" -> :ok
+      e -> raise "Unexpected: #{inspect(e)}"
+    end)
+
+    Command.lock()
+    Command.unlock()
+  end
+
   test "read_pin/2" do
     expect(UARTCore, :start_job, 1, fn gcode ->
       assert "F42 P13.00 M0.00" == gcode.string
@@ -127,6 +138,30 @@ defmodule FarmbotCore.Firmware.CommandTest do
   test "set_zero(:z)" do
     simple_case("set_zero(:z)", "F84 X0.00 Y0.00 Z1.00", fn ->
       Command.set_zero(:z)
+    end)
+  end
+
+  test "move_servo(pin, angle)" do
+    simple_case("move_servo(pin, angle)", "F61 P13.00 V179.00", fn ->
+      Command.move_servo(13, 179)
+    end)
+  end
+
+  test "update_param(param, val)" do
+    simple_case("update_param(param, val)", "F22 P1.00 V2.30", fn ->
+      Command.update_param(1, 2.3)
+    end)
+  end
+
+  test "write_pin(pin, value, mode)" do
+    simple_case("write_pin(pin, value, mode)", "F41 P3.00 V2.10 M0.00", fn ->
+      Command.write_pin(3, 2.1, 0)
+    end)
+  end
+
+  test "set_pin_io_mode(pin, mode)" do
+    simple_case("set_pin_io_mode(pin, mode)", "F43 P3.00 M0.00", fn ->
+      Command.set_pin_io_mode(3, 0)
     end)
   end
 end

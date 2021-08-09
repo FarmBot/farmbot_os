@@ -21,7 +21,6 @@ defmodule FarmbotCeleryScript.Compiler.Utils do
   def compile_block([ast | rest], cs_scope, acc) do
     case Compiler.compile(ast, cs_scope) do
       {_, _, _} = compiled -> compile_block(rest, cs_scope, acc ++ [compiled])
-      :unlock  = compiled -> compile_block(rest, cs_scope, acc ++ [compiled])
       compiled when is_list(compiled) -> compile_block(rest, cs_scope, acc ++ compiled)
     end
   end

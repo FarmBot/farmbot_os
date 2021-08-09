@@ -16,12 +16,14 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
       else
         "[Assertion] "
       end
+    lua_code = Compiler.celery_to_elixir(expression, cs_scope)
+    result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, cs_scope)
 
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
-      lua_code = unquote(Compiler.celery_to_elixir(expression, cs_scope))
-      result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, cs_scope)
+      cs_scope = unquote(cs_scope)
+      result = unquote(result)
       case result do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(

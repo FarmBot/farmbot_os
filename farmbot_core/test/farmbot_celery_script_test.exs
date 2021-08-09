@@ -9,6 +9,23 @@ defmodule FarmbotCeleryScriptTest do
 
   setup :verify_on_exit!
 
+  test "schedule/3" do
+    at = DateTime.utc_now()
+    ast = AST.decode(%{kind: :rpc_request, args: %{label: "X"}, body: []})
+    data = %{foo: :bar}
+
+    expect(FarmbotCeleryScript.Scheduler, :schedule, 1, fn actual_ast,
+                                                           actual_at,
+                                                           actual_data ->
+      assert actual_ast == ast
+      assert actual_at == at
+      assert actual_data == data
+      :ok
+    end)
+
+    assert :ok == FarmbotCeleryScript.schedule(ast, at, data)
+  end
+
   test "uses default values when no parameter is found" do
     sequence_ast =
       %{

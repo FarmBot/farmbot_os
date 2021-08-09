@@ -168,6 +168,44 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
+  test "compiles move_absolute with tool_id" do
+    expect(SysCalls.Stubs, :get_toolslot_for_tool, 1, fn
+      222 -> %{gantry_mounted: false, name: "X", x: 220, y: 221, z: 222}
+      id -> raise "Wrong id: #{id}"
+    end)
+
+    expect(SysCalls.Stubs, :move_absolute, 1, fn x, y, z, s ->
+      assert {219, 220, 221, 100} == {x, y, z, s}
+      :ok
+    end)
+
+    move_abs = %AST{
+      kind: :move_absolute,
+      args: %{
+        speed: 100,
+        location: %AST{
+          kind: :tool,
+          args: %{
+            tool_id: 222
+          }
+        },
+        offset: %AST{
+          kind: :coordinate,
+          args: %{x: -1, y: -1, z: -1}
+        }
+      },
+      body: []
+    }
+
+    {result, _} =
+      move_abs
+      |> Compiler.celery_to_elixir(Scope.new())
+      |> Macro.to_string()
+      |> Code.eval_string()
+
+    assert result == :ok
+  end
+
   test "compiles move_absolute no variables" do
     compiled =
       compile(%AST{

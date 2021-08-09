@@ -125,21 +125,9 @@ defmodule FarmbotCore.Firmware.Command do
     schedule(:F84, params)
   end
 
-  # === Not implemented??:
-  # F44(P, V, W T M) Set the value V on an arduino pin P,
-  # wait for time T in milliseconds, set value W on the
-  # arduino pin P in mode M (digital=0/analog=1)
-  def toggle_pin_maybe?() do
-    raise "Not used??"
-  end
-
   # F23(P, V) Update parameter (during calibration)
   def update_param(param, val) do
     schedule(:F22, P: param, V: val)
-  end
-
-  defp schedule(_command, parameters) when is_binary(parameters) do
-    raise "Dead code?"
   end
 
   defp schedule(command, parameters) do

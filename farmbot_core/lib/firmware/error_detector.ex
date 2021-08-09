@@ -13,5 +13,5 @@ defmodule FarmbotCore.Firmware.ErrorDetector do
   # TODO: We could mark the map with stall points in the
   #       function below.
   defp log_stall(n), do: log("Stall detected on #{n} axis")
-  defp log(msg), do: FarmbotCore.Logger.error(1, msg)
+  defp log(msg), do: msg
 end

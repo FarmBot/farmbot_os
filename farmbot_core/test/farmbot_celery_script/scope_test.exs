@@ -99,4 +99,11 @@ defmodule FarmbotCeleryScript.Compiler.ScopeTest do
     t = fn -> Scope.new(nil, @too_many_groups) |> Scope.expand() end
     assert_raise RuntimeError, "You can only use one point group at a time.", t
   end
+
+  test "crashes on bad variable names" do
+    {:error, msg} = Scope.fetch!(Scope.new(), "wrong")
+
+    assert msg ==
+             "Attempted to access variable \"wrong\", but no variables are declared."
+  end
 end

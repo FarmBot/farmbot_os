@@ -16,6 +16,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
             current: nil
 
   require Logger
+  require FarmbotCore.Logger
 
   def new() do
     %State{}
@@ -84,7 +85,12 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   def process_echo(%State{} = state, echo), do: do_process_echo(state, echo)
 
   def process_error(%State{} = state, {queue, error_code}) do
-    ErrorDetector.detect(error_code)
+    msg = ErrorDetector.detect(error_code)
+
+    if msg do
+      FarmbotCore.Logger.error(1, msg)
+    end
+
     reply(state, queue, {:error, nil})
   end
 

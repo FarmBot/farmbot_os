@@ -1,23 +1,38 @@
 defmodule FarmbotCeleryScript.CompilerGroupsTest do
   use ExUnit.Case
-  # use Mimic
+  use Mimic
 
-  # alias FarmbotCeleryScript.AST
-  # alias FarmbotCeleryScript.SysCalls.Stubs
-  # alias FarmbotCeleryScript.Compiler.Sequence
-  # alias FarmbotCeleryScript.Compiler.Scope
-  # setup :verify_on_exit!
+  alias FarmbotCeleryScript.Compiler.{Utils, Scope}
 
-  test "re-write this test" do
-    explanation = """
-    When this test was first written, overall understanding
-    of the codebase was low and so was test coverage.
-    We have a much better understanding of the legacy components
-    now, as well as improved unit test tooling.
+  setup :verify_on_exit!
 
-    Let's re-write this one.
-    """
+  test "add_init_logs" do
+    scope =
+      Scope.new()
+      |> Scope.set("__GROUP__", %{current_index: 4, size: 8})
 
-    assert explanation
+    [header, footer] =
+      Utils.add_init_logs([], scope, "test sequence")
+      |> Enum.map(fn ast ->
+        {fun, _} =
+          ast
+          |> Macro.to_string()
+          |> Code.eval_string()
+
+        fun
+      end)
+
+    expect(FarmbotCeleryScript.SysCalls, :sequence_init_log, 1, fn log ->
+      assert log == "[4/8] Starting test sequence"
+      :ok
+    end)
+
+    expect(FarmbotCeleryScript.SysCalls, :sequence_complete_log, 1, fn log ->
+      assert log == "Completed test sequence"
+      :ok
+    end)
+
+    assert :ok == header.()
+    assert :ok == footer.()
   end
 end
