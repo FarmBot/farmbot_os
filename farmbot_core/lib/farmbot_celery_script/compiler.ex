@@ -13,8 +13,6 @@ defmodule FarmbotCeleryScript.Compiler do
     false
   end
 
-  # @valid_entry_points [:sequence, :rpc_request, :execute]
-
   @typedoc """
   Compiled CeleryScript node should compile to an anon function.
   Entrypoint nodes such as
