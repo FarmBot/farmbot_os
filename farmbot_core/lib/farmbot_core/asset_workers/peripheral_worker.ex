@@ -74,7 +74,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     {:noreply, state}
   end
 
-  def handle_info({:step_complete, _, _}, state) do
+  def handle_info({:csvm_done, _, _}, state) do
     {:noreply, state}
   end
 

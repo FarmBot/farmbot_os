@@ -23,16 +23,10 @@ defmodule FarmbotCeleryScript.VariableTransformerTest do
     expected = [%{x: 1, y: 2, z: 3.4, args: %{x: 1, y: 2, z: 3.4}}]
     assert actual == expected
 
-    error1 = "UNEXPECTED VARIABLE SCHEMA: :misc"
     error2 = "LUA ERROR: Sequence does not contain variable"
 
-    expect(FarmbotCeleryScript.SysCalls, :log, 2, fn
-      ^error2 -> :ok
-      ^error1 -> :ok
-    end)
-
     actual = VariableTransformer.run!(:misc)
-    expected = [:misc, error1]
+    expected = [:misc]
     assert actual == expected
 
     actual = VariableTransformer.run!(nil)

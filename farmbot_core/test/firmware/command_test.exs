@@ -1,24 +1,40 @@
 defmodule FarmbotCore.Firmware.CommandTest do
   require Helpers
   use ExUnit.Case
-  alias FarmbotCore.Firmware.{Command, UARTCore}
   use Mimic
+  alias FarmbotCore.Firmware.{Command, UARTCore}
+  alias FarmbotCore.BotState
+
   setup :verify_on_exit!
 
   def simple_case(title, expected_gcode, t) do
     expect(UARTCore, :start_job, 1, fn gcode ->
-      actual = inspect(gcode)
+      actual = gcode.string
 
-      assert gcode == expected_gcode,
-             "Simple test case #{title} failed: #{actual}"
+      message =
+        "Simple test case #{title} failed. " <>
+          "Expected #{inspect(expected_gcode)}, got #{inspect(actual)}"
+
+      assert actual == expected_gcode, message
     end)
 
     assert t.() == true
   end
 
+  test "lock / unlock" do
+    expect(UARTCore, :send_raw, 2, fn
+      "E" -> :ok
+      "F09" -> :ok
+      e -> raise "Unexpected: #{inspect(e)}"
+    end)
+
+    Command.lock()
+    Command.unlock()
+  end
+
   test "read_pin/2" do
     expect(UARTCore, :start_job, 1, fn gcode ->
-      assert "F42 P13.00 M0.00" == gcode
+      assert "F42 P13.00 M0.00" == gcode.string
       {:ok, :not_really_used_just_stubbed}
     end)
 
@@ -41,16 +57,37 @@ defmodule FarmbotCore.Firmware.CommandTest do
     simple_case("go_home()", "G28", fn -> Command.go_home() end)
   end
 
+  def stub_position!() do
+    expect(BotState, :fetch, 1, fn ->
+      %{location_data: %{position: %{x: 1.0, y: 2.0, z: 3.0}}}
+    end)
+  end
+
   test "go_home(\"x\")" do
-    simple_case("go_home(\"x\")", "F84 X1 Y0 Z0", fn -> Command.go_home("x") end)
+    stub_position!()
+    gcode = "G00 X0.00 Y2.00 Z3.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"x\")", gcode, fn ->
+      Command.go_home("x")
+    end)
   end
 
   test "go_home(\"y\")" do
-    simple_case("go_home(\"y\")", "F84 X0 Y1 Z0", fn -> Command.go_home("y") end)
+    stub_position!()
+    gcode = "G00 X1.00 Y0.00 Z3.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"y\")", gcode, fn ->
+      Command.go_home("y")
+    end)
   end
 
   test "go_home(\"z\")" do
-    simple_case("go_home(\"z\")", "F84 X0 Y0 Z1", fn -> Command.go_home("z") end)
+    stub_position!()
+    gcode = "G00 X1.00 Y2.00 Z0.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"z\")", gcode, fn ->
+      Command.go_home("z")
+    end)
   end
 
   test "find_home(:x)" do
@@ -104,34 +141,44 @@ defmodule FarmbotCore.Firmware.CommandTest do
   end
 
   test "set_zero(:x)" do
-    simple_case("set_zero(:x)", "F84 X1 Y0 Z0", fn -> Command.set_zero(:x) end)
+    simple_case("set_zero(:x)", "F84 X1.00 Y0.00 Z0.00", fn ->
+      Command.set_zero(:x)
+    end)
   end
 
   test "set_zero(:y)" do
-    simple_case("set_zero(:y)", "F84 X0 Y1 Z0", fn -> Command.set_zero(:y) end)
+    simple_case("set_zero(:y)", "F84 X0.00 Y1.00 Z0.00", fn ->
+      Command.set_zero(:y)
+    end)
   end
 
   test "set_zero(:z)" do
-    simple_case("set_zero(:z)", "F84 X0 Y0 Z1", fn -> Command.set_zero(:z) end)
+    simple_case("set_zero(:z)", "F84 X0.00 Y0.00 Z1.00", fn ->
+      Command.set_zero(:z)
+    end)
   end
 
-  # test "f22({param, val})" do
-  #   simple_case(
-  #     "f22({param, val})",
-  #     "f22({param, val})",
-  #     fn -> Command.f22({param,val) end
-  #   )
-  # end
+  test "move_servo(pin, angle)" do
+    simple_case("move_servo(pin, angle)", "F61 P13.00 V179.00", fn ->
+      Command.move_servo(13, 179)
+    end)
+  end
 
-  # test "lock()" do
-  #   simple_case("lock()", "lock()", fn -> Command.lock() end )
-  # end
+  test "update_param(param, val)" do
+    simple_case("update_param(param, val)", "F22 P1.00 V2.30", fn ->
+      Command.update_param(1, 2.3)
+    end)
+  end
 
-  # test "unlock()" do
-  #   simple_case(
-  #     "unlock()",
-  #     "unlock()",
-  #     fn -> Command.unlock() end
-  #   )
-  # end
+  test "write_pin(pin, value, mode)" do
+    simple_case("write_pin(pin, value, mode)", "F41 P3.00 V2.10 M0.00", fn ->
+      Command.write_pin(3, 2.1, 0)
+    end)
+  end
+
+  test "set_pin_io_mode(pin, mode)" do
+    simple_case("set_pin_io_mode(pin, mode)", "F43 P3.00 M0.00", fn ->
+      Command.set_pin_io_mode(3, 0)
+    end)
+  end
 end

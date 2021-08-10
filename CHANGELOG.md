@@ -1,5 +1,14 @@
 # Changelog
 
+# 14.3.0
+
+ * Genesis and Express firmware updates.
+ * Ability to use more than one variable per sequence.
+ * Ability for Lua developers to see current point group via `__GROUP__` sequence variable.
+ * Improved CeleryScript / RPC error reporting.
+ * Fix bug where stall was reported as timeout.
+ * Report axis name when detecting stalls.
+
 # 14.2.2
 
  * Genesis and Express firmware updates.

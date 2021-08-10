@@ -58,11 +58,11 @@ defmodule FarmbotExt.RPCHandlerTest do
     assert is_number(rpc_record.started_at)
     assert rpc_record.label
     refute rpc_record.timer
-    {:noreply, state3} = RPC.handle_info({:step_complete, ref, :ok}, state2)
+    {:noreply, state3} = RPC.handle_info({:csvm_done, ref, :ok}, state2)
     assert state3.rpc_requests == %{}
   end
 
-  test "handle_info({:step_complete, ref, {:error, reason}}, state)" do
+  test "handle_info({:csvm_done, ref, {:error, reason}}, state)" do
     fake_ref = :fake_ref
     reason = "unit testing"
     fake_timer = "fake_timer"
@@ -74,7 +74,7 @@ defmodule FarmbotExt.RPCHandlerTest do
       rpc_requests: %{fake_ref => %{label: fake_label, timer: fake_timer}}
     }
 
-    msg = {:step_complete, fake_ref, {:error, reason}}
+    msg = {:csvm_done, fake_ref, {:error, reason}}
 
     expected_state = %FarmbotExt.MQTT.RPCHandler{
       client_id: "device_321",

@@ -5,19 +5,13 @@ defmodule FarmbotCeleryScript.Compiler do
   """
   require Logger
 
-  alias FarmbotCeleryScript.{
-    AST,
-    Compiler,
-    Compiler.IdentifierSanitizer
-  }
+  alias FarmbotCeleryScript.{AST, Compiler}
 
   @doc "Returns current debug mode value"
   def debug_mode?() do
     # Set this to `true` when debuging.
     false
   end
-
-  @valid_entry_points [:sequence, :rpc_request]
 
   @typedoc """
   Compiled CeleryScript node should compile to an anon function.
@@ -33,7 +27,7 @@ defmodule FarmbotCeleryScript.Compiler do
 
   `rpc_request` will be compiled to something like:
   ```
-  fn params ->
+  fn ->
     [
       # Body of the `rpc_request` compiled in here.
     ]
@@ -50,97 +44,75 @@ defmodule FarmbotCeleryScript.Compiler do
   @doc """
   Recursive function that will emit Elixir AST from CeleryScript AST.
   """
-  @spec compile(AST.t(), Keyword.t()) :: [compiled()]
-  def compile(ast, env \\ [])
-
-  def compile(%AST{kind: :abort}, _env) do
+  def compile(%AST{kind: :abort}, _cs_scope) do
     fn -> {:error, "aborted"} end
   end
 
-  def compile(%AST{kind: kind} = ast, env) when kind in @valid_entry_points do
-    compile_entry_point(compile_ast(ast, env), env, [])
+  # Every @valid_entry_point has its own compiler, but there is some
+  # common logic involved in the compilation of both, therefore,
+  # we need a common entrypoint for both.
+  def compile(%AST{} = ast, cs_scope) do
+    ast
+    |> celery_to_elixir(cs_scope)
+    |> print_compiled_code()
   end
 
-  def compile_entry_point([{_, new_env, _} = compiled | rest], env, acc) do
-    env = Keyword.merge(env, new_env)
-    debug_mode?() && print_compiled_code(compiled)
-    # entry points must be evaluated once more with the calling `env`
-    # to return a list of compiled `steps`
+  defdelegate assertion(ast, cs_scope), to: Compiler.Assertion
+  defdelegate calibrate(ast, cs_scope), to: Compiler.AxisControl
+  defdelegate coordinate(ast, cs_scope), to: Compiler.DataControl
+  defdelegate execute_script(ast, cs_scope), to: Compiler.Farmware
+  defdelegate execute(ast, cs_scope), to: Compiler.Execute
+  defdelegate find_home(ast, cs_scope), to: Compiler.AxisControl
+  defdelegate home(ast, cs_scope), to: Compiler.AxisControl
+  defdelegate install_first_party_farmware(ast, cs_scope), to: Compiler.Farmware
+  defdelegate lua(ast, cs_scope), to: Compiler.Lua
+  defdelegate move_absolute(ast, cs_scope), to: Compiler.AxisControl
+  defdelegate move_relative(ast, cs_scope), to: Compiler.AxisControl
+  defdelegate move(ast, cs_scope), to: Compiler.Move
+  defdelegate named_pin(ast, cs_scope), to: Compiler.DataControl
+  defdelegate point(ast, cs_scope), to: Compiler.DataControl
+  defdelegate read_pin(ast, cs_scope), to: Compiler.PinControl
+  defdelegate rpc_request(ast, cs_scope), to: Compiler.RPCRequest
+  defdelegate sequence(ast, cs_scope), to: Compiler.Sequence
+  defdelegate set_pin_io_mode(ast, cs_scope), to: Compiler.PinControl
+  defdelegate set_servo_angle(ast, cs_scope), to: Compiler.PinControl
+  defdelegate set_user_env(ast, cs_scope), to: Compiler.Farmware
+  defdelegate take_photo(ast, cs_scope), to: Compiler.Farmware
+  defdelegate toggle_pin(ast, cs_scope), to: Compiler.PinControl
+  defdelegate tool(ast, cs_scope), to: Compiler.DataControl
+  defdelegate unquote(:_if)(ast, cs_scope), to: Compiler.If
+  defdelegate update_farmware(ast, cs_scope), to: Compiler.Farmware
+  defdelegate update_resource(ast, cs_scope), to: Compiler.UpdateResource
+  # defdelegate variable_declaration(ast, cs_scope), to: Compiler.VariableDeclaration
+  defdelegate write_pin(ast, cs_scope), to: Compiler.PinControl
+  defdelegate zero(ast, cs_scope), to: Compiler.AxisControl
 
-    # TODO: investigate why i have to turn this to a string
-    # before eval ing it?
-    # case Code.eval_quoted(compiled, [], __ENV__) do
-    case Macro.to_string(compiled) |> Code.eval_string(new_env, __ENV__) do
-      {fun, new_env} when is_function(fun, 1) ->
-        env = Keyword.merge(env, new_env)
-        compile_entry_point(rest, env, acc ++ apply(fun, [env]))
+  def celery_to_elixir(ast_or_literal, _cs_scope)
 
-      {{:error, error}, _} ->
-        {:error, error}
-    end
-  end
-
-  def compile_entry_point([], _, acc) do
-    acc
-  end
-
-  defdelegate assertion(ast, env), to: Compiler.Assertion
-  defdelegate calibrate(ast, env), to: Compiler.AxisControl
-  defdelegate coordinate(ast, env), to: Compiler.DataControl
-  defdelegate execute_script(ast, env), to: Compiler.Farmware
-  defdelegate execute(ast, env), to: Compiler.Execute
-  defdelegate find_home(ast, env), to: Compiler.AxisControl
-  defdelegate home(ast, env), to: Compiler.AxisControl
-  defdelegate install_first_party_farmware(ast, env), to: Compiler.Farmware
-  defdelegate lua(ast, env), to: Compiler.Lua
-  defdelegate move_absolute(ast, env), to: Compiler.AxisControl
-  defdelegate move_relative(ast, env), to: Compiler.AxisControl
-  defdelegate move(ast, env), to: Compiler.Move
-  defdelegate named_pin(ast, env), to: Compiler.DataControl
-  defdelegate point(ast, env), to: Compiler.DataControl
-  defdelegate read_pin(ast, env), to: Compiler.PinControl
-  defdelegate rpc_request(ast, env), to: Compiler.RPCRequest
-  defdelegate sequence(ast, env), to: Compiler.Sequence
-  defdelegate set_pin_io_mode(ast, env), to: Compiler.PinControl
-  defdelegate set_servo_angle(ast, env), to: Compiler.PinControl
-  defdelegate set_user_env(ast, env), to: Compiler.Farmware
-  defdelegate take_photo(ast, env), to: Compiler.Farmware
-  defdelegate toggle_pin(ast, env), to: Compiler.PinControl
-  defdelegate tool(ast, env), to: Compiler.DataControl
-  defdelegate unquote(:_if)(ast, env), to: Compiler.If
-  defdelegate update_farmware(ast, env), to: Compiler.Farmware
-  defdelegate update_resource(ast, env), to: Compiler.UpdateResource
-  defdelegate variable_declaration(ast, env), to: Compiler.VariableDeclaration
-  defdelegate write_pin(ast, env), to: Compiler.PinControl
-  defdelegate zero(ast, env), to: Compiler.AxisControl
-
-  def compile_ast(ast_or_literal, env)
-
-  def compile_ast(%AST{kind: kind} = ast, env) do
+  def celery_to_elixir(%AST{kind: kind} = ast, cs_scope) do
     if function_exported?(__MODULE__, kind, 2),
-      do: apply(__MODULE__, kind, [ast, env]),
+      do: apply(__MODULE__, kind, [ast, cs_scope]),
       else: raise("no compiler for #{kind}")
   end
 
-  def compile_ast(lit, _env) when is_number(lit), do: lit
+  def celery_to_elixir(lit, _cs_scope) when is_number(lit), do: lit
+  def celery_to_elixir(lit, _cs_scope) when is_binary(lit), do: lit
 
-  def compile_ast(lit, _env) when is_binary(lit), do: lit
-
-  def nothing(_ast, _env) do
+  def nothing(_ast, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.nothing()
     end
   end
 
-  def abort(_ast, _env) do
+  def abort(_ast, _cs_scope) do
     quote location: :keep do
       Macro.escape({:error, "aborted"})
     end
   end
 
-  def wait(%{args: %{milliseconds: millis}}, env) do
+  def wait(%{args: %{milliseconds: millis}}, cs_scope) do
     quote location: :keep do
-      with millis when is_integer(millis) <- unquote(compile_ast(millis, env)) do
+      with millis when is_integer(millis) <- unquote(celery_to_elixir(millis, cs_scope)) do
         FarmbotCeleryScript.SysCalls.log("Waiting for #{millis} milliseconds")
         FarmbotCeleryScript.SysCalls.wait(millis)
       else
@@ -150,7 +122,7 @@ defmodule FarmbotCeleryScript.Compiler do
     end
   end
 
-  def send_message(args, env) do
+  def send_message(args, cs_scope) do
     %{args: %{message: msg, message_type: type}, body: channels} = args
     # body gets turned into a list of atoms.
     # Example:
@@ -167,89 +139,85 @@ defmodule FarmbotCeleryScript.Compiler do
 
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.send_message(
-        unquote(compile_ast(type, env)),
-        unquote(compile_ast(msg, env)),
+        unquote(celery_to_elixir(type, cs_scope)),
+        unquote(celery_to_elixir(msg, cs_scope)),
         unquote(channels)
       )
     end
   end
 
-  # compiles identifier into a variable.
-  # We have to use Elixir ast syntax here because
-  # var! doesn't work quite the way we want.
-  def identifier(%{args: %{label: var_name}}, env) do
-    var_name = IdentifierSanitizer.to_variable(var_name)
-
+  def identifier(%{args: %{label: var_name}}, _cs_scope) do
     quote location: :keep do
-      unquote({var_name, env, nil})
+      {:ok, var} = FarmbotCeleryScript.Compiler.Scope.fetch!(cs_scope, unquote(var_name))
+      var
     end
   end
 
-  def emergency_lock(_, _env) do
+  def emergency_lock(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.emergency_lock()
     end
   end
 
-  def emergency_unlock(_, _env) do
+  def emergency_unlock(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.emergency_unlock()
     end
   end
 
-  def read_status(_, _env) do
+  def read_status(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.read_status()
     end
   end
 
-  def sync(_, _env) do
+  def sync(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.sync()
     end
   end
 
-  def check_updates(_, _env) do
+  def check_updates(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.check_update()
     end
   end
 
-  def flash_firmware(%{args: %{package: package_name}}, env) do
+  def flash_firmware(%{args: %{package: package_name}}, cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.flash_firmware(
-        unquote(compile_ast(package_name, env))
+        unquote(celery_to_elixir(package_name, cs_scope))
       )
     end
   end
 
-  def power_off(_, _env) do
+  def power_off(_, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.power_off()
     end
   end
 
-  def reboot(%{args: %{package: "farmbot_os"}}, _env) do
+  def reboot(%{args: %{package: "farmbot_os"}}, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.reboot()
     end
   end
 
-  def reboot(%{args: %{package: "arduino_firmware"}}, _env) do
+  def reboot(%{args: %{package: "arduino_firmware"}}, _cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.firmware_reboot()
     end
   end
 
-  def factory_reset(%{args: %{package: package}}, env) do
+  def factory_reset(%{args: %{package: package}}, cs_scope) do
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.factory_reset(
-        unquote(compile_ast(package, env))
+        unquote(celery_to_elixir(package, cs_scope))
       )
     end
   end
 
-  def change_ownership(%{body: body}, env) do
+  def change_ownership(%{body: body}, cs_scope) do
     pairs =
       Map.new(body, fn %{args: %{label: label, value: value}} ->
         {label, value}
@@ -265,21 +233,22 @@ defmodule FarmbotCeleryScript.Compiler do
 
     quote location: :keep do
       FarmbotCeleryScript.SysCalls.change_ownership(
-        unquote(compile_ast(email, env)),
-        unquote(compile_ast(secret, env)),
-        unquote(compile_ast(server, env))
+        unquote(celery_to_elixir(email, cs_scope)),
+        unquote(celery_to_elixir(secret, cs_scope)),
+        unquote(celery_to_elixir(server, cs_scope))
       )
     end
   end
 
+  # Uncomment these lines if you
+  # need to inspect CeleryScript issue
   defp print_compiled_code(compiled) do
-    IO.puts("=== START ===")
-
+    # IO.puts("# === START ===")
+    # compiled
+    # |> Macro.to_string()
+    # |> Code.format_string!()
+    # |> IO.puts()
+    # IO.puts("# === END ===\n\n")
     compiled
-    |> Macro.to_string()
-    |> Code.format_string!()
-    |> IO.puts()
-
-    IO.puts("=== END ===\n\n")
   end
 end
