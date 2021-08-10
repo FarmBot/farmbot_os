@@ -58,7 +58,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
       assert log.message == formatted_msg
     end)
 
-    {:error, error_log} = Movement.move_absolute(1, 2, 3, 4)
+    {:error, error_log} = Movement.move_absolute(1, 2, 3, 4, 5, 6)
     assert formatted_msg == error_log
   end
 

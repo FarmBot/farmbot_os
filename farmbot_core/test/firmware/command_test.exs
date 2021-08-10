@@ -1,8 +1,10 @@
 defmodule FarmbotCore.Firmware.CommandTest do
   require Helpers
   use ExUnit.Case
-  alias FarmbotCore.Firmware.{Command, UARTCore}
   use Mimic
+  alias FarmbotCore.Firmware.{Command, UARTCore}
+  alias FarmbotCore.BotState
+
   setup :verify_on_exit!
 
   def simple_case(title, expected_gcode, t) do
@@ -55,20 +57,35 @@ defmodule FarmbotCore.Firmware.CommandTest do
     simple_case("go_home()", "G28", fn -> Command.go_home() end)
   end
 
+  def stub_position!() do
+    expect(BotState, :fetch, 1, fn ->
+      %{location_data: %{position: %{x: 1.0, y: 2.0, z: 3.0}}}
+    end)
+  end
+
   test "go_home(\"x\")" do
-    simple_case("go_home(\"x\")", "F84 X1.00 Y0.00 Z0.00", fn ->
+    stub_position!()
+    gcode = "G00 X0.00 Y2.00 Z3.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"x\")", gcode, fn ->
       Command.go_home("x")
     end)
   end
 
   test "go_home(\"y\")" do
-    simple_case("go_home(\"y\")", "F84 X0.00 Y1.00 Z0.00", fn ->
+    stub_position!()
+    gcode = "G00 X1.00 Y0.00 Z3.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"y\")", gcode, fn ->
       Command.go_home("y")
     end)
   end
 
   test "go_home(\"z\")" do
-    simple_case("go_home(\"z\")", "F84 X0.00 Y0.00 Z1.00", fn ->
+    stub_position!()
+    gcode = "G00 X1.00 Y2.00 Z0.00 A800.00 B800.00 C1000.00"
+
+    simple_case("go_home(\"z\")", gcode, fn ->
       Command.go_home("z")
     end)
   end
