@@ -78,18 +78,12 @@ defmodule FarmbotOS.SysCalls.Movement do
     |> finish_movement()
   end
 
-  @estopped "Cannot execute commands while E-stopped"
   def finish_movement(:ok), do: :ok
   def finish_movement({:ok, _}), do: :ok
   def finish_movement({:error, reason}), do: finish_movement(reason)
 
-  def finish_movement(:emergency_lock) do
-    finish_movement(@estopped)
-  end
-
-  def finish_movement(nil) do
-    {:error, "Movement error. See logs for details."}
-  end
+  def finish_movement(nil),
+    do: {:error, "Movement error. See logs for details."}
 
   def finish_movement(reason) do
     msg = "Movement failed. #{inspect(reason)}"

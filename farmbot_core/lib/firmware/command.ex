@@ -30,9 +30,9 @@ defmodule FarmbotCore.Firmware.Command do
   # Firmware has a bug where trying to go home on a single
   # axis fails. We can get around this limitation by faking
   # it with G00
-  def go_home("x"), do: set_zero(:x)
-  def go_home("y"), do: set_zero(:y)
-  def go_home("z"), do: set_zero(:z)
+  def go_home("x"), do: go_home(:x)
+  def go_home("y"), do: go_home(:y)
+  def go_home("z"), do: go_home(:z)
 
   def go_home(axis) do
     %{x: x, y: y, z: z} = location()
@@ -151,14 +151,15 @@ defmodule FarmbotCore.Firmware.Command do
   end
 
   defp location() do
-    if missing_cache?() do
+    pos = cached_position()
+
+    if Enum.member?(Map.values(pos), nil) do
       {:ok, pos} = report_current_position()
       pos
     else
-      cached_position()
+      pos
     end
   end
 
-  defp missing_cache?(), do: Enum.member?(Map.values(cached_position()), nil)
   defp cached_position(), do: BotState.fetch().location_data.position
 end
