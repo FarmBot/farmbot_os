@@ -10,7 +10,7 @@ defmodule FarmbotCore.FarmwareRuntimeTest do
     }
 
     error = {:error, "intentional error (unit test)"}
-    message = {:step_complete, state.scheduler_ref, error}
+    message = {:csvm_done, state.scheduler_ref, error}
     {:noreply, next_state} = FarmwareRuntime.handle_info(message, state)
     refute next_state.scheduler_ref
     assert_receive ^error, 5000

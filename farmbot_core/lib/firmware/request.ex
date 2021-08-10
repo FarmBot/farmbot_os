@@ -33,6 +33,6 @@ defmodule FarmbotCore.Firmware.Request do
   def new() do
   end
 
-  # Write some GCODE
+  # Write some GCode
   # Send the GCode
 end

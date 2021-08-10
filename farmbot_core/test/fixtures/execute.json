@@ -1,0 +1,59 @@
+{
+  "kind": "execute",
+  "args": {
+    "sequence_id": 1
+  },
+  "body": [
+    {
+      "kind": "parameter_application",
+      "args": {
+        "label": "var1",
+        "data_value": {
+          "kind": "coordinate",
+          "args": {
+            "x": 1,
+            "y": 2,
+            "z": 3
+          }
+        }
+      }
+    },
+    {
+      "kind": "parameter_declaration",
+      "args": {
+        "label": "var2",
+        "default_value": {
+          "kind": "tool",
+          "args": {
+            "tool_id": 222
+          }
+        }
+      }
+    },
+    {
+      "kind": "parameter_application",
+      "args": {
+        "label": "var3",
+        "data_value": {
+          "kind": "identifier",
+          "args": {
+            "label": "defined_elsewhere"
+          }
+        }
+      }
+    },
+    {
+      "kind": "variable_declaration",
+      "args": {
+        "label": "var4",
+        "data_value": {
+          "kind": "point",
+          "args": {
+            "pointer_type": "GenericPointer",
+            "pointer_id": 444
+          }
+        }
+      }
+    }
+  ]
+}

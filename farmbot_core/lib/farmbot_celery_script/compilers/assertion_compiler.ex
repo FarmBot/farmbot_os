@@ -1,6 +1,5 @@
 defmodule FarmbotCeleryScript.Compiler.Assertion do
   alias FarmbotCeleryScript.Compiler
-  import Compiler.Utils
   @doc "`Assert` is a internal node useful for self testing."
   def assertion(
         %{
@@ -10,23 +9,21 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             _then: then_ast
           },
           comment: comment
-        },
-        env
-      ) do
+        }, cs_scope) do
     comment_header =
       if comment do
         "[#{comment}] "
       else
         "[Assertion] "
       end
+    lua_code = Compiler.celery_to_elixir(expression, cs_scope)
+    result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, cs_scope)
 
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
-      # cmnt = unquote(comment)
-      lua_code = unquote(Compiler.compile_ast(expression, env))
-      result = FarmbotCeleryScript.Compiler.Lua.do_lua(lua_code, better_params)
-      # result = FarmbotCeleryScript.SysCalls.perform_lua(lua_code, [], cmnt)
+      cs_scope = unquote(cs_scope)
+      result = unquote(result)
       case result do
         {:error, reason} ->
           FarmbotCeleryScript.SysCalls.log_assertion(
@@ -71,7 +68,7 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             "#{comment_header}failed, recovering and continuing"
           )
 
-          unquote(compile_block(then_ast, env))
+          unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
 
         {:ok, _} when assertion_type == "abort_recover" ->
           FarmbotCeleryScript.SysCalls.log_assertion(
@@ -80,14 +77,11 @@ defmodule FarmbotCeleryScript.Compiler.Assertion do
             "#{comment_header}failed, recovering and aborting"
           )
 
-          then_block = unquote(compile_block(then_ast, env))
-
+          then_block = unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
+          abort = %FarmbotCeleryScript.AST{kind: :abort, args: %{}}
           then_block ++
             [
-              FarmbotCeleryScript.Compiler.compile(
-                %AST{kind: :abort, args: %{}},
-                []
-              )
+              FarmbotCeleryScript.Compiler.compile(abort, cs_scope)
             ]
       end
     end

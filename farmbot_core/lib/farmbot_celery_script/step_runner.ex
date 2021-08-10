@@ -3,35 +3,37 @@ defmodule FarmbotCeleryScript.StepRunner do
   Handles execution of compiled CeleryScript AST
   """
   alias FarmbotCeleryScript.{AST, Compiler}
+  alias FarmbotCeleryScript.Compiler.Scope
 
+  require Logger
   @doc """
   Steps through an entire AST.
   """
-  def step(listener, tag, %AST{} = ast) do
-    step(listener, tag, Compiler.compile(ast))
+  def begin(listener, tag, %AST{} = ast) do
+    # Maybe I should wrap this in a function that declares
+    # the `cs_scope` object?
+    do_step(listener, tag, Compiler.compile(ast, Scope.new()))
   end
 
-  def step(listener, tag, [fun | rest]) when is_function(fun, 0) do
+  def do_step(listener, tag, [fun | rest]) when is_function(fun, 0) do
     case execute(listener, tag, fun) do
-      [fun | _] = more when is_function(fun, 0) ->
-        step(listener, tag, more ++ rest)
-
-      {:error, reason} when is_binary(reason) ->
-        send(listener, {:step_complete, tag, {:error, reason}})
-        {:error, reason}
-
-      # Catch non string errors
-      {:error, reason} ->
-        send(listener, {:step_complete, tag, {:error, inspect(reason)}})
-        {:error, inspect(reason)}
-
-      _ ->
-        step(listener, tag, rest)
+      # The step returned a list of compiled function.
+      # We need to execute them next.
+      # Use case: `_if` blocks, `execute` calls, etc..
+      [_next_ast_or_fun | _] = more -> do_step(listener, tag, more ++ rest)
+      # The step failed for a specific reason.
+      {:error, _} = error -> not_ok(listener, tag, error)
+      _ -> do_step(listener, tag, rest)
     end
   end
 
-  def step(listener, tag, []) do
-    send(listener, {:step_complete, tag, :ok})
+  def do_step(listener, tag, [{_, _, _} = elixir_ast | rest]) do
+    {more, _env} = Macro.to_string(elixir_ast) |> Code.eval_string()
+    do_step(listener, tag, [more] ++ rest)
+  end
+
+  def do_step(listener, tag, []) do
+    send(listener, {:csvm_done, tag, :ok})
     :ok
   end
 
@@ -39,21 +41,26 @@ defmodule FarmbotCeleryScript.StepRunner do
     try do
       fun.()
     rescue
-      e ->
-        IO.warn("CeleryScript Exception: ", __STACKTRACE__)
-        result = {:error, Exception.message(e)}
-        send(listener, {:step_complete, tag, result})
-        result
+      e -> not_ok(listener, tag, e, __STACKTRACE__)
     catch
-      _kind, error when is_binary(error) ->
-        IO.warn("CeleryScript Error: #{error}", __STACKTRACE__)
-        send(listener, {:step_complete, tag, {:error, error}})
-        {:error, error}
-
-      _kind, error ->
-        IO.warn("CeleryScript Error: #{inspect(error)}", __STACKTRACE__)
-        send(listener, {:step_complete, tag, {:error, inspect(error)}})
-        {:error, inspect(error)}
+      _kind, e -> not_ok(listener, tag, e, __STACKTRACE__)
     end
   end
+
+  defp not_ok(listener, tag, original_error, trace \\ nil) do
+    Logger.warn("CeleryScript Exception: #{inspect(original_error)} / #{inspect(trace)}")
+    error = format_error(original_error)
+    send(listener, {:csvm_done, tag, error})
+    error
+  end
+
+  defp format_error(%{message: e}), do: format_error(e)
+  defp format_error(%{term: e}), do: format_error(e)
+  defp format_error({:badmatch, error}), do: format_error(error)
+  defp format_error({:error, {:error, e}}), do: format_error(e)
+  defp format_error({:error, {:badmatch, error}}), do: format_error({:error, error})
+  defp format_error({:error, e}) when is_binary(e), do: {:error, e}
+  defp format_error({:error, e}), do: {:error, inspect(e)}
+  defp format_error(err) when is_binary(err), do: {:error, err}
+  defp format_error(err), do: {:error, inspect(err)}
 end

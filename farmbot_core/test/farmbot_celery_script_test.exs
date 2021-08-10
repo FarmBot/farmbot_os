@@ -5,10 +5,26 @@ defmodule FarmbotCeleryScriptTest do
   alias FarmbotCeleryScript.AST
   alias FarmbotCeleryScript.SysCalls.Stubs
 
-  import ExUnit.CaptureIO
   import ExUnit.CaptureLog
 
   setup :verify_on_exit!
+
+  test "schedule/3" do
+    at = DateTime.utc_now()
+    ast = AST.decode(%{kind: :rpc_request, args: %{label: "X"}, body: []})
+    data = %{foo: :bar}
+
+    expect(FarmbotCeleryScript.Scheduler, :schedule, 1, fn actual_ast,
+                                                           actual_at,
+                                                           actual_data ->
+      assert actual_ast == ast
+      assert actual_at == at
+      assert actual_data == data
+      :ok
+    end)
+
+    assert :ok == FarmbotCeleryScript.schedule(ast, at, data)
+  end
 
   test "uses default values when no parameter is found" do
     sequence_ast =
@@ -54,10 +70,6 @@ defmodule FarmbotCeleryScriptTest do
 
     me = self()
 
-    expect(Stubs, :coordinate, 2, fn x, y, z ->
-      %{x: x, y: y, z: z}
-    end)
-
     expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
       :ok
     end)
@@ -83,8 +95,7 @@ defmodule FarmbotCeleryScriptTest do
     result = FarmbotCeleryScript.execute(execute_ast, execute_ast)
     assert {:error, "failed to read pin!"} = result
 
-    assert_receive {:step_complete, ^execute_ast,
-                    {:error, "failed to read pin!"}}
+    assert_receive {:csvm_done, ^execute_ast, {:error, "failed to read pin!"}}
   end
 
   test "regular exceptions still occur" do
@@ -103,12 +114,12 @@ defmodule FarmbotCeleryScriptTest do
     end)
 
     io =
-      capture_io(:stderr, fn ->
+      capture_log(fn ->
         assert {:error, "big oops"} ==
                  FarmbotCeleryScript.execute(execute_ast, execute_ast)
       end)
 
     assert io =~ "CeleryScript Exception"
-    assert_receive {:step_complete, ^execute_ast, {:error, "big oops"}}
+    assert_receive {:csvm_done, ^execute_ast, {:error, "big oops"}}
   end
 end

@@ -163,12 +163,12 @@ defmodule FarmbotCore.FarmwareRuntime do
     {:noreply, state}
   end
 
-  def handle_info({:step_complete, ref, {:error, reason}}, %{scheduler_ref: ref} = state) do
+  def handle_info({:csvm_done, ref, {:error, reason}}, %{scheduler_ref: ref} = state) do
     send(state.caller, {:error, reason})
     {:noreply, %{state | scheduler_ref: nil, context: :error}}
   end
 
-  def handle_info({:step_complete, ref, :ok}, %{scheduler_ref: ref} = state) do
+  def handle_info({:csvm_done, ref, :ok}, %{scheduler_ref: ref} = state) do
     result = %AST{kind: :rpc_ok, args: %{label: state.rpc.args.label}, body: []}
 
     ipc = add_header(result)

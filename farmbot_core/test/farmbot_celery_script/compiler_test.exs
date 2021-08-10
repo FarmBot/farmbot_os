@@ -3,9 +3,9 @@ defmodule FarmbotCeleryScript.CompilerTest do
   use Mimic
 
   alias FarmbotCeleryScript.{AST, Compiler}
+  alias FarmbotCeleryScript.Compiler.Scope
   # Only required to compile
   alias FarmbotCeleryScript.SysCalls, warn: false
-  alias FarmbotCeleryScript.Compiler.IdentifierSanitizer
 
   test "change_ownership" do
     email = "t@g.com"
@@ -28,7 +28,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
     end)
 
     result =
-      FarmbotCeleryScript.Compiler.change_ownership(%{body: body}, [])
+      FarmbotCeleryScript.Compiler.change_ownership(%{body: body}, Scope.new())
       |> Code.eval_quoted()
 
     assert result == {:ok, []}
@@ -48,7 +48,7 @@ defmodule FarmbotCeleryScript.CompilerTest do
     end)
 
     result =
-      FarmbotCeleryScript.Compiler.send_message(args, [])
+      FarmbotCeleryScript.Compiler.send_message(args, Scope.new())
       |> Code.eval_quoted()
 
     assert result == {:ok, []}
@@ -66,7 +66,14 @@ defmodule FarmbotCeleryScript.CompilerTest do
               kind: :parameter_declaration,
               args: %{
                 label: "provided_by_caller",
-                default_value: 100
+                default_value: %AST{
+                  kind: :coordinate,
+                  args: %{
+                    x: 333,
+                    y: 444,
+                    z: 555
+                  }
+                }
               }
             }
           ]
@@ -77,140 +84,22 @@ defmodule FarmbotCeleryScript.CompilerTest do
       ]
     }
 
-    [body_item] = Compiler.compile(sequence)
-    assert body_item.() == 100
-
-    # The compiler expects the `env` argument to be already sanatized.
-    # When supplying the env for this test, we need to make sure the
-    # `provided_by_caller` variable name is sanatized
-    sanatized_env = [
-      {IdentifierSanitizer.to_variable("provided_by_caller"), 900}
-    ]
-
-    [body_item] = Compiler.compile(sequence, sanatized_env)
-    assert body_item.() == 900
-
-    celery_env = [
-      %AST{
-        kind: :parameter_application,
-        args: %{
-          label: "provided_by_caller",
-          data_value: 600
-        }
-      }
-    ]
-
-    compiled_celery_env =
-      Compiler.Utils.compile_params_to_function_args(celery_env, [])
-
-    [body_item] = Compiler.compile(sequence, compiled_celery_env)
-    assert body_item.() == 600
-  end
-
-  test "compiles a sequence with no body" do
-    sequence = %AST{
-      args: %{
-        locals: %AST{
-          args: %{},
-          body: [],
-          comment: nil,
-          kind: :scope_declaration
-        },
-        version: 20_180_209
-      },
-      body: [],
-      comment: "This is the root",
-      kind: :sequence
-    }
-
-    body = Compiler.compile(sequence)
-    assert body == []
-  end
-
-  test "identifier sanitization" do
-    label = "System.cmd(\"echo\", [\"lol\"])"
-    value_ast = AST.Factory.new("coordinate", x: 1, y: 1, z: 1)
-    identifier_ast = AST.Factory.new("identifier", label: label)
-
-    parameter_application_ast =
-      AST.Factory.new("parameter_application",
-        label: label,
-        data_value: value_ast
-      )
-
-    celery_ast = %AST{
-      kind: :sequence,
-      args: %{
-        locals: %{
-          kind: :scope_declaration,
-          args: %{},
-          body: [
-            parameter_application_ast
-          ]
-        }
-      },
-      body: [
-        identifier_ast
-      ]
-    }
-
-    elixir_ast = Compiler.compile_ast(celery_ast, [])
-
-    elixir_code =
-      elixir_ast
+    {executable, _} =
+      sequence
+      |> Compiler.compile(Scope.new())
+      |> Enum.at(0)
       |> Macro.to_string()
-      |> Code.format_string!()
-      |> IO.iodata_to_binary()
+      |> Code.eval_string()
 
-    # var_name = Compiler.IdentifierSanitizer.to_variable(label)
+    variable =
+      executable
+      |> apply([])
+      |> Enum.at(1)
+      |> apply([])
 
-    assert elixir_code =~
-             strip_nl("""
-             [
-               fn params ->
-                 _ = inspect(params)
-                 unsafe_U3lzdGVtLmNtZCgiZWNobyIsIFsibG9sIl0p = FarmbotCeleryScript.SysCalls.coordinate(1, 1, 1)
-
-                 better_params = %{
-                   "System.cmd(\\"echo\\", [\\"lol\\"])" => %FarmbotCeleryScript.AST{
-                     args: %{x: 1, y: 1, z: 1},
-                     body: [],
-                     comment: nil,
-                     kind: :coordinate,
-                     meta: nil
-                   }
-                 }
-
-                 _ = inspect(better_params)
-                 [fn -> unsafe_U3lzdGVtLmNtZCgiZWNobyIsIFsibG9sIl0p end]
-               end
-             ]
-             """)
-
-    refute String.contains?(elixir_code, label)
-    {[fun], _} = Code.eval_string(elixir_code, [], __ENV__)
-    assert is_function(fun, 1)
-  end
-
-  test "compiles execute" do
-    compiled =
-      compile(%AST{
-        kind: :execute,
-        args: %{sequence_id: 100},
-        body: []
-      })
-
-    assert compiled ==
-             strip_nl("""
-             case(FarmbotCeleryScript.SysCalls.get_sequence(100)) do
-               %FarmbotCeleryScript.AST{} = ast ->
-                 env = []
-                 FarmbotCeleryScript.Compiler.compile(ast, env)
-
-               error ->
-                 error
-             end
-             """)
+    assert variable.args.x == 333
+    assert variable.args.y == 444
+    assert variable.args.z == 555
   end
 
   test "compiles execute_script" do
@@ -279,6 +168,44 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
+  test "compiles move_absolute with tool_id" do
+    expect(SysCalls.Stubs, :get_toolslot_for_tool, 1, fn
+      222 -> %{gantry_mounted: false, name: "X", x: 220, y: 221, z: 222}
+      id -> raise "Wrong id: #{id}"
+    end)
+
+    expect(SysCalls.Stubs, :move_absolute, 1, fn x, y, z, s ->
+      assert {219, 220, 221, 100} == {x, y, z, s}
+      :ok
+    end)
+
+    move_abs = %AST{
+      kind: :move_absolute,
+      args: %{
+        speed: 100,
+        location: %AST{
+          kind: :tool,
+          args: %{
+            tool_id: 222
+          }
+        },
+        offset: %AST{
+          kind: :coordinate,
+          args: %{x: -1, y: -1, z: -1}
+        }
+      },
+      body: []
+    }
+
+    {result, _} =
+      move_abs
+      |> Compiler.celery_to_elixir(Scope.new())
+      |> Macro.to_string()
+      |> Code.eval_string()
+
+    assert result == :ok
+  end
+
   test "compiles move_absolute no variables" do
     compiled =
       compile(%AST{
@@ -297,20 +224,10 @@ defmodule FarmbotCeleryScript.CompilerTest do
         body: []
       })
 
-    assert compiled ==
-             strip_nl("""
-             with(
-               %{x: locx, y: locy, z: locz} = FarmbotCeleryScript.SysCalls.coordinate(100, 100, 100),
-               %{x: offx, y: offy, z: offz} = FarmbotCeleryScript.SysCalls.coordinate(-20, -20, -20)
-             ) do
-               [x, y, z] = [locx + offx, locy + offy, locz + offz]
-               x_str = FarmbotCeleryScript.FormatUtil.format_float(x)
-               y_str = FarmbotCeleryScript.FormatUtil.format_float(y)
-               z_str = FarmbotCeleryScript.FormatUtil.format_float(z)
-               FarmbotCeleryScript.SysCalls.log("Moving to (\#{x_str}, \#{y_str}, \#{z_str})", true)
-               FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)
-             end
-             """)
+    expected =
+      "[x, y, z] = [100 + -20, 100 + -20, 100 + -20] x_str = FarmbotCeleryScript.FormatUtil.format_float(x) y_str = FarmbotCeleryScript.FormatUtil.format_float(y) z_str = FarmbotCeleryScript.FormatUtil.format_float(z) FarmbotCeleryScript.SysCalls.log(\"Moving to (\#{x_str}, \#{y_str}, \#{z_str})\", true) FarmbotCeleryScript.SysCalls.move_absolute(x, y, z, 100)"
+
+    assert compiled == expected
   end
 
   test "compiles move_relative" do
@@ -347,21 +264,21 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
-  test "compiles write_pin" do
-    compiled =
-      compile(%AST{
-        kind: :write_pin,
-        args: %{pin_number: 17, pin_mode: 0, pin_value: 1}
-      })
+  # test "compiles write_pin" do
+  #   compiled =
+  #     compile(%AST{
+  #       kind: :write_pin,
+  #       args: %{pin_number: 17, pin_mode: 0, pin_value: 1}
+  #     })
 
-    expected =
-      "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
-        "FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value))" <>
-        " do\n  me = FarmbotCeleryScript.Compiler.PinControl\n" <>
-        "  me.conclude(pin, mode, value)\nend"
+  #   expected =
+  #     "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
+  #       "FarmbotCeleryScript.SysCalls.write_pin(pin, mode, value))" <>
+  #       " do\n  me = FarmbotCeleryScript.Compiler.PinControl\n" <>
+  #       "  me.conclude(pin, mode, value)\nend"
 
-    assert compiled == expected
-  end
+  #   assert compiled == expected
+  # end
 
   test "compiles read pin" do
     compiled =
@@ -410,26 +327,9 @@ defmodule FarmbotCeleryScript.CompilerTest do
              """)
   end
 
-  test "`update_resource`: " do
-    compiled =
-      "test/fixtures/mark_variable_removed.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> AST.decode()
-      |> compile()
-
-    x =
-      strip_nl(
-        "[\n  fn params ->\n    _ = inspect(params)\n\n    (\n      unsafe_cGFyZW50 =\n        Keyword.get(params, :unsafe_cGFyZW50, FarmbotCeleryScript.SysCalls.coordinate(1, 2, 3))\n\n      _ = unsafe_cGFyZW50\n    )\n\n    better_params = %{}\n    _ = inspect(better_params)\n\n    [\n      fn ->\n        me = FarmbotCeleryScript.Compiler.UpdateResource\n\n        variable = %FarmbotCeleryScript.AST{\n          args: %{label: \"parent\"},\n          body: [],\n          comment: nil,\n          kind: :identifier,\n          meta: nil\n        }\n\n        update = %{\"plant_stage\" => \"removed\"}\n\n        case(variable) do\n          %AST{kind: :identifier} ->\n            args = Map.fetch!(variable, :args)\n            label = Map.fetch!(args, :label)\n            resource = Map.fetch!(better_params, label)\n            me.do_update(resource, update)\n\n          %AST{kind: :point} ->\n            me.do_update(variable.args(), update)\n\n          %AST{kind: :resource} ->\n            me.do_update(variable.args(), update)\n\n          res ->\n            raise(\"Resource error. Please notfiy support: \#{inspect(res)}\")\n        end\n      end\n    ]\n  end\n]"
-      )
-
-    assert compiled == x
-  end
-
   test "`abort`" do
-    fake_env = []
     ast = %AST{kind: :abort}
-    func = Compiler.compile(ast, fake_env)
+    func = Compiler.compile(ast, Scope.new())
     assert func.() == {:error, "aborted"}
   end
 
@@ -457,74 +357,24 @@ defmodule FarmbotCeleryScript.CompilerTest do
       meta: nil
     }
 
-    result = Compiler.compile(example)
+    result = Compiler.compile(example, Scope.new())
     # Previously, this would crash because
-    # `better_params` was not declared.
+    # `cs_scope` was not declared.
     assert result
-  end
-
-  test "`update_resource`: Multiple fields of `resource` type." do
-    compiled =
-      "test/fixtures/update_resource_multi.json"
-      |> File.read!()
-      |> Jason.decode!()
-      |> AST.decode()
-      |> compile()
-
-    assert compiled ==
-             strip_nl("""
-             [
-               fn params ->
-                 _ = inspect(params)
-                 better_params = %{}
-                 _ = inspect(better_params)
-
-                 [
-                   fn ->
-                     me = FarmbotCeleryScript.Compiler.UpdateResource
-
-                     variable = %FarmbotCeleryScript.AST{
-                       args: %{resource_id: 23, resource_type: "Plant"},
-                       body: [],
-                       comment: nil,
-                       kind: :resource,
-                       meta: nil
-                     }
-
-                     update = %{"plant_stage" => "planted", "r" => 23}
-
-                     case(variable) do
-                       %AST{kind: :identifier} ->
-                         args = Map.fetch!(variable, :args)
-                         label = Map.fetch!(args, :label)
-                         resource = Map.fetch!(better_params, label)
-                         me.do_update(resource, update)
-
-                       %AST{kind: :point} ->
-                         me.do_update(variable.args(), update)
-
-                       %AST{kind: :resource} ->
-                         me.do_update(variable.args(), update)
-
-                       res ->
-                         raise("Resource error. Please notfiy support: \#{inspect(res)}")
-                     end
-                   end
-                 ]
-               end
-             ]
-             """)
   end
 
   defp compile(ast) do
     ast
-    |> Compiler.compile_ast([])
+    |> Compiler.celery_to_elixir(Scope.new())
     |> Macro.to_string()
     |> Code.format_string!()
     |> IO.iodata_to_binary()
+    |> strip_nl()
   end
 
   defp strip_nl(text) do
-    String.trim_trailing(text, "\n")
+    text
+    |> String.trim_trailing("\n")
+    |> String.replace(~r/\s+/, " ")
   end
 end

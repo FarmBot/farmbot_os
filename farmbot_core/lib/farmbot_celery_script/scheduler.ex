@@ -14,38 +14,33 @@ defmodule FarmbotCeleryScript.Scheduler do
       :ok | {:error, "some string error"}
 
   The Scheduler makes no effort to rescue bad syscall implementations. See
-  the docs foro SysCalls for more details.
+  the docs for SysCalls for more details.
   """
 
   use GenServer
   require Logger
-  alias FarmbotCeleryScript.{AST, Compiler, Scheduler, StepRunner}
+  alias FarmbotCeleryScript.{AST, Scheduler, StepRunner}
   alias Scheduler, as: State
 
   # 15 minutes
   @grace_period_ms 900_000
 
   defmodule Dispatch do
-    defstruct [
-      :scheduled_at,
-      :data
-    ]
+    defstruct [ :scheduled_at, :data ]
   end
 
   defstruct next: nil,
             checkup_timer: nil,
             scheduled_pid: nil,
-            compiled: [],
+            ast: [],
             monitors: [],
             registry_name: nil
 
-  @type compiled_ast() :: [(() -> any)]
-
   @type state :: %State{
-          next: nil | {compiled_ast(), DateTime.t(), data :: map(), pid},
+          next: nil | {AST.t(), DateTime.t(), data :: map(), pid},
           checkup_timer: nil | reference(),
           scheduled_pid: nil | pid(),
-          compiled: [{compiled_ast(), DateTime.t(), data :: map(), pid}],
+          ast: [{AST.t(), DateTime.t(), data :: map(), pid}],
           monitors: [GenServer.from()],
           registry_name: GenServer.server()
         }
@@ -69,7 +64,7 @@ defmodule FarmbotCeleryScript.Scheduler do
   """
   @spec schedule(
           GenServer.server(),
-          AST.t() | [Compiler.compiled()],
+          AST.t(),
           DateTime.t(),
           map()
         ) ::
@@ -77,30 +72,26 @@ defmodule FarmbotCeleryScript.Scheduler do
   def schedule(scheduler_pid \\ __MODULE__, celery_script, at, data)
 
   def schedule(sch, %AST{} = ast, %DateTime{} = at, %{} = data) do
-    schedule(sch, Compiler.compile(ast), at, data)
-  end
-
-  def schedule(sch, compiled, at, %{} = data) when is_list(compiled) do
-    GenServer.call(sch, {:schedule, compiled, at, data}, 60_000)
+    GenServer.call(sch, {:schedule, ast, at, data}, 60_000)
   end
 
   def get_next(sch \\ __MODULE__) do
     GenServer.call(sch, :get_next)
   end
 
-  # def get_next_from_now(sch \\ __MODULE__) do
-  #   case get_next_at(sch) do
-  #     nil -> nil
-  #     at -> Timex.from_now(at)
-  #   end
-  # end
+  def get_next_from_now(sch \\ __MODULE__) do
+    case get_next_at(sch) do
+      nil -> nil
+      at -> Timex.from_now(at)
+    end
+  end
 
   def get_next_at(sch \\ __MODULE__) do
     case get_next(sch) do
       nil ->
         nil
 
-      {_compiled, at, _data, _pid} ->
+      {_ast, at, _data, _pid} ->
         at
     end
   end
@@ -114,11 +105,11 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   @impl true
-  def handle_call({:schedule, compiled, at, data}, {pid, ref} = from, state) do
+  def handle_call({:schedule, ast, at, data}, {pid, ref} = from, state) do
     state =
       state
       |> monitor(pid)
-      |> add(compiled, at, data, pid)
+      |> add(ast, at, data, pid)
 
     :ok = GenServer.reply(from, {:ok, ref})
     {:noreply, state}
@@ -146,7 +137,7 @@ defmodule FarmbotCeleryScript.Scheduler do
     |> dispatch()
   end
 
-  def handle_info(:checkup, %{next: {_compiled, at, _data, _pid}} = state) do
+  def handle_info(:checkup, %{next: {_ast, at, _data, _pid}} = state) do
     case DateTime.diff(DateTime.utc_now(), at, :millisecond) do
       # now is before the next date
       diff_ms when diff_ms < 0 ->
@@ -175,7 +166,7 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   def handle_info(
-        {:step_complete, {scheduled_at, executed_at, pid}, result},
+        {:csvm_done, {scheduled_at, executed_at, pid}, result},
         state
       ) do
     send(
@@ -192,12 +183,11 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   @spec execute_next(state()) :: state()
-  defp execute_next(%{next: {compiled, at, _data, pid}} = state) do
+  defp execute_next(%{next: {ast, at, _data, pid}} = state) do
     scheduler_pid = self()
-
     scheduled_pid =
       spawn(fn ->
-        StepRunner.step(scheduler_pid, {at, DateTime.utc_now(), pid}, compiled)
+        StepRunner.begin(scheduler_pid, {at, DateTime.utc_now(), pid}, ast)
       end)
 
     %{state | scheduled_pid: scheduled_pid}
@@ -233,12 +223,12 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   @spec index_next(state()) :: state()
-  defp index_next(%{compiled: []} = state), do: %{state | next: nil}
+  defp index_next(%{ast: []} = state), do: %{state | next: nil}
 
   defp index_next(state) do
     [next | _] =
-      compiled =
-      Enum.sort(state.compiled, fn
+      ast =
+      Enum.sort(state.ast, fn
         {_, at, _, _}, {_, at, _, _} ->
           true
 
@@ -246,16 +236,16 @@ defmodule FarmbotCeleryScript.Scheduler do
           DateTime.compare(left, right) == :lt
       end)
 
-    %{state | next: next, compiled: compiled}
+    %{state | next: next, ast: ast}
   end
 
   @spec pop_next(state()) :: state()
-  defp pop_next(%{compiled: [_ | compiled]} = state) do
-    %{state | compiled: compiled, scheduled_pid: nil}
+  defp pop_next(%{ast: [_ | ast]} = state) do
+    %{state | ast: ast, scheduled_pid: nil}
   end
 
-  defp pop_next(%{compiled: []} = state) do
-    %{state | compiled: [], scheduled_pid: nil}
+  defp pop_next(%{ast: []} = state) do
+    %{state | ast: [], scheduled_pid: nil}
   end
 
   @spec monitor(state(), pid()) :: state()
@@ -291,29 +281,29 @@ defmodule FarmbotCeleryScript.Scheduler do
     %{state | monitors: monitors}
   end
 
-  @spec add(state(), compiled_ast(), DateTime.t(), data :: map(), pid()) ::
+  @spec add(state(), AST.t(), DateTime.t(), data :: map(), pid()) ::
           state()
-  defp add(state, compiled, at, data, pid) do
-    %{state | compiled: [{compiled, at, data, pid} | state.compiled]}
+  defp add(state, ast, at, data, pid) do
+    %{state | ast: [{ast, at, data, pid} | state.ast]}
     |> index_next()
   end
 
   @spec delete(state(), pid()) :: state()
   defp delete(state, pid) do
-    compiled =
-      Enum.reject(state.compiled, fn
-        {_compiled, _at, _data, ^pid} -> true
-        {_compiled, _at, _data, _pid} -> false
+    ast =
+      Enum.reject(state.ast, fn
+        {_ast, _at, _data, ^pid} -> true
+        {_ast, _at, _data, _pid} -> false
       end)
 
-    %{state | compiled: compiled}
+    %{state | ast: ast}
     |> index_next()
   end
 
-  defp dispatch(%{registry_name: name, compiled: compiled} = state) do
+  defp dispatch(%{registry_name: name, ast: ast} = state) do
     calendar =
-      Enum.map(compiled, fn
-        {_compiled, scheduled_at, data, _pid} ->
+      Enum.map(ast, fn
+        {_ast, scheduled_at, data, _pid} ->
           %Dispatch{data: data, scheduled_at: scheduled_at}
       end)
 
