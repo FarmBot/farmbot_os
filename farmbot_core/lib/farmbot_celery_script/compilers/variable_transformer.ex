@@ -24,13 +24,10 @@ defmodule FarmbotCeleryScript.Compiler.VariableTransformer do
 
   def run!(nil) do
     error = "LUA ERROR: Sequence does not contain variable"
-    SysCalls.log(error)
     [%{kind: :error, error: error, x: nil, y: nil, z: nil}, error]
   end
 
   def run!(other) do
-    error = "UNEXPECTED VARIABLE SCHEMA: #{inspect(other)}"
-    SysCalls.log(error)
-    [other, error]
+    [other]
   end
 end

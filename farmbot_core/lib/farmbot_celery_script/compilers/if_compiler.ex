@@ -1,6 +1,5 @@
 defmodule FarmbotCeleryScript.Compiler.If do
   alias FarmbotCeleryScript.{AST, Compiler}
-  import FarmbotCeleryScript.Compiler.Utils
 
   # Compiles an if statement.
   def unquote(:_if)(
@@ -12,10 +11,8 @@ defmodule FarmbotCeleryScript.Compiler.If do
             op: op,
             rhs: rhs
           }
-        },
-        env
-      ) do
-    rhs = Compiler.compile_ast(rhs, env)
+        }, cs_scope) do
+    rhs = Compiler.celery_to_elixir(rhs, cs_scope)
 
     # Turns the left hand side arg into
     # a number. x, y, z, and pin{number} are special that need to be
@@ -49,11 +46,11 @@ defmodule FarmbotCeleryScript.Compiler.If do
           quote [location: :keep],
             do:
               FarmbotCeleryScript.SysCalls.read_cached_pin(
-                unquote(Compiler.compile_ast(ast, env))
+                unquote(Compiler.celery_to_elixir(ast, cs_scope))
               )
 
         %AST{} = ast ->
-          Compiler.compile_ast(ast, env)
+          Compiler.celery_to_elixir(ast, cs_scope)
       end
 
     # Turn the `op` arg into Elixir code
@@ -66,13 +63,13 @@ defmodule FarmbotCeleryScript.Compiler.If do
           # get_current_y() == 10
           # get_current_z() == 200
           # read_pin(22, nil) == 5
-          # The ast will look like: {:==, [], lhs, Compiler.compile_ast(rhs)}
+          # The ast will look like: {:==, [], lhs, Compiler.celery_to_elixir(rhs, cs_scope)}
           quote location: :keep do
             unquote(lhs) == unquote(rhs)
           end
 
         "not" ->
-          # ast will look like: {:!=, [], [lhs, Compiler.compile_ast(rhs)]}
+          # ast will look like: {:!=, [], [lhs, Compiler.celery_to_elixir(rhs, cs_scope)]}
           quote location: :keep do
             unquote(lhs) != unquote(rhs)
           end
@@ -84,13 +81,13 @@ defmodule FarmbotCeleryScript.Compiler.If do
           end
 
         "<" ->
-          # ast will look like: {:<, [], [lhs, Compiler.compile_ast(rhs)]}
+          # ast will look like: {:<, [], [lhs, Compiler.celery_to_elixir(rhs, cs_scope)]}
           quote location: :keep do
             unquote(lhs) < unquote(rhs)
           end
 
         ">" ->
-          # ast will look like: {:>, [], [lhs, Compiler.compile_ast(rhs)]}
+          # ast will look like: {:>, [], [lhs, Compiler.celery_to_elixir(rhs, cs_scope)]}
           quote location: :keep do
             unquote(lhs) > unquote(rhs)
           end
@@ -140,13 +137,13 @@ defmodule FarmbotCeleryScript.Compiler.If do
           "Evaluated IF statement: #{result_str}; #{unquote(truthy_suffix)}"
         )
 
-        unquote(compile_block(then_ast, env))
+        unquote(FarmbotCeleryScript.Compiler.Utils.compile_block(then_ast, cs_scope))
       else
         FarmbotCeleryScript.SysCalls.log(
           "Evaluated IF statement: #{result_str}; #{unquote(falsey_suffix)}"
         )
 
-        unquote(compile_block(else_ast, env))
+        unquote(FarmbotCeleryScript.Compiler.Utils.compile_block(else_ast, cs_scope))
       end
     end
   end

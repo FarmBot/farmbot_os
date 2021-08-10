@@ -6,7 +6,8 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
 
   alias FarmbotCore.Firmware.{
     ConfigUploader,
-    UARTCore
+    UARTCore,
+    GCode
   }
 
   test "refresh/2 - Empty changes" do
@@ -22,7 +23,11 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
       autoinc: 2,
       current: nil,
       queue: [
-        %{caller: nil, echo: nil, gcode: "F22 P47 V1.23", id: 2}
+        %{
+          caller: nil,
+          gcode: GCode.new(:F22, P: 47, V: 1.23),
+          id: 2
+        }
       ]
     }
 

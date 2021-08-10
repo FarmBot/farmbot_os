@@ -179,7 +179,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
     end
   end
 
-  def handle_info({:step_complete, _ref, _result}, state) do
+  def handle_info({:csvm_done, _ref, _result}, state) do
     {:noreply, state}
   end
 

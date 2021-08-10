@@ -191,7 +191,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
     else
       next_buffer =
         state.tx_buffer
-        |> TxBuffer.push({caller, gcode})
+        |> TxBuffer.push(caller, gcode)
         |> TxBuffer.process_next_message(state.uart_pid)
 
       next_state = %{state | tx_buffer: next_buffer}
