@@ -21,6 +21,7 @@
   "long_scaling_factor": "7.0.1",
   "lua_step": "12.3.4",
   "mark_as_step": "8.0.3",
+  "multiple_variables": "14.3.0",
   "named_pins": "6.3.0",
   "no_auto_reset": "14.1.0",
   "no_firmware_logs": "12.2.2",
