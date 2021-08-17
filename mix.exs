@@ -42,8 +42,8 @@ defmodule FarmbotSupport.MixProject do
   defp deps do
     [
       {:jason, "~> 1.2.2"},
-      {:excoveralls, "~> 0.14.1", only: [:test], targets: [:host]},
-      {:ex_doc, "~> 0.24.2", only: [:dev], targets: [:host], runtime: false}
+      {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
+      {:ex_doc, "~> 0.25.1", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end
