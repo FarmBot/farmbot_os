@@ -1,5 +1,10 @@
 # Changelog
 
+# 14.3.2
+
+ * Routine dep. upgrades
+ * Bug fix where binding a REBOOT or SYNC to a PinBinding would fail.
+
 # 14.3.1
 
  * Express firmware bugfix
