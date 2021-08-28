@@ -1,9 +1,10 @@
 defmodule FarmbotCore.Asset.FarmEvent do
-  @moduledoc """
-  """
-
   use FarmbotCore.Asset.Schema, path: "/api/farm_events"
-  alias FarmbotCore.Asset.FarmEvent.{BodyNode, Execution}
+  alias FarmbotCore.Asset.FarmEvent.{
+    BodyNode,
+    Execution,
+    Calendar
+  }
 
   schema "farm_events" do
     field(:id, :id)
@@ -65,7 +66,6 @@ defmodule FarmbotCore.Asset.FarmEvent do
     |> validate_required([])
   end
 
-  @compile {:inline, [build_calendar: 2]}
   def build_calendar(%__MODULE__{executable_type: "Regimen"} = fe, _), do: [fe.start_time]
 
   def build_calendar(%__MODULE__{time_unit: "never"} = fe, _), do: [fe.start_time]
@@ -77,31 +77,14 @@ defmodule FarmbotCore.Asset.FarmEvent do
 
     repeat = fe.repeat
     repeat_frequency_seconds = time_unit_to_seconds(fe.time_unit)
-
-    do_build_calendar(
-      current_time_seconds,
-      start_time_seconds,
-      end_time_seconds,
-      repeat,
-      repeat_frequency_seconds
-    ) |> Enum.map(&DateTime.from_unix!/1)
+    Calendar.new(current_time_seconds,
+                 end_time_seconds,
+                 repeat,
+                 repeat_frequency_seconds,
+                 start_time_seconds)
+    |> Enum.map(&DateTime.from_unix!/1)
   end
 
-  def do_build_calendar(_, _, _, _, _), do: :erlang.nif_error("NIF Not loaded")
-
-  @on_load :load_nif
-  def load_nif do
-    require Logger
-    nif_file = '#{:code.priv_dir(:farmbot_core)}/build_calendar'
-
-    case :erlang.load_nif(nif_file, 0) do
-      :ok -> :ok
-      {:error, {:reload, _}} -> :ok
-      {:error, _reason} -> :ok
-    end
-  end
-
-  @compile {:inline, [time_unit_to_seconds: 1]}
   defp time_unit_to_seconds("minutely"), do: 60
   defp time_unit_to_seconds("hourly"), do: 60 * 60
   defp time_unit_to_seconds("daily"), do: 60 * 60 * 24

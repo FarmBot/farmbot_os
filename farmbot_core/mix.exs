@@ -21,9 +21,7 @@ defmodule FarmbotCore.MixProject do
       description: "The Brains of the Farmbot Project",
       # elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
-      make_clean: ["clean"],
-      make_cwd: __DIR__,
-      compilers: [:elixir_make] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
       version: @version,
       target: @target,
@@ -61,7 +59,6 @@ defmodule FarmbotCore.MixProject do
   defp deps do
     [
       {:circuits_uart, "~> 1.4.3"},
-      {:elixir_make, "~> 0.6.2", runtime: false},
       {:ex_doc, "~> 0.25.1", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},

@@ -4,7 +4,10 @@ defmodule FarmbotCore.BotState do
   alias FarmbotCore.BotState.JobProgress.Percent
 
   require Logger
+  require FarmbotCore.Logger
   use GenServer
+
+  FarmbotCore.Logger.report_termination()
 
   def firmware_offline() do
     FarmbotCore.BotState.set_firmware_version("")
@@ -179,10 +182,6 @@ defmodule FarmbotCore.BotState do
   @doc false
   def init([]) do
     {:ok, %{tree: BotStateNG.new(), subscribers: []}}
-  end
-
-  def terminate(reason, _state) do
-    Logger.debug("BotState crashed! #{inspect(reason)}")
   end
 
   def handle_call({:job_in_progress?, job_name}, _from, state) do

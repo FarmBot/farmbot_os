@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.3.2
+
+ * Refactor code that generates calendars for FarmEvent resources.
+
 # 14.3.1
 
  * Express firmware bugfix
