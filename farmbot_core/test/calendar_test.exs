@@ -3,6 +3,11 @@ defmodule FarmbotCore.Asset.FarmEvent.CalendarTest do
   alias FarmbotCore.Asset.FarmEvent.Calendar
 
   describe "calendar" do
+    test "skips the grace period" do
+      calendar = Calendar.new(10_000, 10_000, 1, 60, 1050)
+      assert calendar == [9990]
+    end
+
     test "generation of a calendar" do
       current_time_seconds = 1_630_165_395
       end_time_seconds = 1_630_169_100

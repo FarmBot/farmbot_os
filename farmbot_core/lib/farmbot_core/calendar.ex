@@ -1,44 +1,32 @@
 defmodule FarmbotCore.Asset.FarmEvent.Calendar do
+  defstruct [:end_sec, :events, :grace_period, :start_sec, :step]
+
   @max_generated 500
   @one_min 60
 
-  defstruct [
-    :start_time_seconds,
-    :end_t_sec,
-    :grace_per_s,
-    :events,
-    :step
-  ]
-
-  def new(
-        curr_t_sec,
-        end_t_sec,
-        repeat,
-        repeat_frequency_sec,
-        start_time_seconds
-      ) do
+  def new(now_sec, end_sec, repeat, repeat_freq_sec, start_sec) do
     initial = %__MODULE__{
-      start_time_seconds: start_time_seconds,
-      end_t_sec: end_t_sec,
-      grace_per_s: curr_t_sec - @one_min,
+      start_sec: start_sec,
+      end_sec: end_sec,
+      grace_period: now_sec - @one_min,
       events: [],
-      step: repeat_frequency_sec * repeat
+      step: repeat_freq_sec * repeat
     }
 
     Enum.reduce_while(1..@max_generated, initial, &reduce/2).events
   end
 
   defp reduce(_, s) do
-    if s.start_time_seconds < s.end_t_sec do
+    if s.start_sec < s.end_sec do
       # if this event (i) is after the grace period, add it to the array.
       updates =
-        if s.start_time_seconds > s.grace_per_s do
+        if s.start_sec > s.grace_period do
           %{
-            events: s.events ++ [s.start_time_seconds],
-            start_time_seconds: s.start_time_seconds + s.step
+            events: s.events ++ [s.start_sec],
+            start_sec: s.start_sec + s.step
           }
         else
-          %{start_time_seconds: s.start_time_seconds + s.step}
+          %{start_sec: s.start_sec + s.step}
         end
 
       {:cont, Map.merge(s, updates)}
