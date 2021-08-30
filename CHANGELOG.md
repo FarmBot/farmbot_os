@@ -3,6 +3,9 @@
 # 14.3.2
 
  * Refactor code that generates calendars for FarmEvent resources.
+ * Routine dependency upgrades
+ * Better logging of FarmEvent scheduler failures
+ * Bug fix: FBOS crashes when pinbinding is set to SYNC / REBOOT.
 
 # 14.3.1
 
