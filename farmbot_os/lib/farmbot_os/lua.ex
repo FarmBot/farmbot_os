@@ -125,6 +125,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
+    |> set_table([:auth_token], &Info.auth_token/2)
     |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
     |> set_table([:soil_height], &DataManipulation.soil_height/2)
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
