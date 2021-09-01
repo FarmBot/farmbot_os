@@ -57,6 +57,19 @@ defmodule FarmbotCore.Logger do
     end
   end
 
+  defmacro report_termination() do
+    quote do
+      def terminate(:normal, _state), do: nil
+
+      def terminate(reason, _state) do
+        mod = inspect(__MODULE__)
+        err = inspect(reason)
+        msg = "#{mod} termination: #{err}"
+        FarmbotCore.Logger.info(3, msg)
+      end
+    end
+  end
+
   def insert_log!(%{ message: _, level: _, verbosity: _ } = input) do
     params = input |> Map.delete(:__meta__) |> Map.delete(:__struct__)
     changeset = Log.changeset(%Log{}, params)

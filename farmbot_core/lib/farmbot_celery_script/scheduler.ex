@@ -19,6 +19,7 @@ defmodule FarmbotCeleryScript.Scheduler do
 
   use GenServer
   require Logger
+  require FarmbotCore.Logger
   alias FarmbotCeleryScript.{AST, Scheduler, StepRunner}
   alias Scheduler, as: State
 
@@ -49,6 +50,8 @@ defmodule FarmbotCeleryScript.Scheduler do
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
   end
+
+  FarmbotCore.Logger.report_termination()
 
   def register(sch \\ __MODULE__) do
     state = :sys.get_state(sch)
@@ -120,8 +123,8 @@ defmodule FarmbotCeleryScript.Scheduler do
   end
 
   @impl true
-  def handle_info({:DOWN, ref, :process, pid, _reason}, state) do
-    Logger.debug("Scheduler monitor down: #{inspect(pid)}")
+  def handle_info({:DOWN, ref, :process, pid, reason}, state) do
+    Logger.info("Scheduler crash: #{inspect(reason)}")
 
     state =
       state

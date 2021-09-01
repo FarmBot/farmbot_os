@@ -5,17 +5,13 @@ defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   require Logger
   use GenServer
   alias Circuits.GPIO
+  require FarmbotCore.Logger
+  FarmbotCore.Logger.report_termination()
 
   @debounce_timeout_ms 1000
 
   def start_link(pin_number, fun) do
     GenServer.start_link(__MODULE__, [pin_number, fun], name: name(pin_number))
-  end
-
-  def terminate(reason, state) do
-    Logger.warn(
-      "CircuitsGPIOHandler #{state.pin_number} crash: #{inspect(reason)}"
-    )
   end
 
   def init([pin_number, fun]) do

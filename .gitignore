@@ -54,6 +54,7 @@ RELEASE_NOTES
 *.pem
 *.db
 *.db-journal
+*.db-shm
 *.lua
 *screenlog*
 *.crashdump

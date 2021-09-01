@@ -1,5 +1,11 @@
 # Changelog
 
+# 14.3.2
+
+ * Refactor code that generates calendars for FarmEvent resources.
+ * Routine dependency upgrades
+ * Bug fix: FBOS crashes when pinbinding is set to SYNC / REBOOT.
+
 # 14.3.1
 
  * Express firmware bugfix
