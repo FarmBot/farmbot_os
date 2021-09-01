@@ -169,12 +169,37 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
   def soil_height([x, y], lua),
     do: {[SpecialValue.soil_height(%{x: x, y: y})], lua}
 
-  def b64_decode([data], lua) when is_binary(data) do
+  def b64_decode([data], lua) when is_bitstring(data) do
     {:ok, result} = Base.decode64(data)
     {[result], lua}
   end
 
-  def b64_encode([data], lua) when is_binary(data) do
+  def b64_encode([data], lua) when is_bitstring(data) do
     {[Base.encode64(data)], lua}
+  end
+
+  # Output is jpg encoded string.
+  # Optionally emits an error.
+  def take_photo_raw(_, lua) do
+    {data, resp} =
+      System.cmd("fswebcam", [
+        "-r",
+        "800x800",
+        "-S",
+        "10",
+        "--no-banner",
+        "--log",
+        "/dev/null",
+        "--save",
+        "-"
+      ])
+
+    case resp do
+      0 ->
+        {[data, nil], lua}
+
+      _ ->
+        {[nil, data], lua}
+    end
   end
 end

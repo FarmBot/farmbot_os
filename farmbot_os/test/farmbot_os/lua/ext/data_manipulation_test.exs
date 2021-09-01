@@ -12,6 +12,58 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     FarmbotOS.Lua.perform_lua(lua_code, [], test_name)
   end
 
+  test "take_photo_raw() - 0 return code" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-r",
+               "800x800",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw()"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
+  test "take_photo_raw() - non 0 return code" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-r",
+               "800x800",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"error", 1}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw()"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == nil
+    assert error == "error"
+  end
+
   test "base64.decode()" do
     ascii_text = "Hello, world!"
     b64_text = "SGVsbG8sIHdvcmxkIQ=="

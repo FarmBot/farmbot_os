@@ -128,6 +128,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
     |> set_table([:soil_height], &DataManipulation.soil_height/2)
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
+    |> set_table([:take_photo_raw], &DataManipulation.take_photo_raw/2)
     |> set_table([:uart], [
       {:open, &FarmbotCore.Firmware.LuaUART.open/2},
       {:list, &FarmbotCore.Firmware.LuaUART.list/2}
