@@ -168,4 +168,13 @@ defmodule FarmbotOS.Lua.Ext.DataManipulation do
 
   def soil_height([x, y], lua),
     do: {[SpecialValue.soil_height(%{x: x, y: y})], lua}
+
+  def b64_decode([data], lua) when is_binary(data) do
+    {:ok, result} = Base.decode64(data)
+    {[result], lua}
+  end
+
+  def b64_encode([data], lua) when is_binary(data) do
+    {[Base.encode64(data)], lua}
+  end
 end

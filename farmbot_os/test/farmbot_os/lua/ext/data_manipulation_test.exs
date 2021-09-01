@@ -12,6 +12,22 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
     FarmbotOS.Lua.perform_lua(lua_code, [], test_name)
   end
 
+  test "base64.decode()" do
+    ascii_text = "Hello, world!"
+    b64_text = "SGVsbG8sIHdvcmxkIQ=="
+    lua_decode = "return base64.decode(#{inspect(b64_text)})"
+    {:ok, [actual]} = lua(lua_decode, lua_decode)
+    assert actual == ascii_text
+  end
+
+  test "base64.encode()" do
+    ascii_text = "Hello, world!"
+    b64_text = "SGVsbG8sIHdvcmxkIQ=="
+    lua_encode = "base64.encode(#{inspect(ascii_text)})"
+    {:ok, [encode_result]} = lua(lua_encode, lua_encode)
+    assert encode_result == b64_text
+  end
+
   test "update_firmware_config([table], lua)" do
     expect(FarmbotCore.Asset, :update_firmware_config!, 1, fn resource ->
       assert Map.fetch!(resource, "movement_axis_stealth_x") == 1.0

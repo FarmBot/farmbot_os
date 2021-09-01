@@ -116,6 +116,10 @@ defmodule FarmbotOS.Lua do
       {:decode, &DataManipulation.json_decode/2},
       {:encode, &DataManipulation.json_encode/2}
     ])
+    |> set_table([:base64], [
+      {:decode, &DataManipulation.b64_decode/2},
+      {:encode, &DataManipulation.b64_encode/2}
+    ])
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
