@@ -116,14 +116,20 @@ defmodule FarmbotOS.Lua do
       {:decode, &DataManipulation.json_decode/2},
       {:encode, &DataManipulation.json_encode/2}
     ])
+    |> set_table([:base64], [
+      {:decode, &DataManipulation.b64_decode/2},
+      {:encode, &DataManipulation.b64_encode/2}
+    ])
     |> set_table([:move_absolute], &Firmware.move_absolute/2)
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:read_status], &Info.read_status/2)
     |> set_table([:send_message], &Info.send_message/2)
+    |> set_table([:auth_token], &Info.auth_token/2)
     |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
     |> set_table([:soil_height], &DataManipulation.soil_height/2)
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
+    |> set_table([:take_photo_raw], &DataManipulation.take_photo_raw/2)
     |> set_table([:uart], [
       {:open, &FarmbotCore.Firmware.LuaUART.open/2},
       {:list, &FarmbotCore.Firmware.LuaUART.list/2}
