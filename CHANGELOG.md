@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.3.3
+
+ * Fix system halting memory leak when taking > 1,000 photos in a single boot.
+
 # 14.3.2
 
  * Refactor code that generates calendars for FarmEvent resources.

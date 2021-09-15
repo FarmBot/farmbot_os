@@ -207,7 +207,7 @@ defmodule FarmbotCore.BotState do
       BotStateNG.set_job_progress(state.tree, name, Map.from_struct(progress))
       |> dispatch_and_apply(state)
 
-    {:reply, reply, state}
+    {:reply, reply, remove_old_jobs(state)}
   end
 
   def handle_call({:set_config_value, key, value}, _from, state) do
@@ -451,5 +451,20 @@ defmodule FarmbotCore.BotState do
 
   defp get_reply_from_change(state, change) do
     dispatch_and_apply(BotStateNG.changeset(state.tree, change), state)
+  end
+
+  # Remove jobs that haven't been updated in > 2 minutes.
+  # This prevents system crashes when users take extremely
+  # large numbers of photos.
+  defp remove_old_jobs(state) do
+    now = :os.system_time(:seconds)
+    reject = fn {_name, job} -> (now - job.updated_at) > 120 end
+    recombine = fn {name, job}, acc -> Map.put(acc, name, job) end
+    next_jobs = state.tree.jobs
+    |> Map.to_list()
+    |> Enum.reject(reject)
+    |> Enum.reduce(%{}, recombine)
+
+    %{state | tree: %{state.tree | jobs: next_jobs} }
   end
 end
