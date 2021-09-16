@@ -2,7 +2,9 @@
 
 # 14.3.3
 
+ * Ability to read `lat`, `lng`, and `indoor` from Lua `get_device()` helpers.
  * Fix system halting memory leak when taking > 1,000 photos in a single boot.
+ * Increase timeout for `http()` requests in Lua.
 
 # 14.3.2
 
