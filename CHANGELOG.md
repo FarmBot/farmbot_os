@@ -5,6 +5,7 @@
  * Ability to read `lat`, `lng`, and `indoor` from Lua `get_device()` helpers.
  * Fix system halting memory leak when taking > 1,000 photos in a single boot.
  * Increase timeout for `http()` requests in Lua.
+ * `alpha` release of Lua helpers: `base64.encode()`, `base64.decode()`, `auth_token()`, `take_photo_raw()`.
 
 # 14.3.2
 
