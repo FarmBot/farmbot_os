@@ -15,7 +15,7 @@ defmodule FarmbotTelemetry.MixProject do
       elixir: @elixir_version,
       elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       version: "0.1.0",
-      elixir: "~> 1.10.4",
+      elixir: "~> 1.12.2",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
@@ -39,7 +39,7 @@ defmodule FarmbotTelemetry.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :crypto],
       mod: {FarmbotTelemetry.Application, []}
     ]
   end

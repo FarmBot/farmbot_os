@@ -58,9 +58,7 @@ defmodule FarmbotTelemetry do
   defmacro event(subsystem, measurement, value, meta) do
     Mix.raise("""
     Unknown args for telemetry event:
-    #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{
-      inspect(meta)
-    }
+    #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{inspect(meta)}
     """)
   end
 

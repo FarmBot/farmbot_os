@@ -1,5 +1,10 @@
 # Changelog
 
+# 14.4.0
+
+ * Upgrade Nerves system, Erlang, Elixir, OTP.
+ * Minor changes related to deprecations and platform changes.
+
 # 14.3.3
 
  * Ability to read `lat`, `lng`, and `indoor` from Lua `get_device()` helpers.

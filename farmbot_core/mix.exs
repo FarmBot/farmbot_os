@@ -50,7 +50,7 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :inets, :runtime_tools],
+      extra_applications: [:logger, :inets, :runtime_tools, :ssh],
       mod: {FarmbotCore, []}
     ]
   end

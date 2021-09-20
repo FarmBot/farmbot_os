@@ -113,7 +113,7 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
 
   defp do_decode(authorized_key) do
     try do
-      :public_key.ssh_decode(authorized_key, :auth_keys)
+      :ssh_file.decode(authorized_key, :auth_keys)
     rescue
       _err ->
         Logger.warn("Could not decode ssh keys.")
