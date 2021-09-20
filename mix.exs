@@ -43,7 +43,7 @@ defmodule FarmbotSupport.MixProject do
     [
       {:jason, "~> 1.2.2"},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
-      {:ex_doc, "~> 0.25.1", only: [:dev], targets: [:host], runtime: false}
+      {:ex_doc, "~> 0.25.2", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end
