@@ -5,6 +5,7 @@ defmodule FarmbotOS.Lua.Ext.Info do
 
   alias FarmbotCeleryScript.SysCalls
   alias FarmbotOS.Lua.Util
+  alias FarmbotCore.Config
 
   @doc """
   # Example Usage
@@ -85,6 +86,11 @@ defmodule FarmbotOS.Lua.Ext.Info do
   @doc "Returns the current second"
   def current_second(_args, lua) do
     {[DateTime.utc_now().second], lua}
+  end
+
+  def auth_token(_, lua) do
+    token = Config.get_config_value(:string, "authorization", "token")
+    {[token], lua}
   end
 
   defp do_send_message(kind, message, channels, lua) do

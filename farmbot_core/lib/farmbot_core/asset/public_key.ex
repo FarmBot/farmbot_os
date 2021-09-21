@@ -42,10 +42,10 @@ defmodule FarmbotCore.Asset.PublicKey do
 
   def validate_rsa(%Changeset{valid?: true} = changeset) do
     public_key_bin = get_field(changeset, :public_key)
-    case :public_key.ssh_decode(public_key_bin, :auth_keys) do
-      [{_, opts}] -> 
+    case :ssh_file.decode(public_key_bin, :auth_keys) do
+      [{_, opts}] ->
         maybe_add_name(changeset, opts[:comment])
-      [_ | _] -> 
+      [_ | _] ->
         add_error(changeset, :public_key, "should only contain 1 key")
       _ ->
         add_error(changeset, :public_key, "could not decode public key")

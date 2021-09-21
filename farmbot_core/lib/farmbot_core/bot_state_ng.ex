@@ -99,11 +99,11 @@ defmodule FarmbotCore.BotStateNG do
   @doc "Sets a progress objecto on state.jobs"
   def set_job_progress(state, name, progress) do
     cs = changeset(state, %{})
-
+    progress2 = Map.put(progress, :updated_at, :os.system_time(:seconds))
     new_jobs =
       cs
       |> get_field(:jobs)
-      |> Map.put(name, progress)
+      |> Map.put(name, progress2)
 
     put_change(cs, :jobs, new_jobs)
   end

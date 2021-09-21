@@ -46,8 +46,15 @@ defmodule FarmbotCore.BotStateTest do
 
     receive do
       {BotState, cs} ->
+        prog1 = Map.from_struct(prog)
         prog2 = Map.fetch!(cs.changes.jobs, "test123")
-        assert Map.from_struct(prog) == prog2
+        assert prog1.file_type == nil
+        assert prog1.percent == 50
+        assert prog1.status == "working"
+        assert prog1.time == nil
+        assert prog1.type == "ota"
+        assert prog1.unit == "percent"
+        assert is_number(prog2.updated_at)
     after
       5000 ->
         refute "Timeout has elapsed"

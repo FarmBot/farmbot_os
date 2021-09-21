@@ -1,12 +1,21 @@
 defmodule FarmbotOS.Lua.Util do
   @doc "Convert an Elixir map to a Lua table"
-  def map_to_table(map) do
+  def map_to_table(map) when is_map(map) do
     Enum.map(map, fn
       {key, %DateTime{} = dt} -> {to_string(key), to_string(dt)}
       {key, %{} = value} -> {to_string(key), map_to_table(value)}
       {key, value} -> {to_string(key), value}
     end)
   end
+
+  def map_to_table(list) when is_list(list) do
+    list
+    |> Enum.with_index()
+    |> Enum.map(fn {val, inx} -> {inx + 1, val} end)
+    |> Map.new()
+  end
+
+  def map_to_table(other), do: other
 
   def lua_to_elixir(table) when is_list(table) do
     table_to_map(table, %{})
