@@ -4,17 +4,13 @@ defmodule FarmbotCeleryScript.ASTTest do
 
   @nothing_json "{\"kind\": \"nothing\", \"args\": {}}"
                 |> Jason.decode!()
-  @nothing_json_with_body "{\"kind\": \"nothing\", \"args\": {}, \"body\":[#{
-                            Jason.encode!(@nothing_json)
-                          }]}"
+  @nothing_json_with_body "{\"kind\": \"nothing\", \"args\": {}, \"body\":[#{Jason.encode!(@nothing_json)}]}"
                           |> Jason.decode!()
 
   @nothing_json_with_args "{\"kind\": \"nothing\", \"args\": {\"nothing\": \"hello world\"}, \"body\":[]}"
                           |> Jason.decode!()
 
-  @nothing_json_with_cs_args "{\"kind\": \"nothing\", \"args\": {\"nothing\": #{
-                               Jason.encode!(@nothing_json)
-                             }}, \"body\":[]}"
+  @nothing_json_with_cs_args "{\"kind\": \"nothing\", \"args\": {\"nothing\": #{Jason.encode!(@nothing_json)}}, \"body\":[]}"
                              |> Jason.decode!()
   @bad_json "{\"whoops\": "
 

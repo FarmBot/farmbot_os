@@ -1,10 +1,17 @@
 # Changelog
 
+# 14.4.0
+
+ * Upgrade Nerves system, Erlang, Elixir, OTP.
+ * Minor changes related to deprecations and platform changes.
+
 # 14.3.3
 
  * Ability to read `lat`, `lng`, and `indoor` from Lua `get_device()` helpers.
  * Fix system halting memory leak when taking > 1,000 photos in a single boot.
  * Increase timeout for `http()` requests in Lua.
+ * `alpha` release of Lua helpers: `base64.encode()`, `base64.decode()`, `auth_token()`, `take_photo_raw()`.
+ * Fix bug where calling `json.decode()` in Lua on an Array would raise an exception.
 
 # 14.3.2
 
