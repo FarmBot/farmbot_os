@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.4.2
+
+ * SSL/HTTPS configuration updates.
+
 # 14.4.1
 
  * Update Erlang version

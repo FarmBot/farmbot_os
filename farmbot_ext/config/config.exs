@@ -1,4 +1,5 @@
 use Mix.Config
+config :tesla, adapter: Tesla.Adapter.Hackney
 
 config :logger, handle_otp_reports: true, handle_sasl_reports: true
 
