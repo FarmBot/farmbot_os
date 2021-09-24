@@ -71,14 +71,19 @@ defmodule FarmbotExt.APIFetcher do
     uri = URI.parse(server)
     user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
-    Tesla.client([
+    middleware = [
       {Tesla.Middleware.BaseUrl, "#{uri.scheme}:#{url}"},
       {Tesla.Middleware.Headers,
        [
          {"user-agent", user_agent}
        ]},
       {Tesla.Middleware.FormUrlencoded, []}
-    ])
+    ]
+
+    adapter =
+      {Tesla.Adapter.Hackney, ssl: [verify: :verify_peer, cacertfile: :certifi.cacertfile()]}
+
+    Tesla.client(middleware, adapter)
   end
 
   def upload_image(image_filename, meta \\ %{}) do

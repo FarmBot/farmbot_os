@@ -24,7 +24,7 @@ Application.ensure_all_started(:mimic)
   FarmbotExt.APIFetcher,
   FarmbotExt.Bootstrap.Authorization,
   FarmbotExt.Bootstrap.DropPasswordSupport,
-  FarmbotExt.HTTP,
+  FarmbotTelemetry.HTTP,
   FarmbotExt.MQTT,
   FarmbotExt.MQTT.LogHandlerSupport,
   FarmbotExt.MQTT.Support,

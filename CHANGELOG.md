@@ -1,5 +1,14 @@
 # Changelog
 
+# 14.4.2
+
+ * SSL/HTTPS configuration updates.
+
+# 14.4.1
+
+ * Update Erlang version
+ * Update error reporting info
+
 # 14.4.0
 
  * Upgrade Nerves system, Erlang, Elixir, OTP.

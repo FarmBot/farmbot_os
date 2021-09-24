@@ -43,7 +43,7 @@ defmodule FarmbotExt.Bootstrap.AuthorizationTest do
     request = {:get, url, "", headers}
     state = %{backoff: 5000, log_dispatch_flag: false}
 
-    expect(FarmbotExt.HTTP, :request, 1, fn method, req, opt1, opt2 ->
+    expect(FarmbotTelemetry.HTTP, :request, 1, fn method, req, opt1, opt2 ->
       assert method == :get
       assert req == {url, [{'Content-Type', 'application/json'}]}
       assert opt1 == []
