@@ -24,23 +24,24 @@ defmodule FarmbotTelemetryTest do
     assert meta[:hello] == "world"
   end
 
-  test "consumes telemetry" do
-    me = self()
+  test "telemetry_meta" do
+    result = FarmbotTelemetry.telemetry_meta(__ENV__, %{})
+    assert String.contains?(result.file, "farmbot_telemetry_test.exs")
+    assert result.function == {:"test telemetry_meta", 1}
+    assert is_number(result.line)
+    assert result.module == FarmbotTelemetryTest
+  end
 
-    FarmbotTelemetry.consume_telemetry(fn
-      {uuid, date, event, :test_subsystem, kind, value, meta} ->
-        assert is_binary(uuid)
-        assert %DateTime{} = date
-        assert event == :event
-        assert kind == :measurement
-        assert value == 1.0
-        %{file: _, function: _, line: _, module: _} = meta
-        send(me, :ok)
+  test "event (unknown params)" do
+    # This test is terrible.
+    # If anyone want to refactor this, have at it. RC.
+    boom = fn ->
+      Code.eval_string("""
+      require FarmbotTelemetry
+      FarmbotTelemetry.event(\"?\", \"?\", \"?\", \"?\")
+      """)
+    end
 
-      _ ->
-        :ok
-    end)
-
-    assert_receive :ok, 5_000
+    assert_raise Mix.Error, boom
   end
 end
