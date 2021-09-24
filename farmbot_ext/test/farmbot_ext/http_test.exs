@@ -1,12 +1,9 @@
-defmodule FarmbotExt.HTTPTest do
-  # def request(method, params, opts1, opts2) do
-  #   :httpc.request(method, params, opts1, opts2)
-  # end
+defmodule FarmbotTelemetry.HTTPTest do
   use ExUnit.Case
-  alias FarmbotExt.HTTP
+  alias FarmbotTelemetry.HTTP
 
   test "request/4" do
     params = {'http://typo.farm.bot', []}
-    assert {:error, error} = HTTP.request(:head, params, [], [])
+    assert {:error, _error} = HTTP.request(:head, params, [], [])
   end
 end

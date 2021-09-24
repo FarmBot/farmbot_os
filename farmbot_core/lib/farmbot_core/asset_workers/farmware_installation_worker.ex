@@ -231,7 +231,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   defp get(url) do
-    :httpc.request(:get, {to_charlist(url), httpc_headers()}, [], httpc_options())
+    FarmbotTelemetry.HTTP.request(:get, {to_charlist(url), httpc_headers()}, [], httpc_options())
   end
 
   defp httpc_options, do: [body_format: :binary]
