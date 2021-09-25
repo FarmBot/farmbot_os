@@ -35,4 +35,10 @@ defmodule FarmbotExt.API.EagerLoaderTest do
 
     assert [] = EagerLoader.preload(%Sync{tools: []})
   end
+
+  test "finish_loading/1" do
+    fake_errors = [1, 2, 3]
+    assert [] == EagerLoader.finish_loading([])
+    assert {:error, fake_errors} == EagerLoader.finish_loading(fake_errors)
+  end
 end
