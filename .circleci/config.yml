@@ -157,6 +157,40 @@ jobs:
 ################################################################################
 #                                    TEST                                      #
 ################################################################################
+  test_farmbot_telemetry:
+    <<: *defaults
+    environment:
+      MIX_ENV: test
+      MIX_TARGET: host
+      ELIXIR_VERSION: 1.12.2
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - restore_cache:
+          keys:
+            - v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_telemetry/mix.lock" }}
+      - <<: *install_elixir
+      - <<: *install_hex_archives
+      - run:
+          name: Test Farmbot Telemetry
+          working_directory: /nerves/build/farmbot_telemetry
+          command: |
+            mix deps.get
+            mix compile
+            mix format --check-formatted
+            mix coveralls.json
+            bash <(curl -s https://codecov.io/bash)
+      - save_cache:
+          key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_telemetry/mix.lock" }}
+          paths:
+            - farmbot_telemetry/_build/host
+            - farmbot_telemetry/deps/host
+      - save_cache:
+          key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - farmbot_telemetry/cover
+      - store_artifacts:
+          path: farmbot_telemetry/cover
 
   test_farmbot_core:
     <<: *defaults
@@ -388,6 +422,12 @@ workflows:
   version: 2
   test:
     jobs:
+      - test_farmbot_telemetry:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - main
       - test_farmbot_core:
           context: org-global
           filters:
