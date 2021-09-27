@@ -39,7 +39,13 @@ defmodule FarmbotTelemetry.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :crypto, :inets, :certifi],
+      extra_applications: [
+        :certifi,
+        :crypto,
+        :inets,
+        :logger,
+        :public_key
+      ],
       mod: {FarmbotTelemetry.Application, []}
     ]
   end
