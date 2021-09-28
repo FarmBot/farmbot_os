@@ -55,7 +55,7 @@ defmodule FarmbotExt.APIFetcher do
     url = (uri.scheme || "https") <> "://" <> uri.host <> ":" <> to_string(uri.port)
     user_agent = "FarmbotOS/#{@version} (#{@target}) #{@target} ()"
 
-    Tesla.client([
+    middleware = [
       {Tesla.Middleware.BaseUrl, url},
       {Tesla.Middleware.Headers,
        [
@@ -63,7 +63,9 @@ defmodule FarmbotExt.APIFetcher do
          {"authorization", "Bearer: " <> binary_token},
          {"user-agent", user_agent}
        ]}
-    ])
+    ]
+
+    Tesla.client(middleware, adapter())
   end
 
   def storage_client(%StorageAuth{url: url}) do
@@ -80,10 +82,7 @@ defmodule FarmbotExt.APIFetcher do
       {Tesla.Middleware.FormUrlencoded, []}
     ]
 
-    adapter =
-      {Tesla.Adapter.Hackney, ssl: [verify: :verify_peer, cacertfile: :certifi.cacertfile()]}
-
-    Tesla.client(middleware, adapter)
+    Tesla.client(middleware, adapter())
   end
 
   def upload_image(image_filename, meta \\ %{}) do
@@ -188,5 +187,9 @@ defmodule FarmbotExt.APIFetcher do
     """
 
     {:error, msg}
+  end
+
+  defp adapter() do
+    {Tesla.Adapter.Hackney, ssl: [verify: :verify_peer, cacertfile: :certifi.cacertfile()]}
   end
 end
