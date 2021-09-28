@@ -12,9 +12,16 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     Repo
   }
 
+  alias FarmbotExt.API.DirtyWorker.Supervisor
+
   alias FarmbotExt.API.DirtyWorker
 
   setup :verify_on_exit!
+
+  test "supervisor" do
+    assert [] == Supervisor.children()
+    {:ok, _pid} = Supervisor.start_link([], [])
+  end
 
   test "child spec" do
     spec = DirtyWorker.child_spec(Point)
