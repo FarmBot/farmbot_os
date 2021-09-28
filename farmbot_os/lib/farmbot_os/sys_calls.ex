@@ -1,13 +1,13 @@
 defmodule FarmbotOS.SysCalls do
   @moduledoc """
-  Implementation for FarmbotCeleryScript.SysCalls
+  Implementation for FarmbotCore.Celery.SysCalls
   """
 
   require FarmbotCore.Logger
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
   alias FarmbotCore.Asset
   alias FarmbotCore.BotState
   alias FarmbotCore.Leds
@@ -43,7 +43,7 @@ defmodule FarmbotOS.SysCalls do
     SetPinIOMode
   }
 
-  @behaviour FarmbotCeleryScript.SysCalls
+  @behaviour FarmbotCore.Celery.SysCalls
 
   @impl true
   defdelegate send_message(level, message, channels), to: SendMessage

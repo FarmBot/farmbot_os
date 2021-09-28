@@ -6,7 +6,7 @@ defmodule FarmbotExt.SyncHandlerSupportTest do
   alias FarmbotExt.MQTT.SyncHandler, as: State
   alias FarmbotCore.{BotState, JSON, Leds, Asset}
   alias FarmbotExt.MQTT
-  alias FarmbotExt.API.EagerLoader
+  alias FarmbotExt.EagerLoader
 
   @fake_state %State{
     client_id: "fboslol",

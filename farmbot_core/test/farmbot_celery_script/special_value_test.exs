@@ -1,8 +1,8 @@
-defmodule FarmbotCeleryScript.SpecialValueTest do
+defmodule FarmbotCore.Celery.SpecialValueTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCeleryScript.SpecialValue
+  alias FarmbotCore.Celery.SpecialValue
   import ExUnit.CaptureLog
 
   setup :verify_on_exit!

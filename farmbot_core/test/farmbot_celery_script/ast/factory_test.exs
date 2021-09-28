@@ -1,4 +1,4 @@
-defmodule FarmbotCeleryScript.AST.FactoryTest do
+defmodule FarmbotCore.Celery.AST.FactoryTest do
   use ExUnit.Case
-  doctest FarmbotCeleryScript.AST.Factory, import: true
+  doctest FarmbotCore.Celery.AST.Factory, import: true
 end

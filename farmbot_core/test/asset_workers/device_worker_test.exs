@@ -3,7 +3,7 @@ defmodule FarmbotCore.DeviceWorkerTest do
   use Mimic
 
   alias Farmbot.TestSupport.AssetFixtures
-  alias FarmbotCeleryScript.SysCalls.Stubs
+  alias FarmbotCore.Celery.SysCalls.Stubs
   alias FarmbotCore.Asset.Device
   alias FarmbotCore.AssetWorker
 

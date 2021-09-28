@@ -9,7 +9,7 @@ defmodule FarmbotOS.Lua do
   require FarmbotCore.Logger
   require Logger
 
-  alias FarmbotOS.Lua.Ext.{
+  alias FarmbotOS.Lua.{
     DataManipulation,
     Firmware,
     Info,

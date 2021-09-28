@@ -1,7 +1,7 @@
-defmodule FarmbotCeleryScript.LuaTest do
+defmodule FarmbotCore.Celery.LuaTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.Compiler.Lua
-  alias FarmbotCeleryScript.Compiler.Scope
+  alias FarmbotCore.Celery.Compiler.Lua
+  alias FarmbotCore.Celery.Compiler.Scope
 
   test "conversion of `cs_scope` to luerl params" do
     cs_scope = %Scope{

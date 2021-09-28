@@ -19,7 +19,7 @@ defmodule FarmbotCore.RegimenInstanceAssetWorkerTest do
       state = %{regimen_instance: regimen_instance}
       result = GenServer.cast(pid, {:schedule, state})
       assert :ok == result
-      # expect(FarmbotCeleryScript, :schedule, 1, fn _ast, _at, _data -> 1 end)
+      # expect(FarmbotCore.Celery, :schedule, 1, fn _ast, _at, _data -> 1 end)
     end
   end
 end

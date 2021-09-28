@@ -1,4 +1,4 @@
-defmodule FarmbotOS.Lua.Ext.InfoTest do
+defmodule FarmbotOS.Lua.InfoTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!

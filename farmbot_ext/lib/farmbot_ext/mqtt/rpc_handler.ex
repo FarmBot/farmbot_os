@@ -5,7 +5,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
   alias FarmbotCore.JSON
   alias FarmbotExt.MQTT
   alias FarmbotExt.Time
@@ -32,7 +32,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     ast = JSON.decode!(payload) |> AST.decode()
     channel_pid = self()
     ref = make_ref()
-    _pid = spawn(fn -> FarmbotCeleryScript.execute(ast, ref, channel_pid) end)
+    _pid = spawn(fn -> FarmbotCore.Celery.execute(ast, ref, channel_pid) end)
     timeout = ast.args[:timeout] || 0
     has_timer? = timeout > 0
     timer = if has_timer?, do: Time.send_after(self(), @timeoutmsg, timeout)

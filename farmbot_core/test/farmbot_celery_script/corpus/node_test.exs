@@ -1,6 +1,6 @@
-defmodule FarmbotCeleryScript.Corpus.NodeTest do
+defmodule FarmbotCore.Celery.Corpus.NodeTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.Corpus
+  alias FarmbotCore.Celery.Corpus
 
   test "inspect" do
     a =

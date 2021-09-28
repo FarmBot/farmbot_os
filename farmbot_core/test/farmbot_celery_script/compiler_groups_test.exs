@@ -1,8 +1,8 @@
-defmodule FarmbotCeleryScript.CompilerGroupsTest do
+defmodule FarmbotCore.Celery.CompilerGroupsTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCeleryScript.Compiler.{Utils, Scope}
+  alias FarmbotCore.Celery.Compiler.{Utils, Scope}
 
   setup :verify_on_exit!
 
@@ -22,12 +22,12 @@ defmodule FarmbotCeleryScript.CompilerGroupsTest do
         fun
       end)
 
-    expect(FarmbotCeleryScript.SysCalls, :sequence_init_log, 1, fn log ->
+    expect(FarmbotCore.Celery.SysCalls, :sequence_init_log, 1, fn log ->
       assert log == "[4/8] Starting test sequence"
       :ok
     end)
 
-    expect(FarmbotCeleryScript.SysCalls, :sequence_complete_log, 1, fn log ->
+    expect(FarmbotCore.Celery.SysCalls, :sequence_complete_log, 1, fn log ->
       assert log == "Completed test sequence"
       :ok
     end)

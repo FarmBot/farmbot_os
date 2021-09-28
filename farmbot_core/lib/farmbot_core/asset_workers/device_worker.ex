@@ -1,6 +1,6 @@
 defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
   alias FarmbotCore.{Asset, Asset.Device}
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
   use GenServer
   require FarmbotCore.Logger
 
@@ -27,7 +27,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       |> AST.Factory.rpc_request("RESET_DEVICE_NOW")
       |> AST.Factory.factory_reset("farmbot_os")
 
-    :ok = FarmbotCeleryScript.execute(ast, make_ref())
+    :ok = FarmbotCore.Celery.execute(ast, make_ref())
 
     {:noreply, state}
   end

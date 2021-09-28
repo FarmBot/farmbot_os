@@ -1,9 +1,9 @@
-defmodule FarmbotCeleryScript.VariableTransformerTest do
+defmodule FarmbotCore.Celery.VariableTransformerTest do
   use ExUnit.Case, async: false
   use Mimic
 
-  alias FarmbotCeleryScript.Compiler.VariableTransformer
-  alias FarmbotCeleryScript.SysCalls.Stubs
+  alias FarmbotCore.Celery.Compiler.VariableTransformer
+  alias FarmbotCore.Celery.SysCalls.Stubs
 
   setup :verify_on_exit!
 
