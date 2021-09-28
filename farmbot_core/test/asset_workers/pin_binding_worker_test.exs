@@ -8,13 +8,25 @@ defmodule FarmbotCore.PinBindingWorkerTest do
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
 
   test "triggering of a reboot from a pin binding" do
-    params = %{pin_binding: %{special_action: "reboot", pin_num: 0}}
+    params = %{
+      pin_binding: %FarmbotCore.Asset.PinBinding{
+        special_action: "reboot",
+        pin_num: 0
+      }
+    }
+
     expect(FarmbotCeleryScript.SysCalls, :reboot, fn -> :ok end)
     PinBinding.handle_cast(:trigger, params)
   end
 
   test "triggering of a sync from a pin binding" do
-    params = %{pin_binding: %{special_action: "sync", pin_num: 0}}
+    params = %{
+      pin_binding: %FarmbotCore.Asset.PinBinding{
+        special_action: "sync",
+        pin_num: 0
+      }
+    }
+
     expect(FarmbotCeleryScript.SysCalls, :sync, fn -> :ok end)
     PinBinding.handle_cast(:trigger, params)
   end
