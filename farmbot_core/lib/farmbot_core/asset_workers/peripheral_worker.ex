@@ -3,7 +3,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   require Logger
 
   alias FarmbotCore.{Asset.Peripheral, BotState}
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
 
   @retry_ms 1_000
 
@@ -46,7 +46,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   def handle_info(:timeout, %{peripheral: peripheral, errors: errors} = state) do
     Logger.debug("Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
-    case FarmbotCeleryScript.execute(rpc, make_ref()) do
+    case FarmbotCore.Celery.execute(rpc, make_ref()) do
       :ok ->
         Logger.debug("Read peripheral: #{peripheral.label} ok")
         {:noreply, state}

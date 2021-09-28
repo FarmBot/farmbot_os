@@ -1,7 +1,7 @@
-defmodule FarmbotExt.API.EagerLoader.SupervisorTest do
+defmodule FarmbotExt.EagerLoader.SupervisorTest do
   use ExUnit.Case
 
-  alias FarmbotExt.API.EagerLoader.Supervisor
+  alias FarmbotExt.EagerLoader.Supervisor
 
   test "children" do
     results = Supervisor.children()

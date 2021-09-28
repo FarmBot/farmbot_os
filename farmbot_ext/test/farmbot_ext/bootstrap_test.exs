@@ -13,7 +13,7 @@ defmodule FarmbotExt.BootstrapTest do
         {:error, "Bad email or password."}
     end)
 
-    expect(FarmbotCeleryScript.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
+    expect(FarmbotCore.Celery.SysCalls, :factory_reset, 1, fn "farmbot_os" -> :ok end)
 
     run_test = fn ->
       assert Bootstrap.try_auth("", "", "", "") == {:noreply, nil, 0}

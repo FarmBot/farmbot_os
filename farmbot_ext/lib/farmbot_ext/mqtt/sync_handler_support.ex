@@ -3,9 +3,9 @@ defmodule FarmbotExt.MQTT.SyncHandlerSupport do
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCore.{BotState, JSON, Leds, Asset}
-  alias FarmbotExt.API.{EagerLoader, Preloader}
-  alias FarmbotExt.MQTT
+  alias FarmbotCore.{Asset, BotState, JSON, Leds}
+  alias FarmbotExt.API.Preloader
+  alias FarmbotExt.{MQTT, EagerLoader}
 
   defstruct client_id: "NOT_SET", username: "NOT_SET", preloaded: false
 

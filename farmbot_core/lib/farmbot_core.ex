@@ -24,7 +24,7 @@ defmodule FarmbotCore do
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.StorageSupervisor,
       FarmbotCore.FirmwareEstopTimer,
-      FarmbotCeleryScript.Scheduler
+      FarmbotCore.Celery.Scheduler
     ]
     config = (Application.get_env(:farmbot_ext, __MODULE__) || [])
     Keyword.get(config, :children, default)

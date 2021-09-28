@@ -1,4 +1,4 @@
-defmodule FarmbotExt.API.DirtyWorkerTest do
+defmodule FarmbotExt.DirtyWorkerTest do
   require Helpers
 
   use ExUnit.Case
@@ -12,9 +12,9 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     Repo
   }
 
-  alias FarmbotExt.API.DirtyWorker.Supervisor
+  alias FarmbotExt.DirtyWorker.Supervisor
 
-  alias FarmbotExt.API.DirtyWorker
+  alias FarmbotExt.DirtyWorker
 
   setup :verify_on_exit!
 
@@ -38,7 +38,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     Private.mark_stale!(p)
     assert Private.any_stale?()
 
-    expect(FarmbotCeleryScript.SysCalls, :sync, 1, fn ->
+    expect(FarmbotCore.Celery.SysCalls, :sync, 1, fn ->
       Private.mark_clean!(p)
     end)
 
@@ -55,7 +55,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
       |> FbosConfig.changeset()
       |> Repo.insert!()
 
-    expect(FarmbotCeleryScript.SysCalls, :sync, 1, fn ->
+    expect(FarmbotCore.Celery.SysCalls, :sync, 1, fn ->
       "I expect a 409 response to trigger a sync."
     end)
 
@@ -70,7 +70,7 @@ defmodule FarmbotExt.API.DirtyWorkerTest do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
 
-    stub(FarmbotCeleryScript.SysCalls, :sync, fn ->
+    stub(FarmbotCore.Celery.SysCalls, :sync, fn ->
       flunk("Never should call sync")
     end)
 

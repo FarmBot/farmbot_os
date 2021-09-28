@@ -1,20 +1,20 @@
-defmodule FarmbotCeleryScript.AssertionCompilerTest do
+defmodule FarmbotCore.Celery.AssertionCompilerTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotCeleryScript.Compiler.{Assertion, Scope}
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.Compiler.{Assertion, Scope}
+  alias FarmbotCore.Celery.AST
 
   test "Assertion.assertion/2" do
     scope = Scope.new()
 
-    expect(FarmbotCeleryScript.SysCalls, :log_assertion, 1, fn ok?, t, msg ->
+    expect(FarmbotCore.Celery.SysCalls, :log_assertion, 1, fn ok?, t, msg ->
       refute ok?
       assert t == "abort"
       assert msg == "[comment] failed to evaluate, aborting"
       :ok
     end)
 
-    expect(FarmbotCeleryScript.Compiler.Lua, :do_lua, 1, fn lua, actual_scope ->
+    expect(FarmbotCore.Celery.Compiler.Lua, :do_lua, 1, fn lua, actual_scope ->
       assert lua == "return false"
       assert actual_scope == scope
       {:error, "intentional failure case"}

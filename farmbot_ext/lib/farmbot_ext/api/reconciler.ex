@@ -10,8 +10,8 @@ defmodule FarmbotExt.API.Reconciler do
   alias Ecto.Changeset
   import Ecto.Query
 
-  alias FarmbotExt.API
-  alias API.{SyncGroup, EagerLoader}
+  alias FarmbotExt.{API, EagerLoader}
+  alias API.SyncGroup
 
   alias FarmbotCore.Asset.{Command, Repo, Sync, Sync.Item}
   import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]

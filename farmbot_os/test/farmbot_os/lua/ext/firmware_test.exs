@@ -1,6 +1,6 @@
-defmodule FarmbotOS.Lua.Ext.FirmwareTest do
-  alias FarmbotOS.Lua.Ext.Firmware
-  alias FarmbotCeleryScript.SysCalls
+defmodule FarmbotOS.Lua.FirmwareTest do
+  alias FarmbotOS.Lua.Firmware
+  alias FarmbotCore.Celery.SysCalls
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!

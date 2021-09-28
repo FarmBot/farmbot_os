@@ -1,6 +1,6 @@
-defmodule FarmbotCeleryScript.InterpolationTest do
+defmodule FarmbotCore.Celery.InterpolationTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.Interpolation
+  alias FarmbotCore.Celery.Interpolation
 
   test "guess_z_value/2 - base case" do
     soil_points = [

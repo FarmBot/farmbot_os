@@ -1,8 +1,8 @@
-defmodule FarmbotCeleryScript.SchedulerTest do
+defmodule FarmbotCore.Celery.SchedulerTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotCeleryScript.{Scheduler, AST}
-  alias FarmbotCeleryScript.SysCalls.Stubs
+  alias FarmbotCore.Celery.{Scheduler, AST}
+  alias FarmbotCore.Celery.SysCalls.Stubs
   import ExUnit.CaptureLog
 
   setup :set_mimic_global

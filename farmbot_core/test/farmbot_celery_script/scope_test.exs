@@ -1,7 +1,7 @@
-defmodule FarmbotCeleryScript.Compiler.ScopeTest do
+defmodule FarmbotCore.Celery.Compiler.ScopeTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.AST
-  alias FarmbotCeleryScript.Compiler.Scope
+  alias FarmbotCore.Celery.AST
+  alias FarmbotCore.Celery.Compiler.Scope
 
   @fixture "test/fixtures/execute.json"
            |> File.read!()

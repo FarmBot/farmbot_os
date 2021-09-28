@@ -5,7 +5,7 @@ defmodule FarmbotOS.LuaTest do
   alias FarmbotCore.Firmware.Command
   alias FarmbotOS.Lua
 
-  alias FarmbotOS.Lua.Ext.{
+  alias FarmbotOS.Lua.{
     Firmware,
     Info,
     DataManipulation
@@ -131,7 +131,7 @@ defmodule FarmbotOS.LuaTest do
 
     Enum.map(@documentation_examples, fn lua ->
       result =
-        FarmbotCeleryScript.Compiler.Lua.do_lua(lua, %{
+        FarmbotCore.Celery.Compiler.Lua.do_lua(lua, %{
           declarations: %{"parent" => %{"x" => 1000}}
         })
 

@@ -1,6 +1,6 @@
-defmodule FarmbotCeleryScript.CorpusTest do
+defmodule FarmbotCore.Celery.CorpusTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.Corpus
+  alias FarmbotCore.Celery.Corpus
 
   test "lists all node names" do
     assert "sequence" in Corpus.all_node_names()

@@ -1,9 +1,9 @@
-defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
+defmodule FarmbotOS.Lua.DataManipulationTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.ResourceUpdate
-  alias FarmbotOS.Lua.Ext.DataManipulation
+  alias FarmbotOS.Lua.DataManipulation
 
   # Random tidbits needed for mocks / stubs.
   defstruct [:key, :value]
@@ -100,7 +100,7 @@ defmodule FarmbotOS.Lua.Ext.DataManipulationTest do
   end
 
   test "soil_height" do
-    expect(FarmbotCeleryScript.SpecialValue, :soil_height, 1, fn params ->
+    expect(FarmbotCore.Celery.SpecialValue, :soil_height, 1, fn params ->
       assert params.x == 9.9
       assert params.y == 8.8
       5.55
