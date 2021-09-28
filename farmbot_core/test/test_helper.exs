@@ -6,12 +6,12 @@ FarmbotCore.Asset.Device.changeset(FarmbotCore.Asset.device(), %{timezone: tz})
 
 [
   Circuits.UART,
-  FarmbotCeleryScript,
-  FarmbotCeleryScript.Compiler.Lua,
-  FarmbotCeleryScript.Scheduler,
-  FarmbotCeleryScript.SpecialValue,
-  FarmbotCeleryScript.SysCalls,
-  FarmbotCeleryScript.SysCalls.Stubs,
+  FarmbotCore.Celery,
+  FarmbotCore.Celery.Compiler.Lua,
+  FarmbotCore.Celery.Scheduler,
+  FarmbotCore.Celery.SpecialValue,
+  FarmbotCore.Celery.SysCalls,
+  FarmbotCore.Celery.SysCalls.Stubs,
   FarmbotCore.Asset,
   FarmbotCore.Asset.Private,
   FarmbotCore.Asset.Repo,

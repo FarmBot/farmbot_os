@@ -63,7 +63,7 @@ defmodule FarmbotExt.Bootstrap do
         msg = "Password auth failed! Check again and reconfigurate."
         Logger.error(msg)
         FarmbotCore.Logger.debug(3, msg)
-        FarmbotCeleryScript.SysCalls.factory_reset("farmbot_os")
+        FarmbotCore.Celery.SysCalls.factory_reset("farmbot_os")
         FarmbotExt.Time.no_reply(nil, 5000)
 
       er ->

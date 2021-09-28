@@ -1,6 +1,6 @@
-defmodule FarmbotCeleryScript.ASTTest do
+defmodule FarmbotCore.Celery.ASTTest do
   use ExUnit.Case
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
 
   @nothing_json "{\"kind\": \"nothing\", \"args\": {}}"
                 |> Jason.decode!()

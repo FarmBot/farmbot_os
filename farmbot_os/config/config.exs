@@ -26,8 +26,7 @@ config :farmbot_core, FarmbotCore.EctoMigrator,
       "beta"
     )
 
-config :farmbot_core, FarmbotCeleryScript.SysCalls,
-  sys_calls: FarmbotOS.SysCalls
+config :farmbot_core, FarmbotCore.Celery.SysCalls, sys_calls: FarmbotOS.SysCalls
 
 config :farmbot_core, FarmbotCore.BotState.FileSystem,
   root_dir: "/tmp/farmbot_state"

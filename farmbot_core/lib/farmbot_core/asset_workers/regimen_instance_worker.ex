@@ -8,7 +8,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   require Logger
   require FarmbotCore.Logger
 
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
   alias FarmbotCore.Asset
   alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Sequence, Regimen}
 
@@ -57,7 +57,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
     {:noreply, state}
   end
 
-  def handle_info({FarmbotCeleryScript, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
+  def handle_info({FarmbotCore.Celery, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
       {:error, reason} ->
@@ -89,6 +89,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
       |> Map.put(:locals, %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ regimen_params ++ farm_event_params})
 
     celery_ast = %{celery_ast | args: celery_args}
-    FarmbotCeleryScript.schedule(celery_ast, at, sequence)
+    FarmbotCore.Celery.schedule(celery_ast, at, sequence)
   end
 end

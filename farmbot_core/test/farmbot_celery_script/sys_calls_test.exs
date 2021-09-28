@@ -1,8 +1,8 @@
-defmodule FarmbotCeleryScript.SysCallsTest do
+defmodule FarmbotCore.Celery.SysCallsTest do
   use ExUnit.Case, async: false
   use Mimic
 
-  alias FarmbotCeleryScript.{
+  alias FarmbotCore.Celery.{
     SysCalls,
     SysCalls.Stubs,
     AST
@@ -25,7 +25,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     end)
 
     boom = fn -> SysCalls.point(Stubs, "Peripheral", 0) end
-    assert_raise FarmbotCeleryScript.RuntimeError, boom
+    assert_raise FarmbotCore.Celery.RuntimeError, boom
   end
 
   test "point groups failure" do
@@ -34,7 +34,7 @@ defmodule FarmbotCeleryScript.SysCallsTest do
     end)
 
     boom = fn -> SysCalls.find_points_via_group(Stubs, :something_else) end
-    assert_raise FarmbotCeleryScript.RuntimeError, boom
+    assert_raise FarmbotCore.Celery.RuntimeError, boom
   end
 
   test "point groups success" do

@@ -31,7 +31,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
 
   def done(progress_pid) do
     UpdateProgress.set(progress_pid, 100)
-    FarmbotCeleryScript.SysCalls.reboot()
+    FarmbotCore.Celery.SysCalls.reboot()
   end
 
   # Try to find the upgrade image URL (might be `nil`)

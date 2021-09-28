@@ -23,7 +23,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   Handles execution of Farmware plugins.
   """
 
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
   alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
   alias FarmbotCore.BotState.FileSystem
@@ -262,7 +262,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       ref = make_ref()
       Logger.debug("executing rpc from farmware: #{inspect(rpc)}")
       # todo(connor) replace this with StepRunner?
-      FarmbotCeleryScript.execute(rpc, ref)
+      FarmbotCore.Celery.execute(rpc, ref)
 
       {:noreply, %{state | rpc: rpc, scheduler_ref: ref, context: :process_request},
        @error_timeout_ms}

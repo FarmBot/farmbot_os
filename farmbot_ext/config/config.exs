@@ -4,7 +4,7 @@ config :tesla, adapter: Tesla.Adapter.Hackney
 config :logger, handle_otp_reports: true, handle_sasl_reports: true
 
 # TODO(Rick) We probably don't need to use this anymore now that Mox is a thing.
-config :farmbot_core, FarmbotCeleryScript.SysCalls, sys_calls: FarmbotCeleryScript.SysCalls.Stubs
+config :farmbot_core, FarmbotCore.Celery.SysCalls, sys_calls: FarmbotCore.Celery.SysCalls.Stubs
 
 repos = [FarmbotCore.Config.Repo, FarmbotCore.Logger.Repo, FarmbotCore.Asset.Repo]
 config :farmbot_core, ecto_repos: repos
@@ -66,8 +66,8 @@ if is_test? do
     FarmbotExt,
     FarmbotExt.MQTT.Supervisor,
     FarmbotExt.MQTT.ChannelSupervisor,
-    FarmbotExt.API.DirtyWorker.Supervisor,
-    FarmbotExt.API.EagerLoader.Supervisor,
+    FarmbotExt.DirtyWorker.Supervisor,
+    FarmbotExt.EagerLoader.Supervisor,
     FarmbotExt.Bootstrap.Supervisor
   ]
 

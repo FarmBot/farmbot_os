@@ -3,7 +3,7 @@ defmodule FarmbotOS.Configurator.LoggerSocket do
   WebSocket handler for streaming logs
   """
 
-  alias FarmbotOS.Configurator.LoggerSocket.LoggerBackend
+  alias FarmbotOS.Configurator.LoggerBackend
   require Logger
 
   @behaviour :cowboy_websocket

@@ -1,14 +1,14 @@
-defmodule FarmbotCeleryScript.MoveCompilerTest do
+defmodule FarmbotCore.Celery.MoveCompilerTest do
   use ExUnit.Case, async: false
   use Mimic
 
-  alias FarmbotCeleryScript.{
+  alias FarmbotCore.Celery.{
     Compiler,
     Compiler.Move,
     SysCalls.Stubs
   }
 
-  alias FarmbotCeleryScript.SysCalls, warn: false
+  alias FarmbotCore.Celery.SysCalls, warn: false
 
   setup :verify_on_exit!
 
@@ -261,7 +261,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
 
     fake_variance = %{kind: :random, args: %{variance: 10}}
 
-    expect(FarmbotCeleryScript.SpecialValue, :safe_height, fn -> 1.23 end)
+    expect(FarmbotCore.Celery.SpecialValue, :safe_height, fn -> 1.23 end)
 
     assert Move.to_number(:z, @soil_height) == {:skip, :soil_height}
     assert Move.to_number(:z, @safe_height) == 1.23
@@ -405,7 +405,7 @@ defmodule FarmbotCeleryScript.MoveCompilerTest do
       {:safe_z, :=, true}
     ]
 
-    expect(FarmbotCeleryScript.SpecialValue, :soil_height, 1, fn coord ->
+    expect(FarmbotCore.Celery.SpecialValue, :soil_height, 1, fn coord ->
       assert coord.x == 0.0
       assert coord.y == 5.0
 

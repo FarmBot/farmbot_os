@@ -1,8 +1,8 @@
 Application.ensure_all_started(:mimic)
 
 [
-  FarmbotCeleryScript.SpecialValue,
-  FarmbotCeleryScript.SysCalls,
+  FarmbotCore.Celery.SpecialValue,
+  FarmbotCore.Celery.SysCalls,
   FarmbotCore.Asset,
   FarmbotCore.Asset.Device,
   FarmbotCore.Asset.FbosConfig,
@@ -21,9 +21,9 @@ Application.ensure_all_started(:mimic)
   FarmbotOS.Configurator.ConfigDataLayer,
   FarmbotOS.Configurator.DetsTelemetryLayer,
   FarmbotOS.Configurator.FakeNetworkLayer,
-  FarmbotOS.Lua.Ext.DataManipulation,
-  FarmbotOS.Lua.Ext.Firmware,
-  FarmbotOS.Lua.Ext.Info,
+  FarmbotOS.Lua.DataManipulation,
+  FarmbotOS.Lua.Firmware,
+  FarmbotOS.Lua.Info,
   FarmbotOS.SysCalls,
   FarmbotOS.SysCalls.ChangeOwnership.Support,
   FarmbotOS.SysCalls.Farmware,

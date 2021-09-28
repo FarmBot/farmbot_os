@@ -56,9 +56,9 @@ defmodule FarmbotOS.SysCalls.SendMessage do
 
     {:ok,
      [
-       x: FarmbotCeleryScript.FormatUtil.format_float(x),
-       y: FarmbotCeleryScript.FormatUtil.format_float(y),
-       z: FarmbotCeleryScript.FormatUtil.format_float(z)
+       x: FarmbotCore.Celery.FormatUtil.format_float(x),
+       y: FarmbotCore.Celery.FormatUtil.format_float(y),
+       z: FarmbotCore.Celery.FormatUtil.format_float(z)
      ]}
   end
 
@@ -67,7 +67,7 @@ defmodule FarmbotOS.SysCalls.SendMessage do
      FarmbotCore.BotState.fetch().pins
      |> Map.new()
      |> Enum.map(fn {p, %{value: v}} ->
-       {:"pin#{p}", FarmbotCeleryScript.FormatUtil.format_float(v)}
+       {:"pin#{p}", FarmbotCore.Celery.FormatUtil.format_float(v)}
      end)}
   end
 

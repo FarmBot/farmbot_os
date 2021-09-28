@@ -19,7 +19,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
     Asset
   }
 
-  alias FarmbotCeleryScript.AST
+  alias FarmbotCore.Celery.AST
 
   @error_retry_time_ms 5000
 
@@ -126,13 +126,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "reboot"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Reboot")
-    FarmbotCeleryScript.SysCalls.reboot()
+    FarmbotCore.Celery.SysCalls.reboot()
     {:noreply, state}
   end
 
   def handle_cast(:trigger, %{pin_binding: %{special_action: "sync"} = pin_binding} = state) do
     FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Sync")
-    FarmbotCeleryScript.SysCalls.sync()
+    FarmbotCore.Celery.SysCalls.sync()
     {:noreply, state}
   end
 
@@ -178,7 +178,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   end
 
   defp execute(%AST{} = ast, state) do
-    case FarmbotCeleryScript.execute(ast, make_ref()) do
+    case FarmbotCore.Celery.execute(ast, make_ref()) do
       :ok ->
         :ok
 
