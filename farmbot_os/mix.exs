@@ -104,7 +104,7 @@ defmodule FarmbotOS.MixProject do
        runtime: false,
        targets: :rpi3},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:luerl, github: "rvirding/luerl"},
+      {:luerl, github: "rvirding/luerl", tag: "1.0"},
       {:mdns_lite, "~> 0.7.0", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},

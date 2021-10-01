@@ -76,6 +76,10 @@ defmodule FarmbotOS.Lua do
         {:error,
          "failed to parse expression (line:#{line}): #{IO.iodata_to_binary(parse_error)}"}
 
+      {:error, error, backtrace} ->
+        IO.inspect(backtrace, label: "=== LUA ERROR TRACE")
+        {:error, error}
+
       {:error, error} ->
         {:error, error}
 

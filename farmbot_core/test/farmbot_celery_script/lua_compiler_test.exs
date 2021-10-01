@@ -3,6 +3,21 @@ defmodule FarmbotCore.Celery.LuaTest do
   alias FarmbotCore.Celery.Compiler.Lua
   alias FarmbotCore.Celery.Compiler.Scope
 
+  test "variable lookup" do
+    variable = %{"x" => 1000}
+    cs_scope = %{declarations: %{"parent" => variable}}
+    lookup = Lua.generate_lookup_fn(cs_scope)
+    one = lookup.([], :the_state)
+    two = lookup.(["parent"], :the_state)
+    three = lookup.(["foo", "bar"], :the_state)
+    assert one == {[variable], :the_state}
+    assert two == {[variable], :the_state}
+
+    assert three == %{
+             error: "Invalid input. Please pass 1 variable name (string)."
+           }
+  end
+
   test "conversion of `cs_scope` to luerl params" do
     cs_scope = %Scope{
       declarations: %{

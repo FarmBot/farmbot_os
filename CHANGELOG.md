@@ -1,8 +1,9 @@
 # Changelog
 
-# 14.4.2
+# 14.5.0
 
  * SSL/HTTPS configuration updates.
+ * Upgrade Lua runtime.
 
 # 14.4.1
 
