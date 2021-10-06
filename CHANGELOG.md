@@ -3,7 +3,7 @@
 # 14.5.0
 
  * SSL/HTTPS configuration updates.
- * Upgrade Lua runtime.
+ * Upgrade numerouse deps, such as Lua runtime and Certifi.
 
 # 14.4.1
 
