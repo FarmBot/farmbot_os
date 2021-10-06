@@ -45,7 +45,7 @@ defmodule FarmbotExt.MixProject do
       {:extty, "~> 0.2.1"},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:hackney, "~> 1.16"},
+      {:hackney, "~> 1.18"},
       {:mimic, "~> 1.5.1", only: :test},
       {:tesla, "~> 1.4.3"},
       {:uuid, "~> 1.1.8"}
