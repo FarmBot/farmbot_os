@@ -89,7 +89,7 @@ defmodule FarmbotOS.MixProject do
       {:cors_plug, "~> 2.0.3", targets: @all_targets},
       {:dns, "~> 2.3"},
       {:elixir_make, "~> 0.6.2", runtime: false},
-      {:ex_doc, "~> 0.25.2", only: [:dev], targets: [:host], runtime: false},
+      {:ex_doc, "~> 0.25.3", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
