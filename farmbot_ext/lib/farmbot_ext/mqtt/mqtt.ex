@@ -36,13 +36,9 @@ defmodule FarmbotExt.MQTT do
   end
 
   def new_supervisor(opts) do
-    pid = Process.whereis(TopicSupervisor)
-
-    if pid do
-      pid
-    else
-      {:ok, supervisor} = TopicSupervisor.start_link(opts)
-      supervisor
+    case TopicSupervisor.start_link(opts) do
+      {:ok, supervisor} -> supervisor
+      {:error, {:already_started, supervisor}} -> supervisor
     end
   end
 

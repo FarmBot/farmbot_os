@@ -72,20 +72,6 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     assert capture_log(t) =~ "Firmware restart initiated"
   end
 
-  # test "lifecycle" do
-  #   expect(Support, :connect, 1, fn @path -> {:ok, self()} end)
-  #   {:ok, pid} = UARTCore.start_link([path: @path], [])
-  #   assert is_pid(pid)
-  #   noise = fn -> send(pid, "nonsense") end
-  #   expected = "UNEXPECTED FIRMWARE MESSAGE: \"nonsense\""
-  #   Process.sleep(800)
-  #   assert capture_log(noise) =~ expected
-
-  #   send(pid, {:circuits_uart, "", "ARDUINO startup COMPLETE\r\n"})
-  #   state3 = :sys.get_state(pid)
-  #   assert state3.rx_buffer.ready
-  # end
-
   test "toggle_logging" do
     UARTCore.toggle_logging(self())
     assert_receive :toggle_logging
@@ -171,6 +157,19 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     t = fn -> UARTCore.terminate("", "") end
     expect(BotState, :firmware_offline, 1, fn -> nil end)
     assert capture_log(t) =~ "Firmware terminated."
+  end
+
+  test "handle_info({:send_raw, _},  state)" do
+    fake_gcode = "G00 X1.0 Y2.0 Z3.0 Q0"
+    s1 = %UARTCore{}
+
+    expect(Support, :uart_send, 1, fn _uart_pid, msg ->
+      assert msg == fake_gcode
+      :ok
+    end)
+
+    {:noreply, s2} = UARTCore.handle_info({:send_raw, fake_gcode}, s1)
+    assert s1 == s2
   end
 
   test "handle_info({:send_raw, E}, %State{} = state)" do
