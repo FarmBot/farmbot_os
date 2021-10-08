@@ -105,7 +105,7 @@ defmodule FarmbotOS.MixProject do
        targets: :rpi3},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
       {:luerl, github: "rvirding/luerl", tag: "1.0"},
-      {:mdns_lite, "~> 0.7.0", targets: @all_targets},
+      {:mdns_lite, "~> 0.8", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
       {:nerves_time, "~> 0.4.3", targets: @all_targets},
@@ -118,7 +118,7 @@ defmodule FarmbotOS.MixProject do
       {:toolshed, "~> 0.2.22", targets: @all_targets},
       {:vintage_net_ethernet, "~> 0.10.1", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.10.1", targets: @all_targets},
-      {:vintage_net, "~> 0.10.2", targets: @all_targets}
+      {:vintage_net, "~> 0.11", targets: @all_targets}
     ]
   end
 
