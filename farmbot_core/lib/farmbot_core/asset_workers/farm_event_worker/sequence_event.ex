@@ -11,22 +11,29 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   @impl GenServer
   def init([farm_event, args]) do
     send self(), :schedule
-    {:ok, %{farm_event: farm_event, args: args}}
+    {:ok, %{farm_event: farm_event, args: args, scheduled: 0, timesync_waits: 0}}
   end
 
   @impl GenServer
   def handle_info(:schedule, state) do
     farm_event = state.farm_event
 
-    farm_event
-    |> FarmEvent.build_calendar(DateTime.utc_now())
-    # get rid of any item that has already been scheduled/executed
-    |> Enum.reject(fn(scheduled_at) ->
-      Asset.get_farm_event_execution(farm_event, scheduled_at)
-    end)
+    occurrences =
+      farm_event
+      |> FarmEvent.build_calendar(DateTime.utc_now())
+      # get rid of any item that has already been scheduled/executed
+      |> Enum.reject(fn(scheduled_at) ->
+        Asset.get_farm_event_execution(farm_event, scheduled_at)
+      end)
+    occurrences
     |> Enum.each(fn(at) ->
       schedule_sequence(farm_event, at)
     end)
+    {:noreply, %{state | scheduled: state.scheduled + length(occurrences)}}
+  end
+
+  def handle_info(:timeout, state) do
+    Process.send_after(self(), :schedule, 1_000)
     {:noreply, state}
   end
 

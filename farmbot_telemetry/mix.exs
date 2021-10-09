@@ -57,7 +57,7 @@ defmodule FarmbotTelemetry.MixProject do
       {:telemetry, "~> 1.0.0"},
       {:uuid, "~> 1.1.8"},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
-      {:ex_doc, "~> 0.25.2", only: [:dev], targets: [:host], runtime: false}
+      {:ex_doc, "~> 0.25.3", only: [:dev], targets: [:host], runtime: false}
     ]
   end
 end

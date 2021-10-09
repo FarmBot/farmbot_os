@@ -110,7 +110,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   # treatment. It skips all queing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, %State{} = state) do
-    Support.uart_send(state.uart_pid, "E\r\n")
+    Support.uart_send(state.uart_pid, "E")
     msg = "Emergency locked"
     txb = TxBuffer.error_all(state.tx_buffer, msg)
     Support.lock!()
@@ -119,7 +119,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   # === SCENARIO: Direct GCode transmission without queueing
   def handle_info({:send_raw, text}, %State{} = state) do
-    Support.uart_send(state.uart_pid, "#{text}\r\n")
+    Support.uart_send(state.uart_pid, text)
     {:noreply, state}
   end
 

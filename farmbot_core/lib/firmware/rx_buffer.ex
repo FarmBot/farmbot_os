@@ -26,15 +26,13 @@ defmodule FarmbotCore.Firmware.RxBuffer do
 
   defstruct output: [], buffer: "", ready: false
 
-  @new_line "\n"
-
   @doc ~S"""
   Create a new line buffer object.
 
-  iex> new("r88 Q00\n")
+  iex> new("r88 Q00")
   %FarmbotCore.Firmware.RxBuffer{
     buffer: "",
-    output: [],
+    output: ["R88 Q00"],
     ready: true
   }
   """
@@ -53,27 +51,7 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   }
   """
   def puts(state, string) do
-    string
-    |> String.upcase()
-    |> String.replace(~r/\r*/, "")
-    |> String.replace(~r/\r/, @new_line)
-    |> String.replace(~r/\ +/, " ")
-    |> String.replace(~r/\n+/, @new_line)
-    |> String.split("")
-    |> Enum.filter(fn
-      "" -> false
-      _ -> true
-    end)
-    |> Enum.reduce(state, fn
-      @new_line, %{ready: false} ->
-        %State{output: [], buffer: "", ready: true}
-
-      _, %{ready: false} = state ->
-        state
-
-      char, state ->
-        step(state, char)
-    end)
+    %{state | output: [String.upcase(string)], ready: true}
   end
 
   @doc ~S"""
@@ -87,46 +65,14 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   ...>    |> gets()
   {
     %RxBuffer{
-      buffer: "R99 INCOMPLETE DATA",
+      buffer: "",
       output: [],
       ready: true
     },
-    ["R99 ARDUINO STARTUP COMPLETE"]
+    ["R99 INCOMPLETE DATA"]
   }
   """
   def gets(state) do
-    results =
-      state.output
-      |> Enum.chunk_by(fn token -> token == @new_line end)
-      |> Enum.map(fn chunk -> Enum.join(chunk, " ") end)
-      |> Enum.join(" ")
-      |> String.replace(~r/\n /, @new_line)
-      |> String.split(~r/\n/)
-      |> Enum.filter(fn
-        # Valid GCode messages start with "R".
-        # Throw away anything that doesn't.
-        "R" <> _ -> true
-        "" -> false
-        s -> oh_no(s)
-      end)
-
-    finalize(state, results)
-  end
-
-  defp finalize(state, results) do
-    {%{state | output: []}, results}
-  end
-
-  defp step(last_state, @new_line) do
-    next_output = last_state.output ++ ["#{last_state.buffer}\n"]
-    %{last_state | output: next_output, buffer: ""}
-  end
-
-  defp step(p, char), do: %{p | buffer: "#{p.buffer}#{char}"}
-
-  @oh_no "===== DONT KNOW HOW TO HANDLE THIS: "
-  defp oh_no(s) do
-    Logger.debug(@oh_no <> inspect(s))
-    false
+    {%{state | output: []}, state.output}
   end
 end
