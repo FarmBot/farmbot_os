@@ -4,6 +4,8 @@
 
  * SSL/HTTPS configuration updates.
  * Upgrade numerouse deps, such as Lua runtime and Certifi.
+ * Fix issue where FarmEvents would fail to execute near boot time on Express models.
+ * Performance updates to firmware handler.
 
 # 14.4.1
 
