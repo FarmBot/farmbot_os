@@ -62,7 +62,7 @@ defmodule FarmbotCore.Firmware.TxBufferTest do
     parent_pid = self()
     caller = fn -> TxBuffer.process_next_message(@ready_buffer, parent_pid) end
     spawn_link(caller)
-    assert_receive {:"$gen_call", {_, _}, {:write, "E Q1\r\n", 5000}}, 888
+    assert_receive {:"$gen_call", {_, _}, {:write, "E Q1", 5000}}, 888
   end
 
   test "process_next_message - Corner case II" do

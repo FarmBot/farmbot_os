@@ -26,13 +26,20 @@ defmodule FarmbotExt.MQTT do
   def init(args) do
     client_id = Keyword.fetch!(args, :client_id)
 
-    opts = [
-      client_id: client_id,
-      username: Keyword.fetch!(args, :username)
-    ]
+    supervisor =
+      new_supervisor(
+        client_id: client_id,
+        username: Keyword.fetch!(args, :username)
+      )
 
-    {:ok, supervisor} = TopicSupervisor.start_link(opts)
     {:ok, %State{client_id: client_id, supervisor: supervisor}}
+  end
+
+  def new_supervisor(opts) do
+    case TopicSupervisor.start_link(opts) do
+      {:ok, supervisor} -> supervisor
+      {:error, {:already_started, supervisor}} -> supervisor
+    end
   end
 
   def handle_message([_, _, "ping", _] = topic, payload, s) do

@@ -58,15 +58,16 @@ defmodule FarmbotCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:circuits_uart, "~> 1.4.3"},
-      {:ex_doc, "~> 0.25.2", only: [:dev], targets: [:host], runtime: false},
-      {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
+      {:circuits_uart, "~> 1.4"},
+      {:ex_doc, "~> 0.25", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.14", only: [:test], targets: [:host]},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:jason, "~> 1.2.2"},
-      {:mimic, "~> 1.5.1", only: :test},
-      {:muontrap, "~> 0.6.1"},
-      {:sqlite_ecto2, "~> 2.3"},
-      {:timex, "~> 3.7.6"}
+      {:jason, "~> 1.2"},
+      {:mimic, "~> 1.5", only: :test},
+      {:muontrap, "~> 0.6"},
+      {:nerves_time, "~> 0.4.3", targets: [:rpi, :rpi3]},
+      {:sqlite_ecto2, "2.3.1"},
+      {:timex, "~> 3.7"}
     ]
   end
 

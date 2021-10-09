@@ -89,7 +89,7 @@ defmodule FarmbotOS.MixProject do
       {:cors_plug, "~> 2.0.3", targets: @all_targets},
       {:dns, "~> 2.3"},
       {:elixir_make, "~> 0.6.2", runtime: false},
-      {:ex_doc, "~> 0.25.2", only: [:dev], targets: [:host], runtime: false},
+      {:ex_doc, "~> 0.25.3", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
       {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
@@ -104,8 +104,8 @@ defmodule FarmbotOS.MixProject do
        runtime: false,
        targets: :rpi3},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
-      {:luerl, github: "rvirding/luerl"},
-      {:mdns_lite, "~> 0.7.0", targets: @all_targets},
+      {:luerl, github: "rvirding/luerl", tag: "1.0"},
+      {:mdns_lite, "~> 0.8", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
       {:nerves_time, "~> 0.4.3", targets: @all_targets},
@@ -118,7 +118,7 @@ defmodule FarmbotOS.MixProject do
       {:toolshed, "~> 0.2.22", targets: @all_targets},
       {:vintage_net_ethernet, "~> 0.10.1", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.10.1", targets: @all_targets},
-      {:vintage_net, "~> 0.10.2", targets: @all_targets}
+      {:vintage_net, "~> 0.11", targets: @all_targets}
     ]
   end
 

@@ -3,6 +3,31 @@ defmodule FarmbotExt.MQTTTest do
   use Mimic
   alias FarmbotExt.MQTT
   alias FarmbotExt.MQTT.Support
+  alias FarmbotExt.MQTT.TopicSupervisor
+
+  test "new_supervisor(opts) - corner case" do
+    fake_opts = [foo: :bar]
+
+    expect(TopicSupervisor, :start_link, 1, fn opts ->
+      assert opts == fake_opts
+      {:ok, self()}
+    end)
+
+    pid = MQTT.new_supervisor(fake_opts)
+    assert pid == self()
+  end
+
+  test "new_supervisor(opts) - edge case" do
+    fake_opts = [foo: :bar]
+
+    expect(TopicSupervisor, :start_link, 1, fn opts ->
+      assert opts == fake_opts
+      {:error, {:already_started, self()}}
+    end)
+
+    pid = MQTT.new_supervisor(fake_opts)
+    assert pid == self()
+  end
 
   test "terminate/2" do
     expect(FarmbotCore.Leds, :blue, fn mode ->
