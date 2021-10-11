@@ -89,9 +89,8 @@ defmodule FarmbotCore.Asset.Private do
     try do
       Repo.insert_or_update!(changeset)
     catch
-      :error,  %Sqlite.DbConnection.Error{
-        message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id",
-        sqlite: %{code: :constraint}
+      :error,  %{
+        message: "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id"
       } ->
         Logger.warn """
         Caught race condition marking data as dirty (sqlite)

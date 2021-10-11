@@ -7,9 +7,9 @@ defmodule FarmbotCore.MixProject do
   @branch System.cmd("git", ~w"rev-parse --abbrev-ref HEAD")
           |> elem(0)
           |> String.trim()
-  # @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
-  #                 |> File.read!()
-  #                 |> String.trim()
+  @elixir_version Path.join([__DIR__, "..", "ELIXIR_VERSION"])
+                  |> File.read!()
+                  |> String.trim()
 
   defp commit do
     System.cmd("git", ~w"rev-parse --verify HEAD") |> elem(0) |> String.trim()
@@ -17,21 +17,22 @@ defmodule FarmbotCore.MixProject do
 
   def project do
     [
-      app: :farmbot_core,
-      description: "The Brains of the Farmbot Project",
-      # elixir: @elixir_version,
-      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
-      compilers: Mix.compilers(),
-      elixirc_paths: elixirc_paths(Mix.env()),
-      version: @version,
-      target: @target,
-      branch: @branch,
-      commit: commit(),
-      build_embedded: false,
-      start_permanent: Mix.env() == :prod,
       aliases: aliases(),
+      app: :farmbot_core,
+      branch: @branch,
+      build_embedded: false,
+      commit: commit(),
+      compilers: Mix.compilers(),
       deps: deps(),
-      test_coverage: [tool: ExCoveralls],
+      description: "The Brains of the Farmbot Project",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ],
+      elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
+      elixirc_paths: elixirc_paths(Mix.env()),
+      homepage_url: "http://farmbot.io",
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
@@ -39,11 +40,10 @@ defmodule FarmbotCore.MixProject do
         "coveralls.html": :test
       ],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io",
-      docs: [
-        logo: "../farmbot_os/priv/static/farmbot_logo.png",
-        extras: Path.wildcard("../docs/**/*.md")
-      ]
+      start_permanent: Mix.env() == :prod,
+      target: @target,
+      test_coverage: [tool: ExCoveralls],
+      version: @version
     ]
   end
 
@@ -61,13 +61,19 @@ defmodule FarmbotCore.MixProject do
       {:circuits_uart, "~> 1.4"},
       {:ex_doc, "~> 0.25", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14", only: [:test], targets: [:host]},
+      {:extty, "~> 0.2.1"},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
+      {:hackney, "~> 1.18"},
       {:jason, "~> 1.2"},
       {:mimic, "~> 1.5", only: :test},
       {:muontrap, "~> 0.6"},
       {:nerves_time, "~> 0.4.3", targets: [:rpi, :rpi3]},
-      {:sqlite_ecto2, "2.3.1"},
-      {:timex, "~> 3.7"}
+      {:ecto, "~> 3.7"},
+      {:ecto_sqlite3, "~> 0.7.1"},
+      {:tesla, "~> 1.4.3"},
+      {:timex, "~> 3.7"},
+      {:tortoise, "~> 0.10"},
+      {:uuid, "~> 1.1.8"}
     ]
   end
 

@@ -12,7 +12,7 @@ defmodule FarmbotCore.Config.Supervisor do
 
   def children do
     default = [ {FarmbotCore.Config.Repo, []} ]
-    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+    config = Application.get_env(:farmbot_core, __MODULE__) || []
     Keyword.get(config, :children, default)
   end
 end

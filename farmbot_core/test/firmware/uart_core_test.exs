@@ -11,7 +11,6 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
 
   setup :set_mimic_global
   setup :verify_on_exit!
-  @path "ttyACM0"
 
   test ":best_effort_bug_fix - KO" do
     state1 = %UARTCore{fw_type: nil}

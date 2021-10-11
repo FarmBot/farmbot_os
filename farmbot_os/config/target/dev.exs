@@ -39,8 +39,7 @@ config :shoehorn,
     :nerves_runtime,
     :vintage_net,
     :nerves_firmware_ssh,
-    :farmbot_core,
-    :farmbot_ext
+    :farmbot_core
   ],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
@@ -59,24 +58,6 @@ config :farmbot_core, FarmbotCore.Leds,
 data_path = Path.join("/", "root")
 
 config :farmbot, FarmbotOS.FileSystem, data_path: data_path
-
-config :farmbot_core, FarmbotCore.Config.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  pool_size: 1,
-  database: Path.join(data_path, "config-prod.sqlite3")
-
-config :farmbot_core, FarmbotCore.Logger.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  pool_size: 1,
-  database: Path.join(data_path, "logs-prod.sqlite3")
-
-config :farmbot_core, FarmbotCore.Asset.Repo,
-  adapter: Sqlite.Ecto2,
-  loggers: [],
-  pool_size: 1,
-  database: Path.join(data_path, "asset-prod.sqlite3")
 
 config :farmbot_telemetry,
   file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))

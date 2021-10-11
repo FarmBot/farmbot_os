@@ -11,11 +11,18 @@ if Mix.env() == :test do
 
   list = [
     FarmbotCore,
-    FarmbotCore.StorageSupervisor,
     FarmbotCore.Asset.Supervisor,
     FarmbotCore.BotState.Supervisor,
-    FarmbotCore.Config.Supervisor
+    FarmbotCore.Config.Supervisor,
+    FarmbotCore.StorageSupervisor,
+    FarmbotExt,
+    FarmbotExt.Bootstrap.Supervisor,
+    FarmbotExt.DirtyWorker.Supervisor,
+    FarmbotExt.EagerLoader.Supervisor,
+    FarmbotExt.MQTT.ChannelSupervisor,
+    FarmbotExt.MQTT.Supervisor
   ]
 
   Enum.map(list, mapper)
+  config :ex_unit, capture_logs: true
 end

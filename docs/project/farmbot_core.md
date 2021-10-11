@@ -56,5 +56,4 @@ in this cache:
 
 This is where the `Messages` panel gets it's data from. Calls to this subsystem
 push data into an sqlite database. This data is collected on a timer and dispatched
-over MQTT when/if that subsystem is available. See [farmbot_ext](/docs/project/farmbot_ext.md)
-for information on how that works.
+over MQTT when/if that subsystem is available.

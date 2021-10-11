@@ -22,10 +22,10 @@ defmodule FarmbotCore.BotStateNG do
     embeds_one(:location_data, LocationData, on_replace: :update)
     embeds_one(:informational_settings, InformationalSettings, on_replace: :update)
     embeds_one(:configuration, Configuration, on_replace: :update)
-    field(:user_env, {:map, {:string, :any}}, default: %{})
-    field(:process_info, {:map, {:string, :any}}, default: %{farmwares: %{}})
-    field(:pins, {:map, {:integer, :map}}, default: %{})
-    field(:jobs, {:map, {:string, :map}}, default: %{})
+    field(:user_env, :map, default: %{})
+    field(:process_info, :map, default: %{farmwares: %{}})
+    field(:pins, :map, default: %{})
+    field(:jobs, :map, default: %{})
   end
 
   def new do

@@ -116,7 +116,7 @@ defmodule FarmbotCore.Asset.CriteriaRetriever do
     sql = "SELECT id FROM points WHERE #{x}"
     query_params = List.flatten(criteria)
     {:ok, query} = Repo.query(sql, query_params)
-    %Sqlite.DbConnection.Result{ rows: rows } = query
+    %{ rows: rows } = query
     List.flatten(rows)
   end
 

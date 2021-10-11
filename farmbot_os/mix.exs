@@ -92,7 +92,6 @@ defmodule FarmbotOS.MixProject do
       {:ex_doc, "~> 0.25.3", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
       {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
-      {:farmbot_ext, path: "../farmbot_ext", env: Mix.env()},
       {:farmbot_system_rpi,
        git: "https://github.com/FarmBot/farmbot_system_rpi.git",
        ref: "v1.16.2-farmbot.1",

@@ -13,7 +13,6 @@ MIX_TARGET := host
 endif
 
 PROJECTS := farmbot_core \
-						farmbot_ext \
 						farmbot_os \
 						farmbot_telemetry
 

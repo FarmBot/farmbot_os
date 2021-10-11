@@ -4,7 +4,6 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
   require Logger
   require FarmbotCore.Logger
   import FarmbotCore.Config, only: [get_config_value: 3, update_config_value: 4]
-  alias FarmbotCore.{Asset, EctoMigrator}
   alias FarmbotExt.Bootstrap.Authorization
 
   defmodule Support do
@@ -24,7 +23,7 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
     end
 
     def clean_assets do
-      EctoMigrator.drop(Asset.Repo)
+      raise "TODO: Drop assets"
       :ok
     end
   end

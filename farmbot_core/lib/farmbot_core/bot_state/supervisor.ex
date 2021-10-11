@@ -15,7 +15,7 @@ defmodule FarmbotCore.BotState.Supervisor do
       FarmbotCore.BotState.FileSystem,
       FarmbotCore.BotState.SchedulerUsageReporter
     ]
-    config = Application.get_env(:farmbot_ext, __MODULE__) || []
+    config = Application.get_env(:farmbot_core, __MODULE__) || []
     Keyword.get(config, :children, default)
   end
 end

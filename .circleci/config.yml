@@ -247,45 +247,6 @@ jobs:
             - farmbot_core/_build/farmduino_v10
             - farmbot_core/_build/ramps_v14
 
-  test_farmbot_ext:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
-      SKIP_ARDUINO_BUILD: 1
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - restore_cache:
-          keys:
-            - v14-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - run:
-          name: Test Farmbot Ext
-          working_directory: /nerves/build/farmbot_ext
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            mix ecto.create
-            mix ecto.migrate
-            mix coveralls.json
-            bash <(curl -s https://codecov.io/bash)
-      - save_cache:
-          key: v14-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
-          paths:
-            - farmbot_ext/_build/test
-            - farmbot_ext/deps
-      - save_cache:
-          key: v14-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - farmbot_ext/cover
-      - store_artifacts:
-          path: farmbot_ext/cover
-
   test_farmbot_os:
     <<: *defaults
     environment:
@@ -429,12 +390,6 @@ workflows:
               ignore:
                 - main
       - test_farmbot_core:
-          context: org-global
-          filters:
-            branches:
-              ignore:
-                - main
-      - test_farmbot_ext:
           context: org-global
           filters:
             branches:

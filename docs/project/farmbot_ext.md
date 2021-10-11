@@ -1,9 +1,3 @@
-# FarmBot Ext OTP App
-
-the `farmbot_ext` OTP app contains extended FarmbotCore functionality.
-This includes mostly network functionality that isn't
-possible to do in `farmbot_core`.
-
 ## Bootstrap subsystem
 
 Subsystem responsible for bootstrapping a connection to the

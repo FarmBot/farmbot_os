@@ -19,10 +19,7 @@ defmodule FarmbotCore.Asset.FarmwareInstallation do
 
     embeds_one(:manifest, Manifest, on_replace: :update)
     field(:monitor, :boolean, default: true)
-    field(:created_at, :utc_datetime, default: DateTime.utc_now())
-    field(:updated_at, :utc_datetime, default: DateTime.utc_now())
-
-    # timestamps()
+    timestamps()
   end
 
   view farmware_installation do
