@@ -75,10 +75,7 @@ config :farmbot, FarmbotOS.Configurator,
 config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
-config :logger,
-  backends: [RingLogger],
-  handle_otp_reports: true,
-  handle_sasl_reports: true
+config :logger, backends: [RingLogger]
 
 config :logger, RingLogger,
   max_size: 1024,

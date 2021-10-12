@@ -1,19 +1,27 @@
 defmodule FarmbotOS do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
 
   def start(_type, _args) do
-    children = [
+    farmbot_os = [
+      FarmbotCore.Asset.Repo,
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
-      {FarmbotOS.Platform.Supervisor, []},
-      {FarmbotOS.EasterEggs, []}
+      {FarmbotOS.Platform.Supervisor, []}
     ]
 
-    opts = [strategy: :one_for_one, name: __MODULE__]
-    Supervisor.start_link(children, opts)
+    farmbot_core = [
+      FarmbotCore.Leds,
+      FarmbotCore.BotState.Supervisor,
+      FarmbotCore.StorageSupervisor,
+      FarmbotCore.FirmwareEstopTimer,
+      FarmbotCore.Celery.Scheduler,
+      FarmbotExt.Bootstrap
+    ]
+
+    children = farmbot_os ++ farmbot_core
+
+    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
   end
 end

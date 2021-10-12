@@ -27,7 +27,6 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
   def application_exited(app, reason, %{restart_counts: count} = state)
       when count >= 5 and
              app in [
-               :farmbot_core,
                :farmbot
              ] do
     error_log(
@@ -46,7 +45,6 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
   def application_exited(app, reason, %{restart_counts: count} = state)
       when app in [
-             :farmbot_core,
              :farmbot
            ] do
     error_log(
@@ -55,8 +53,7 @@ defmodule FarmbotOS.Platform.Target.ShoehornHandler do
 
     FarmbotTelemetry.event(:shoehorn, :application_exit, nil, application: app)
 
-    with {:ok, _} <- Application.ensure_all_started(:farmbot_core),
-         {:ok, _} <- Application.ensure_all_started(:farmbot) do
+    with {:ok, _} <- Application.ensure_all_started(:farmbot) do
       success_log("Recovered from application exit")
     end
 

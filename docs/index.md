@@ -55,6 +55,5 @@ documentation for information about it as it relates to FarmBot OS.
 The FarmBot OS application is broken into several sub applications.
 
 * [Project structure overview](/docs/project/structure.md)
-  * [farmbot_core](/docs/project/farmbot_core.md)
   * [farmbot_os](/docs/project/farmbot_os.md)
   * [farmbot_telemetry](/docs/project/farmbot_telemetry.md)

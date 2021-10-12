@@ -12,9 +12,7 @@ ifeq ($(MIX_TARGET),)
 MIX_TARGET := host
 endif
 
-PROJECTS := farmbot_core \
-						farmbot_os \
-						farmbot_telemetry
+PROJECTS := farmbot_os farmbot_telemetry
 
 all: help
 

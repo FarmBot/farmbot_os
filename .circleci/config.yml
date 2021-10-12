@@ -192,61 +192,6 @@ jobs:
       - store_artifacts:
           path: farmbot_telemetry/cover
 
-  test_farmbot_core:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
-      TZ: "America/Los_Angeles"
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - restore_cache:
-          keys:
-            - v14-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
-      - restore_cache:
-          keys:
-            - v14-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - <<: *install_arduino
-      - run:
-          name: Ensure format
-          command: |
-            mix format --check-formatted
-      - run:
-          name: Test Farmbot Core
-          working_directory: /nerves/build/farmbot_core
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            mix coveralls.json --trace
-            bash <(curl -s https://codecov.io/bash)
-      - save_cache:
-          key: v14-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
-          paths:
-            - farmbot_core/_build/test
-            - farmbot_core/deps
-            - farmbot_core/arduino
-      - save_cache:
-          key: v14-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - farmbot_core/cover
-      - store_artifacts:
-          path: farmbot_core/cover
-      - save_cache:
-          key: v14-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-          paths:
-            - ~/arduino-1.8.5
-            - farmbot_core/_build/core
-            - farmbot_core/_build/libraries
-            - farmbot_core/_build/farmduino_k14
-            - farmbot_core/_build/farmduino_v10
-            - farmbot_core/_build/ramps_v14
-
   test_farmbot_os:
     <<: *defaults
     environment:
@@ -384,12 +329,6 @@ workflows:
   test:
     jobs:
       - test_farmbot_telemetry:
-          context: org-global
-          filters:
-            branches:
-              ignore:
-                - main
-      - test_farmbot_core:
           context: org-global
           filters:
             branches:

@@ -22,36 +22,38 @@ defmodule FarmbotOS.MixProject do
 
   def project do
     [
+      aliases: aliases(),
       app: :farmbot,
-      elixir: @elixir_version,
-      version: @version,
-      branch: @branch,
-      commit: @commit,
-      releases: [{:farmbot, release()}],
-      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
       archives: [nerves_bootstrap: "~> 1.10"],
-      start_permanent: Mix.env() == :prod,
+      branch: @branch,
       build_embedded: false,
-      compilers: [:elixir_make | Mix.compilers()],
-      aliases: [loadconfig: [&bootstrap/1]],
-      elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
-      deps_path: "deps/#{Mix.target()}",
       build_path: "_build/#{Mix.target()}",
+      commit: @commit,
+      compilers: Mix.compilers(),
+      deps_path: "deps/#{Mix.target()}",
       deps: deps(),
-      test_coverage: [tool: ExCoveralls],
-      preferred_cli_target: [run: :host, test: :host],
+      description: "The Brains of the Farmbot Project",
+      docs: [
+        logo: "../farmbot_os/priv/static/farmbot_logo.png",
+        extras: Path.wildcard("../docs/**/*.md")
+      ],
+      elixir: @elixir_version,
+      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
+      elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
+      homepage_url: "http://farmbot.io",
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
       ],
+      preferred_cli_target: [run: :host, test: :host],
+      releases: [{:farmbot, release()}],
       source_url: "https://github.com/Farmbot/farmbot_os",
-      homepage_url: "http://farmbot.io",
-      docs: [
-        logo: "../farmbot_os/priv/static/farmbot_logo.png",
-        extras: Path.wildcard("../docs/**/*.md")
-      ]
+      start_permanent: Mix.env() == :prod,
+      target: Mix.target(),
+      test_coverage: [tool: ExCoveralls],
+      version: @version
     ]
   end
 
@@ -76,7 +78,7 @@ defmodule FarmbotOS.MixProject do
   def application do
     [
       mod: {FarmbotOS, []},
-      extra_applications: [:logger, :runtime_tools, :eex, :rollbax]
+      extra_applications: [:logger, :runtime_tools, :eex, :rollbax, :ssh]
     ]
   end
 
@@ -86,12 +88,14 @@ defmodule FarmbotOS.MixProject do
       {:busybox, "~> 0.1.5", targets: @all_targets},
       {:circuits_gpio, "~> 0.4.8", targets: @all_targets},
       {:circuits_i2c, "~> 0.3.9", targets: @all_targets},
+      {:circuits_uart, "~> 1.4"},
       {:cors_plug, "~> 2.0.3", targets: @all_targets},
       {:dns, "~> 2.3"},
-      {:elixir_make, "~> 0.6.2", runtime: false},
-      {:ex_doc, "~> 0.25.3", only: [:dev], targets: [:host], runtime: false},
-      {:excoveralls, "~> 0.14.2", only: [:test], targets: [:host]},
-      {:farmbot_core, path: "../farmbot_core", env: Mix.env()},
+      {:ecto_sqlite3, "~> 0.7.1"},
+      {:ecto, "~> 3.7"},
+      {:ex_doc, "~> 0.25", only: [:dev], targets: [:host], runtime: false},
+      {:excoveralls, "~> 0.14", only: [:test], targets: [:host]},
+      {:extty, "~> 0.2.1"},
       {:farmbot_system_rpi,
        git: "https://github.com/FarmBot/farmbot_system_rpi.git",
        ref: "v1.16.2-farmbot.1",
@@ -103,18 +107,26 @@ defmodule FarmbotOS.MixProject do
        runtime: false,
        targets: :rpi3},
       {:farmbot_telemetry, path: "../farmbot_telemetry", env: Mix.env()},
+      {:hackney, "~> 1.18"},
+      {:jason, "~> 1.2"},
       {:luerl, github: "rvirding/luerl", tag: "1.0"},
       {:mdns_lite, "~> 0.8", targets: @all_targets},
+      {:mimic, "~> 1.5", only: :test},
+      {:muontrap, "~> 0.6"},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
-      {:nerves_time, "~> 0.4.3", targets: @all_targets},
+      {:nerves_time, "~> 0.4"},
       {:nerves, "~> 1.7.11", runtime: false},
       {:phoenix_html, "~> 2.14.3"},
       {:plug_cowboy, "~> 2.5.2"},
       {:ring_logger, "~> 0.8.2"},
       {:rollbax, ">= 0.0.0"},
       {:shoehorn, "~> 0.7"},
+      {:tesla, "~> 1.4.3"},
+      {:timex, "~> 3.7"},
       {:toolshed, "~> 0.2.22", targets: @all_targets},
+      {:tortoise, "~> 0.10"},
+      {:uuid, "~> 1.1.8"},
       {:vintage_net_ethernet, "~> 0.10.1", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.10.1", targets: @all_targets},
       {:vintage_net, "~> 0.11", targets: @all_targets}
@@ -131,5 +143,16 @@ defmodule FarmbotOS.MixProject do
 
   defp elixirc_paths(_env, _target) do
     ["./lib", "./platform/target"]
+  end
+
+  def aliases do
+    [
+      loadconfig: [&bootstrap/1],
+      test: [
+        "ecto.drop",
+        "ecto.migrate",
+        "test"
+      ]
+    ]
   end
 end

@@ -1,45 +1,45 @@
 use Mix.Config
-
-config :farmbot_core,
-       Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
-       ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
-
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
-
-config :farmbot_core, FarmbotCore.Leds,
-  gpio_handler: FarmbotCore.Leds.StubHandler
-
-# Customize non-Elixir parts of the firmware.  See
-# https://hexdocs.pm/nerves/advanced-configuration.html for details.
-config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
-
-config :farmbot_core, FarmbotCore.Celery.SysCalls, sys_calls: FarmbotOS.SysCalls
-
-config :farmbot_core, FarmbotCore.BotState.FileSystem,
-  root_dir: "/tmp/farmbot_state"
+is_test? = Mix.env() == :test
 
 config :exqlite, :json_library, FarmbotCore.JSON
 
-config :farmbot_core, FarmbotExt.API.Preloader,
+config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
+
+config :farmbot, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
+  ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+
+config :farmbot, FarmbotCore.Asset.Repo, database: "database.#{Mix.env()}.db"
+
+config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
+  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
+
+config :farmbot, FarmbotCore.BotState.FileSystem, root_dir: "/tmp/farmbot_state"
+config :farmbot, FarmbotCore.Celery.SysCalls, sys_calls: FarmbotOS.SysCalls
+
+config :farmbot, FarmbotCore.Core.CeleryScript.RunTimeWrapper,
+  celery_script_io_layer: FarmbotCore.Core.CeleryScript.StubIOLayer
+
+config :farmbot, FarmbotCore.JSON, json_parser: FarmbotCore.JSON.JasonParser
+config :farmbot, FarmbotCore.Leds, gpio_handler: FarmbotCore.Leds.StubHandler
+
+config :farmbot, FarmbotExt.API.Preloader,
   preloader_impl: FarmbotExt.API.Preloader.HTTP
 
-config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
-
-config :farmbot, FarmbotOS.System,
-  system_tasks: FarmbotOS.Platform.Host.SystemTasks
+config :farmbot, FarmbotExt.Time, disable_timeouts: is_test?
 
 config :farmbot, FarmbotOS.Configurator,
   network_layer: FarmbotOS.Configurator.FakeNetworkLayer
 
-config :farmbot, FarmbotOS.Platform.Supervisor,
-  platform_children: [
-    FarmbotOS.Platform.Host.Configurator
-  ]
+config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
 
-config :logger,
-  handle_sasl_reports: false,
-  handle_otp_reports: false
+config :farmbot, FarmbotOS.Platform.Supervisor,
+  platform_children: [FarmbotOS.Platform.Host.Configurator]
+
+config :farmbot, FarmbotOS.System,
+  system_tasks: FarmbotOS.Platform.Host.SystemTasks
+
+config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
+config :tesla, adapter: Tesla.Adapter.Hackney
 
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
@@ -63,10 +63,4 @@ else
   import_config("target/#{Mix.env()}.exs")
 
   import_config("target/#{Mix.target()}.exs")
-end
-
-if Mix.env() == :test do
-  config :farmbot_os,
-         :reconciler,
-         FarmbotExt.API.TestReconciler
 end
