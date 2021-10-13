@@ -1,12 +1,17 @@
 defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   require Logger
   require FarmbotCore.Logger
-  alias FarmbotCore.Celery.AST
   alias FarmbotCore.{
     Asset,
-    Asset.FarmEvent
+    Asset.FarmEvent,
+    Celery,
+    Celery.AST
   }
   use GenServer
+
+  # Allow 'catchup' executions for ocurrences due in the past 15 minutes
+  # This matches Celery.Scheduler setting
+  @grace_period_s 900
 
   @impl GenServer
   def init([farm_event, args]) do
@@ -16,20 +21,25 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
 
   @impl GenServer
   def handle_info(:schedule, state) do
-    farm_event = state.farm_event
+    unless NervesTime.synchronized? do
+      {:noreply, %{state | timesync_waits: state.timesync_waits + 1}, 3_000}
+    else
+      base_time = DateTime.add(DateTime.utc_now(), 0 - @grace_period_s)
+      farm_event = state.farm_event
 
-    occurrences =
-      farm_event
-      |> FarmEvent.build_calendar(DateTime.utc_now())
-      # get rid of any item that has already been scheduled/executed
-      |> Enum.reject(fn(scheduled_at) ->
-        Asset.get_farm_event_execution(farm_event, scheduled_at)
+      occurrences =
+        farm_event
+        |> FarmEvent.build_calendar(base_time)
+        # get rid of any item that has already been scheduled/executed
+        |> Enum.reject(fn(scheduled_at) ->
+          Asset.get_farm_event_execution(farm_event, scheduled_at)
+        end)
+      occurrences
+      |> Enum.each(fn(at) ->
+        schedule_sequence(farm_event, at)
       end)
-    occurrences
-    |> Enum.each(fn(at) ->
-      schedule_sequence(farm_event, at)
-    end)
-    {:noreply, %{state | scheduled: state.scheduled + length(occurrences)}}
+      {:noreply, %{state | scheduled: state.scheduled + length(occurrences)}}
+    end
   end
 
   def handle_info(:timeout, state) do
@@ -37,7 +47,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
     {:noreply, state}
   end
 
-  def handle_info({FarmbotCore.Celery, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
+  def handle_info({Celery, {:scheduled_execution, scheduled_at, executed_at, result}}, state) do
     status = case result do
       :ok -> "ok"
       {:error, reason} ->
@@ -63,6 +73,6 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
       |> Map.put(:locals, %{celery_ast.args.locals | body: celery_ast.args.locals.body ++ param_appls})
 
     celery_ast = %{celery_ast | args: celery_args}
-    FarmbotCore.Celery.schedule(celery_ast, at, farm_event)
+    Celery.schedule(celery_ast, at, farm_event)
   end
 end
