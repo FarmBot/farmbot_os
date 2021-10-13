@@ -11,7 +11,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceTest do
     assert_receive :schedule, 1000
   end
 
-  test "handle_info(:schedule, state)" do
+  test "handle_info(:schedule, state) - Synchronized" do
     state = %{
       args: [],
       farm_event: %FarmbotCore.Asset.FarmEvent{
@@ -32,6 +32,10 @@ defmodule FarmbotCore.FarmEventWorker.SequenceTest do
       scheduled: 25,
       timesync_waits: 0
     }
+
+    expect(NervesTime, :synchronized?, 1, fn ->
+      true
+    end)
 
     expect(FarmbotCore.Celery, :schedule, 25, fn celery_ast, _at, farm_event ->
       assert %FarmbotCore.Celery.AST{} = celery_ast
@@ -56,5 +60,34 @@ defmodule FarmbotCore.FarmEventWorker.SequenceTest do
     assert state2.farm_event.local_id == state2.farm_event.local_id
     assert state2.scheduled == 50
     assert state2.timesync_waits == 0
+  end
+
+  test "handle_info(:schedule, state) - Not synchronized" do
+    state = %{
+      args: [],
+      farm_event: %FarmbotCore.Asset.FarmEvent{
+        body: [],
+        created_at: ~U[2021-10-08 21:28:19.200000Z],
+        end_time: ~U[2051-10-09 22:30:00.000000Z],
+        executable_id: 2,
+        executable_type: "Sequence",
+        executions: [],
+        id: 1,
+        last_executed: nil,
+        local_id: "6fae5451-baa8-4368-9612-cfd571384814",
+        repeat: 1,
+        start_time: ~U[2051-10-08 21:30:00.000000Z],
+        time_unit: "hourly",
+        updated_at: ~U[2051-10-08 21:28:19.294000Z]
+      },
+      scheduled: 25,
+      timesync_waits: 0
+    }
+
+    {:noreply, state2, timeout} = SequenceEvent.handle_info(:schedule, state)
+    assert timeout == 3000
+    assert state2.farm_event.local_id == state2.farm_event.local_id
+    assert state2.scheduled == 25
+    assert state2.timesync_waits == 1
   end
 end
