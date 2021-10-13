@@ -108,7 +108,7 @@ defmodule FarmbotOS.MixProject do
       {:mdns_lite, "~> 0.8", targets: @all_targets},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
-      {:nerves_time, "~> 0.4.3", targets: @all_targets},
+      {:nerves_time, "~> 0.4.3"},
       {:nerves, "~> 1.7.11", runtime: false},
       {:phoenix_html, "~> 2.14.3"},
       {:plug_cowboy, "~> 2.5.2"},
