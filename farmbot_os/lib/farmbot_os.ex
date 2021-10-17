@@ -4,23 +4,18 @@ defmodule FarmbotOS do
   use Application
 
   def start(_type, _args) do
-    farmbot_os = [
-      FarmbotCore.Asset.Repo,
+    children = [
+      FarmbotExt.Bootstrap,
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
-      {FarmbotOS.Platform.Supervisor, []}
-    ]
-
-    farmbot_core = [
-      FarmbotCore.Leds,
+      {FarmbotOS.Platform.Supervisor, []},
+      FarmbotCore.Asset.Repo,
       FarmbotCore.BotState.Supervisor,
-      FarmbotCore.StorageSupervisor,
-      FarmbotCore.FirmwareEstopTimer,
       FarmbotCore.Celery.Scheduler,
-      FarmbotExt.Bootstrap
+      FarmbotCore.FirmwareEstopTimer,
+      FarmbotCore.Leds,
+      FarmbotCore.StorageSupervisor
     ]
-
-    children = farmbot_os ++ farmbot_core
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
   end

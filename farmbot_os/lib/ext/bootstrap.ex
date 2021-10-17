@@ -45,7 +45,7 @@ defmodule FarmbotExt.Bootstrap do
     with {:ok, tkn} <-
            Authorization.authorize_with_secret(email, secret, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
-         {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
+         {:ok, pid} <- Supervisor.start_child(FarmbotOS, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
       _ -> FarmbotExt.Time.no_reply(nil, 5000)
@@ -56,7 +56,7 @@ defmodule FarmbotExt.Bootstrap do
     with {:ok, tkn} <-
            Authorization.authorize_with_password(email, password, server),
          _ <- update_config_value(:string, "authorization", "token", tkn),
-         {:ok, pid} <- Supervisor.start_child(FarmbotExt, Bootstrap.Supervisor) do
+         {:ok, pid} <- Supervisor.start_child(FarmbotOS, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
       # Changing the error message on the API
