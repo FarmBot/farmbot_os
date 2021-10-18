@@ -5,11 +5,11 @@ defmodule FarmbotOS do
 
   def start(_type, _args) do
     children = [
+      FarmbotCore.Asset.Repo,
       FarmbotExt.Bootstrap,
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
       {FarmbotOS.Platform.Supervisor, []},
-      FarmbotCore.Asset.Repo,
       FarmbotCore.BotState.Supervisor,
       FarmbotCore.Celery.Scheduler,
       FarmbotCore.FirmwareEstopTimer,

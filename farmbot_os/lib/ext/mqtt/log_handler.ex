@@ -14,7 +14,7 @@ defmodule FarmbotExt.MQTT.LogHandler do
 
   defstruct [:client_id, :username, :state_cache]
 
-  @checkup_ms 50
+  @checkup_ms 5000
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -32,7 +32,7 @@ defmodule FarmbotExt.MQTT.LogHandler do
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
     initial_bot_state = BotState.subscribe()
-    FarmbotExt.Time.no_reply(%{state | state_cache: initial_bot_state}, 0)
+    FarmbotExt.Time.no_reply(%{state | state_cache: initial_bot_state}, 1000)
   end
 
   def handle_info(:timeout, state) do
