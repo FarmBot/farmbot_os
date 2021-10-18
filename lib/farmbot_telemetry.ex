@@ -116,7 +116,7 @@ defmodule FarmbotTelemetry do
              is_list(meta) do
     _ =
       :telemetry.execute(
-        [:farmbot_telemetry, kind, subsystem],
+        [:farmbot_os, kind, subsystem],
         %{
           measurement: measurement,
           value: value,
@@ -128,7 +128,7 @@ defmodule FarmbotTelemetry do
 
     _ =
       :dets.insert(
-        :farmbot_telemetry,
+        :farmbot_os,
         {uuid, captured_at, kind, subsystem, measurement, value, Map.new(meta)}
       )
   end
@@ -137,7 +137,7 @@ defmodule FarmbotTelemetry do
   def attach_logger(kind, subsystem, config \\ []) do
     :telemetry.attach(
       "farmbot-telemetry-logger-#{kind}-#{subsystem}-#{UUID.uuid4()}",
-      [:farmbot_telemetry, kind, subsystem],
+      [:farmbot_os, kind, subsystem],
       &FarmbotTelemetry.log_handler/4,
       config
     )
@@ -147,7 +147,7 @@ defmodule FarmbotTelemetry do
   def attach_recv(kind, subsystem, pid) do
     :telemetry.attach(
       "farmbot-telemetry-recv-#{kind}-#{subsystem}-#{UUID.uuid4()}",
-      [:farmbot_telemetry, kind, subsystem],
+      [:farmbot_os, kind, subsystem],
       &Kernel.send(pid, {&1, &2, &3, &4}),
       pid: self()
     )
@@ -179,7 +179,7 @@ defmodule FarmbotTelemetry do
   """
   @spec consume_telemetry(consumer_fun()) :: :ok
   def consume_telemetry(fun) do
-    all_events = :dets.match_object(:farmbot_telemetry, :_)
+    all_events = :dets.match_object(:farmbot_os, :_)
 
     tasks =
       Enum.map(all_events, fn event ->
@@ -199,7 +199,7 @@ defmodule FarmbotTelemetry do
           end
 
         case result do
-          :ok -> :dets.delete(:farmbot_telemetry, uuid)
+          :ok -> :dets.delete(:farmbot_os, uuid)
           _ -> :ok
         end
       end)

@@ -3,7 +3,14 @@ defmodule FarmbotOS do
 
   use Application
 
+  @telemetry_config [
+    access: :read_write,
+    type: :set,
+    file: '/tmp/farmbot_telemetry.dets'
+  ]
   def start(_type, _args) do
+    {:ok, :farmbot_os} = :dets.open_file(:farmbot_os, @telemetry_config)
+
     children = [
       FarmbotCore.Asset.Repo,
       FarmbotExt.Bootstrap,

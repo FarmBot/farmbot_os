@@ -20,7 +20,7 @@ config :mdns_lite,
   services: [
     # service type: _http._tcp.local - used in match
     %{
-      name: "Web Server",
+      name: "Configurator",
       protocol: "http",
       transport: "tcp",
       port: 80
@@ -58,9 +58,6 @@ config :farmbot_core, FarmbotCore.Leds,
 data_path = Path.join("/", "root")
 
 config :farmbot, FarmbotOS.FileSystem, data_path: data_path
-
-config :farmbot_telemetry,
-  file: to_charlist(Path.join(data_path, 'farmbot-telemetry.dets'))
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
   platform_children: [

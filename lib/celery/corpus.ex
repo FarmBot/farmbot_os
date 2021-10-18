@@ -1,7 +1,7 @@
 defmodule FarmbotCore.Celery.Corpus do
   alias FarmbotCore.Celery.{Corpus, Corpus.Node, Corpus.Arg}
 
-  @corpus_file "fixture/corpus.json"
+  @corpus_file "fixtures/corpus.json"
   @external_resource @corpus_file
 
   %{"args" => args, "nodes" => nodes, "version" => tag} =

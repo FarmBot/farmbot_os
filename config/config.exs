@@ -8,7 +8,9 @@ config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
 config :farmbot, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
   ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
 
-config :farmbot, FarmbotCore.Asset.Repo, database: "database.#{Mix.env()}.db"
+config :farmbot, FarmbotCore.Asset.Repo,
+  database: "database.#{Mix.env()}.db",
+  log: false
 
 config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler

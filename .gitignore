@@ -10,6 +10,7 @@ _nerves-tmp
 *.db
 *.db-journal
 *.db-shm
+*.db-wal
 *.ez
 *.img
 *.lua

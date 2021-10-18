@@ -11,21 +11,21 @@ defmodule FarmbotCore.Celery.IntegrationTest do
 
   @fixtures [
     "test/fixtures/execute.json",
-    "fixture/inner_sequence.json",
-    "fixture/every_sequence.json",
-    "fixture/outer_sequence.json",
-    "fixture/paramater_sequence.json",
-    "fixture/point_group_sequence.json",
+    "fixtures/inner_sequence.json",
+    "fixtures/every_sequence.json",
+    "fixtures/outer_sequence.json",
+    "fixtures/paramater_sequence.json",
+    "fixtures/point_group_sequence.json",
     "test/fixtures/mark_variable_meta.json",
     "test/fixtures/mark_variable_removed.json",
     "test/fixtures/set_mounted_tool_id.json",
     "test/fixtures/update_resource_multi.json"
-    # "fixture/unbound.json",
+    # "fixtures/unbound.json",
   ]
 
   test "all the fixtures (should not crash!)" do
     expect(FarmbotCore.Celery.SysCalls, :get_sequence, 7, fn _id ->
-      compile_celery_file("fixture/inner_sequence.json")
+      compile_celery_file("fixtures/inner_sequence.json")
     end)
 
     expect(FarmbotCore.Celery.SysCalls, :point, 12, fn _type, _id ->
