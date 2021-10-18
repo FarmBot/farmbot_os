@@ -1,6 +1,6 @@
 defmodule FarmbotOs.AvrdudeTest do
+  alias FarmbotCore.Firmware.Avrdude
   use ExUnit.Case
-
   use Mimic
 
   setup :verify_on_exit!

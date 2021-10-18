@@ -3,7 +3,7 @@ use Mix.Config
 data_path = Path.join(["/", "tmp", "farmbot"])
 File.mkdir_p(data_path)
 
-config :farmbot_core,
+config :farmbot,
   data_path: data_path
 
 config :farmbot,

@@ -14,7 +14,7 @@ defmodule FarmbotExt.MQTT.LogHandler do
 
   defstruct [:client_id, :username, :state_cache]
 
-  @checkup_ms 5000
+  @checkup_ms 50
 
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do

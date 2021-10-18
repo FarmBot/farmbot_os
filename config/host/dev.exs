@@ -3,7 +3,7 @@ use Mix.Config
 data_path = Path.join(["/", "tmp", "farmbot"])
 File.mkdir_p(data_path)
 
-config :farmbot_core,
+config :farmbot,
   data_path: data_path
 
 config :farmbot, FarmbotOS.Init.Supervisor,
@@ -13,3 +13,6 @@ config :farmbot, FarmbotOS.Init.Supervisor,
 
 config :logger,
   backends: [:console]
+
+# config :farmbot, FarmbotCore.Celery.SysCalls,
+#   sys_calls: FarmbotCore.Celery.SysCalls.Stubs

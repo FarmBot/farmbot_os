@@ -38,21 +38,23 @@ config :shoehorn,
   init: [
     :nerves_runtime,
     :vintage_net,
-    :nerves_firmware_ssh,
-    :farmbot_core
+    :nerves_firmware_ssh
+    # This used to be :farmbot_core.
+    # Can be deleted in 2022.
+    # :farmbot_os
   ],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
 
 config :tzdata, :autoupdate, :disabled
 
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
+config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
   ssh_handler: FarmbotOS.Platform.Target.SSHConsole
 
-config :farmbot_core, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
+config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
   gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler
 
-config :farmbot_core, FarmbotCore.Leds,
+config :farmbot, FarmbotCore.Leds,
   gpio_handler: FarmbotOS.Platform.Target.Leds.CircuitsHandler
 
 data_path = Path.join("/", "root")

@@ -1,10 +1,10 @@
 defmodule FarmbotTelemetryTest do
+  require FarmbotTelemetry
   use ExUnit.Case
   doctest FarmbotTelemetry
 
-  require FarmbotTelemetry
-
   test "uses :telemetry" do
+    require FarmbotTelemetry
     :ok = FarmbotTelemetry.attach_recv(:event, :test_subsystem, self())
     :ok = FarmbotTelemetry.event(:test_subsystem, :measurement, 1.0)
 

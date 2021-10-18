@@ -125,7 +125,7 @@ defmodule FarmbotOS.MixProject do
       {:muontrap, "~> 0.6"},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
-      {:nerves_time, "~> 0.4"},
+      {:nerves_time, "~> 0.4", targets: @all_targets},
       {:nerves, "~> 1.7.11", runtime: false},
       {:phoenix_html, "~> 2.14.3"},
       {:plug_cowboy, "~> 2.5.2"},

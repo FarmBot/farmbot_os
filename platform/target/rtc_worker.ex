@@ -7,6 +7,11 @@ defmodule FarmbotOS.Platform.Target.RTCWorker do
   require Logger
   alias Circuits.I2C
   @eleven_minutes 660_000
+  if Code.ensure_compiled(NervesTime) do
+    @nerves_time NervesTime
+  else
+    @nerves_time nil
+  end
 
   @doc "checks if an RTC is available on the I2C bus"
   @spec rtc_available?(I2C.bus()) :: boolean()
@@ -195,11 +200,13 @@ defmodule FarmbotOS.Platform.Target.RTCWorker do
   def handle_info(:set_rtc_from_ntp, %{i2c: i2c} = state) do
     dt = NaiveDateTime.utc_now()
 
-    if NervesTime.synchronized?() do
-      set_time_to_rtc(i2c, dt)
-      Process.send_after(self(), :set_rtc_from_ntp, @eleven_minutes)
-    else
-      send(self(), :set_system_time_from_rtc)
+    if @nerves_time do
+      if @nerves_time.synchronized?() do
+        set_time_to_rtc(i2c, dt)
+        Process.send_after(self(), :set_rtc_from_ntp, @eleven_minutes)
+      else
+        send(self(), :set_system_time_from_rtc)
+      end
     end
 
     {:noreply, state}

@@ -1,13 +1,14 @@
 defmodule FarmbotCore.LoggerTest do
   use ExUnit.Case
-  require FarmbotCore.Logger
-
-  alias FarmbotCore.{Log, Logger.Repo}
-
+  alias FarmbotCore.{Log, Asset.Repo}
   import Ecto.Query
   import ExUnit.CaptureLog
+  require FarmbotCore.Logger
 
-  def create_log(msg), do: FarmbotCore.Logger.debug(1, msg)
+  def create_log(msg) do
+    FarmbotCore.Logger.debug(1, msg)
+  end
+
   def clear_logs(), do: Repo.delete_all(Log)
   def log_count(), do: Repo.one(from(l in "logs", select: count(l.id)))
 

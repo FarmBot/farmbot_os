@@ -63,6 +63,29 @@ if Mix.target() == :host do
   end
 else
   import_config("target/#{Mix.env()}.exs")
-
   import_config("target/#{Mix.target()}.exs")
+end
+
+if is_test? do
+  config :farmbot, FarmbotCore.Celery.SysCalls,
+    sys_calls: FarmbotCore.Celery.SysCalls.Stubs
+
+  config :ex_unit, capture_logs: true
+  mapper = fn mod -> config :farmbot, mod, children: [] end
+
+  list = [
+    FarmbotCore,
+    FarmbotCore.Asset.Supervisor,
+    FarmbotCore.BotState.Supervisor,
+    FarmbotCore.Config.Supervisor,
+    FarmbotCore.StorageSupervisor,
+    FarmbotExt,
+    FarmbotExt.Bootstrap.Supervisor,
+    FarmbotExt.DirtyWorker.Supervisor,
+    FarmbotExt.EagerLoader.Supervisor,
+    FarmbotExt.MQTT.ChannelSupervisor,
+    FarmbotExt.MQTT.Supervisor
+  ]
+
+  Enum.map(list, mapper)
 end
