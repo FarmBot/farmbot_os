@@ -5,13 +5,12 @@ set -o pipefail
 
 export MIX_ENV=test
 
-echo "######### farmbot_os"
-cd farmbot_os
-mix deps.get --all
-mix format
-MIX_ENV=test mix compile --force
-mix coveralls.html
-rm -f *.coverdata
+# echo "######### farmbot_os"
+# mix deps.get --all
+# mix format
+# MIX_ENV=test mix compile --force
+# mix coveralls.html
+# rm -f *.coverdata
 
 
 echo "######### Build RPI3 FW"

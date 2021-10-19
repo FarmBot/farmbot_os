@@ -6,6 +6,7 @@ defmodule FarmbotCore.RegimenInstanceAssetWorkerTest do
 
   describe "regimen instance worker" do
     test "schedules sequence" do
+      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
       seq = AssetFixtures.sequence()
 
       regimen_instance =

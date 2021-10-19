@@ -3,7 +3,7 @@ defmodule FarmbotCore.Asset.RegimenInstance.Execution do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
-  @timestamps_opts inserted_at: :created_at, type: :utc_datetime
+  @timestamps_opts inserted_at: :created_at, type: :utc_datetime_usec
 
   schema "regimen_instance_executions" do
     belongs_to(:regimen_instance, RegimenInstance,
@@ -12,8 +12,8 @@ defmodule FarmbotCore.Asset.RegimenInstance.Execution do
       foreign_key: :regimen_instance_local_id
     )
 
-    field :scheduled_at, :utc_datetime
-    field :executed_at, :utc_datetime
+    field :scheduled_at, :utc_datetime_usec
+    field :executed_at, :utc_datetime_usec
     field :status, :string
     timestamps()
   end

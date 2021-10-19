@@ -3,7 +3,7 @@ defmodule FarmbotCore.Asset.FarmEvent.Execution do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
-  @timestamps_opts inserted_at: :created_at, type: :utc_datetime
+  @timestamps_opts inserted_at: :created_at, type: :utc_datetime_usec
 
   schema "farm_event_executions" do
     belongs_to(:farm_event, FarmEvent,
@@ -12,8 +12,8 @@ defmodule FarmbotCore.Asset.FarmEvent.Execution do
       foreign_key: :farm_event_local_id
     )
 
-    field :scheduled_at, :utc_datetime
-    field :executed_at, :utc_datetime
+    field :scheduled_at, :utc_datetime_usec
+    field :executed_at, :utc_datetime_usec
     field :status, :string
     timestamps()
   end

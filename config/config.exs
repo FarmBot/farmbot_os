@@ -62,9 +62,16 @@ if Mix.target() == :host do
     import_config("host/#{Mix.env()}.exs")
   end
 else
+  config :farmbot, FarmbotCore.Asset.Repo,
+    database: "/root/database.#{Mix.env()}.db"
   import_config("target/#{Mix.env()}.exs")
   import_config("target/#{Mix.target()}.exs")
 end
+
+config :logger,
+  backends: [:console],
+  handle_otp_reports: true,
+  handle_sasl_reports: true
 
 if is_test? do
   config :farmbot, FarmbotCore.Celery.SysCalls,
@@ -80,7 +87,7 @@ if is_test? do
     FarmbotCore.Config.Supervisor,
     FarmbotCore.StorageSupervisor,
     FarmbotExt,
-    FarmbotExt.Bootstrap.Supervisor,
+    # FarmbotExt.Bootstrap.Supervisor,
     FarmbotExt.DirtyWorker.Supervisor,
     FarmbotExt.EagerLoader.Supervisor,
     FarmbotExt.MQTT.ChannelSupervisor,

@@ -13,14 +13,14 @@ defmodule FarmbotCore.Asset.Point do
       foreign_key: :asset_local_id
     )
 
-    field(:discarded_at, :utc_datetime)
+    field(:discarded_at, :utc_datetime_usec)
     field(:gantry_mounted, :boolean)
     field(:meta, :map)
     field(:monitor, :boolean, default: true)
     field(:name, :string)
     field(:openfarm_slug, :string)
     field(:plant_stage, :string)
-    field(:planted_at, :utc_datetime)
+    field(:planted_at, :utc_datetime_usec)
     field(:pointer_type, :string)
     field(:pullout_direction, :integer)
     field(:radius, :float)

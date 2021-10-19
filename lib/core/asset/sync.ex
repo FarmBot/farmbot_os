@@ -21,7 +21,7 @@ defmodule FarmbotCore.Asset.Sync do
 
     embedded_schema do
       field(:id, :id)
-      field(:updated_at, :utc_datetime)
+      field(:updated_at, :utc_datetime_usec)
     end
 
     def changeset(item, params \\ %{})
@@ -55,7 +55,7 @@ defmodule FarmbotCore.Asset.Sync do
     embeds_many(:sensors, Item)
     embeds_many(:sequences, Item)
     embeds_many(:tools, Item)
-    field(:now, :utc_datetime)
+    field(:now, :utc_datetime_usec)
     timestamps()
   end
 

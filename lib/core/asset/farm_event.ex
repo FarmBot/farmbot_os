@@ -21,16 +21,16 @@ defmodule FarmbotCore.Asset.FarmEvent do
       on_replace: :delete
     )
 
-    field(:end_time, :utc_datetime)
+    field(:end_time, :utc_datetime_usec)
     field(:executable_type, :string)
     field(:executable_id, :id)
     field(:repeat, :integer)
-    field(:start_time, :utc_datetime)
+    field(:start_time, :utc_datetime_usec)
     field(:time_unit, :string)
     embeds_many(:body, BodyNode, on_replace: :delete)
 
     # Private
-    field(:last_executed, :utc_datetime)
+    field(:last_executed, :utc_datetime_usec)
     field(:monitor, :boolean, default: true)
 
     timestamps()

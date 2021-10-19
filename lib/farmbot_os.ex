@@ -13,6 +13,7 @@ defmodule FarmbotOS do
 
     children = [
       FarmbotCore.Asset.Repo,
+      FarmbotOS.EctoMigrator,
       FarmbotExt.Bootstrap,
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},

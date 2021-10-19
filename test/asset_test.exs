@@ -11,6 +11,7 @@ defmodule FarmbotCore.AssetTest do
 
   describe "regimen instances" do
     test "creates a regimen instance" do
+      Asset.update_device!(%{timezone: "America/Chicago"})
       seq = sequence()
 
       reg =

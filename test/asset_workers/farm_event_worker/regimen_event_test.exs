@@ -57,6 +57,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "handles regimen instance exists" do
+      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
@@ -87,6 +88,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "creates regimen instance" do
+      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
@@ -106,6 +108,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "removes regimen instance" do
+      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
