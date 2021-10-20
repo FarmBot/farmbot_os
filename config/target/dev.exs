@@ -1,6 +1,7 @@
 use Mix.Config
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
+data_path = Path.join("/", "root")
 
 config :nerves_firmware_ssh,
   authorized_keys: local_key
@@ -8,9 +9,7 @@ config :nerves_firmware_ssh,
 config :vintage_net,
   regulatory_domain: "00",
   persistence: VintageNet.Persistence.Null,
-  config: [
-    {"wlan0", %{type: VintageNet.Technology.Null}}
-  ]
+  config: [{"wlan0", %{type: VintageNet.Technology.Null}}]
 
 config :mdns_lite,
   mdns_config: %{
@@ -57,8 +56,6 @@ config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
 config :farmbot, FarmbotCore.Leds,
   gpio_handler: FarmbotOS.Platform.Target.Leds.CircuitsHandler
 
-data_path = Path.join("/", "root")
-
 config :farmbot, FarmbotOS.FileSystem, data_path: data_path
 
 config :farmbot, FarmbotOS.Platform.Supervisor,
@@ -75,7 +72,4 @@ config :farmbot, FarmbotOS.System,
   system_tasks: FarmbotOS.Platform.Target.SystemTasks
 
 config :logger, backends: [RingLogger]
-
-config :logger, RingLogger,
-  max_size: 1024,
-  color: [enabled: true]
+config :logger, RingLogger, max_size: 1024, color: [enabled: true]

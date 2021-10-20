@@ -145,15 +145,15 @@ defmodule FarmbotOS.MixProject do
   end
 
   defp elixirc_paths(:test, :host) do
-    ["./lib", "./platform/host", "./test/support"]
+    ["lib", "platform/host", "test/support"]
   end
 
   defp elixirc_paths(_, :host) do
-    ["./lib", "./platform/host"]
+    ["lib", "platform/host"]
   end
 
   defp elixirc_paths(_env, _target) do
-    ["./lib", "./platform/target"]
+    ["lib", "platform/target"]
   end
 
   def aliases do

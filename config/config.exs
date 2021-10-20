@@ -64,8 +64,11 @@ if Mix.target() == :host do
 else
   config :farmbot, FarmbotCore.Asset.Repo,
     database: "/root/database.#{Mix.env()}.db"
+
+  config :farmbot, FarmbotOS.Init.Supervisor,
+    init_children: [FarmbotOS.Platform.Target.RTCWorker]
+
   import_config("target/#{Mix.env()}.exs")
-  import_config("target/#{Mix.target()}.exs")
 end
 
 config :logger,
