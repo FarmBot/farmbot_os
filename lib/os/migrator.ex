@@ -1,4 +1,6 @@
 defmodule FarmbotOS.EctoMigrator do
+  require Logger
+
   def child_spec(_opts) do
     %{
       id: __MODULE__,
@@ -24,8 +26,7 @@ defmodule FarmbotOS.EctoMigrator do
   defp restart_if_migrated([]), do: :ok
 
   defp restart_if_migrated([_ | _]) do
-    Application.stop(:farmbot)
-    Application.ensure_all_started(:farmbot)
+    Logger.warn("==== TODO: Restart application due to migrations")
     :ok
   end
 end

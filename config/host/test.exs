@@ -10,5 +10,5 @@ config :farmbot, FarmbotOS.Configurator,
   data_layer: FarmbotOS.Configurator.ConfigDataLayer,
   network_layer: FarmbotOS.Configurator.FakeNetworkLayer
 
-config :farmbot, platform_children: [{Farmbot.Platform.Host.Configurator, []}]
+config :farmbot, platform_children: [{FarmbotOS.Platform.Host.Configurator, []}]
 config :plug, :validate_header_keys_during_test, true

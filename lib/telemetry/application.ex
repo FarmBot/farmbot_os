@@ -6,7 +6,7 @@ defmodule FarmbotTelemetry.Application do
   use Application
 
   def config do
-    user_defined = Application.get_all_env(:farmbot_os)
+    user_defined = Application.get_all_env(:farmbot)
 
     Keyword.merge(
       [access: :read_write, type: :set, file: '/tmp/farmbot_telemetry.dets'],
@@ -15,7 +15,7 @@ defmodule FarmbotTelemetry.Application do
   end
 
   def start(_type, _args) do
-    {:ok, :farmbot_os} = :dets.open_file(:farmbot_os, config())
+    {:ok, :farmbot} = :dets.open_file(:farmbot, config())
     children = []
 
     # See https://hexdocs.pm/elixir/Supervisor.html

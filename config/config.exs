@@ -1,53 +1,41 @@
 use Mix.Config
 is_test? = Mix.env() == :test
-
-config :exqlite, :json_library, FarmbotCore.JSON
-
-config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
-
-config :farmbot, Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey,
-  ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
-
-config :farmbot, FarmbotCore.Asset.Repo,
-  database: "database.#{Mix.env()}.db",
-  log: false
-
-config :farmbot, FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding,
-  gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
-
-config :farmbot, FarmbotCore.BotState.FileSystem, root_dir: "/tmp/farmbot_state"
-config :farmbot, FarmbotCore.Celery.SysCalls, sys_calls: FarmbotOS.SysCalls
-
-config :farmbot, FarmbotCore.Core.CeleryScript.RunTimeWrapper,
-  celery_script_io_layer: FarmbotCore.Core.CeleryScript.StubIOLayer
-
-config :farmbot, FarmbotCore.JSON, json_parser: FarmbotCore.JSON.JasonParser
-config :farmbot, FarmbotCore.Leds, gpio_handler: FarmbotCore.Leds.StubHandler
-
-config :farmbot, FarmbotExt.API.Preloader,
-  preloader_impl: FarmbotExt.API.Preloader.HTTP
-
-config :farmbot, FarmbotExt.Time, disable_timeouts: is_test?
-
-config :farmbot, FarmbotOS.Configurator,
-  network_layer: FarmbotOS.Configurator.FakeNetworkLayer
-
-config :farmbot, FarmbotOS.FileSystem, data_path: "/tmp/farmbot"
-
-config :farmbot, FarmbotOS.Platform.Supervisor,
-  platform_children: [FarmbotOS.Platform.Host.Configurator]
-
-config :farmbot, FarmbotOS.System,
-  system_tasks: FarmbotOS.Platform.Host.SystemTasks
-
-config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
-config :tesla, adapter: Tesla.Adapter.Hackney
-
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
-if rollbar_token && Mix.env() != :test do
-  IO.puts("=== ROLLBAR IS ENABLED! ===")
+config :exqlite, :json_library, FarmbotCore.JSON
+config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
+config :tesla, adapter: Tesla.Adapter.Hackney
+config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
 
+%{
+  Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey => [
+    ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+  ],
+  FarmbotCore.Asset.Repo => [database: "database.#{Mix.env()}.db", log: false],
+  FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [
+    gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
+  ],
+  FarmbotCore.BotState.FileSystem => [root_dir: "/tmp/farmbot_state"],
+  FarmbotCore.Celery.SysCalls => [sys_calls: FarmbotOS.SysCalls],
+  FarmbotCore.Core.CeleryScript.RunTimeWrapper => [
+    celery_script_io_layer: FarmbotCore.Core.CeleryScript.StubIOLayer
+  ],
+  FarmbotCore.JSON => [json_parser: FarmbotCore.JSON.JasonParser],
+  FarmbotCore.Leds => [gpio_handler: FarmbotCore.Leds.StubHandler],
+  FarmbotExt.API.Preloader => [preloader_impl: FarmbotExt.API.Preloader.HTTP],
+  FarmbotExt.Time => [disable_timeouts: is_test?],
+  FarmbotOS.Configurator => [
+    network_layer: FarmbotOS.Configurator.FakeNetworkLayer
+  ],
+  FarmbotOS.FileSystem => [data_path: "/tmp/farmbot"],
+  FarmbotOS.Platform.Supervisor => [
+    platform_children: [FarmbotOS.Platform.Host.Configurator]
+  ],
+  FarmbotOS.System => [system_tasks: FarmbotOS.Platform.Host.SystemTasks]
+}
+|> Enum.map(fn {m, c} -> config :farmbot, m, c end)
+
+if rollbar_token && !is_test? do
   config :rollbax,
     access_token: rollbar_token,
     environment: "production",

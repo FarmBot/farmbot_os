@@ -38,9 +38,6 @@ config :shoehorn,
     :nerves_runtime,
     :vintage_net,
     :nerves_firmware_ssh
-    # This used to be :farmbot_core.
-    # Can be deleted in 2022.
-    # :farmbot_os
   ],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot

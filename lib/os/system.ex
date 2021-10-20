@@ -40,7 +40,7 @@ defmodule FarmbotOS.System do
   def factory_reset(reason, _ \\ nil) do
     try_lock_fw()
     set_shutdown_reason(reason)
-    raise "FarmbotCore.EctoMigrator.drop()"
+    IO.puts("TODO: FarmbotCore.EctoMigrator.drop()")
     reboot(reason)
     :ok
   end

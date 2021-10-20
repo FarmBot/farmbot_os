@@ -20,9 +20,6 @@ defmodule FarmbotOS.Platform.Host.Configurator do
 
   def init(_) do
     start_node()
-    # Get out authorization data out of the environment.
-    # for host environment this will be configured at compile time.
-    # for target environment it will be configured by `configurator`.
     System.get_env("FARMBOT_EMAIL") || raise error("email")
     System.get_env("FARMBOT_PASSWORD") || raise error("password")
     System.get_env("FARMBOT_SERVER") || raise error("server")

@@ -38,7 +38,7 @@ defmodule FarmbotOS.MixProject do
         extras: Path.wildcard("../docs/**/*.md")
       ],
       elixir: @elixir_version,
-      elixirc_options: [warnings_as_errors: true, ignore_module_conflict: true],
+      elixirc_options: [warnings_as_errors: true],
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
       homepage_url: "http://farmbot.io",
       preferred_cli_env: [
@@ -144,16 +144,16 @@ defmodule FarmbotOS.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test, :host) do
-    ["lib", "platform/host", "test/support"]
+  defp elixirc_paths(:test, _) do
+    ["./lib", "./platform/host", "./test"]
   end
 
   defp elixirc_paths(_, :host) do
-    ["lib", "platform/host"]
+    ["./lib", "./platform/host"]
   end
 
   defp elixirc_paths(_env, _target) do
-    ["lib", "platform/target"]
+    ["./lib", "./platform/target"]
   end
 
   def aliases do
