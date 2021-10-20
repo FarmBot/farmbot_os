@@ -67,9 +67,9 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
     - restore_cache:
-        key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_libnl
@@ -86,12 +86,12 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
     - run:
         name: Create artifacts
         command: |
-          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
         paths:
-          - /nerves/build/farmbot_os/_build/
-          - /nerves/build/farmbot_os/deps/
+          - /nerves/build/_build/
+          - /nerves/build/deps/
           - ~/.nerves/
     - save_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
@@ -123,12 +123,12 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
     - run:
         name: Create artifacts
         command: |
-          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
         paths:
-          - /nerves/build/farmbot_os/_build/
-          - /nerves/build/farmbot_os/deps/
+          - /nerves/build/_build/
+          - /nerves/build/deps/
           - ~/.nerves/
     - save_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
@@ -145,7 +145,7 @@ predeploy_setup: &predeploy_setup
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -169,7 +169,7 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+            - v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
@@ -182,16 +182,16 @@ jobs:
             mix coveralls.json
             bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+          key: v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
           paths:
-            - farmbot_os/_build/host
-            - farmbot_os/deps/host
+            - _build/host
+            - deps/host
       - save_cache:
           key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
-            - farmbot_os/cover
+            - cover
       - store_artifacts:
-          path: farmbot_os/cover
+          path: cover
 
 ################################################################################
 #                           Build the targets
