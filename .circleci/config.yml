@@ -21,11 +21,6 @@ install_hex_archives: &install_hex_archives
       mix local.rebar --force
       mix archive.install hex nerves_bootstrap "~> 1.10" --force
 
-install_arduino: &install_arduino
-  run:
-    name: Run setup script
-    command: bash .circleci/setup-arduino.sh
-
 install_ghr: &install_ghr
   run:
     name: Install ghr (Github Releases)

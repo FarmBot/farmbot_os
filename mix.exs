@@ -102,7 +102,7 @@ defmodule FarmbotOS.MixProject do
       {:circuits_uart, "~> 1.4"},
       {:cors_plug, "~> 2.0.3", targets: @all_targets},
       {:dns, "~> 2.3"},
-      {:ecto_sqlite3, "~> 0.7.1"},
+      {:ecto_sqlite3, "~> 0.7.2"},
       {:ecto, "~> 3.7"},
       {:ex_doc, "~> 0.25", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14", only: [:test], targets: [:host]},
