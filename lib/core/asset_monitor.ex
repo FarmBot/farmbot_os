@@ -22,7 +22,7 @@ defmodule FarmbotCore.AssetMonitor do
     PublicKey
   }
 
-  alias FarmbotCore.{AssetSupervisor, AssetWorker}
+  alias FarmbotCore.{ChangeSupervisor, AssetWorker}
 
   require Logger
 
@@ -83,7 +83,7 @@ defmodule FarmbotCore.AssetMonitor do
     sub_state = Map.drop(sub_state, deleted_ids)
 
     Enum.each(deleted_ids, fn local_id ->
-      AssetSupervisor.terminate_child(kind, local_id)
+      ChangeSupervisor.terminate_child(kind, local_id)
     end)
 
     Enum.reduce(expected, sub_state, fn %{local_id: id, updated_at: updated_at} =
@@ -95,12 +95,12 @@ defmodule FarmbotCore.AssetMonitor do
 
         is_nil(sub_state[id]) ->
           asset = Repo.preload(asset, AssetWorker.preload(asset))
-          :ok = AssetSupervisor.start_child(asset) |> assert_result!(asset)
+          :ok = ChangeSupervisor.start_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         compare_datetimes(updated_at, sub_state[id]) == :gt ->
           asset = Repo.preload(asset, AssetWorker.preload(asset))
-          :ok = AssetSupervisor.update_child(asset) |> assert_result!(asset)
+          :ok = ChangeSupervisor.update_child(asset) |> assert_result!(asset)
           Map.put(sub_state, id, updated_at)
 
         true ->

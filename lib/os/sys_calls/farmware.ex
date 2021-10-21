@@ -2,13 +2,13 @@ defmodule FarmbotOS.SysCalls.Farmware do
   @moduledoc false
 
   require FarmbotCore.Logger
-  alias FarmbotCore.{Asset, AssetSupervisor, FarmwareRuntime}
+  alias FarmbotCore.{Asset, ChangeSupervisor, FarmwareRuntime}
   alias FarmbotExt.API.ImageUploader
   @farmware_timeout 1_200_000
 
   def update_farmware(farmware_name) do
     with {:ok, installation} <- lookup_installation(farmware_name) do
-      AssetSupervisor.cast_child(installation, :update)
+      ChangeSupervisor.cast_child(installation, :update)
     else
       {:error, reason} when is_binary(reason) ->
         {:error, reason}

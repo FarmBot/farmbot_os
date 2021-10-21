@@ -1,10 +1,9 @@
 defmodule FarmbotCore.Asset.Supervisor do
   @moduledoc false
   use Supervisor
-  alias FarmbotCore.{AssetSupervisor, AssetMonitor}
+  alias FarmbotCore.{ChangeSupervisor, AssetMonitor}
 
   alias FarmbotCore.Asset.{
-    Repo,
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -28,18 +27,17 @@ defmodule FarmbotCore.Asset.Supervisor do
 
   def children do
     default = [
-      Repo,
-      {AssetSupervisor, module: FbosConfig},
-      {AssetSupervisor, module: FirmwareConfig},
-      {AssetSupervisor, module: Device},
-      {AssetSupervisor, module: RegimenInstance},
-      {AssetSupervisor, module: FarmEvent},
-      {AssetSupervisor, module: PinBinding},
-      {AssetSupervisor, module: PublicKey},
-      {AssetSupervisor, module: Peripheral},
-      {AssetSupervisor, module: FirstPartyFarmware},
-      {AssetSupervisor, module: FarmwareInstallation},
-      {AssetSupervisor, module: FarmwareEnv},
+      {ChangeSupervisor, module: FbosConfig},
+      {ChangeSupervisor, module: FirmwareConfig},
+      {ChangeSupervisor, module: Device},
+      {ChangeSupervisor, module: RegimenInstance},
+      {ChangeSupervisor, module: FarmEvent},
+      {ChangeSupervisor, module: PinBinding},
+      {ChangeSupervisor, module: PublicKey},
+      {ChangeSupervisor, module: Peripheral},
+      {ChangeSupervisor, module: FirstPartyFarmware},
+      {ChangeSupervisor, module: FarmwareInstallation},
+      {ChangeSupervisor, module: FarmwareEnv},
       AssetMonitor
     ]
 

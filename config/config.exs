@@ -76,11 +76,11 @@ if is_test? do
   list = [
     FarmbotCore,
     # FarmbotCore.Asset.Supervisor,
-    FarmbotCore.BotState.Supervisor,
+    # FarmbotCore.BotState.Supervisor,
     FarmbotCore.Config.Supervisor,
     FarmbotCore.StorageSupervisor,
     FarmbotExt,
-    # FarmbotExt.Bootstrap.Supervisor,
+    FarmbotExt.Bootstrap.Supervisor,
     FarmbotExt.DirtyWorker.Supervisor,
     FarmbotExt.EagerLoader.Supervisor,
     FarmbotExt.MQTT.ChannelSupervisor,

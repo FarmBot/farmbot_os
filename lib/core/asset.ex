@@ -28,7 +28,7 @@ defmodule FarmbotCore.Asset do
     Tool
   }
 
-  alias FarmbotCore.AssetSupervisor
+  alias FarmbotCore.ChangeSupervisor
 
   import Ecto.Query
   require Logger
@@ -141,7 +141,7 @@ defmodule FarmbotCore.Asset do
       FbosConfig.changeset(fbos_config || fbos_config(), params)
       |> Repo.insert_or_update!()
 
-    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
+    ChangeSupervisor.cast_child(new_data, {:new_data, new_data})
     new_data
   end
 
@@ -170,7 +170,7 @@ defmodule FarmbotCore.Asset do
       FirmwareConfig.changeset(firmware_config || firmware_config(), params)
       |> Repo.insert_or_update!()
 
-    AssetSupervisor.cast_child(new_data, {:new_data, new_data})
+    ChangeSupervisor.cast_child(new_data, {:new_data, new_data})
     new_data
   end
 
@@ -399,7 +399,7 @@ defmodule FarmbotCore.Asset do
           "#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it."
         )
 
-        FarmbotCore.AssetSupervisor.update_child(asset)
+        FarmbotCore.ChangeSupervisor.update_child(asset)
       end
     end
 
@@ -598,7 +598,7 @@ defmodule FarmbotCore.Asset do
       end)
 
     for asset <- farm_events ++ regimen_instances do
-      FarmbotCore.AssetSupervisor.update_child(asset)
+      FarmbotCore.ChangeSupervisor.update_child(asset)
     end
 
     Sequence.changeset(sequence, params)

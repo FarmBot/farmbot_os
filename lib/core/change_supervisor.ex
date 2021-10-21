@@ -1,4 +1,4 @@
-defmodule FarmbotCore.AssetSupervisor do
+defmodule FarmbotCore.ChangeSupervisor do
   @moduledoc """
   Supervises all database-backed records.
   """
