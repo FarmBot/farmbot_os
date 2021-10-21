@@ -2,7 +2,7 @@ defmodule FarmbotCore.Firmware.ResetterTest do
   require Helpers
   use ExUnit.Case
   use Mimic
-  import ExUnit.CaptureLog
+
   alias FarmbotCore.Firmware.Resetter
 
   setup :verify_on_exit!
@@ -20,8 +20,8 @@ defmodule FarmbotCore.Firmware.ResetterTest do
   end
 
   test "run_special_reset" do
-    t = fn -> :ok == Resetter.run_special_reset(GpioResetMock) end
-    assert capture_log(t) =~ "Finish MCU Reset"
+    Helpers.expect_log("Finish MCU Reset")
+    assert :ok == Resetter.run_special_reset(GpioResetMock)
   end
 
   # Legacy code; Too complicated to test. Focusing on easier

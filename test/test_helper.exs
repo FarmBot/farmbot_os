@@ -157,7 +157,7 @@ defmodule Helpers do
   defmacro expect_log(msg) do
     quote do
       expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
-        assert log.message == unquote(msg)
+        assert log.message =~ unquote(msg)
       end)
     end
   end

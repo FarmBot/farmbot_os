@@ -2,7 +2,7 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
   use ExUnit.Case
   use Mimic
 
-  import ExUnit.CaptureLog
+  require Helpers
 
   alias FarmbotCore.Firmware.{
     ConfigUploader,
@@ -31,16 +31,15 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
       ]
     }
 
-    t = fn ->
-      result = ConfigUploader.refresh(@state, @new_keys)
-      assert result.tx_buffer == expected
-    end
+    Helpers.expect_log(
+      "Updating firmware parameters: [:movement_stop_at_home_z]"
+    )
 
     expect(FarmbotCore.Asset, :firmware_config, 1, fn ->
       %{movement_stop_at_home_z: 1.23}
     end)
 
-    assert capture_log(t) =~
-             "Updating firmware parameters: [:movement_stop_at_home_z]"
+    result = ConfigUploader.refresh(@state, @new_keys)
+    assert result.tx_buffer == expected
   end
 end

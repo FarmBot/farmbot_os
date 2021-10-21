@@ -3,23 +3,19 @@ defmodule FarmbotCore.Celery.SpecialValueTest do
   use Mimic
 
   alias FarmbotCore.Celery.SpecialValue
-  import ExUnit.CaptureLog
+  require Helpers
 
   setup :verify_on_exit!
 
   test "soil_height() (less than three soil height samples)" do
-    expect(FarmbotCore.Asset.Repo, :all, 1, fn _sql -> [] end)
-
-    t = fn ->
-      refute FarmbotCore.Asset.fbos_config(:soil_height)
-      assert 0.0 == SpecialValue.soil_height(%{x: 0.0, y: 0.0})
-    end
-
     expected =
       "Need at least 3 soil height samples to guess" <>
         " soil height. Using fallback value instead: 0.0"
 
-    assert capture_log(t) =~ expected
+    Helpers.expect_log(expected)
+    expect(FarmbotCore.Asset.Repo, :all, 1, fn _sql -> [] end)
+    refute FarmbotCore.Asset.fbos_config(:soil_height)
+    assert 0.0 == SpecialValue.soil_height(%{x: 0.0, y: 0.0})
   end
 
   test "soil_height() (more than three soil height samples)" do

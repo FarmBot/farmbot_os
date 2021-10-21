@@ -7,6 +7,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   alias FarmbotCore.Firmware.InboundSideEffects
   alias FarmbotCore.Asset
 
+  require Helpers
+
   @fake_state %FarmbotCore.Firmware.UARTCore{}
   @relevant_keys [
     :logs_enabled,
@@ -37,8 +39,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test "unknown messages" do
-    t = fn -> simple_case([{:bleh, %{}}]) end
-    assert capture_log(t) =~ "Unhandled inbound side effects: {:bleh, %{}}"
+    Helpers.expect_log("Unhandled inbound side effects: {:bleh, %{}}")
+    simple_case([{:bleh, %{}}])
   end
 
   test ":motor_load_report" do
@@ -55,8 +57,8 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":movement_retry" do
-    t = fn -> simple_case([{:movement_retry, %{}}]) end
-    assert capture_log(t) =~ "Retrying movement"
+    Helpers.expect_log("Retrying movement")
+    simple_case([{:movement_retry, %{}}])
   end
 
   test ":not_configured" do
@@ -206,16 +208,16 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
 
   test "Firmware debug logs" do
     msg = "Hello, world!"
+    Helpers.expect_log(msg)
     gcode = [{:debug_message, msg}]
-    run = fn -> InboundSideEffects.process(@fake_state, gcode) end
-    assert capture_log(run) =~ msg
+    InboundSideEffects.process(@fake_state, gcode)
   end
 
   test "Debug logging enabled" do
     s = %{@fake_state | logs_enabled: true}
     gcode = {:complete_homing_x, nil}
-    run = fn -> InboundSideEffects.process(s, [gcode]) end
-    assert capture_log(run) =~ inspect(gcode)
+    Helpers.expect_log(inspect(gcode))
+    InboundSideEffects.process(s, [gcode])
   end
 
   test "complete_homing_x|y|z" do

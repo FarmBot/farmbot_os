@@ -5,7 +5,7 @@ defmodule FarmbotOS.SystemTest do
   alias FarmbotOS.System
   alias FarmbotCore.Firmware.Command
 
-  import ExUnit.CaptureLog
+  require Helpers
   setup :verify_on_exit!
 
   test "try_lock_fw - OK" do
@@ -14,8 +14,8 @@ defmodule FarmbotOS.SystemTest do
   end
 
   test "try_lock_fw - NO" do
+    Helpers.expect_log("Emergency lock failed. Powering down")
     expect(Command, :lock, 1, fn -> raise "BOOM" end)
-    boom = fn -> System.try_lock_fw() end
-    assert capture_log(boom) =~ "Emergency lock failed. Powering down"
+    System.try_lock_fw()
   end
 end

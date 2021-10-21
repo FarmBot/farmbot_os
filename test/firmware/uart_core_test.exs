@@ -9,10 +9,13 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
   alias FarmbotCore.Firmware.ConfigUploader
   alias FarmbotCore.BotState
 
+  require Helpers
+
   setup :set_mimic_global
   setup :verify_on_exit!
 
   test ":best_effort_bug_fix - KO" do
+    Helpers.expect_log("Rebooting inactive Farmduino.")
     state1 = %UARTCore{fw_type: nil}
 
     expect(BotState, :fetch, 1, fn ->
@@ -23,28 +26,23 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
       %{firmware_hardware: "none"}
     end)
 
-    t = fn ->
-      {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
-      assert state2 == state1
-    end
+    {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
+    assert state2 == state1
 
-    assert capture_log(t) =~ "Rebooting inactive Farmduino."
     assert_receive {:"$gen_call", _, {:flash_firmware, "none"}}
   end
 
   test ":best_effort_bug_fix - OK" do
+    Helpers.expect_log("Farmduino OK")
+
     state1 = %UARTCore{rx_count: 100}
 
     expect(BotState, :fetch, 1, fn ->
       %{informational_settings: %{firmware_version: "1.1.1"}}
     end)
 
-    t = fn ->
-      {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
-      assert state2 == state1
-    end
-
-    assert capture_log(t) =~ "Farmduino OK"
+    {:noreply, state2} = UARTCore.handle_info(:best_effort_bug_fix, state1)
+    assert state2 == state1
   end
 
   test ":reset_state" do
@@ -125,15 +123,12 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
   end
 
   test "flash_firmware (nil)" do
-    t = fn ->
-      {:reply, :ok, state} =
-        UARTCore.handle_call({:flash_firmware, nil}, nil, %UARTCore{})
+    Helpers.expect_log("Can't flash firmware yet because hardware is unknown.")
 
-      assert state == %UARTCore{}
-    end
+    {:reply, :ok, state} =
+      UARTCore.handle_call({:flash_firmware, nil}, nil, %UARTCore{})
 
-    assert capture_log(t) =~
-             "Can't flash firmware yet because hardware is unknown."
+    assert state == %UARTCore{}
   end
 
   test "start_job" do
