@@ -33,29 +33,29 @@ defmodule FarmbotTelemetry do
   end
 
   @doc "Execute a telemetry event"
-  defmacro event(subsystem, measurement_or_event_name, value \\ nil, meta \\ [])
+  def event(subsystem, measurement_or_event_name, value \\ nil, meta \\ [])
 
-  defmacro event(subsystem, measurement, value, meta)
-           when is_atom(subsystem) and is_atom(measurement) and is_list(meta) do
-    quote location: :keep do
-      FarmbotTelemetry.bare_telemetry(
-        UUID.uuid4(),
-        :event,
-        unquote(subsystem),
-        unquote(measurement),
-        unquote(value),
-        DateTime.utc_now(),
-        Keyword.merge(unquote(meta),
-          module: __ENV__.module,
-          file: __ENV__.file,
-          line: __ENV__.line,
-          function: __ENV__.function
-        )
+  def event(subsystem, measurement, value, meta)
+      when is_atom(subsystem) and
+             is_atom(measurement) and
+             is_list(meta) do
+    FarmbotTelemetry.bare_telemetry(
+      UUID.uuid4(),
+      :event,
+      subsystem,
+      measurement,
+      value,
+      DateTime.utc_now(),
+      Keyword.merge(meta,
+        module: __ENV__.module,
+        file: __ENV__.file,
+        line: __ENV__.line,
+        function: __ENV__.function
       )
-    end
+    )
   end
 
-  defmacro event(subsystem, measurement, value, meta) do
+  def event(subsystem, measurement, value, meta) do
     Mix.raise("""
     Unknown args for telemetry event:
     #{inspect(subsystem)}, #{inspect(measurement)}, #{inspect(value)}, #{inspect(meta)}
@@ -65,22 +65,20 @@ defmodule FarmbotTelemetry do
   @doc "Execute a telemetry metric"
   defmacro metric(subsystem, measurement, value, meta \\ [])
            when is_atom(subsystem) and is_atom(measurement) and is_list(meta) do
-    quote location: :keep do
-      FarmbotTelemetry.bare_telemetry(
-        UUID.uuid4(),
-        :metric,
-        unquote(subsystem),
-        unquote(measurement),
-        unquote(value),
-        DateTime.utc_now(),
-        Keyword.merge(unquote(meta),
-          module: __ENV__.module,
-          file: __ENV__.file,
-          line: __ENV__.line,
-          function: __ENV__.function
-        )
+    FarmbotTelemetry.bare_telemetry(
+      UUID.uuid4(),
+      :metric,
+      subsystem,
+      measurement,
+      value,
+      DateTime.utc_now(),
+      Keyword.merge(meta,
+        module: __ENV__.module,
+        file: __ENV__.file,
+        line: __ENV__.line,
+        function: __ENV__.function
       )
-    end
+    )
   end
 
   @doc """

@@ -23,12 +23,4 @@ defmodule FarmbotCore.Firmware.ResetterTest do
     Helpers.expect_log("Finish MCU Reset")
     assert :ok == Resetter.run_special_reset(GpioResetMock)
   end
-
-  # Legacy code; Too complicated to test. Focusing on easier
-  # tests for now.
-  # test "express_k10 in non-express environments" do
-  #   Helpers.expect_log("Using special express reset function")
-  #   {:ok, noop} = Resetter.find_reset_fun("express_k10")
-  #   assert :ok == noop.()
-  # end
 end
