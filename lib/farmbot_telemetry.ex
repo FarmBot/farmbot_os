@@ -62,25 +62,6 @@ defmodule FarmbotTelemetry do
     """)
   end
 
-  @doc "Execute a telemetry metric"
-  defmacro metric(subsystem, measurement, value, meta \\ [])
-           when is_atom(subsystem) and is_atom(measurement) and is_list(meta) do
-    FarmbotTelemetry.bare_telemetry(
-      UUID.uuid4(),
-      :metric,
-      subsystem,
-      measurement,
-      value,
-      DateTime.utc_now(),
-      Keyword.merge(meta,
-        module: __ENV__.module,
-        file: __ENV__.file,
-        line: __ENV__.line,
-        function: __ENV__.function
-      )
-    )
-  end
-
   @doc """
   Function responsible for firing telemetry events
   stores telemetry event in `dets` table to be cached until

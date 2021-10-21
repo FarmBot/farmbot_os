@@ -20,7 +20,7 @@ defmodule FarmbotOS.Lua do
   @doc "Logs an assertion based on it's result"
   def log_assertion(passed?, type, message) do
     meta = [assertion_passed: passed?, assertion_type: type]
-    FarmbotCore.Logger.dispatch_log(__ENV__, :assertion, 2, message, meta)
+    FarmbotCore.Logger.dispatch_log(:assertion, 2, message, meta)
   end
 
   # HACK: Provide an implicit "return", since many users

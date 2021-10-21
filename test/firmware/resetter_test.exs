@@ -20,7 +20,11 @@ defmodule FarmbotCore.Firmware.ResetterTest do
   end
 
   test "run_special_reset" do
-    Helpers.expect_log("Finish MCU Reset")
+    Helpers.expect_logs([
+      "Begin MCU reset",
+      "Finish MCU Reset"
+    ])
+
     assert :ok == Resetter.run_special_reset(GpioResetMock)
   end
 end

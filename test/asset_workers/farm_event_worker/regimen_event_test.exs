@@ -2,6 +2,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
   use ExUnit.Case
   alias FarmbotCore.FarmEventWorker.RegimenEvent
   alias Farmbot.TestSupport.AssetFixtures
+  alias FarmbotCore.Asset
   import ExUnit.CaptureLog
   require Logger
   use Mimic
@@ -138,6 +139,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "changes regimen instance" do
+      Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}

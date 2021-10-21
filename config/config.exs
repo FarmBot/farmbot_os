@@ -60,23 +60,16 @@ else
 end
 
 config :logger,
-  # ,
   backends: [:console]
 
-# handle_otp_reports: true,
-# handle_sasl_reports: true
-
 if is_test? do
+  config :ex_unit, capture_logs: true
+
   config :farmbot, FarmbotCore.Celery.SysCalls,
     sys_calls: FarmbotCore.Celery.SysCalls.Stubs
 
-  config :ex_unit, capture_logs: true
-  mapper = fn mod -> config :farmbot, mod, children: [] end
-
-  list = [
+  [
     FarmbotCore,
-    # FarmbotCore.Asset.Supervisor,
-    # FarmbotCore.BotState.Supervisor,
     FarmbotCore.Config.Supervisor,
     FarmbotCore.StorageSupervisor,
     FarmbotExt,
@@ -86,6 +79,5 @@ if is_test? do
     FarmbotExt.MQTT.ChannelSupervisor,
     FarmbotExt.MQTT.Supervisor
   ]
-
-  Enum.map(list, mapper)
+  |> Enum.map(fn mod -> config :farmbot, mod, children: [] end)
 end

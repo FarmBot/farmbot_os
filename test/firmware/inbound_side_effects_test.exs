@@ -105,14 +105,15 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     y = fn -> simple_case([{:different_y_coordinate_than_given, %{y: 3.4}}]) end
     z = fn -> simple_case([{:different_z_coordinate_than_given, %{z: 5.6}}]) end
 
-    assert capture_log(x) =~
-             "Stopping at X home instead of specified destination."
+    Helpers.expect_logs([
+      "Stopping at X home instead of specified destination.",
+      "Stopping at Y max instead of specified destination.",
+      "Stopping at Z max instead of specified destination."
+    ])
 
-    assert capture_log(y) =~
-             "Stopping at Y max instead of specified destination."
-
-    assert capture_log(z) =~
-             "Stopping at Z max instead of specified destination."
+    capture_log(x)
+    capture_log(y)
+    capture_log(z)
   end
 
   test ":pin_value_report" do

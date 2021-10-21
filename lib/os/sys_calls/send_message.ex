@@ -13,7 +13,7 @@ defmodule FarmbotOS.SysCalls.SendMessage do
 
     case render(templ) do
       {:ok, message} ->
-        FarmbotCore.Logger.dispatch_log(__ENV__, type, 1, message, meta)
+        FarmbotCore.Logger.dispatch_log(type, 1, message, meta)
         # Give LogChannel time to catch up and ingest logs.
         # Removing this line will result in non-deterministic
         # loss of duplicate logs or general "funny business"

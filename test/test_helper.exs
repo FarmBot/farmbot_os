@@ -1,75 +1,5 @@
-Application.ensure_all_started(:farmbot)
 Application.ensure_all_started(:mimic)
-
-[
-  Circuits.UART,
-  Ecto.Changeset,
-  ExTTY,
-  FarmbotCore.Asset,
-  FarmbotCore.Asset.Command,
-  FarmbotCore.Asset.Device,
-  FarmbotCore.Asset.FbosConfig,
-  FarmbotCore.Asset.FirmwareConfig,
-  FarmbotCore.Asset.Private,
-  FarmbotCore.Asset.Repo,
-  FarmbotCore.BotState,
-  FarmbotCore.Celery,
-  FarmbotCore.Celery.Compiler.Lua,
-  FarmbotCore.Celery.Scheduler,
-  FarmbotCore.Celery.SpecialValue,
-  FarmbotCore.Celery.SysCalls,
-  FarmbotCore.Celery.SysCalls.Stubs,
-  FarmbotCore.Config,
-  FarmbotCore.FarmwareRuntime,
-  FarmbotCore.Firmware.Avrdude,
-  FarmbotCore.Firmware.Command,
-  FarmbotCore.Firmware.ConfigUploader,
-  FarmbotCore.Firmware.Flash,
-  FarmbotCore.Firmware.FlashUtils,
-  FarmbotCore.Firmware.Resetter,
-  FarmbotCore.Firmware.TxBuffer,
-  FarmbotCore.Firmware.UARTCore,
-  FarmbotCore.Firmware.UARTCoreSupport,
-  FarmbotCore.Firmware.UARTDetector,
-  FarmbotCore.FirmwareEstopTimer,
-  FarmbotCore.Leds,
-  FarmbotCore.LogExecutor,
-  FarmbotCore.Logger,
-  FarmbotExt.API,
-  FarmbotExt.API.Reconciler,
-  FarmbotExt.API.SyncGroup,
-  FarmbotExt.APIFetcher,
-  FarmbotExt.Bootstrap.Authorization,
-  FarmbotExt.Bootstrap.DropPasswordSupport,
-  FarmbotExt.EagerLoader.Supervisor,
-  FarmbotExt.MQTT,
-  FarmbotExt.MQTT.LogHandlerSupport,
-  FarmbotExt.MQTT.Support,
-  FarmbotExt.MQTT.SyncHandlerSupport,
-  FarmbotExt.MQTT.TerminalHandlerSupport,
-  FarmbotExt.MQTT.TopicSupervisor,
-  FarmbotExt.Time,
-  FarmbotOS.Configurator.ConfigDataLayer,
-  FarmbotOS.Configurator.DetsTelemetryLayer,
-  FarmbotOS.Configurator.FakeNetworkLayer,
-  FarmbotOS.HTTP,
-  FarmbotOS.Lua.DataManipulation,
-  FarmbotOS.Lua.Firmware,
-  FarmbotOS.Lua.Info,
-  FarmbotOS.SysCalls,
-  FarmbotOS.SysCalls.ChangeOwnership.Support,
-  FarmbotOS.SysCalls.Farmware,
-  FarmbotOS.SysCalls.Movement,
-  FarmbotOS.SysCalls.ResourceUpdate,
-  FarmbotOS.UpdateSupport,
-  FarmbotTelemetry,
-  File,
-  MuonTrap,
-  System,
-  Timex,
-  Tortoise
-]
-|> Enum.map(&Mimic.copy/1)
+Application.ensure_all_started(:farmbot)
 
 defmodule Helpers do
   alias FarmbotCore.Asset.{Repo, Point}
@@ -158,6 +88,16 @@ defmodule Helpers do
     quote do
       expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
         assert log.message =~ unquote(msg)
+      end)
+    end
+  end
+
+  defmacro expect_logs(strings) do
+    log_count = Enum.count(strings)
+
+    quote do
+      expect(FarmbotCore.LogExecutor, :execute, unquote(log_count), fn log ->
+        assert Enum.member?(unquote(strings), log.message)
       end)
     end
   end
@@ -353,5 +293,75 @@ ExUnit.configure(
   max_cases: 1,
   assert_receive_timeout: String.to_integer(timeout)
 )
+
+[
+  Circuits.UART,
+  Ecto.Changeset,
+  ExTTY,
+  FarmbotCore.Asset,
+  FarmbotCore.Asset.Command,
+  FarmbotCore.Asset.Device,
+  FarmbotCore.Asset.FbosConfig,
+  FarmbotCore.Asset.FirmwareConfig,
+  FarmbotCore.Asset.Private,
+  FarmbotCore.Asset.Repo,
+  FarmbotCore.BotState,
+  FarmbotCore.Celery,
+  FarmbotCore.Celery.Compiler.Lua,
+  FarmbotCore.Celery.Scheduler,
+  FarmbotCore.Celery.SpecialValue,
+  FarmbotCore.Celery.SysCalls,
+  FarmbotCore.Celery.SysCalls.Stubs,
+  FarmbotCore.Config,
+  FarmbotCore.FarmwareRuntime,
+  FarmbotCore.Firmware.Avrdude,
+  FarmbotCore.Firmware.Command,
+  FarmbotCore.Firmware.ConfigUploader,
+  FarmbotCore.Firmware.Flash,
+  FarmbotCore.Firmware.FlashUtils,
+  FarmbotCore.Firmware.Resetter,
+  FarmbotCore.Firmware.TxBuffer,
+  FarmbotCore.Firmware.UARTCore,
+  FarmbotCore.Firmware.UARTCoreSupport,
+  FarmbotCore.Firmware.UARTDetector,
+  FarmbotCore.FirmwareEstopTimer,
+  FarmbotCore.Leds,
+  FarmbotCore.LogExecutor,
+  FarmbotCore.Logger,
+  FarmbotExt.API,
+  FarmbotExt.API.Reconciler,
+  FarmbotExt.API.SyncGroup,
+  FarmbotExt.APIFetcher,
+  FarmbotExt.Bootstrap.Authorization,
+  FarmbotExt.Bootstrap.DropPasswordSupport,
+  FarmbotExt.EagerLoader.Supervisor,
+  FarmbotExt.MQTT,
+  FarmbotExt.MQTT.LogHandlerSupport,
+  FarmbotExt.MQTT.Support,
+  FarmbotExt.MQTT.SyncHandlerSupport,
+  FarmbotExt.MQTT.TerminalHandlerSupport,
+  FarmbotExt.MQTT.TopicSupervisor,
+  FarmbotExt.Time,
+  FarmbotOS.Configurator.ConfigDataLayer,
+  FarmbotOS.Configurator.DetsTelemetryLayer,
+  FarmbotOS.Configurator.FakeNetworkLayer,
+  FarmbotOS.HTTP,
+  FarmbotOS.Lua.DataManipulation,
+  FarmbotOS.Lua.Firmware,
+  FarmbotOS.Lua.Info,
+  FarmbotOS.SysCalls,
+  FarmbotOS.SysCalls.ChangeOwnership.Support,
+  FarmbotOS.SysCalls.Farmware,
+  FarmbotOS.SysCalls.Movement,
+  FarmbotOS.SysCalls.ResourceUpdate,
+  FarmbotOS.UpdateSupport,
+  FarmbotTelemetry,
+  File,
+  MuonTrap,
+  System,
+  Timex,
+  Tortoise
+]
+|> Enum.map(&Mimic.copy/1)
 
 ExUnit.start()

@@ -9,58 +9,52 @@ defmodule FarmbotCore.Logger do
   @log_types [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion]
 
   @doc "Send a debug message to log endpoints"
-  defmacro debug(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :debug, verbosity, message, meta)
-    end
+  def debug(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:debug, verbosity, message, meta)
+    # end
   end
 
   @doc "Send an info message to log endpoints"
-  defmacro info(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :info, verbosity, message, meta)
-    end
+  def info(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:info, verbosity, message, meta)
+    # end
   end
 
   @doc "Send an busy message to log endpoints"
-  defmacro busy(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :busy, verbosity, message, meta)
-    end
+  def busy(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:busy, verbosity, message, meta)
+    # end
   end
 
   @doc "Send an success message to log endpoints"
-  defmacro success(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(
-        __ENV__,
-        :success,
-        verbosity,
-        message,
-        meta
-      )
-    end
+  def success(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:success, verbosity, message, meta)
+    # end
   end
 
   @doc "Send an warn message to log endpoints"
-  defmacro warn(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :warn, verbosity, message, meta)
-    end
+  def warn(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:warn, verbosity, message, meta)
+    # end
   end
 
   @doc "Send an error message to log endpoints"
-  defmacro error(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :error, verbosity, message, meta)
-    end
+  def error(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:error, verbosity, message, meta)
+    # end
   end
 
   @doc false
-  defmacro fun(verbosity, message, meta \\ []) do
-    quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-      FarmbotCore.Logger.dispatch_log(__ENV__, :fun, verbosity, message, meta)
-    end
+  def fun(verbosity, message, meta \\ []) do
+    # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
+    FarmbotCore.Logger.dispatch_log(:fun, verbosity, message, meta)
+    # end
   end
 
   defmacro report_termination() do
@@ -126,26 +120,16 @@ defmodule FarmbotCore.Logger do
   end
 
   @doc false
-  def dispatch_log(%Macro.Env{} = env, level, verbosity, message, meta)
+  def dispatch_log(level, verbosity, message, meta)
       when level in @log_types and
              is_number(verbosity) and
              is_binary(message) and
              is_list(meta) do
-    fun =
-      case env.function do
-        {fun, ar} -> "#{fun}/#{ar}"
-        nil -> "no_function"
-      end
-
     %{
       level: level,
       verbosity: verbosity,
       message: message,
-      meta: Map.new(meta),
-      function: fun,
-      file: env.file,
-      line: env.line,
-      module: env.module
+      meta: Map.new(meta)
     }
     |> dispatch_log()
   end
