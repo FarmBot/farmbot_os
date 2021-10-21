@@ -307,7 +307,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "http" do
-    expect(FarmbotTelemetry.HTTP, :hackney, 1, fn -> FakeHackney end)
+    expect(FarmbotOS.HTTP, :hackney, 1, fn -> FakeHackney end)
 
     params =
       FarmbotOS.Lua.Util.map_to_table(%{

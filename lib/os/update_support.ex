@@ -38,7 +38,7 @@ defmodule FarmbotOS.UpdateSupport do
     params = {to_charlist(url), []}
 
     {:ok, :saved_to_file} =
-      FarmbotTelemetry.HTTP.request(:get, params, [], stream: @dl_path)
+      FarmbotOS.HTTP.request(:get, params, [], stream: @dl_path)
   end
 
   # Crash the current process if there is already an OTA in
@@ -71,7 +71,7 @@ defmodule FarmbotOS.UpdateSupport do
     end
   end
 
-  # FarmbotTelemetry.HTTP callback when a JSON download succeeds (/api/releases?platform=foo)
+  # FarmbotOS.HTTP callback when a JSON download succeeds (/api/releases?platform=foo)
   def handle_http_response({:ok, {{_, 200, _}, _response_headers, body}}) do
     {:ok, map} = JSON.decode(body)
     map
@@ -98,7 +98,7 @@ defmodule FarmbotOS.UpdateSupport do
     url = calculate_url(target)
     t = FarmbotCore.Config.get_config_value(:string, "authorization", "token")
     params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
-    http_resp = FarmbotTelemetry.HTTP.request(:get, params, [], [])
+    http_resp = FarmbotOS.HTTP.request(:get, params, [], [])
     handle_http_response(http_resp)
   end
 

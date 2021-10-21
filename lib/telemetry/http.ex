@@ -1,4 +1,4 @@
-defmodule FarmbotTelemetry.HTTP do
+defmodule FarmbotOS.HTTP do
   @moduledoc """
   A very thin wrapper around :httpc and :hackney to facilitate
   mocking and set system-wide default configuration.

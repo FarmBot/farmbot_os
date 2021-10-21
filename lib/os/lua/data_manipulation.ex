@@ -7,7 +7,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
-  alias FarmbotTelemetry.HTTP
+  alias FarmbotOS.HTTP
   alias FarmbotCore.Celery.SpecialValue
 
   @methods %{

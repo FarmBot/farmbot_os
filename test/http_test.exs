@@ -1,10 +1,10 @@
-defmodule FarmbotTelemetry.HTTPTest do
+defmodule FarmbotOS.HTTPTest do
   use ExUnit.Case
-  doctest FarmbotTelemetry.HTTP
-  alias FarmbotTelemetry.HTTP
+  doctest FarmbotOS.HTTP
+  alias FarmbotOS.HTTP
 
   def get(url) do
-    FarmbotTelemetry.HTTP.request(:get, {to_charlist(url), []}, [], [])
+    FarmbotOS.HTTP.request(:get, {to_charlist(url), []}, [], [])
   end
 
   @bad_urls [

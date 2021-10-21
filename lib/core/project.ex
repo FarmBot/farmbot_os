@@ -26,8 +26,6 @@ defmodule FarmbotCore.Project do
   @compile {:inline, branch: 0}
   def branch, do: @branch
 
-  def arduino_commit, do: "---"
-
   @doc "*#{@target}*"
   @compile {:inline, target: 0}
   def target, do: @target

@@ -11,7 +11,7 @@ defmodule FarmbotCore.BotStateNG.InformationalSettings do
   embedded_schema do
     field(:target, :string, default: to_string(Project.target()))
     field(:env, :string, default: to_string(Project.env()))
-    field(:firmware_commit, :string, default: Project.arduino_commit())
+    field(:firmware_commit, :string, default: "---")
     field(:controller_version, :string, default: Project.version())
     field(:controller_uuid, :string)
     field(:controller_commit, :string, default: Project.commit())

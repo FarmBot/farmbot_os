@@ -277,7 +277,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareInstallation do
   end
 
   defp get(url) do
-    FarmbotTelemetry.HTTP.request(
+    FarmbotOS.HTTP.request(
       :get,
       {to_charlist(url), httpc_headers()},
       [],

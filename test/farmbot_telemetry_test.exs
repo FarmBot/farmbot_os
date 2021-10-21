@@ -7,7 +7,7 @@ defmodule FarmbotTelemetryTest do
     :ok = FarmbotTelemetry.attach_recv(:event, :test_subsystem, self())
     :ok = FarmbotTelemetry.event(:test_subsystem, :measurement, 1.0)
 
-    assert_receive {[:farmbot_os, :event, :test_subsystem],
+    assert_receive {[:farmbot, :event, :test_subsystem],
                     %{measurement: :measurement, value: 1.0}, _meta, _config}
   end
 
@@ -17,7 +17,7 @@ defmodule FarmbotTelemetryTest do
     :ok =
       FarmbotTelemetry.event(:test_subsystem, :measurement, 1.0, hello: "world")
 
-    assert_receive {[:farmbot_os, :event, :test_subsystem],
+    assert_receive {[:farmbot, :event, :test_subsystem],
                     %{measurement: :measurement, value: 1.0}, meta, _config}
 
     assert meta[:hello] == "world"
