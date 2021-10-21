@@ -60,9 +60,11 @@ else
 end
 
 config :logger,
-  backends: [:console],
-  handle_otp_reports: true,
-  handle_sasl_reports: true
+  # ,
+  backends: [:console]
+
+# handle_otp_reports: true,
+# handle_sasl_reports: true
 
 if is_test? do
   config :farmbot, FarmbotCore.Celery.SysCalls,
@@ -73,7 +75,7 @@ if is_test? do
 
   list = [
     FarmbotCore,
-    FarmbotCore.Asset.Supervisor,
+    # FarmbotCore.Asset.Supervisor,
     FarmbotCore.BotState.Supervisor,
     FarmbotCore.Config.Supervisor,
     FarmbotCore.StorageSupervisor,

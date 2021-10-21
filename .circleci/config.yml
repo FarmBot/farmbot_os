@@ -67,15 +67,15 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
-        key: v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
+        key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_libnl
     - run:
         name: Build Farmbot OS Firmware
-        working_directory: /nerves/build/farmbot_os
+        working_directory: /nerves/build
         command: |
           mix deps.get
           mix compile --force
@@ -88,7 +88,7 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
         command: |
           cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
           - /nerves/build/_build/
           - /nerves/build/deps/
@@ -112,7 +112,7 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
     - <<: *install_libnl
     - run:
         name: Build Farmbot OS Firmware
-        working_directory: /nerves/build/farmbot_os
+        working_directory: /nerves/build
         command: |
           mix deps.get
           mix compile --force
@@ -125,7 +125,7 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
         command: |
           cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
           - /nerves/build/_build/
           - /nerves/build/deps/
@@ -145,7 +145,7 @@ predeploy_setup: &predeploy_setup
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -169,12 +169,12 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
+            - v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Test Farmbot OS
-          working_directory: /nerves/build/farmbot_os
+          working_directory: /nerves/build
           command: |
             mix deps.get
             mix compile
@@ -182,10 +182,10 @@ jobs:
             mix coveralls.json
             bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: v14-fbos-host-test-dependency-cache-{{ checksum "/mix.lock" }}
+          key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
-            - _build/host
-            - deps/host
+            - farmbot_os/_build/host
+            - farmbot_os/deps/host
       - save_cache:
           key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
