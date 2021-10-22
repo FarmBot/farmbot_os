@@ -10,7 +10,7 @@ defmodule FarmbotCore.Celery.Compiler.PinControl do
       mode = unquote(Compiler.celery_to_elixir(mode, cs_scope))
       value = unquote(Compiler.celery_to_elixir(value, cs_scope))
 
-      with :ok <- FarmbotCore.Celery.SysCalls.write_pin(pin, mode, value) do
+      with :ok <- FarmbotCore.Celery.SysCallGlue.write_pin(pin, mode, value) do
         me = unquote(__MODULE__)
         me.conclude(pin, mode, value)
       end
@@ -22,7 +22,7 @@ defmodule FarmbotCore.Celery.Compiler.PinControl do
     quote location: :keep do
       pin = unquote(Compiler.celery_to_elixir(num, cs_scope))
       mode = unquote(Compiler.celery_to_elixir(mode, cs_scope))
-      FarmbotCore.Celery.SysCalls.read_pin(pin, mode)
+      FarmbotCore.Celery.SysCallGlue.read_pin(pin, mode)
     end
   end
 
@@ -34,8 +34,8 @@ defmodule FarmbotCore.Celery.Compiler.PinControl do
     quote location: :keep do
       pin = unquote(Compiler.celery_to_elixir(pin_number, cs_scope))
       angle = unquote(Compiler.celery_to_elixir(pin_value, cs_scope))
-      FarmbotCore.Celery.SysCalls.log("Writing servo: #{pin}: #{angle}")
-      FarmbotCore.Celery.SysCalls.set_servo_angle(pin, angle)
+      FarmbotCore.Celery.SysCallGlue.log("Writing servo: #{pin}: #{angle}")
+      FarmbotCore.Celery.SysCallGlue.set_servo_angle(pin, angle)
     end
   end
 
@@ -47,22 +47,22 @@ defmodule FarmbotCore.Celery.Compiler.PinControl do
     quote location: :keep do
       pin = unquote(Compiler.celery_to_elixir(pin_number, cs_scope))
       mode = unquote(Compiler.celery_to_elixir(mode, cs_scope))
-      FarmbotCore.Celery.SysCalls.log("Setting pin mode: #{pin}: #{mode}")
-      FarmbotCore.Celery.SysCalls.set_pin_io_mode(pin, mode)
+      FarmbotCore.Celery.SysCallGlue.log("Setting pin mode: #{pin}: #{mode}")
+      FarmbotCore.Celery.SysCallGlue.set_pin_io_mode(pin, mode)
     end
   end
 
   def toggle_pin(%{args: %{pin_number: pin_number}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.toggle_pin(unquote(pin_number))
+      FarmbotCore.Celery.SysCallGlue.toggle_pin(unquote(pin_number))
     end
   end
 
   def conclude(pin, 0, _value) do
-    FarmbotCore.Celery.SysCalls.read_pin(pin, 0)
+    FarmbotCore.Celery.SysCallGlue.read_pin(pin, 0)
   end
 
   def conclude(pin, _mode, value) do
-    FarmbotCore.Celery.SysCalls.log("Pin #{pin} is #{value} (analog)")
+    FarmbotCore.Celery.SysCallGlue.log("Pin #{pin} is #{value} (analog)")
   end
 end

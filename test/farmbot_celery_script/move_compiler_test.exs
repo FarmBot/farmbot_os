@@ -5,10 +5,10 @@ defmodule FarmbotCore.Celery.MoveCompilerTest do
   alias FarmbotCore.Celery.{
     Compiler,
     Compiler.Move,
-    SysCalls.Stubs
+    SysCallGlue.Stubs
   }
 
-  alias FarmbotCore.Celery.SysCalls, warn: false
+  # alias FarmbotCore.Celery.SysCallGlue
 
   setup :verify_on_exit!
 

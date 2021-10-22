@@ -120,7 +120,7 @@ defmodule FarmbotExt.DirtyWorker do
   def do_stale_recovery(timeout) do
     FarmbotCore.Logger.error(4, @stale_warning)
     Private.recover_from_row_lock_failure()
-    FarmbotCore.Celery.SysCalls.sync()
+    FarmbotCore.Celery.SysCallGlue.sync()
     FarmbotExt.Time.sleep(timeout * 10)
     true
   end

@@ -15,7 +15,7 @@ defmodule FarmbotCore.PinBindingWorkerTest do
       }
     }
 
-    expect(FarmbotCore.Celery.SysCalls, :reboot, fn -> :ok end)
+    expect(FarmbotCore.Celery.SysCallGlue, :reboot, fn -> :ok end)
     PinBinding.handle_cast(:trigger, params)
   end
 
@@ -27,7 +27,7 @@ defmodule FarmbotCore.PinBindingWorkerTest do
       }
     }
 
-    expect(FarmbotCore.Celery.SysCalls, :sync, fn -> :ok end)
+    expect(FarmbotCore.Celery.SysCallGlue, :sync, fn -> :ok end)
     PinBinding.handle_cast(:trigger, params)
   end
 end

@@ -3,7 +3,7 @@ defmodule FarmbotOS.Lua.Info do
   Lua extensions for gathering information about a running Farmbot
   """
 
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
   alias FarmbotOS.Lua.Util
   alias FarmbotCore.Config
 
@@ -94,7 +94,7 @@ defmodule FarmbotOS.Lua.Info do
   end
 
   defp do_send_message(kind, message, channels, lua) do
-    result = SysCalls.send_message(kind, "#{message}", channels)
+    result = SysCallGlue.send_message(kind, "#{message}", channels)
 
     case result do
       :ok ->

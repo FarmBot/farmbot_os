@@ -25,20 +25,20 @@ defmodule FarmbotCore.Celery.Compiler.If do
       case lhs_ast do
         "x" ->
           quote [location: :keep],
-            do: FarmbotCore.Celery.SysCalls.get_cached_x()
+            do: FarmbotCore.Celery.SysCallGlue.get_cached_x()
 
         "y" ->
           quote [location: :keep],
-            do: FarmbotCore.Celery.SysCalls.get_cached_y()
+            do: FarmbotCore.Celery.SysCallGlue.get_cached_y()
 
         "z" ->
           quote [location: :keep],
-            do: FarmbotCore.Celery.SysCalls.get_cached_z()
+            do: FarmbotCore.Celery.SysCallGlue.get_cached_z()
 
         "pin" <> pin ->
           quote [location: :keep],
             do:
-              FarmbotCore.Celery.SysCalls.read_cached_pin(
+              FarmbotCore.Celery.SysCallGlue.read_cached_pin(
                 unquote(String.to_integer(pin))
               )
 
@@ -47,7 +47,7 @@ defmodule FarmbotCore.Celery.Compiler.If do
         %AST{kind: :named_pin} = ast ->
           quote [location: :keep],
             do:
-              FarmbotCore.Celery.SysCalls.read_cached_pin(
+              FarmbotCore.Celery.SysCallGlue.read_cached_pin(
                 unquote(Compiler.celery_to_elixir(ast, cs_scope))
               )
 
@@ -120,7 +120,9 @@ defmodule FarmbotCore.Celery.Compiler.If do
     #    nothing()
     # end
     quote location: :keep do
-      prefix_string = FarmbotCore.Celery.SysCalls.format_lhs(unquote(lhs_ast))
+      prefix_string =
+        FarmbotCore.Celery.SysCallGlue.format_lhs(unquote(lhs_ast))
+
       # examples:
       # "current x position is 100"
       # "pin 13 > 1"
@@ -135,7 +137,7 @@ defmodule FarmbotCore.Celery.Compiler.If do
         end
 
       if unquote(if_eval) do
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Evaluated IF statement: #{result_str}; #{unquote(truthy_suffix)}"
         )
 
@@ -143,7 +145,7 @@ defmodule FarmbotCore.Celery.Compiler.If do
           FarmbotCore.Celery.Compiler.Utils.compile_block(then_ast, cs_scope)
         )
       else
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Evaluated IF statement: #{result_str}; #{unquote(falsey_suffix)}"
         )
 

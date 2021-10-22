@@ -153,7 +153,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         %{pin_binding: %{special_action: "reboot"} = pin_binding} = state
       ) do
     FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Reboot")
-    FarmbotCore.Celery.SysCalls.reboot()
+    FarmbotCore.Celery.SysCallGlue.reboot()
     {:noreply, state}
   end
 
@@ -162,7 +162,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         %{pin_binding: %{special_action: "sync"} = pin_binding} = state
       ) do
     FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Sync")
-    FarmbotCore.Celery.SysCalls.sync()
+    FarmbotCore.Celery.SysCallGlue.sync()
     {:noreply, state}
   end
 

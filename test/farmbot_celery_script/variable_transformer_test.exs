@@ -3,7 +3,7 @@ defmodule FarmbotCore.Celery.VariableTransformerTest do
   use Mimic
 
   alias FarmbotCore.Celery.Compiler.VariableTransformer
-  alias FarmbotCore.Celery.SysCalls.Stubs
+  alias FarmbotCore.Celery.SysCallGlue.Stubs
 
   setup :verify_on_exit!
 

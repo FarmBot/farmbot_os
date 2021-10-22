@@ -15,7 +15,7 @@ defmodule FarmbotCore.Celery.Compiler.Execute do
   defp do_execute(execute_ast, previous_scope) do
     id = execute_ast.args.sequence_id
 
-    case FarmbotCore.Celery.SysCalls.get_sequence(id) do
+    case FarmbotCore.Celery.SysCallGlue.get_sequence(id) do
       %AST{kind: :sequence} = sequence_ast ->
         quote location: :keep do
           # execute_compiler.ex

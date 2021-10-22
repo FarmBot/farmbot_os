@@ -5,7 +5,7 @@ defmodule FarmbotCore.Celery.CompilerTest do
   alias FarmbotCore.Celery.{AST, Compiler}
   alias FarmbotCore.Celery.Compiler.Scope
   # Only required to compile
-  alias FarmbotCore.Celery.SysCalls, warn: false
+  alias FarmbotCore.Celery.SysCallGlue, warn: false
 
   test "change_ownership" do
     email = "t@g.com"
@@ -18,9 +18,9 @@ defmodule FarmbotCore.Celery.CompilerTest do
       %{args: %{label: "server", value: server}}
     ]
 
-    expect(FarmbotCore.Celery.SysCalls, :change_ownership, 1, fn eml,
-                                                                 scrt,
-                                                                 srvr ->
+    expect(FarmbotCore.Celery.SysCallGlue, :change_ownership, 1, fn eml,
+                                                                    scrt,
+                                                                    srvr ->
       assert eml == email
       assert scrt == "\xB2\xEA^\xAD۩z"
       assert srvr == server
@@ -40,7 +40,7 @@ defmodule FarmbotCore.Celery.CompilerTest do
     msg = "Hello, world!"
     args = %{args: %{message: msg, message_type: type}, body: channels}
 
-    expect(FarmbotCore.Celery.SysCalls, :send_message, 1, fn t, m, c ->
+    expect(FarmbotCore.Celery.SysCallGlue, :send_message, 1, fn t, m, c ->
       assert t == type
       assert m == msg
       assert c == [:email]
@@ -116,8 +116,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
              strip_nl("""
              package = "take-photo"
              env = %{"a" => "123"}
-             FarmbotCore.Celery.SysCalls.log(\"Taking photo\", true)
-             FarmbotCore.Celery.SysCalls.execute_script(package, env)
+             FarmbotCore.Celery.SysCallGlue.log(\"Taking photo\", true)
+             FarmbotCore.Celery.SysCallGlue.execute_script(package, env)
              """)
   end
 
@@ -134,8 +134,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCore.Celery.SysCalls.set_user_env("a", "123")
-             FarmbotCore.Celery.SysCalls.set_user_env("b", "345")
+             FarmbotCore.Celery.SysCallGlue.set_user_env("a", "123")
+             FarmbotCore.Celery.SysCallGlue.set_user_env("b", "345")
              """)
   end
 
@@ -149,8 +149,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCore.Celery.SysCalls.log("Installing dependencies...")
-             FarmbotCore.Celery.SysCalls.install_first_party_farmware()
+             FarmbotCore.Celery.SysCallGlue.log("Installing dependencies...")
+             FarmbotCore.Celery.SysCallGlue.install_first_party_farmware()
              """)
   end
 
@@ -164,17 +164,17 @@ defmodule FarmbotCore.Celery.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             FarmbotCore.Celery.SysCalls.nothing()
+             FarmbotCore.Celery.SysCallGlue.nothing()
              """)
   end
 
   test "compiles move_absolute with tool_id" do
-    expect(SysCalls.Stubs, :get_toolslot_for_tool, 1, fn
+    expect(SysCallGlue.Stubs, :get_toolslot_for_tool, 1, fn
       222 -> %{gantry_mounted: false, name: "X", x: 220, y: 221, z: 222}
       id -> raise "Wrong id: #{id}"
     end)
 
-    expect(SysCalls.Stubs, :move_absolute, 1, fn x, y, z, s ->
+    expect(SysCallGlue.Stubs, :move_absolute, 1, fn x, y, z, s ->
       assert {219, 220, 221, 100} == {x, y, z, s}
       :ok
     end)
@@ -225,7 +225,7 @@ defmodule FarmbotCore.Celery.CompilerTest do
       })
 
     expected =
-      "[x, y, z] = [100 + -20, 100 + -20, 100 + -20] x_str = FarmbotCore.Celery.FormatUtil.format_float(x) y_str = FarmbotCore.Celery.FormatUtil.format_float(y) z_str = FarmbotCore.Celery.FormatUtil.format_float(z) FarmbotCore.Celery.SysCalls.log(\"Moving to (\#{x_str}, \#{y_str}, \#{z_str})\", true) FarmbotCore.Celery.SysCalls.move_absolute(x, y, z, 100)"
+      "[x, y, z] = [100 + -20, 100 + -20, 100 + -20] x_str = FarmbotCore.Celery.FormatUtil.format_float(x) y_str = FarmbotCore.Celery.FormatUtil.format_float(y) z_str = FarmbotCore.Celery.FormatUtil.format_float(z) FarmbotCore.Celery.SysCallGlue.log(\"Moving to (\#{x_str}, \#{y_str}, \#{z_str})\", true) FarmbotCore.Celery.SysCallGlue.move_absolute(x, y, z, 100)"
 
     assert compiled == expected
   end
@@ -248,9 +248,9 @@ defmodule FarmbotCore.Celery.CompilerTest do
                locx when is_number(locx) <- 100.4,
                locy when is_number(locy) <- 90,
                locz when is_number(locz) <- 50,
-               curx when is_number(curx) <- FarmbotCore.Celery.SysCalls.get_current_x(),
-               cury when is_number(cury) <- FarmbotCore.Celery.SysCalls.get_current_y(),
-               curz when is_number(curz) <- FarmbotCore.Celery.SysCalls.get_current_z()
+               curx when is_number(curx) <- FarmbotCore.Celery.SysCallGlue.get_current_x(),
+               cury when is_number(cury) <- FarmbotCore.Celery.SysCallGlue.get_current_y(),
+               curz when is_number(curz) <- FarmbotCore.Celery.SysCallGlue.get_current_z()
              ) do
                x = locx + curx
                y = locy + cury
@@ -258,8 +258,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
                x_str = FarmbotCore.Celery.FormatUtil.format_float(x)
                y_str = FarmbotCore.Celery.FormatUtil.format_float(y)
                z_str = FarmbotCore.Celery.FormatUtil.format_float(z)
-               FarmbotCore.Celery.SysCalls.log("Moving relative to (\#{x_str}, \#{y_str}, \#{z_str})", true)
-               FarmbotCore.Celery.SysCalls.move_absolute(x, y, z, 100)
+               FarmbotCore.Celery.SysCallGlue.log("Moving relative to (\#{x_str}, \#{y_str}, \#{z_str})", true)
+               FarmbotCore.Celery.SysCallGlue.move_absolute(x, y, z, 100)
              end
              """)
   end
@@ -273,7 +273,7 @@ defmodule FarmbotCore.Celery.CompilerTest do
 
   #   expected =
   #     "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
-  #       "FarmbotCore.Celery.SysCalls.write_pin(pin, mode, value))" <>
+  #       "FarmbotCore.Celery.SysCallGlue.write_pin(pin, mode, value))" <>
   #       " do\n  me = FarmbotCore.Celery.Compiler.PinControl\n" <>
   #       "  me.conclude(pin, mode, value)\nend"
 
@@ -291,7 +291,7 @@ defmodule FarmbotCore.Celery.CompilerTest do
              strip_nl("""
              pin = 23
              mode = 0
-             FarmbotCore.Celery.SysCalls.read_pin(pin, mode)
+             FarmbotCore.Celery.SysCallGlue.read_pin(pin, mode)
              """)
   end
 
@@ -306,8 +306,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
              strip_nl("""
              pin = 23
              angle = 90
-             FarmbotCore.Celery.SysCalls.log("Writing servo: \#{pin}: \#{angle}")
-             FarmbotCore.Celery.SysCalls.set_servo_angle(pin, angle)
+             FarmbotCore.Celery.SysCallGlue.log("Writing servo: \#{pin}: \#{angle}")
+             FarmbotCore.Celery.SysCallGlue.set_servo_angle(pin, angle)
              """)
   end
 
@@ -322,8 +322,8 @@ defmodule FarmbotCore.Celery.CompilerTest do
              strip_nl("""
              pin = 23
              mode = "input"
-             FarmbotCore.Celery.SysCalls.log("Setting pin mode: \#{pin}: \#{mode}")
-             FarmbotCore.Celery.SysCalls.set_pin_io_mode(pin, mode)
+             FarmbotCore.Celery.SysCallGlue.log("Setting pin mode: \#{pin}: \#{mode}")
+             FarmbotCore.Celery.SysCallGlue.set_pin_io_mode(pin, mode)
              """)
   end
 

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Celery.Compiler.Move do
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
   alias FarmbotCore.Celery.SpecialValue
   alias FarmbotCore.Celery.Compiler.Scope
 
@@ -219,11 +219,11 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   # This usually happens when `identifier`s are converted to
   # real values
   def to_number(axis, %{resource_id: id, resource_type: t}) do
-    Map.fetch!(SysCalls.point(t, id), axis)
+    Map.fetch!(SysCallGlue.point(t, id), axis)
   end
 
   def to_number(axis, %{args: %{pointer_id: id, pointer_type: t}}) do
-    Map.fetch!(SysCalls.point(t, id), axis)
+    Map.fetch!(SysCallGlue.point(t, id), axis)
   end
 
   def to_number(_, %{args: %{label: "safe_height"}, kind: :special_value}) do
@@ -249,7 +249,7 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   end
 
   def to_number(axis, %{kind: :tool, args: %{tool_id: id}}) do
-    tool = FarmbotCore.Celery.SysCalls.get_toolslot_for_tool(id)
+    tool = FarmbotCore.Celery.SysCallGlue.get_toolslot_for_tool(id)
     to_number(axis, tool)
   end
 
@@ -263,14 +263,14 @@ defmodule FarmbotCore.Celery.Compiler.Move do
     z_str = FarmbotCore.Celery.FormatUtil.format_float(z)
     msg = "Moving to (#{x_str}, #{y_str}, #{z_str})"
 
-    FarmbotCore.Celery.SysCalls.log(msg, true)
-    :ok = SysCalls.move_absolute(x, y, z, sx, sy, sz)
+    FarmbotCore.Celery.SysCallGlue.log(msg, true)
+    :ok = SysCallGlue.move_absolute(x, y, z, sx, sy, sz)
     k
   end
 
-  def cx, do: SysCalls.get_current_x()
-  def cy, do: SysCalls.get_current_y()
-  def cz, do: SysCalls.get_current_z()
+  def cx, do: SysCallGlue.get_current_x()
+  def cy, do: SysCallGlue.get_current_y()
+  def cz, do: SysCallGlue.get_current_z()
 
   def convert_lua_to_number(lua, cs_scope) do
     case FarmbotCore.Celery.Compiler.Lua.do_lua(lua, cs_scope) do

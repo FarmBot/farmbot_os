@@ -24,11 +24,11 @@ defmodule FarmbotCore.Celery.IntegrationTest do
   ]
 
   test "all the fixtures (should not crash!)" do
-    expect(FarmbotCore.Celery.SysCalls, :get_sequence, 7, fn _id ->
+    expect(FarmbotCore.Celery.SysCallGlue, :get_sequence, 7, fn _id ->
       compile_celery_file("fixtures/inner_sequence.json")
     end)
 
-    expect(FarmbotCore.Celery.SysCalls, :point, 12, fn _type, _id ->
+    expect(FarmbotCore.Celery.SysCallGlue, :point, 12, fn _type, _id ->
       %{x: 99, y: 88, z: 77}
     end)
 

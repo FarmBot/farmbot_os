@@ -16,7 +16,7 @@ config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
     gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
   ],
   FarmbotCore.BotState.FileSystem => [root_dir: "/tmp/farmbot_state"],
-  FarmbotCore.Celery.SysCalls => [sys_calls: FarmbotOS.SysCalls],
+  FarmbotCore.Celery.SysCallGlue => [sys_calls: FarmbotOS.SysCalls],
   FarmbotCore.Core.CeleryScript.RunTimeWrapper => [
     celery_script_io_layer: FarmbotCore.Core.CeleryScript.StubIOLayer
   ],
@@ -65,8 +65,8 @@ config :logger,
 if is_test? do
   config :ex_unit, capture_logs: true
 
-  config :farmbot, FarmbotCore.Celery.SysCalls,
-    sys_calls: FarmbotCore.Celery.SysCalls.Stubs
+  config :farmbot, FarmbotCore.Celery.SysCallGlue,
+    sys_calls: FarmbotCore.Celery.SysCallGlue.Stubs
 
   [
     FarmbotCore,

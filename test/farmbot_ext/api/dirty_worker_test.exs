@@ -41,7 +41,7 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Private.mark_stale!(p)
     assert Private.any_stale?()
 
-    expect(FarmbotCore.Celery.SysCalls, :sync, 1, fn ->
+    expect(FarmbotCore.Celery.SysCallGlue, :sync, 1, fn ->
       Private.mark_clean!(p)
     end)
 
@@ -58,7 +58,7 @@ defmodule FarmbotExt.DirtyWorkerTest do
       |> FbosConfig.changeset()
       |> Repo.insert!()
 
-    expect(FarmbotCore.Celery.SysCalls, :sync, 1, fn ->
+    expect(FarmbotCore.Celery.SysCallGlue, :sync, 1, fn ->
       "I expect a 409 response to trigger a sync."
     end)
 
@@ -73,7 +73,7 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
 
-    stub(FarmbotCore.Celery.SysCalls, :sync, fn ->
+    stub(FarmbotCore.Celery.SysCallGlue, :sync, fn ->
       flunk("Never should call sync")
     end)
 

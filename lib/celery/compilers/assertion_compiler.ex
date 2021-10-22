@@ -30,7 +30,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
 
       case result do
         {:error, reason} ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             false,
             assertion_type,
             "#{comment_header}failed to evaluate, aborting"
@@ -39,7 +39,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
           {:error, reason}
 
         {:ok, [true]} ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             true,
             assertion_type,
             "#{comment_header}passed, continuing execution"
@@ -48,7 +48,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
           :ok
 
         {:ok, _} when assertion_type == "continue" ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             false,
             assertion_type,
             "#{comment_header}failed, continuing execution"
@@ -57,7 +57,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
           :ok
 
         {:ok, _} when assertion_type == "abort" ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             false,
             assertion_type,
             "#{comment_header}failed, aborting"
@@ -66,7 +66,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
           {:error, "Assertion failed (aborting)"}
 
         {:ok, _} when assertion_type == "recover" ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             false,
             assertion_type,
             "#{comment_header}failed, recovering and continuing"
@@ -75,7 +75,7 @@ defmodule FarmbotCore.Celery.Compiler.Assertion do
           unquote(Compiler.Utils.compile_block(then_ast, cs_scope))
 
         {:ok, _} when assertion_type == "abort_recover" ->
-          FarmbotCore.Celery.SysCalls.log_assertion(
+          FarmbotCore.Celery.SysCallGlue.log_assertion(
             false,
             assertion_type,
             "#{comment_header}failed, recovering and aborting"

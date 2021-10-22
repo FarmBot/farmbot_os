@@ -6,13 +6,13 @@ defmodule FarmbotCore.Celery.Compiler.PinControlTest do
   alias FarmbotCore.Celery.Compiler.PinControl
 
   test "conclude/3" do
-    expect(FarmbotCore.Celery.SysCalls, :read_pin, fn pin, mode ->
+    expect(FarmbotCore.Celery.SysCallGlue, :read_pin, fn pin, mode ->
       assert pin == 1
       assert mode == 0
       :ok
     end)
 
-    expect(FarmbotCore.Celery.SysCalls, :log, fn msg ->
+    expect(FarmbotCore.Celery.SysCallGlue, :log, fn msg ->
       expected = "Pin 3 is 4 (analog)"
       assert msg == expected
       :ok

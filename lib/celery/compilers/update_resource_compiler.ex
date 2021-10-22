@@ -33,15 +33,15 @@ defmodule FarmbotCore.Celery.Compiler.UpdateResource do
   end
 
   def do_update(%{pointer_id: id, pointer_type: kind}, update_params) do
-    FarmbotCore.Celery.SysCalls.update_resource(kind, id, update_params)
+    FarmbotCore.Celery.SysCallGlue.update_resource(kind, id, update_params)
   end
 
   def do_update(%{resource_id: id, resource_type: kind}, update_params) do
-    FarmbotCore.Celery.SysCalls.update_resource(kind, id, update_params)
+    FarmbotCore.Celery.SysCallGlue.update_resource(kind, id, update_params)
   end
 
   def do_update(%{args: %{pointer_id: id, pointer_type: k}}, update_params) do
-    FarmbotCore.Celery.SysCalls.update_resource(k, id, update_params)
+    FarmbotCore.Celery.SysCallGlue.update_resource(k, id, update_params)
   end
 
   def do_update(other, update) do

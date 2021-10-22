@@ -1,14 +1,14 @@
 # Ensure that every "location like" CeleryScript variable has
 # an x/y/z property at the root of the object.
 defmodule FarmbotCore.Celery.Compiler.VariableTransformer do
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
 
   def run!(%{resource_id: id, resource_type: t}) do
-    [SysCalls.point(t, id)]
+    [SysCallGlue.point(t, id)]
   end
 
   def run!(%{args: %{pointer_id: id, pointer_type: t}}) do
-    [SysCalls.point(t, id)]
+    [SysCallGlue.point(t, id)]
   end
 
   def run!(%{x: _, y: _, z: _} = vec), do: [vec]
@@ -18,7 +18,7 @@ defmodule FarmbotCore.Celery.Compiler.VariableTransformer do
   end
 
   def run!(%{args: %{tool_id: tool_id}}) do
-    [FarmbotCore.Celery.SysCalls.get_toolslot_for_tool(tool_id)]
+    [FarmbotCore.Celery.SysCallGlue.get_toolslot_for_tool(tool_id)]
   end
 
   def run!(nil) do

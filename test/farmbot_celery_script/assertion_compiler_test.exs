@@ -7,7 +7,7 @@ defmodule FarmbotCore.Celery.AssertionCompilerTest do
   test "Assertion.assertion/2" do
     scope = Scope.new()
 
-    expect(FarmbotCore.Celery.SysCalls, :log_assertion, 1, fn ok?, t, msg ->
+    expect(FarmbotCore.Celery.SysCallGlue, :log_assertion, 1, fn ok?, t, msg ->
       refute ok?
       assert t == "abort"
       assert msg == "[comment] failed to evaluate, aborting"

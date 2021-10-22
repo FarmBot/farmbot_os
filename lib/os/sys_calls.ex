@@ -1,6 +1,6 @@
 defmodule FarmbotOS.SysCalls do
   @moduledoc """
-  Implementation for FarmbotCore.Celery.SysCalls
+  Implementation for FarmbotCore.Celery.SysCallGlue
   """
 
   require FarmbotCore.Logger
@@ -43,7 +43,7 @@ defmodule FarmbotOS.SysCalls do
     SetPinIOMode
   }
 
-  @behaviour FarmbotCore.Celery.SysCalls
+  @behaviour FarmbotCore.Celery.SysCallGlue
 
   @impl true
   defdelegate send_message(level, message, channels), to: SendMessage

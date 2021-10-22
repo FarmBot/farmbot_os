@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Celery.SysCallsTest do
+defmodule FarmbotCore.Celery.SysCallGlueTest do
   use ExUnit.Case, async: false
   use Mimic
 
   alias FarmbotCore.Celery.{
-    SysCalls,
-    SysCalls.Stubs,
+    SysCallGlue,
+    SysCallGlue.Stubs,
     AST
   }
 
@@ -15,7 +15,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       %{x: 100, y: 200, z: 300}
     end)
 
-    result1 = SysCalls.point(Stubs, "Peripheral", 1)
+    result1 = SysCallGlue.point(Stubs, "Peripheral", 1)
     assert %{x: 100, y: 200, z: 300} == result1
   end
 
@@ -24,7 +24,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       :whatever
     end)
 
-    boom = fn -> SysCalls.point(Stubs, "Peripheral", 0) end
+    boom = fn -> SysCallGlue.point(Stubs, "Peripheral", 0) end
     assert_raise FarmbotCore.Celery.RuntimeError, boom
   end
 
@@ -33,7 +33,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       :whatever
     end)
 
-    boom = fn -> SysCalls.find_points_via_group(Stubs, :something_else) end
+    boom = fn -> SysCallGlue.find_points_via_group(Stubs, :something_else) end
     assert_raise FarmbotCore.Celery.RuntimeError, boom
   end
 
@@ -43,7 +43,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
     end)
 
     pg = %{point_ids: [1, 2, 3]}
-    result = SysCalls.find_points_via_group(Stubs, 456)
+    result = SysCallGlue.find_points_via_group(Stubs, 456)
     assert result == pg
   end
 
@@ -52,7 +52,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       :ok
     end)
 
-    assert :ok = SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
+    assert :ok = SysCallGlue.move_absolute(Stubs, 1, 2, 3, 4)
   end
 
   test "move_absolute, NO" do
@@ -61,16 +61,16 @@ defmodule FarmbotCore.Celery.SysCallsTest do
     end)
 
     assert {:error, "move failed!"} ==
-             SysCalls.move_absolute(Stubs, 1, 2, 3, 4)
+             SysCallGlue.move_absolute(Stubs, 1, 2, 3, 4)
   end
 
   test "get positions, OK" do
     expect(Stubs, :get_current_x, 1, fn -> 100.00 end)
     expect(Stubs, :get_current_y, 1, fn -> 200.00 end)
     expect(Stubs, :get_current_z, 1, fn -> 300.00 end)
-    assert 100.00 = SysCalls.get_current_x(Stubs)
-    assert 200.00 = SysCalls.get_current_y(Stubs)
-    assert 300.00 = SysCalls.get_current_z(Stubs)
+    assert 100.00 = SysCallGlue.get_current_x(Stubs)
+    assert 200.00 = SysCallGlue.get_current_y(Stubs)
+    assert 300.00 = SysCallGlue.get_current_z(Stubs)
   end
 
   test "get positions, KO" do
@@ -78,9 +78,9 @@ defmodule FarmbotCore.Celery.SysCallsTest do
     expect(Stubs, :get_current_y, 1, fn -> {:error, "O"} end)
     expect(Stubs, :get_current_z, 1, fn -> {:error, "L"} end)
 
-    assert {:error, "L"} == SysCalls.get_current_x(Stubs)
-    assert {:error, "O"} == SysCalls.get_current_y(Stubs)
-    assert {:error, "L"} == SysCalls.get_current_z(Stubs)
+    assert {:error, "L"} == SysCallGlue.get_current_x(Stubs)
+    assert {:error, "O"} == SysCallGlue.get_current_y(Stubs)
+    assert {:error, "L"} == SysCallGlue.get_current_z(Stubs)
   end
 
   test "write_pin" do
@@ -94,10 +94,10 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert :ok = SysCalls.write_pin(Stubs, 1, 0, 1)
-    assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 4}, 0, 1)
-    assert :ok = SysCalls.write_pin(Stubs, %{type: "boxled", id: 3}, 1, 123)
-    assert err == SysCalls.write_pin(Stubs, 66, 0, 1)
+    assert :ok = SysCallGlue.write_pin(Stubs, 1, 0, 1)
+    assert :ok = SysCallGlue.write_pin(Stubs, %{type: "boxled", id: 4}, 0, 1)
+    assert :ok = SysCallGlue.write_pin(Stubs, %{type: "boxled", id: 3}, 1, 123)
+    assert err == SysCallGlue.write_pin(Stubs, 66, 0, 1)
   end
 
   test "read_pin" do
@@ -109,9 +109,9 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert 20 == SysCalls.read_pin(Stubs, 10, 0)
-    assert 30 == SysCalls.read_pin(Stubs, 15, nil)
-    assert {:error, "firmware error"} == SysCalls.read_pin(Stubs, 1, 0)
+    assert 20 == SysCallGlue.read_pin(Stubs, 10, 0)
+    assert 30 == SysCallGlue.read_pin(Stubs, 15, nil)
+    assert {:error, "firmware error"} == SysCallGlue.read_pin(Stubs, 1, 0)
   end
 
   test "wait" do
@@ -121,7 +121,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert :ok = SysCalls.wait(Stubs, 1000)
+    assert :ok = SysCallGlue.wait(Stubs, 1000)
   end
 
   test "named_pin" do
@@ -140,18 +140,18 @@ defmodule FarmbotCore.Celery.SysCallsTest do
     end)
 
     # Peripheral and Sensor are on the Arduino
-    assert 44 == SysCalls.named_pin(Stubs, "Peripheral", 5)
-    assert 55 == SysCalls.named_pin(Stubs, "Sensor", 1999)
+    assert 44 == SysCallGlue.named_pin(Stubs, "Peripheral", 5)
+    assert 55 == SysCallGlue.named_pin(Stubs, "Sensor", 1999)
 
     # BoxLed is on the GPIO
 
     assert %{type: "BoxLed", id: 3} ==
-             SysCalls.named_pin(Stubs, "BoxLed", 3)
+             SysCallGlue.named_pin(Stubs, "BoxLed", 3)
 
     assert %{type: "BoxLed", id: 4} ==
-             SysCalls.named_pin(Stubs, "BoxLed", 4)
+             SysCallGlue.named_pin(Stubs, "BoxLed", 4)
 
-    assert err == SysCalls.named_pin(Stubs, "Peripheral", 888)
+    assert err == SysCallGlue.named_pin(Stubs, "Peripheral", 888)
   end
 
   test "send_message" do
@@ -166,10 +166,10 @@ defmodule FarmbotCore.Celery.SysCallsTest do
     end)
 
     assert :ok =
-             SysCalls.send_message(Stubs, "success", "hello world", ["email"])
+             SysCallGlue.send_message(Stubs, "success", "hello world", ["email"])
 
     assert err ==
-             SysCalls.send_message(Stubs, "error", "goodbye world", ["email"])
+             SysCallGlue.send_message(Stubs, "error", "goodbye world", ["email"])
   end
 
   test "find_home" do
@@ -183,8 +183,8 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert :ok = SysCalls.find_home(Stubs, "x")
-    assert err == SysCalls.find_home(Stubs, "z")
+    assert :ok = SysCallGlue.find_home(Stubs, "x")
+    assert err == SysCallGlue.find_home(Stubs, "z")
   end
 
   test "execute_script" do
@@ -198,8 +198,10 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert :ok = SysCalls.execute_script(Stubs, "take-photo", %{})
-    assert err == SysCalls.execute_script(Stubs, "take-photo", %{error: true})
+    assert :ok = SysCallGlue.execute_script(Stubs, "take-photo", %{})
+
+    assert err ==
+             SysCallGlue.execute_script(Stubs, "take-photo", %{error: true})
   end
 
   test "set_servo_angle errors" do
@@ -213,8 +215,8 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert error == SysCalls.set_servo_angle(Stubs, 40, -5)
-    assert :ok == SysCalls.set_servo_angle(Stubs, 5, 40)
+    assert error == SysCallGlue.set_servo_angle(Stubs, 40, -5)
+    assert :ok == SysCallGlue.set_servo_angle(Stubs, 5, 40)
   end
 
   test "get_sequence" do
@@ -234,7 +236,7 @@ defmodule FarmbotCore.Celery.SysCallsTest do
       end
     end)
 
-    assert nothing == SysCalls.get_sequence(Stubs, 123)
-    assert err == SysCalls.get_sequence(Stubs, 321)
+    assert nothing == SysCallGlue.get_sequence(Stubs, 123)
+    assert err == SysCallGlue.get_sequence(Stubs, 321)
   end
 end

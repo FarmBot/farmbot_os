@@ -101,7 +101,7 @@ defmodule FarmbotCore.Celery.Compiler do
 
   def nothing(_ast, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.nothing()
+      FarmbotCore.Celery.SysCallGlue.nothing()
     end
   end
 
@@ -115,8 +115,8 @@ defmodule FarmbotCore.Celery.Compiler do
     quote location: :keep do
       with millis when is_integer(millis) <-
              unquote(celery_to_elixir(millis, cs_scope)) do
-        FarmbotCore.Celery.SysCalls.log("Waiting for #{millis} milliseconds")
-        FarmbotCore.Celery.SysCalls.wait(millis)
+        FarmbotCore.Celery.SysCallGlue.log("Waiting for #{millis} milliseconds")
+        FarmbotCore.Celery.SysCallGlue.wait(millis)
       else
         {:error, reason} ->
           {:error, reason}
@@ -140,7 +140,7 @@ defmodule FarmbotCore.Celery.Compiler do
       end)
 
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.send_message(
+      FarmbotCore.Celery.SysCallGlue.send_message(
         unquote(celery_to_elixir(type, cs_scope)),
         unquote(celery_to_elixir(msg, cs_scope)),
         unquote(channels)
@@ -159,37 +159,37 @@ defmodule FarmbotCore.Celery.Compiler do
 
   def emergency_lock(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.emergency_lock()
+      FarmbotCore.Celery.SysCallGlue.emergency_lock()
     end
   end
 
   def emergency_unlock(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.emergency_unlock()
+      FarmbotCore.Celery.SysCallGlue.emergency_unlock()
     end
   end
 
   def read_status(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.read_status()
+      FarmbotCore.Celery.SysCallGlue.read_status()
     end
   end
 
   def sync(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.sync()
+      FarmbotCore.Celery.SysCallGlue.sync()
     end
   end
 
   def check_updates(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.check_update()
+      FarmbotCore.Celery.SysCallGlue.check_update()
     end
   end
 
   def flash_firmware(%{args: %{package: package_name}}, cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.flash_firmware(
+      FarmbotCore.Celery.SysCallGlue.flash_firmware(
         unquote(celery_to_elixir(package_name, cs_scope))
       )
     end
@@ -197,25 +197,25 @@ defmodule FarmbotCore.Celery.Compiler do
 
   def power_off(_, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.power_off()
+      FarmbotCore.Celery.SysCallGlue.power_off()
     end
   end
 
   def reboot(%{args: %{package: "farmbot_os"}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.reboot()
+      FarmbotCore.Celery.SysCallGlue.reboot()
     end
   end
 
   def reboot(%{args: %{package: "arduino_firmware"}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.firmware_reboot()
+      FarmbotCore.Celery.SysCallGlue.firmware_reboot()
     end
   end
 
   def factory_reset(%{args: %{package: package}}, cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.factory_reset(
+      FarmbotCore.Celery.SysCallGlue.factory_reset(
         unquote(celery_to_elixir(package, cs_scope))
       )
     end
@@ -236,7 +236,7 @@ defmodule FarmbotCore.Celery.Compiler do
     server = Map.get(pairs, "server")
 
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.change_ownership(
+      FarmbotCore.Celery.SysCallGlue.change_ownership(
         unquote(celery_to_elixir(email, cs_scope)),
         unquote(celery_to_elixir(secret, cs_scope)),
         unquote(celery_to_elixir(server, cs_scope))

@@ -1,5 +1,5 @@
 defmodule FarmbotCore.Celery.Compiler.Lua do
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
   alias FarmbotCore.Celery.Compiler.{VariableTransformer, Scope}
 
   def lua(%{args: %{lua: lua}}, cs_scope) do
@@ -15,7 +15,7 @@ defmodule FarmbotCore.Celery.Compiler.Lua do
     aliases = [:variable, :variables]
     lookup = generate_lookup_fn(cs_scope)
     args = Enum.map(aliases, fn name -> [[name], lookup] end)
-    SysCalls.perform_lua(lua_state, args, nil)
+    SysCallGlue.perform_lua(lua_state, args, nil)
   end
 
   def generate_lookup_fn(cs_scope) do

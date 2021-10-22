@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Lua.FirmwareTest do
   alias FarmbotOS.Lua.Firmware
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
@@ -9,7 +9,7 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCalls, :calibrate, 2, fn
+    expect(SysCallGlue, :calibrate, 2, fn
       "x" -> :ok
       _ -> {:error, msg}
     end)
@@ -22,7 +22,7 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCalls, :move_absolute, 4, fn
+    expect(SysCallGlue, :move_absolute, 4, fn
       1, _, _, _ -> :ok
       _, _, _, _ -> {:error, msg}
     end)
@@ -37,7 +37,7 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCalls, :find_home, 2, fn
+    expect(SysCallGlue, :find_home, 2, fn
       "x" -> :ok
       _ -> {:error, msg}
     end)
@@ -50,10 +50,10 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCalls, :emergency_lock, 1, fn -> :ok end)
+    expect(SysCallGlue, :emergency_lock, 1, fn -> :ok end)
     assert {[true], ^lua} = Firmware.emergency_lock(:ok, lua)
 
-    expect(SysCalls, :emergency_lock, 1, fn ->
+    expect(SysCallGlue, :emergency_lock, 1, fn ->
       {:error, msg}
     end)
 
@@ -64,10 +64,10 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCalls, :emergency_unlock, 1, fn -> :ok end)
+    expect(SysCallGlue, :emergency_unlock, 1, fn -> :ok end)
     assert {[true], ^lua} = Firmware.emergency_unlock(:ok, lua)
 
-    expect(SysCalls, :emergency_unlock, 1, fn ->
+    expect(SysCallGlue, :emergency_unlock, 1, fn ->
       {:error, msg}
     end)
 
@@ -75,11 +75,11 @@ defmodule FarmbotOS.Lua.FirmwareTest do
   end
 
   test "home" do
-    expect(SysCalls, :get_current_x, 2, fn -> 1.0 end)
-    expect(SysCalls, :get_current_y, 2, fn -> 2.0 end)
-    expect(SysCalls, :get_current_z, 2, fn -> 3.0 end)
+    expect(SysCallGlue, :get_current_x, 2, fn -> 1.0 end)
+    expect(SysCallGlue, :get_current_y, 2, fn -> 2.0 end)
+    expect(SysCallGlue, :get_current_z, 2, fn -> 3.0 end)
 
-    expect(SysCalls, :move_absolute, 2, fn
+    expect(SysCallGlue, :move_absolute, 2, fn
       0, 2.0, 3.0, 100 -> :ok
       1.0, 0, 3.0, 100 -> {:error, "expected stub error"}
     end)

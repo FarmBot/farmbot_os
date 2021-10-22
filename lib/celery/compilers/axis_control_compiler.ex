@@ -22,12 +22,12 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
       y_str = FarmbotCore.Celery.FormatUtil.format_float(y)
       z_str = FarmbotCore.Celery.FormatUtil.format_float(z)
 
-      FarmbotCore.Celery.SysCalls.log(
+      FarmbotCore.Celery.SysCallGlue.log(
         "Moving to (#{x_str}, #{y_str}, #{z_str})",
         true
       )
 
-      FarmbotCore.Celery.SysCalls.move_absolute(
+      FarmbotCore.Celery.SysCallGlue.move_absolute(
         x,
         y,
         z,
@@ -46,11 +46,11 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
            locz when is_number(locz) <-
              unquote(Compiler.celery_to_elixir(z, cs_scope)),
            curx when is_number(curx) <-
-             FarmbotCore.Celery.SysCalls.get_current_x(),
+             FarmbotCore.Celery.SysCallGlue.get_current_x(),
            cury when is_number(cury) <-
-             FarmbotCore.Celery.SysCalls.get_current_y(),
+             FarmbotCore.Celery.SysCallGlue.get_current_y(),
            curz when is_number(curz) <-
-             FarmbotCore.Celery.SysCalls.get_current_z() do
+             FarmbotCore.Celery.SysCallGlue.get_current_z() do
         # Combine them
         x = locx + curx
         y = locy + cury
@@ -59,12 +59,12 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
         y_str = FarmbotCore.Celery.FormatUtil.format_float(y)
         z_str = FarmbotCore.Celery.FormatUtil.format_float(z)
 
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Moving relative to (#{x_str}, #{y_str}, #{z_str})",
           true
         )
 
-        FarmbotCore.Celery.SysCalls.move_absolute(
+        FarmbotCore.Celery.SysCallGlue.move_absolute(
           x,
           y,
           z,
@@ -77,11 +77,11 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
   # Expands find_home(all) into three find_home/1 calls
   def find_home(%{args: %{axis: "all"}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.log("Finding home on all axes", true)
+      FarmbotCore.Celery.SysCallGlue.log("Finding home on all axes", true)
 
-      with :ok <- FarmbotCore.Celery.SysCalls.find_home("z"),
-           :ok <- FarmbotCore.Celery.SysCalls.find_home("y") do
-        FarmbotCore.Celery.SysCalls.find_home("x")
+      with :ok <- FarmbotCore.Celery.SysCallGlue.find_home("z"),
+           :ok <- FarmbotCore.Celery.SysCallGlue.find_home("y") do
+        FarmbotCore.Celery.SysCallGlue.find_home("x")
       end
     end
   end
@@ -91,12 +91,12 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.celery_to_elixir(axis, cs_scope)) do
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Finding home on the #{String.upcase(axis)} axis",
           true
         )
 
-        FarmbotCore.Celery.SysCalls.find_home(axis)
+        FarmbotCore.Celery.SysCallGlue.find_home(axis)
       else
         {:error, reason} ->
           {:error, reason}
@@ -107,13 +107,13 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
   # Expands home(all) into three home/1 calls
   def home(%{args: %{axis: "all", speed: speed}}, cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.log("Going to home on all axes", true)
+      FarmbotCore.Celery.SysCallGlue.log("Going to home on all axes", true)
 
       with speed when is_number(speed) <-
              unquote(Compiler.celery_to_elixir(speed, cs_scope)),
-           :ok <- FarmbotCore.Celery.SysCalls.home("z", speed),
-           :ok <- FarmbotCore.Celery.SysCalls.home("y", speed) do
-        FarmbotCore.Celery.SysCalls.home("x", speed)
+           :ok <- FarmbotCore.Celery.SysCallGlue.home("z", speed),
+           :ok <- FarmbotCore.Celery.SysCallGlue.home("y", speed) do
+        FarmbotCore.Celery.SysCallGlue.home("x", speed)
       end
     end
   end
@@ -125,12 +125,12 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
              unquote(Compiler.celery_to_elixir(axis, cs_scope)),
            speed when is_number(speed) <-
              unquote(Compiler.celery_to_elixir(speed, cs_scope)) do
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Going to home on the #{String.upcase(axis)} axis",
           true
         )
 
-        FarmbotCore.Celery.SysCalls.home(axis, speed)
+        FarmbotCore.Celery.SysCallGlue.home(axis, speed)
       else
         {:error, reason} ->
           {:error, reason}
@@ -141,11 +141,11 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
   # Expands zero(all) into three zero/1 calls
   def zero(%{args: %{axis: "all"}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.log("Setting home for all axes", true)
+      FarmbotCore.Celery.SysCallGlue.log("Setting home for all axes", true)
 
-      with :ok <- FarmbotCore.Celery.SysCalls.zero("z"),
-           :ok <- FarmbotCore.Celery.SysCalls.zero("y") do
-        FarmbotCore.Celery.SysCalls.zero("x")
+      with :ok <- FarmbotCore.Celery.SysCallGlue.zero("z"),
+           :ok <- FarmbotCore.Celery.SysCallGlue.zero("y") do
+        FarmbotCore.Celery.SysCallGlue.zero("x")
       end
     end
   end
@@ -155,12 +155,12 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
     quote location: :keep do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.celery_to_elixir(axis, cs_scope)) do
-        FarmbotCore.Celery.SysCalls.log(
+        FarmbotCore.Celery.SysCallGlue.log(
           "Setting home for the #{String.upcase(axis)} axis",
           true
         )
 
-        FarmbotCore.Celery.SysCalls.zero(axis)
+        FarmbotCore.Celery.SysCallGlue.zero(axis)
       else
         {:error, reason} ->
           {:error, reason}
@@ -171,11 +171,11 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
   # Expands calibrate(all) into three calibrate/1 calls
   def calibrate(%{args: %{axis: "all"}}, _cs_scope) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.log("Finding length of all axes", true)
+      FarmbotCore.Celery.SysCallGlue.log("Finding length of all axes", true)
 
-      with :ok <- FarmbotCore.Celery.SysCalls.calibrate("z"),
-           :ok <- FarmbotCore.Celery.SysCalls.calibrate("y") do
-        FarmbotCore.Celery.SysCalls.calibrate("x")
+      with :ok <- FarmbotCore.Celery.SysCallGlue.calibrate("z"),
+           :ok <- FarmbotCore.Celery.SysCallGlue.calibrate("y") do
+        FarmbotCore.Celery.SysCallGlue.calibrate("x")
       else
         {:error, reason} -> {:error, reason}
       end
@@ -188,8 +188,8 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
       with axis when axis in ["x", "y", "z"] <-
              unquote(Compiler.celery_to_elixir(axis, cs_scope)) do
         msg = "Determining length of the #{String.upcase(axis)} axis"
-        FarmbotCore.Celery.SysCalls.log(msg, true)
-        FarmbotCore.Celery.SysCalls.calibrate(axis)
+        FarmbotCore.Celery.SysCallGlue.log(msg, true)
+        FarmbotCore.Celery.SysCallGlue.calibrate(axis)
       else
         {:error, reason} -> {:error, reason}
       end
@@ -211,13 +211,13 @@ defmodule FarmbotCore.Celery.Compiler.AxisControl do
   end
 
   defp cs_to_xyz(%{kind: :tool, args: args}, _) do
-    slot = FarmbotCore.Celery.SysCalls.get_toolslot_for_tool(args.tool_id)
+    slot = FarmbotCore.Celery.SysCallGlue.get_toolslot_for_tool(args.tool_id)
     vec_map_to_array(slot)
   end
 
   defp cs_to_xyz(%{kind: :point} = ast, _) do
     %{pointer_type: t, pointer_id: id} = ast.args
-    vec_map_to_array(FarmbotCore.Celery.SysCalls.point(t, id))
+    vec_map_to_array(FarmbotCore.Celery.SysCallGlue.point(t, id))
   end
 
   defp cs_to_xyz(other, _),

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.SysCalls do
+defmodule FarmbotCore.Celery.SysCallGlue do
   @moduledoc """
   Behaviour for abstracting CeleryScript functionality.
   """
@@ -7,7 +7,7 @@ defmodule FarmbotCore.Celery.SysCalls do
   @sys_calls Application.get_env(:farmbot, __MODULE__)[:sys_calls]
   @sys_calls ||
     Mix.raise("""
-    config :farmbot, FarmbotCore.Celery.SysCalls, [
+    config :farmbot, FarmbotCore.Celery.SysCallGlue, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
     ]
     """)

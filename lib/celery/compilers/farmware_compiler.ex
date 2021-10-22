@@ -14,15 +14,15 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
     quote location: :keep do
       package = unquote(Compiler.celery_to_elixir(package, cs_scope))
       env = unquote(Macro.escape(Map.new(env)))
-      FarmbotCore.Celery.SysCalls.log(unquote(format_log(package)), true)
-      FarmbotCore.Celery.SysCalls.execute_script(package, env)
+      FarmbotCore.Celery.SysCallGlue.log(unquote(format_log(package)), true)
+      FarmbotCore.Celery.SysCallGlue.execute_script(package, env)
     end
   end
 
   def install_first_party_farmware(_, _) do
     quote location: :keep do
-      FarmbotCore.Celery.SysCalls.log("Installing dependencies...")
-      FarmbotCore.Celery.SysCalls.install_first_party_farmware()
+      FarmbotCore.Celery.SysCallGlue.log("Installing dependencies...")
+      FarmbotCore.Celery.SysCallGlue.install_first_party_farmware()
     end
   end
 
@@ -30,7 +30,7 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
     kvs =
       Enum.map(pairs, fn %{kind: :pair, args: %{label: key, value: value}} ->
         quote location: :keep do
-          FarmbotCore.Celery.SysCalls.set_user_env(
+          FarmbotCore.Celery.SysCallGlue.set_user_env(
             unquote(key),
             unquote(value)
           )
@@ -45,8 +45,8 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
   def update_farmware(%{args: %{package: package}}, cs_scope) do
     quote location: :keep do
       package = unquote(Compiler.celery_to_elixir(package, cs_scope))
-      FarmbotCore.Celery.SysCalls.log("Updating Farmware: #{package}", true)
-      FarmbotCore.Celery.SysCalls.update_farmware(package)
+      FarmbotCore.Celery.SysCallGlue.log("Updating Farmware: #{package}", true)
+      FarmbotCore.Celery.SysCallGlue.update_farmware(package)
     end
   end
 

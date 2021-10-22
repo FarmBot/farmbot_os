@@ -3,7 +3,7 @@ defmodule FarmbotCore.CeleryTest do
   use Mimic
 
   alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Celery.SysCalls.Stubs
+  alias FarmbotCore.Celery.SysCallGlue.Stubs
 
   import ExUnit.CaptureLog
 

@@ -22,12 +22,12 @@ defmodule FarmbotCore.Celery.CompilerGroupsTest do
         fun
       end)
 
-    expect(FarmbotCore.Celery.SysCalls, :sequence_init_log, 1, fn log ->
+    expect(FarmbotCore.Celery.SysCallGlue, :sequence_init_log, 1, fn log ->
       assert log == "[4/8] Starting test sequence"
       :ok
     end)
 
-    expect(FarmbotCore.Celery.SysCalls, :sequence_complete_log, 1, fn log ->
+    expect(FarmbotCore.Celery.SysCallGlue, :sequence_complete_log, 1, fn log ->
       assert log == "Completed test sequence"
       :ok
     end)

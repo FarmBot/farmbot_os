@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Lua.WaitTest do
   alias FarmbotOS.Lua.Wait
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
 
   use ExUnit.Case
   use Mimic
@@ -9,9 +9,9 @@ defmodule FarmbotOS.Lua.WaitTest do
   test "wait/2 - illegal value" do
     err_msg = "Do not use sleep for longer than three minutes."
 
-    expect(SysCalls, :emergency_lock, 1, fn -> :ok end)
+    expect(SysCallGlue, :emergency_lock, 1, fn -> :ok end)
 
-    expect(SysCalls, :send_message, 1, fn kind, msg, chans ->
+    expect(SysCallGlue, :send_message, 1, fn kind, msg, chans ->
       assert kind == "error"
       assert msg == err_msg
       assert chans == ["toast"]

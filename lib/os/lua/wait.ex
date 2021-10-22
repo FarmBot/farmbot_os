@@ -1,5 +1,5 @@
 defmodule FarmbotOS.Lua.Wait do
-  alias FarmbotCore.Celery.SysCalls
+  alias FarmbotCore.Celery.SysCallGlue
 
   @three_minutes 60 * 1000 * 3
   @error "Do not use sleep for longer than three minutes."
@@ -11,8 +11,8 @@ defmodule FarmbotOS.Lua.Wait do
       Process.sleep(wait)
       {[wait], lua}
     else
-      SysCalls.send_message("error", @error, ["toast"])
-      SysCalls.emergency_lock()
+      SysCallGlue.send_message("error", @error, ["toast"])
+      SysCallGlue.emergency_lock()
       {[], lua}
     end
   end

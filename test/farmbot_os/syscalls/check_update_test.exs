@@ -52,7 +52,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdateTest do
       :ok
     end)
 
-    expect(FarmbotCore.Celery.SysCalls, :reboot, 1, fn ->
+    expect(FarmbotCore.Celery.SysCallGlue, :reboot, 1, fn ->
       :ok
     end)
 
