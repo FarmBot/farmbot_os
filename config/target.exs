@@ -1,8 +1,18 @@
 use Mix.Config
 data_path = Path.join("/", "root")
 local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-
 local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
+
+# TODO: If folks want reproducible builds, we will need to
+# eventually fix this.
+now = NaiveDateTime.utc_now()
+
+later =
+  now
+  |> NaiveDateTime.truncate(:second)
+  |> NaiveDateTime.add(60 * 60 * 24 * 365 * 3, :second)
+
+config :nerves_time, earliest_time: now, latest_time: later
 
 config :logger, backends: [RingLogger]
 config :logger, RingLogger, max_size: 1024, color: [enabled: true]
