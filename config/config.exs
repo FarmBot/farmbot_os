@@ -3,9 +3,10 @@ is_test? = Mix.env() == :test
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
 config :exqlite, :json_library, FarmbotCore.JSON
+config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
+config :logger, backends: [:console]
 config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 config :tesla, adapter: Tesla.Adapter.Hackney
-config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
 
 %{
   Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey => [
@@ -46,38 +47,8 @@ else
 end
 
 if Mix.target() == :host do
-  if File.exists?("config/host/#{Mix.env()}.exs") do
-    import_config("host/#{Mix.env()}.exs")
-  end
+  ok? = File.exists?("config/#{Mix.env()}.exs")
+  ok? && import_config("#{Mix.env()}.exs")
 else
-  config :farmbot, FarmbotCore.Asset.Repo,
-    database: "/root/database.#{Mix.env()}.db"
-
-  config :farmbot, FarmbotOS.Init.Supervisor,
-    init_children: [FarmbotOS.Platform.Target.RTCWorker]
-
-  import_config("target/#{Mix.env()}.exs")
-end
-
-config :logger,
-  backends: [:console]
-
-if is_test? do
-  config :ex_unit, capture_logs: true
-
-  config :farmbot, FarmbotCore.Celery.SysCallGlue,
-    sys_calls: FarmbotCore.Celery.SysCallGlue.Stubs
-
-  [
-    FarmbotCore,
-    FarmbotCore.Config.Supervisor,
-    FarmbotCore.StorageSupervisor,
-    FarmbotExt,
-    FarmbotExt.Bootstrap.Supervisor,
-    FarmbotExt.DirtyWorker.Supervisor,
-    FarmbotExt.EagerLoader.Supervisor,
-    FarmbotExt.MQTT.ChannelSupervisor,
-    FarmbotExt.MQTT.Supervisor
-  ]
-  |> Enum.map(fn mod -> config :farmbot, mod, children: [] end)
+  import_config("target.exs")
 end
