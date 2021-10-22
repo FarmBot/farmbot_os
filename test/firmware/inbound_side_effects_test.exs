@@ -209,16 +209,16 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
 
   test "Firmware debug logs" do
     msg = "Hello, world!"
-    Helpers.expect_log(msg)
     gcode = [{:debug_message, msg}]
-    InboundSideEffects.process(@fake_state, gcode)
+    t = fn -> InboundSideEffects.process(@fake_state, gcode) end
+    assert capture_log(t) =~ msg
   end
 
   test "Debug logging enabled" do
     s = %{@fake_state | logs_enabled: true}
     gcode = {:complete_homing_x, nil}
-    Helpers.expect_log(inspect(gcode))
-    InboundSideEffects.process(s, [gcode])
+    t = fn -> InboundSideEffects.process(s, [gcode]) end
+    assert capture_log(t) =~ inspect(gcode)
   end
 
   test "complete_homing_x|y|z" do
