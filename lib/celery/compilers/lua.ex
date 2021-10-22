@@ -10,12 +10,17 @@ defmodule FarmbotCore.Celery.Compiler.Lua do
     end
   end
 
-  def do_lua(lua_state, cs_scope) do
+  # Convert a CeleryScript scope object to a Luerl table
+  # structure.
+  def scope_to_lua(cs_scope) do
     # Alias `variable()` and `variables()` for convenience.
     aliases = [:variable, :variables]
     lookup = generate_lookup_fn(cs_scope)
-    args = Enum.map(aliases, fn name -> [[name], lookup] end)
-    SysCallGlue.perform_lua(lua_state, args, nil)
+    Enum.map(aliases, fn name -> [[name], lookup] end)
+  end
+
+  def do_lua(lua_state, cs_scope) do
+    SysCallGlue.perform_lua(lua_state, scope_to_lua(cs_scope), nil)
   end
 
   def generate_lookup_fn(cs_scope) do

@@ -54,7 +54,7 @@ defmodule FarmbotOS.Lua do
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
 
-    case eval(vm, lua_code) do
+    case raw_eval(vm, lua_code) do
       {:ok, value} ->
         {:ok, value}
 
@@ -151,8 +151,8 @@ defmodule FarmbotOS.Lua do
     :luerl.set_table(path, value, lua)
   end
 
-  @spec eval(t(), String.t()) :: {:ok, any()} | {:error, any()}
-  def eval(lua, hook) when is_binary(hook) do
+  @spec raw_eval(t(), String.t()) :: {:ok, any()} | {:error, any()}
+  def raw_eval(lua, hook) when is_binary(hook) do
     :luerl.eval(hook, lua)
   end
 

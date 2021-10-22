@@ -90,7 +90,7 @@ defmodule FarmbotOS.LuaTest do
       {[], lua}
     end)
 
-    expect(Command, :move_abs, 1, fn _ -> {:ok, nil} end)
+    # expect(Command, :move_abs, 1, fn _ -> {:ok, nil} end)
     expect(Command, :read_pin, 1, fn _, _ -> {:ok, 1} end)
 
     expect(Firmware, :move_absolute, 4, fn _vec_or_xyz, lua ->
@@ -130,10 +130,15 @@ defmodule FarmbotOS.LuaTest do
     end)
 
     Enum.map(@documentation_examples, fn lua ->
-      result =
-        FarmbotCore.Celery.Compiler.Lua.do_lua(lua, %{
-          declarations: %{"parent" => %{"x" => 1000}}
-        })
+      scope = %FarmbotCore.Celery.Compiler.Scope{
+        declarations: %{
+          "parent" => %{"x" => 1000}
+        },
+        parent: nil
+      }
+
+      extra_vm_args = FarmbotCore.Celery.Compiler.Lua.scope_to_lua(scope)
+      result = FarmbotOS.Lua.perform_lua(lua, extra_vm_args, lua)
 
       case result do
         {:ok, _} ->
