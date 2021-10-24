@@ -20,8 +20,8 @@ config :logger, RingLogger, max_size: 1024, color: [enabled: true]
 config :mdns_lite,
   mdns_config: %{host: :hostname, ttl: 120},
   services: [
-    %{name: "Configurator", protocol: "http", transport: "tcp", port: 80},
-    %{name: "Secure Socket", protocol: "ssh", transport: "tcp", port: 22}
+    %{id: :configurator, protocol: "http", transport: "tcp", port: 80},
+    %{id: :ssh, protocol: "ssh", transport: "tcp", port: 22}
   ]
 
 config :nerves_firmware_ssh, authorized_keys: local_key

@@ -45,15 +45,6 @@ defmodule FarmbotCore.Asset.PrivateTest do
     reset_assets()
   end
 
-  test "mark_stale! / any_stale?" do
-    destroy_assets()
-    %{FirmwareConfig => firmware_config} = create_assets()
-    refute Private.any_stale?()
-    Private.mark_stale!(firmware_config)
-    assert Private.any_stale?()
-    reset_assets()
-  end
-
   test "mark_dirty! / list_dirty" do
     Map.keys(@assets)
     |> Enum.map(fn mod ->
