@@ -9,8 +9,9 @@ defmodule FarmbotCore.FirmwareEstopTimer do
   require FarmbotCore.Logger
 
   @msg "Farmbot has been E-Stopped for more than 10 minutes."
-
   @ten_minutes_ms 60_0000
+
+  alias FarmbotCore.Firmware.UARTCoreSupport
 
   def start_timer(timer_server \\ __MODULE__) do
     GenServer.call(timer_server, :start_timer)
@@ -54,5 +55,9 @@ defmodule FarmbotCore.FirmwareEstopTimer do
   end
 
   @doc false
-  def do_log, do: FarmbotCore.Logger.warn(1, @msg, channels: [:fatal_email])
+  def do_log do
+    if UARTCoreSupport.locked?() do
+      FarmbotCore.Logger.warn(1, @msg, channels: [:fatal_email])
+    end
+  end
 end
