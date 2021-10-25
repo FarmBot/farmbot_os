@@ -44,12 +44,6 @@ defmodule FarmbotCore.Firmware.GCodeDecoderTest do
     assert expected == GCodeDecoder.run(@fake_txt)
   end
 
-  test "unexpected input" do
-    boom = fn -> GCodeDecoder.run(["F21"]) end
-    msg = "Expect inbound GCode to begin with `R`. Got: \"F21\""
-    assert_raise RuntimeError, msg, boom
-  end
-
   test "negative numbers" do
     expected = [
       encoder_position_scaled: %{queue: 0.0, x: 0.2, y: 0.2, z: -123.4}

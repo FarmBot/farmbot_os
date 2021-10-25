@@ -67,14 +67,19 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
     messages
     |> Enum.map(&validate_message/1)
     |> Enum.map(&process/1)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp validate_message("R99" <> _ = m), do: m
   defp validate_message("R" <> _ = m), do: m
 
   defp validate_message(message) do
-    actual = inspect(message)
-    raise "Expect inbound GCode to begin with `R`. Got: #{actual}"
+    Logger.warn("Dropping malformed FW message: #{inspect(message)}")
+    ""
+  end
+
+  defp process("") do
+    nil
   end
 
   defp process("R83" <> rest) do
