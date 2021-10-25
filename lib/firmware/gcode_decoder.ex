@@ -3,6 +3,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
   """
 
   require Logger
+  require FarmbotCore.Logger
 
   @response_codes %{
     "00" => :idle,
@@ -66,19 +67,16 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
   def run(messages) do
     messages
     |> Enum.map(&validate_message/1)
-    |> Enum.map(&process/1)
     |> Enum.reject(&is_nil/1)
+    |> Enum.map(&process/1)
   end
 
   defp validate_message("R99" <> _ = m), do: m
   defp validate_message("R" <> _ = m), do: m
 
   defp validate_message(message) do
-    Logger.warn("Dropping malformed FW message: #{inspect(message)}")
-    ""
-  end
-
-  defp process("") do
+    log = "Dropping malformed message: #{inspect(message)}"
+    FarmbotCore.Logger.debug(3, log)
     nil
   end
 

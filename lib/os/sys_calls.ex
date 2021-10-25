@@ -223,7 +223,7 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_unlock do
     Command.unlock()
-    FarmbotCore.Logger.busy(1, "Unlocked")
+    FarmbotCore.Logger.success(1, "Unlocked")
     Leds.yellow(:off)
     Leds.red(:solid)
     :ok
