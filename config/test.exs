@@ -19,7 +19,6 @@ config :plug, :validate_header_keys_during_test, true
 [
   FarmbotCore,
   FarmbotCore.Config.Supervisor,
-  FarmbotCore.StorageSupervisor,
   FarmbotExt,
   FarmbotExt.Bootstrap.Supervisor,
   FarmbotExt.DirtyWorker.Supervisor,

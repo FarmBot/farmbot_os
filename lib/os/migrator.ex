@@ -15,18 +15,8 @@ defmodule FarmbotOS.EctoMigrator do
   def migrate do
     repo = FarmbotCore.Asset.Repo
     migration_path = Path.join([:code.priv_dir(:farmbot), "repo", "migrations"])
-    migrated = Ecto.Migrator.run(repo, migration_path, :up, all: true)
-    restart_if_migrated(migrated)
+    _ = Ecto.Migrator.run(repo, migration_path, :up, all: true)
     Process.sleep(5000)
     :ignore
-  end
-
-  # Pulled this out of Ecto because Ecto's version
-  # messes with Logger config
-  defp restart_if_migrated([]), do: :ok
-
-  defp restart_if_migrated([_ | _]) do
-    Logger.warn("==== TODO: Restart application due to migrations")
-    :ok
   end
 end

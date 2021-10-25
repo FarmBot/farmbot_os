@@ -97,8 +97,8 @@ defmodule FarmbotOS.MixProject do
     [
       {:busybox, "~> 0.1.5", targets: @all_targets},
       {:certifi, "~> 2.8"},
-      {:circuits_gpio, "~> 0.4.8", targets: @all_targets},
-      {:circuits_i2c, "~> 0.3.9", targets: @all_targets},
+      {:circuits_gpio, "~> 1.0", targets: @all_targets},
+      {:circuits_i2c, "~> 1.0", targets: @all_targets},
       {:circuits_uart, "~> 1.4"},
       {:cors_plug, "~> 2.0.3", targets: @all_targets},
       {:dns, "~> 2.3"},

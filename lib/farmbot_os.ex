@@ -21,9 +21,9 @@ defmodule FarmbotOS do
       FarmbotCore.Leds,
       FarmbotCore.Celery.Scheduler,
       FarmbotCore.FirmwareEstopTimer,
-      FarmbotCore.StorageSupervisor,
       {FarmbotOS.Platform.Supervisor, []},
-      FarmbotCore.Asset.Supervisor
+      FarmbotCore.Asset.Supervisor,
+      FarmbotCore.Firmware.UARTObserver
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
