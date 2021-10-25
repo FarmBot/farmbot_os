@@ -1,13 +1,19 @@
+# TODO: Delete this once FBOS 14.x reaches EOL.
 defmodule FarmbotOS.LegacyMigrator do
   import Ecto.Query
   alias FarmbotCore.Config.NetworkInterface
   alias FarmbotCore.Asset.Repo
+  require Logger
   @db_path "/root/config-prod.sqlite3"
   @done_flag "/root/v15_migration_done"
 
   def run(), do: spawn(__MODULE__, :do_run, [])
 
   def do_run() do
+    Logger.info("Running legacy data migrator...")
+    # Add a sleep for good luck since this runs at boot.
+    Process.sleep(10_000)
+
     if legacy_upgrade?() do
       recover_old_configs()
       if needs_network_config?(), do: recover_network_interfaces()
