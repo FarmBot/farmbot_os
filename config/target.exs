@@ -39,7 +39,10 @@ config :vintage_net,
   config: [{"wlan0", %{type: VintageNet.Technology.Null}}]
 
 %{
-  FarmbotCore.Asset.Repo => [busy_timeout: 10000, database: "/root/database.#{Mix.env()}.db"],
+  FarmbotCore.Asset.Repo => [
+    busy_timeout: 10000,
+    database: "/root/database.#{Mix.env()}.db"
+  ],
   FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [
     gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler
   ],
