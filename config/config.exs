@@ -12,7 +12,7 @@ config :tesla, adapter: Tesla.Adapter.Hackney
   Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey => [
     ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
   ],
-  FarmbotCore.Asset.Repo => [database: "database.#{Mix.env()}.db", log: false],
+  FarmbotCore.Asset.Repo => [busy_timeout: 10000, database: "database.#{Mix.env()}.db", log: false],
   FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [
     gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
   ],
