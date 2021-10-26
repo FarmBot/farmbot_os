@@ -40,7 +40,6 @@ config :vintage_net,
 
 %{
   FarmbotCore.Asset.Repo => [
-    busy_timeout: 10000,
     database: "/root/database.#{Mix.env()}.db"
   ],
   FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [

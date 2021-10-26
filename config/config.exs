@@ -13,7 +13,6 @@ config :tesla, adapter: Tesla.Adapter.Hackney
     ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
   ],
   FarmbotCore.Asset.Repo => [
-    busy_timeout: 10000,
     database: "database.#{Mix.env()}.db",
     log: false
   ],
@@ -45,7 +44,10 @@ if rollbar_token && !is_test? do
     access_token: rollbar_token,
     environment: "production",
     enable_crash_reports: true,
-    custom: %{fbos_version: Mix.Project.config()[:version]}
+    custom: %{
+      fbos_version: Mix.Project.config()[:version],
+      fbos_target: Mix.target()
+    }
 else
   config :rollbax, enabled: false
 end
