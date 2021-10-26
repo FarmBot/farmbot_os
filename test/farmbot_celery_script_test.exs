@@ -1,0 +1,125 @@
+defmodule FarmbotCore.CeleryTest do
+  use ExUnit.Case
+  use Mimic
+
+  alias FarmbotCore.Celery.AST
+  alias FarmbotCore.Celery.SysCallGlue.Stubs
+
+  import ExUnit.CaptureLog
+
+  setup :verify_on_exit!
+
+  test "schedule/3" do
+    at = DateTime.utc_now()
+    ast = AST.decode(%{kind: :rpc_request, args: %{label: "X"}, body: []})
+    data = %{foo: :bar}
+
+    expect(FarmbotCore.Celery.Scheduler, :schedule, 1, fn actual_ast,
+                                                          actual_at,
+                                                          actual_data ->
+      assert actual_ast == ast
+      assert actual_at == at
+      assert actual_data == data
+      :ok
+    end)
+
+    assert :ok == FarmbotCore.Celery.schedule(ast, at, data)
+  end
+
+  test "uses default values when no parameter is found" do
+    sequence_ast =
+      %{
+        kind: :sequence,
+        args: %{
+          version: 1,
+          locals: %{
+            kind: :scope_declaration,
+            args: %{},
+            body: [
+              %{
+                kind: :parameter_declaration,
+                args: %{
+                  label: "foo",
+                  default_value: %{
+                    kind: :coordinate,
+                    args: %{x: 12, y: 11, z: 10}
+                  }
+                }
+              }
+            ]
+          }
+        },
+        body: [
+          %{
+            kind: :move_absolute,
+            args: %{
+              speed: 921,
+              location: %{
+                kind: :identifier,
+                args: %{label: "foo"}
+              },
+              offset: %{
+                kind: :coordinate,
+                args: %{x: 0, y: 0, z: 0}
+              }
+            }
+          }
+        ]
+      }
+      |> AST.decode()
+
+    me = self()
+
+    expect(Stubs, :move_absolute, 1, fn _x, _y, _z, _s ->
+      :ok
+    end)
+
+    capture_log(fn ->
+      result = FarmbotCore.Celery.execute(sequence_ast, me)
+      assert :ok == result
+    end) =~ "[error] CeleryScript syscall stubbed: log"
+  end
+
+  test "syscall errors" do
+    execute_ast =
+      %{
+        kind: :rpc_request,
+        args: %{label: "hello world"},
+        body: [
+          %{kind: :read_pin, args: %{pin_number: 1, pin_mode: 0}}
+        ]
+      }
+      |> AST.decode()
+
+    expect(Stubs, :read_pin, 1, fn _, _ -> {:error, "failed to read pin!"} end)
+    result = FarmbotCore.Celery.execute(execute_ast, execute_ast)
+    assert {:error, "failed to read pin!"} = result
+
+    assert_receive {:csvm_done, ^execute_ast, {:error, "failed to read pin!"}}
+  end
+
+  test "regular exceptions still occur" do
+    execute_ast =
+      %{
+        kind: :rpc_request,
+        args: %{label: "hello world"},
+        body: [
+          %{kind: :read_pin, args: %{pin_number: 1, pin_mode: 0}}
+        ]
+      }
+      |> AST.decode()
+
+    expect(Stubs, :read_pin, fn _, _ ->
+      raise("big oops")
+    end)
+
+    io =
+      capture_log(fn ->
+        assert {:error, "big oops"} ==
+                 FarmbotCore.Celery.execute(execute_ast, execute_ast)
+      end)
+
+    assert io =~ "CeleryScript Exception"
+    assert_receive {:csvm_done, ^execute_ast, {:error, "big oops"}}
+  end
+end

@@ -1,5 +1,10 @@
 # Changelog
 
+# 14.6.0
+
+ * Upgrade database driver.
+ * Convert application to a monolith.
+
 # 14.5.0
 
  * SSL/HTTPS configuration updates.
