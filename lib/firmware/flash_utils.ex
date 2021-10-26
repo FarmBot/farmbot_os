@@ -22,7 +22,7 @@ defmodule FarmbotCore.Firmware.FlashUtils do
       FarmbotCore.Logger.warn(3, @scary_warning)
       {:ok, @custom_firmware}
     else
-      assert_exists(Application.app_dir(:farmbot, ["priv", name]))
+      assert_exists(Application.app_dir(:farmbot, ["priv", "firmware", name]))
     end
   end
 

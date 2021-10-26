@@ -64,7 +64,6 @@ defmodule FarmbotCore.Celery.Compiler do
   defdelegate execute(ast, cs_scope), to: Compiler.Execute
   defdelegate find_home(ast, cs_scope), to: Compiler.AxisControl
   defdelegate home(ast, cs_scope), to: Compiler.AxisControl
-  defdelegate install_first_party_farmware(ast, cs_scope), to: Compiler.Farmware
   defdelegate lua(ast, cs_scope), to: Compiler.Lua
   defdelegate move_absolute(ast, cs_scope), to: Compiler.AxisControl
   defdelegate move_relative(ast, cs_scope), to: Compiler.AxisControl
@@ -81,7 +80,6 @@ defmodule FarmbotCore.Celery.Compiler do
   defdelegate toggle_pin(ast, cs_scope), to: Compiler.PinControl
   defdelegate tool(ast, cs_scope), to: Compiler.DataControl
   defdelegate unquote(:_if)(ast, cs_scope), to: Compiler.If
-  defdelegate update_farmware(ast, cs_scope), to: Compiler.Farmware
   defdelegate update_resource(ast, cs_scope), to: Compiler.UpdateResource
 
   # defdelegate variable_declaration(ast, cs_scope), to: Compiler.VariableDeclaration

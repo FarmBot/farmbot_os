@@ -10,10 +10,8 @@ defmodule FarmbotCore.Asset do
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
-    FirstPartyFarmware,
     Peripheral,
     PinBinding,
     Point,
@@ -611,54 +609,6 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End Sequence
-
-  ## Begin FarmwareInstallation
-
-  @doc "Get a FarmwareManifest by it's name."
-  def get_farmware_manifest(package) do
-    first_party_farmwares =
-      Repo.all(from(fwi in FirstPartyFarmware, select: fwi.manifest))
-
-    regular_farmwares =
-      Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
-
-    Enum.find(
-      first_party_farmwares ++ regular_farmwares,
-      fn
-        %{package: pkg} -> pkg == package
-        _ -> false
-      end
-    )
-  end
-
-  def get_farmware_installation(package) do
-    first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware))
-    regular_farmwares = Repo.all(from(fwi in FarmwareInstallation))
-
-    Enum.find(
-      first_party_farmwares ++ regular_farmwares,
-      fn
-        %{manifest: %{package: pkg}} -> pkg == package
-        _ -> false
-      end
-    )
-  end
-
-  def upsert_farmware_manifest_by_id(id, params) do
-    fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
-
-    FarmwareInstallation.changeset(fwi, params)
-    |> Repo.insert_or_update()
-  end
-
-  def upsert_first_party_farmware_manifest_by_id(id, params) do
-    fwi = Repo.get_by(FirstPartyFarmware, id: id) || %FirstPartyFarmware{}
-
-    FirstPartyFarmware.changeset(fwi, params)
-    |> Repo.insert_or_update()
-  end
-
-  ## End FarmwareInstallation
 
   ## Begin FarmwareEnv
 

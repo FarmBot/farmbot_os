@@ -417,14 +417,6 @@ defmodule FarmbotCore.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:report_farmware_installed, name, manifest}, _from, state) do
-    {reply, state} =
-      BotStateNG.add_or_update_farmware(state.tree, name, manifest)
-      |> dispatch_and_apply(state)
-
-    {:reply, reply, state}
-  end
-
   def handle_call(:enter_maintenance_mode, _form, state) do
     change = %{informational_settings: %{sync_status: "maintenance"}}
 

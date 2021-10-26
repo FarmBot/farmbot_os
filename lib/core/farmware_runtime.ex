@@ -25,11 +25,9 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   alias FarmbotCore.Celery.AST
   alias FarmbotCore.Asset.FarmwareInstallation.Manifest
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
   alias FarmbotCore.BotState.FileSystem
   alias FarmbotCore.FarmwareRuntime.PipeWorker
   alias FarmbotCore.Project
-  import FarmwareInstallation, only: [install_dir: 1]
 
   alias FarmbotCore.{Asset, JSON}
   import FarmbotCore.Config, only: [get_config_value: 3]
@@ -347,5 +345,78 @@ defmodule FarmbotCore.FarmwareRuntime do
         :binary.copy(<<0x00>>, 4) <> <<byte_size(payload)::big-size(32)>>
 
     header <> payload
+  end
+
+  def install_dir(%{manifest: manifest}) do
+    IO.puts("TODO: DELETE THIS")
+    install_dir(manifest)
+  end
+
+  def install_dir(%Manifest{package: package}) do
+    dir = Path.join("/tmp/farmware", package)
+    File.mkdir_p!(dir)
+    dir
+  end
+
+  # @base_url "https://raw.githubusercontent.com/FarmBot-Labs/"
+  # @old_urls %{
+  #   "take-photo" =>                    @base_url <> "farmware_manifests/main/packages/take-photo/manifest_v2.json",
+  #   "camera-calibration" =>            @base_url <> "farmware_manifests/main/packages/camera-calibration/manifest_v2.json",
+  #   "plant-detection" =>               @base_url <> "farmware_manifests/main/packages/plant-detection/manifest_v2.json",
+  #   "historical-camera-calibration" => @base_url <> "farmware_manifests/main/packages/historical-camera-calibration/manifest_v2.json",
+  #   "historical-plant-detection" =>    @base_url <> "farmware_manifests/main/packages/historical-plant-detection/manifest_v2.json",
+  #   "Measure Soil Height" =>           @base_url <> "measure-soil-height/main/manifest.json",
+  # }
+  # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
+  # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
+  def get_farmware_installation(name) do
+    # OLD RETURN VALUE:
+    # %FarmbotCore.Asset.FirstPartyFarmware{
+    #   __meta__: #Ecto.Schema.Metadata<:loaded, "first_party_farmwares">,
+    #   created_at: ~U[2021-10-26 21:32:29.842824Z],
+    #   id: 1,
+    #   local_id: <<47, 171, 98, 94, 25, 38, 65, 238, 158, 231, 97, 118, 208, 87, 11,
+    #     231>>,
+    #   local_meta: #Ecto.Association.NotLoaded<association :local_meta is not loaded>,
+    #   manifest: %FarmbotCore.Asset.FarmwareInstallation.Manifest{
+    #     args: "Take-Photo-master/take_photo.py",
+    #     author: "FarmBot, Inc.",
+    #     config: %{},
+    #     description: "Take a photo using a USB or Raspberry Pi camera.",
+    #     executable: "python",
+    #     farmbot_os_version_requirement: ">=3.0.0",
+    #     farmware_manifest_version: "2.0.0",
+    #     farmware_tools_version_requirement: ">=0.0.0",
+    #     language: "python",
+    #     package: "take-photo",
+    #     package_version: "1.0.19",
+    #     url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json",
+    #     zip: "https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip"
+    #   },
+    #   monitor: true,
+    #   updated_at: ~U[2021-10-26 21:52:32.671799Z],
+    #   url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json"
+    # }
+    raise "TODO: get_farmware_installation(#{inspect(name)})"
+  end
+
+  def get_farmware_manifest(name) do
+    # OLD RETURN VALUE:
+    # %FarmbotCore.Asset.FarmwareInstallation.Manifest{
+    #   args: "Take-Photo-master/take_photo.py",
+    #   author: "FarmBot, Inc.",
+    #   config: %{},
+    #   description: "Take a photo using a USB or Raspberry Pi camera.",
+    #   executable: "python",
+    #   farmbot_os_version_requirement: ">=3.0.0",
+    #   farmware_manifest_version: "2.0.0",
+    #   farmware_tools_version_requirement: ">=0.0.0",
+    #   language: "python",
+    #   package: "take-photo",
+    #   package_version: "1.0.19",
+    #   url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json",
+    #   zip: "https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip"
+    # }
+    raise "TODO: get_farmware_manifest(#{inspect(name)})"
   end
 end

@@ -77,19 +77,6 @@ defmodule FarmbotCore.BotStateNG do
     put_change(cs, :pins, new_pins)
   end
 
-  @doc "Add or update a farmware to state.farmwares"
-  def add_or_update_farmware(state, name, %{} = manifest) do
-    cs = changeset(state, %{})
-
-    new_farmwares =
-      cs
-      |> get_field(:process_info)
-      |> Map.get(:farmwares)
-      |> Map.put(name, manifest)
-
-    put_change(cs, :process_info, %{farmwares: new_farmwares})
-  end
-
   @doc "Sets an env var on the state.user_env"
   def set_user_env(state, key, value) do
     cs = changeset(state, %{})
