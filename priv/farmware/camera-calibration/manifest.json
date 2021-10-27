@@ -1,0 +1,16 @@
+{
+  "zip": "https://github.com/FarmBot-Labs/farmware_manifests/archive/main.zip",
+  "version": "0.0.2",
+  "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/camera-calibration/manifest_v2.json",
+  "package": "camera-calibration",
+  "package_version": "0.0.2",
+  "min_os_version_major": 4,
+  "language": "python",
+  "farmware_tools_version_requirement": ">=0.0.0",
+  "farmware_manifest_version": "2.0.0",
+  "farmbot_os_version_requirement": ">=4.0.0",
+  "executable": "python",
+  "description": "Calibrate the camera for use in plant-detection.",
+  "author": "FarmBot, Inc.",
+  "args": "../plant-detection/plant-detection-master/quickscripts/capture_and_calibrate.py"
+}

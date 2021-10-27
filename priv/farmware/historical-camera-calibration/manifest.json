@@ -1,0 +1,14 @@
+{
+  "package": "historical-camera-calibration",
+  "language": "python",
+  "author": "Farmbot.io",
+  "description": "Calibrate the camera with historical image for use in plant-detection.",
+  "version": "0.0.2",
+  "min_os_version_major": 4,
+  "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/historical-camera-calibration/manifest.json",
+  "zip": "https://github.com/FarmBot-Labs/farmware_manifests/archive/main.zip",
+  "executable": "python",
+  "args": [
+    "../plant-detection/plant-detection-master/quickscripts/download_and_calibrate.py"
+  ]
+}

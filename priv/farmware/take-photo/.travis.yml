@@ -1,0 +1,21 @@
+language: python
+python:
+  - "2.7"
+  - "3.8"
+env:
+  - OPENCV_VERSION=3 FARMWARE_TOOLS=y
+  - OPENCV_VERSION=4 FARMWARE_TOOLS=y
+  - OPENCV_VERSION=3 FARMWARE_TOOLS=n
+  - OPENCV_VERSION=4 FARMWARE_TOOLS=n
+  - OPENCV_VERSION=0 FARMWARE_TOOLS=y
+before_script:
+  - if [[ $OPENCV_VERSION == '3' ]]; then pip install opencv-python==3.*; fi
+  - if [[ $OPENCV_VERSION == '4' ]]; then pip install opencv-python==4.*; fi
+  - if [[ $FARMWARE_TOOLS == 'y' ]]; then pip install farmware_tools; fi
+  - pip install coveralls
+script:
+  - if [[ $OPENCV_VERSION != '0' ]]; then python -c 'import cv2; print("OpenCV " + cv2.__version__)'; fi
+  - python -c 'import numpy; print("NumPy " + numpy.__version__)'
+  - if [[ $OPENCV_VERSION != '0' ]]; then python -m coverage run --source . --omit=tests.py -m unittest discover -v; fi
+  - if [[ $OPENCV_VERSION == '0' ]]; then python -m coverage run --source . --omit=tests.py -m unittest tests.TakePhotoTest.test_opencv_missing; fi
+after_success: coveralls

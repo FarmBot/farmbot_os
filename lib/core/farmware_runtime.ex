@@ -358,15 +358,6 @@ defmodule FarmbotCore.FarmwareRuntime do
     dir
   end
 
-  # @base_url "https://raw.githubusercontent.com/FarmBot-Labs/"
-  # @old_urls %{
-  #   "take-photo" =>                    @base_url <> "farmware_manifests/main/packages/take-photo/manifest_v2.json",
-  #   "camera-calibration" =>            @base_url <> "farmware_manifests/main/packages/camera-calibration/manifest_v2.json",
-  #   "plant-detection" =>               @base_url <> "farmware_manifests/main/packages/plant-detection/manifest_v2.json",
-  #   "historical-camera-calibration" => @base_url <> "farmware_manifests/main/packages/historical-camera-calibration/manifest_v2.json",
-  #   "historical-plant-detection" =>    @base_url <> "farmware_manifests/main/packages/historical-plant-detection/manifest_v2.json",
-  #   "Measure Soil Height" =>           @base_url <> "measure-soil-height/main/manifest.json",
-  # }
   # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
   # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
   def get_farmware_installation(name) do

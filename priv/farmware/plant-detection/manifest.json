@@ -1,0 +1,14 @@
+{
+  "package": "plant-detection",
+  "language": "python",
+  "author": "Farmbot.io",
+  "description": "Detect and mark plants. Prerequisite: camera-calibration",
+  "version": "0.0.18",
+  "min_os_version_major": 4,
+  "url": "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/plant-detection/manifest.json",
+  "zip": "https://github.com/FarmBot-Labs/plant-detection/archive/master.zip",
+  "executable": "python",
+  "args": [
+    "plant-detection-master/quickscripts/capture_and_detect_coordinates.py"
+  ]
+}
