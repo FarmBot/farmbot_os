@@ -75,7 +75,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
 
   defp validate_message(message) do
     log = "Dropping malformed message: #{inspect(message)}"
-    Logger.debug(3, log)
+    Logger.debug(log)
     nil
   end
 
