@@ -2,6 +2,7 @@ defmodule FarmbotOS.Configurator.Router do
   @moduledoc "Routes web connections for configuring farmbot os"
 
   require FarmbotCore.Logger
+  require Logger
   require FarmbotTelemetry
 
   import Phoenix.HTML
@@ -239,7 +240,7 @@ defmodule FarmbotOS.Configurator.Router do
     case conn.body_params do
       %{"email" => email, "password" => pass, "server" => server} ->
         if server = test_uri(server) do
-          FarmbotCore.Logger.info(1, "server valid: #{server}")
+          Logger.info("server valid: #{server}")
 
           conn
           |> put_session("auth_config_email", email)
