@@ -48,6 +48,16 @@ defmodule FarmbotExt.DirtyWorkerTest do
     DirtyWorker.maybe_resync(0)
   end
 
+  test "handle_http_response - other response" do
+    Helpers.delete_all_points()
+    Repo.delete_all(LocalMeta)
+    Repo.delete_all(FbosConfig)
+    Helpers.expect_log("HTTP Error: {:error, :other}")
+
+    p = Helpers.create_point(%{id: 2, pointer_type: "Weed"})
+    DirtyWorker.handle_http_response(p, Point, {:error, :other})
+  end
+
   test "handle_http_response - 409 response" do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
@@ -106,25 +116,4 @@ defmodule FarmbotExt.DirtyWorkerTest do
 
     assert :ok == DirtyWorker.finalize(stub_data, Point)
   end
-
-  # This test blinks too much:
-  #
-  # test "init" do
-  #   Helpers.delete_all_points()
-  #   Helpers.use_fake_jwt()
-  #   {:ok, pid} = DirtyWorker.start_link(module: Point, timeout: 0)
-  #   state = :sys.get_state(pid)
-  #   assert state == %{module: Point}
-  #   Helpers.wait_for(pid)
-  #   GenServer.stop(pid, :normal)
-  # end
-
-  # This test blinks too much:
-  #
-  # test "work/2 error" do
-  #   Helpers.delete_all_points()
-  #   Helpers.use_fake_jwt()
-  #   %mod{} = p = Helpers.create_point(%{id: 0, pointer_type: "Plant"})
-  #   {:error, _} = DirtyWorker.work(p, mod)
-  # end
 end
