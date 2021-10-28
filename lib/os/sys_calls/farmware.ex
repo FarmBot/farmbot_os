@@ -7,7 +7,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
   @farmware_timeout 1_200_000
 
   def lookup_manifest(farmware_name) do
-    case FarmwareRuntime.get_farmware_manifest(farmware_name) do
+    case FarmbotCore.FarmwareManifest.by_name(farmware_name) do
       nil -> {:error, "#{farmware_name} farmware not installed"}
       manifest -> {:ok, manifest}
     end

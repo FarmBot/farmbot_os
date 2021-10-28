@@ -1,48 +1,23 @@
-defmodule FarmbotCore.FarmwareLogger do
-  require Logger
-
-  defstruct name: "UNKNOWN FARMARE?"
-  def new(name), do: %__MODULE__{name: name}
-
-  defimpl Collectable do
-    alias FarmbotCore.FarmwareLogger, as: S
-
-    def into(%S{} = logger), do: {logger, &collector/2}
-    defp collector(%S{} = logger, :done), do: logger
-    defp collector(%S{} = _, :halt), do: :ok
-
-    defp collector(%S{} = logger, {:cont, text}) do
-      Logger.debug("[#{inspect(logger.name)}] " <> text)
-      logger
-    end
-  end
-end
-
 defmodule FarmbotCore.FarmwareRuntime do
   @moduledoc """
   Handles execution of Farmware plugins.
   """
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Asset.FarmwareInstallation.Manifest
-  alias FarmbotCore.BotState.FileSystem
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
-  alias FarmbotCore.Project
-
-  alias FarmbotCore.{Asset, JSON}
-  import FarmbotCore.Config, only: [get_config_value: 3]
   require Logger
+  import FarmbotCore.Config, only: [get_config_value: 3]
 
-  @error_timeout_ms 5000
+  alias FarmbotCore.Project
+  alias FarmbotCore.FarmwareRuntime.PipeWorker
+  alias FarmbotCore.FarmwareManifest
+  alias FarmbotCore.Celery.AST
+  alias FarmbotCore.BotState.FileSystem
+  alias FarmbotCore.{Asset, JSON}
+  alias __MODULE__, as: State
+
   @runtime_dir "/tmp/farmware_runtime"
-
-  @muontrap_opts Application.get_env(:farmbot, __MODULE__)[:muontrap_opts]
-  @muontrap_opts @muontrap_opts || []
-
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
-
-  alias __MODULE__, as: State
+  @error_timeout_ms 5000
 
   defstruct [
     :caller,
@@ -78,7 +53,7 @@ defmodule FarmbotCore.FarmwareRuntime do
         }
 
   @doc "Start a Farmware"
-  def start_link(%Manifest{} = manifest, env \\ %{}) do
+  def start_link(%FarmwareManifest{} = manifest, env \\ %{}) do
     package = manifest.package
 
     GenServer.start_link(__MODULE__, [manifest, env, self()],
@@ -97,48 +72,24 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   def init([manifest, env, caller]) do
     package = manifest.package
-    <<clause1::binary-size(8), _::binary>> = Ecto.UUID.generate()
-
-    request_pipe =
-      Path.join([
-        @runtime_dir,
-        package <> "-" <> clause1 <> "-farmware-request-pipe"
-      ])
-
-    response_pipe =
-      Path.join([
-        @runtime_dir,
-        package <> "-" <> clause1 <> "-farmware-response-pipe"
-      ])
-
+    clause1 = String.slice(Ecto.UUID.generate(), 0..7)
+    prefix = "#{package}-#{clause1}-farmware-"
+    request_pipe = Path.join([@runtime_dir, prefix <> "request-pipe"])
+    response_pipe = Path.join([@runtime_dir, prefix <> "response-pipe"])
     env = build_env(manifest, env, request_pipe, response_pipe)
-
-    # Create pipe dir if it doesn't exist
     _ = File.mkdir_p(@runtime_dir)
-
-    # Open pipes
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
-
-    exec = System.find_executable(manifest.executable)
     installation_path = install_dir(manifest)
+    cli = "#{System.find_executable("python")} #{manifest.args}"
 
-    opts =
-      Keyword.merge(@muontrap_opts,
-        env: env,
-        cd: installation_path,
-        into: FarmbotCore.FarmwareLogger.new(package)
-      )
+    opts = [
+      env: env,
+      cd: installation_path,
+      into: FarmbotCore.FarmwareLogger.new(package)
+    ]
 
-    # Start the plugin.
-    Logger.debug("spawning farmware: #{exec} #{manifest.args}")
-
-    {cmd, _} =
-      spawn_monitor(MuonTrap, :cmd, [
-        "sh",
-        ["-c", "#{exec} #{manifest.args}"],
-        opts
-      ])
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", cli], opts])
 
     state = %State{
       caller: caller,
@@ -352,7 +303,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     install_dir(manifest)
   end
 
-  def install_dir(%Manifest{package: package}) do
+  def install_dir(%FarmwareManifest{package: package}) do
     dir = Path.join("/tmp/farmware", package)
     File.mkdir_p!(dir)
     dir
