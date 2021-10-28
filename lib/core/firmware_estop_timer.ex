@@ -11,8 +11,6 @@ defmodule FarmbotCore.FirmwareEstopTimer do
   @msg "Farmbot has been E-Stopped for more than 10 minutes."
   @ten_minutes_ms 60_0000
 
-  alias FarmbotCore.Firmware.UARTCoreSupport
-
   def start_timer(timer_server \\ __MODULE__) do
     GenServer.call(timer_server, :start_timer)
   end
@@ -40,12 +38,13 @@ defmodule FarmbotCore.FirmwareEstopTimer do
   end
 
   def handle_call(:start_timer, _from, state) do
+    maybe_cancel(state.timer)
     timer = Process.send_after(self(), :timeout, state.timeout_ms)
     {:reply, timer, %{state | timer: timer}}
   end
 
   def handle_call(:cancel_timer, _from, state) do
-    state.timer && Process.cancel_timer(state.timer)
+    maybe_cancel(state.timer)
     {:reply, state.timer, %{state | timer: nil}, :hibernate}
   end
 
@@ -54,10 +53,7 @@ defmodule FarmbotCore.FirmwareEstopTimer do
     {:noreply, %{state | timer: nil}, :hibernate}
   end
 
-  @doc false
-  def do_log do
-    if UARTCoreSupport.locked?() do
-      FarmbotCore.Logger.warn(1, @msg, channels: [:fatal_email])
-    end
-  end
+  def do_log(), do: FarmbotCore.Logger.warn(1, @msg, channels: [:fatal_email])
+  defp maybe_cancel(nil), do: nil
+  defp maybe_cancel(timer), do: Process.cancel_timer(timer)
 end

@@ -3,7 +3,6 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
   """
 
   require Logger
-  require FarmbotCore.Logger
 
   @response_codes %{
     "00" => :idle,
@@ -76,7 +75,7 @@ defmodule FarmbotCore.Firmware.GCodeDecoder do
 
   defp validate_message(message) do
     log = "Dropping malformed message: #{inspect(message)}"
-    FarmbotCore.Logger.debug(3, log)
+    Logger.debug(log)
     nil
   end
 
