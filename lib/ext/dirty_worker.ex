@@ -177,11 +177,11 @@ defmodule FarmbotExt.DirtyWorker do
 
   # HTTP Error. (500, network error, timeout etc.)
   def handle_http_response(dirty, module, error) do
-    FarmbotCore.Logger.error(
-      2,
-      "[#{module} #{dirty.local_id} #{inspect(self())}] HTTP Error: #{module} #{inspect(error)}"
-    )
-
+    m = inspect(module)
+    e = inspect(error)
+    id = Repo.encode_local_id(dirty.local_id)
+    msg = "[#{m} #{id} #{inspect(self())}] HTTP Error: #{e}"
+    FarmbotCore.Logger.error(2, msg)
     error
   end
 

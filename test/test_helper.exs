@@ -307,6 +307,7 @@ ExUnit.configure(
   FarmbotCore.Asset.Repo,
   FarmbotCore.BotState,
   FarmbotCore.Celery,
+  FarmbotCore.Celery.AST.Factory,
   FarmbotCore.Celery.Compiler.Lua,
   FarmbotCore.Celery.Scheduler,
   FarmbotCore.Celery.SpecialValue,
