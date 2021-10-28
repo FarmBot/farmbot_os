@@ -1,0 +1,5 @@
+opencv-python
+farmware-tools
+matplotlib
+requests
+pyserial
