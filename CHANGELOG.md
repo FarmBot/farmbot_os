@@ -1,5 +1,17 @@
 # Changelog
 
+# 14.6.0
+
+ * Upgrade database driver.
+ * Convert application to a monolith.
+
+# 14.5.0
+
+ * SSL/HTTPS configuration updates.
+ * Upgrade numerouse deps, such as Lua runtime and Certifi.
+ * Fix issue where FarmEvents would fail to execute near boot time on Express models.
+ * Performance updates to firmware handler.
+
 # 14.4.1
 
  * Update Erlang version

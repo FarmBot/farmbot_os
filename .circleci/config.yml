@@ -21,11 +21,6 @@ install_hex_archives: &install_hex_archives
       mix local.rebar --force
       mix archive.install hex nerves_bootstrap "~> 1.10" --force
 
-install_arduino: &install_arduino
-  run:
-    name: Run setup script
-    command: bash .circleci/setup-arduino.sh
-
 install_ghr: &install_ghr
   run:
     name: Install ghr (Github Releases)
@@ -67,15 +62,15 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
-        key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_libnl
     - run:
         name: Build Farmbot OS Firmware
-        working_directory: /nerves/build/farmbot_os
+        working_directory: /nerves/build
         command: |
           mix deps.get
           mix compile --force
@@ -86,12 +81,12 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
     - run:
         name: Create artifacts
         command: |
-          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
-          - /nerves/build/farmbot_os/_build/
-          - /nerves/build/farmbot_os/deps/
+          - /nerves/build/_build/
+          - /nerves/build/deps/
           - ~/.nerves/
     - save_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
@@ -112,7 +107,7 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
     - <<: *install_libnl
     - run:
         name: Build Farmbot OS Firmware
-        working_directory: /nerves/build/farmbot_os
+        working_directory: /nerves/build
         command: |
           mix deps.get
           mix compile --force
@@ -123,12 +118,12 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
     - run:
         name: Create artifacts
         command: |
-          cp /nerves/build/farmbot_os/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
+          cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
-          - /nerves/build/farmbot_os/_build/
-          - /nerves/build/farmbot_os/deps/
+          - /nerves/build/_build/
+          - /nerves/build/deps/
           - ~/.nerves/
     - save_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
@@ -145,7 +140,7 @@ predeploy_setup: &predeploy_setup
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -157,101 +152,6 @@ jobs:
 ################################################################################
 #                                    TEST                                      #
 ################################################################################
-
-  test_farmbot_core:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
-      TZ: "America/Los_Angeles"
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - restore_cache:
-          keys:
-            - v14-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
-      - restore_cache:
-          keys:
-            - v14-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - <<: *install_arduino
-      - run:
-          name: Ensure format
-          command: |
-            mix format --check-formatted
-      - run:
-          name: Test Farmbot Core
-          working_directory: /nerves/build/farmbot_core
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            mix coveralls.json --trace
-            bash <(curl -s https://codecov.io/bash)
-      - save_cache:
-          key: v14-fbcore-test-dependency-cache-{{ checksum "farmbot_core/mix.lock" }}
-          paths:
-            - farmbot_core/_build/test
-            - farmbot_core/deps
-            - farmbot_core/arduino
-      - save_cache:
-          key: v14-fbcore-coverage-cache-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - farmbot_core/cover
-      - store_artifacts:
-          path: farmbot_core/cover
-      - save_cache:
-          key: v14-fbcore-test-arduino-dependency-cache-{{ checksum ".circleci/setup-arduino.sh" }}
-          paths:
-            - ~/arduino-1.8.5
-            - farmbot_core/_build/core
-            - farmbot_core/_build/libraries
-            - farmbot_core/_build/farmduino_k14
-            - farmbot_core/_build/farmduino_v10
-            - farmbot_core/_build/ramps_v14
-
-  test_farmbot_ext:
-    <<: *defaults
-    environment:
-      MIX_ENV: test
-      MIX_TARGET: host
-      NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
-      SKIP_ARDUINO_BUILD: 1
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - restore_cache:
-          keys:
-            - v14-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
-      - <<: *install_elixir
-      - <<: *install_hex_archives
-      - run:
-          name: Test Farmbot Ext
-          working_directory: /nerves/build/farmbot_ext
-          command: |
-            mix deps.get
-            mix compile
-            mix format --check-formatted
-            mix ecto.create
-            mix ecto.migrate
-            mix coveralls.json
-            bash <(curl -s https://codecov.io/bash)
-      - save_cache:
-          key: v14-fbext-test-dependency-cache-{{ checksum "farmbot_ext/mix.lock" }}
-          paths:
-            - farmbot_ext/_build/test
-            - farmbot_ext/deps
-      - save_cache:
-          key: v14-fbext-coverage-cache-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - farmbot_ext/cover
-      - store_artifacts:
-          path: farmbot_ext/cover
-
   test_farmbot_os:
     <<: *defaults
     environment:
@@ -264,12 +164,12 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+            - v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - run:
           name: Test Farmbot OS
-          working_directory: /nerves/build/farmbot_os
+          working_directory: /nerves/build
           command: |
             mix deps.get
             mix compile
@@ -277,16 +177,16 @@ jobs:
             mix coveralls.json
             bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: v14-fbos-host-test-dependency-cache-{{ checksum "farmbot_os/mix.lock" }}
+          key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
       - save_cache:
           key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
-            - farmbot_os/cover
+            - cover
       - store_artifacts:
-          path: farmbot_os/cover
+          path: cover
 
 ################################################################################
 #                           Build the targets
@@ -388,18 +288,6 @@ workflows:
   version: 2
   test:
     jobs:
-      - test_farmbot_core:
-          context: org-global
-          filters:
-            branches:
-              ignore:
-                - main
-      - test_farmbot_ext:
-          context: org-global
-          filters:
-            branches:
-              ignore:
-                - main
       - test_farmbot_os:
           context: org-global
           filters:

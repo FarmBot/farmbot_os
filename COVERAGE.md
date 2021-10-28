@@ -1,4 +1,10 @@
-# Jan - Mar 2021
+# Coverage Stats
+
+2021/10/28 - 64.3%
+
+# Historic
+
+Code coverage prior to conversion of app to monolith:
 
 | Project               |1/1/20 |2/6/20 |3/4/20 |3/26/21|5/25/21|
 |-----------------------|-------|-------|-------|-------|-------|
@@ -15,3 +21,10 @@
 | farmbot_ext           |58.0%  |58.9%  |
 | farmbot_os            |59.3%  |60.8%  |
 | farmbot_telemetry     |41.4%  |41.4%  |
+
+| Project               |9/23/21|9/24/21|
+|-----------------------|-------|-------|
+| farmbot_core          |59.4%  |59.6%  |
+| farmbot_ext           |61.0%  |61.1%  |
+| farmbot_os            |62.4%  |62.4%  |
+| farmbot_telemetry     |41.4%  |58.3%  |
