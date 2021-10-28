@@ -12,7 +12,7 @@
     <div class="widget">
       <div class="widget-header"> <h5>Configure Wireless</h5> </div>
       <div class="widget-content">
-        security mode <%= inspect security %> unknown or unsupported.
+        security mode <%= inspect(security) %> unknown or unsupported.
         <form action="network" method="get">
           <div class="button"> <input type="submit" value="Try something else"> </div>
         </form>

@@ -1,0 +1,49 @@
+language: python
+dist: xenial
+sudo: required
+python:
+  - "2.7"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+env:
+  - OPENCV_VERSION=2
+  - OPENCV_VERSION=3
+before_script:
+  - sudo apt-get update -qq
+  - if [[ $OPENCV_VERSION == '2' ]]; then sudo apt-get install python-opencv; fi
+  - if [[ $OPENCV_VERSION == '2' ]]; then ln -s /usr/lib/python2.7/dist-packages/cv2.x86_64-linux-gnu.so cv2.so; fi
+  - if [[ $OPENCV_VERSION == '3' ]]; then pip install opencv-python==3.*; fi
+  - if [[ $OPENCV_VERSION == '4' ]]; then pip install opencv-python==4.*; fi
+  - if [[ $FARMWARE_TOOLS == 'y' ]]; then pip install farmware_tools; fi
+  - pip install coveralls
+  - pip install fakeredis
+install: true
+script:
+  - python -c 'import cv2; print("OpenCV " + cv2.__version__)'
+  - python -c 'import numpy; print("NumPy " + numpy.__version__)'
+  - python -m coverage run --source . --omit=*test*,*__init__.py,*GUI*,setup.py -m unittest discover
+matrix:
+  fast_finish: true
+  exclude:
+    - env: OPENCV_VERSION=3
+      python: "2.7"
+    - env: OPENCV_VERSION=2
+      python: "3.7"
+    - env: OPENCV_VERSION=2
+      python: "3.8"
+    - env: OPENCV_VERSION=2
+      python: "3.9"
+  include:
+    - env: OPENCV_VERSION=4
+      python: "3.8"
+    - env: OPENCV_VERSION=4 FARMWARE_TOOLS=y
+      python: "3.8"
+  allow_failures:
+    - python: "2.7"
+    - python: "3.9"
+    - env: OPENCV_VERSION=4
+      python: "3.8"
+    - env: OPENCV_VERSION=4 FARMWARE_TOOLS=y
+      python: "3.8"
+after_success: coveralls

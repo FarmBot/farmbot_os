@@ -8,13 +8,12 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   alias FarmbotCore.Project
   alias FarmbotCore.FarmwareRuntime.PipeWorker
-  alias FarmbotCore.FarmwareManifest
   alias FarmbotCore.Celery.AST
   alias FarmbotCore.BotState.FileSystem
   alias FarmbotCore.{Asset, JSON}
   alias __MODULE__, as: State
 
-  @runtime_dir "/tmp/farmware_runtime"
+  @runtime_dir Path.join(Application.app_dir(:farmbot, "priv"), "farmware")
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
   @error_timeout_ms 5000
@@ -53,10 +52,8 @@ defmodule FarmbotCore.FarmwareRuntime do
         }
 
   @doc "Start a Farmware"
-  def start_link(%FarmwareManifest{} = manifest, env \\ %{}) do
-    package = manifest.package
-
-    GenServer.start_link(__MODULE__, [manifest, env, self()],
+  def start_link(package, env \\ %{}) do
+    GenServer.start_link(__MODULE__, [package, env, self()],
       name: String.to_atom(package)
     )
   end
@@ -70,26 +67,40 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  def init([manifest, env, caller]) do
-    package = manifest.package
+  @pipe_dir "/tmp/farmware_runtime"
+  @firmware_cmds %{
+    "camera-calibration" => "quickscripts/capture_and_calibrate.py",
+    "plant-detection" => "quickscripts/capture_and_detect_coordinates.py",
+    "historical-camera-calibration" => "quickscripts/download_and_calibrate.py",
+    "historical-plant-detection" =>
+      "quickscripts/download_and_detect_coordinates.py",
+    "take-photo" => "take-photo/take_photo.py",
+    "Measure Soil Height" => "measure-soil-height/measure_height.py"
+  }
+
+  def init([package, env, caller]) do
+    File.mkdir_p(@pipe_dir)
     clause1 = String.slice(Ecto.UUID.generate(), 0..7)
     prefix = "#{package}-#{clause1}-farmware-"
-    request_pipe = Path.join([@runtime_dir, prefix <> "request-pipe"])
-    response_pipe = Path.join([@runtime_dir, prefix <> "response-pipe"])
-    env = build_env(manifest, env, request_pipe, response_pipe)
-    _ = File.mkdir_p(@runtime_dir)
+
+    request_pipe = Path.join([@pipe_dir, prefix <> "request-pipe"])
+
+    response_pipe = Path.join([@pipe_dir, prefix <> "response-pipe"])
+
+    env = build_env(package, env, request_pipe, response_pipe)
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
-    installation_path = install_dir(manifest)
-    cli = "#{System.find_executable("python")} #{manifest.args}"
+    python = System.find_executable("python")
+    script = Path.join([@runtime_dir, Map.fetch!(@firmware_cmds, package)])
 
     opts = [
       env: env,
-      cd: installation_path,
+      cd: Path.join(@runtime_dir, package),
       into: FarmbotCore.FarmwareLogger.new(package)
     ]
 
-    {cmd, _} = spawn_monitor(MuonTrap, :cmd, ["sh", ["-c", cli], opts])
+    cmd_args = ["sh", ["-c", "#{python} #{script}"], opts]
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, cmd_args)
 
     state = %State{
       caller: caller,
@@ -266,10 +277,9 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   # RPC ENV is passed in to `start_link` and overwrites everything
   # except the `base` data.
-  defp build_env(manifest, rpc_env, request_pipe, response_pipe) do
+  defp build_env(package, rpc_env, request_pipe, response_pipe) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
-    installation_path = install_dir(manifest)
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
 
     base =
@@ -280,7 +290,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       |> Map.put("FARMBOT_OS_IMAGES_DIR", images_dir)
       |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
-      |> Map.put("PYTHONPATH", installation_path)
+      |> Map.put("PYTHONPATH", Path.join(@runtime_dir, package))
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
@@ -296,69 +306,5 @@ defmodule FarmbotCore.FarmwareRuntime do
         :binary.copy(<<0x00>>, 4) <> <<byte_size(payload)::big-size(32)>>
 
     header <> payload
-  end
-
-  def install_dir(%{manifest: manifest}) do
-    IO.puts("TODO: DELETE THIS")
-    install_dir(manifest)
-  end
-
-  def install_dir(%FarmwareManifest{package: package}) do
-    dir = Path.join("/tmp/farmware", package)
-    File.mkdir_p!(dir)
-    dir
-  end
-
-  # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
-  # url: "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json
-  def get_farmware_installation(name) do
-    # OLD RETURN VALUE:
-    # %FarmbotCore.Asset.FirstPartyFarmware{
-    #   __meta__: #Ecto.Schema.Metadata<:loaded, "first_party_farmwares">,
-    #   created_at: ~U[2021-10-26 21:32:29.842824Z],
-    #   id: 1,
-    #   local_id: <<47, 171, 98, 94, 25, 38, 65, 238, 158, 231, 97, 118, 208, 87, 11,
-    #     231>>,
-    #   local_meta: #Ecto.Association.NotLoaded<association :local_meta is not loaded>,
-    #   manifest: %FarmbotCore.Asset.FarmwareInstallation.Manifest{
-    #     args: "Take-Photo-master/take_photo.py",
-    #     author: "FarmBot, Inc.",
-    #     config: %{},
-    #     description: "Take a photo using a USB or Raspberry Pi camera.",
-    #     executable: "python",
-    #     farmbot_os_version_requirement: ">=3.0.0",
-    #     farmware_manifest_version: "2.0.0",
-    #     farmware_tools_version_requirement: ">=0.0.0",
-    #     language: "python",
-    #     package: "take-photo",
-    #     package_version: "1.0.19",
-    #     url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json",
-    #     zip: "https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip"
-    #   },
-    #   monitor: true,
-    #   updated_at: ~U[2021-10-26 21:52:32.671799Z],
-    #   url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json"
-    # }
-    raise "TODO: get_farmware_installation(#{inspect(name)})"
-  end
-
-  def get_farmware_manifest(name) do
-    # OLD RETURN VALUE:
-    # %FarmbotCore.Asset.FarmwareInstallation.Manifest{
-    #   args: "Take-Photo-master/take_photo.py",
-    #   author: "FarmBot, Inc.",
-    #   config: %{},
-    #   description: "Take a photo using a USB or Raspberry Pi camera.",
-    #   executable: "python",
-    #   farmbot_os_version_requirement: ">=3.0.0",
-    #   farmware_manifest_version: "2.0.0",
-    #   farmware_tools_version_requirement: ">=0.0.0",
-    #   language: "python",
-    #   package: "take-photo",
-    #   package_version: "1.0.19",
-    #   url: "https://raw.githubusercontent.com/FarmBot-Labs/farmware_manifests/main/packages/take-photo/manifest_v2.json",
-    #   zip: "https://github.com/FarmBot-Labs/Take-Photo/archive/master.zip"
-    # }
-    raise "TODO: get_farmware_manifest(#{inspect(name)})"
   end
 end
