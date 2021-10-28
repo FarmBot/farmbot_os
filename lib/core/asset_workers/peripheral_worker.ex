@@ -2,7 +2,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   use GenServer
   require Logger
 
-  alias FarmbotCore.{Asset.Peripheral, BotState}
+  alias FarmbotCore.{Asset.Repo, Asset.Peripheral, BotState}
   alias FarmbotCore.Celery.AST
 
   @retry_ms 1_000
@@ -106,8 +106,10 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
   end
 
   def peripheral_to_rpc(peripheral) do
+    uuid = Repo.encode_local_id(peripheral.local_id || "unknown")
+
     AST.Factory.new()
-    |> AST.Factory.rpc_request(peripheral.local_id)
+    |> AST.Factory.rpc_request(uuid)
     |> AST.Factory.set_pin_io_mode(peripheral.pin, "output")
     |> AST.Factory.read_pin(peripheral.pin, peripheral.mode)
   end
