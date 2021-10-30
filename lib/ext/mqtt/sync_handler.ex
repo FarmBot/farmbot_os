@@ -14,7 +14,6 @@ defmodule FarmbotExt.MQTT.SyncHandler do
     Device
     FarmEvent
     FarmwareEnv
-    FarmwareInstallation
     FbosConfig
     FirmwareConfig
     Peripheral

@@ -11,7 +11,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
     Peripheral,
@@ -46,13 +45,6 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
     )
 
     belongs_to(:farmware_env, FarmwareEnv,
-      foreign_key: :asset_local_id,
-      type: :binary_id,
-      references: :local_id,
-      define_field: false
-    )
-
-    belongs_to(:farmware_installation, FarmwareInstallation,
       foreign_key: :asset_local_id,
       type: :binary_id,
       references: :local_id,

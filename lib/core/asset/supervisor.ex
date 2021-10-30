@@ -7,8 +7,6 @@ defmodule FarmbotCore.Asset.Supervisor do
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
-    FirstPartyFarmware,
     FbosConfig,
     FirmwareConfig,
     PinBinding,
@@ -36,8 +34,6 @@ defmodule FarmbotCore.Asset.Supervisor do
       {ChangeSupervisor, module: PinBinding},
       {ChangeSupervisor, module: PublicKey},
       {ChangeSupervisor, module: Peripheral},
-      {ChangeSupervisor, module: FirstPartyFarmware},
-      {ChangeSupervisor, module: FarmwareInstallation},
       {ChangeSupervisor, module: FarmwareEnv},
       AssetMonitor
     ]

@@ -19,13 +19,6 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
     end
   end
 
-  def install_first_party_farmware(_, _) do
-    quote location: :keep do
-      FarmbotCore.Celery.SysCallGlue.log("Installing dependencies...")
-      FarmbotCore.Celery.SysCallGlue.install_first_party_farmware()
-    end
-  end
-
   def set_user_env(%{body: pairs}, _cs_scope) do
     kvs =
       Enum.map(pairs, fn %{kind: :pair, args: %{label: key, value: value}} ->
@@ -39,14 +32,6 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
 
     quote location: :keep do
       (unquote_splicing(kvs))
-    end
-  end
-
-  def update_farmware(%{args: %{package: package}}, cs_scope) do
-    quote location: :keep do
-      package = unquote(Compiler.celery_to_elixir(package, cs_scope))
-      FarmbotCore.Celery.SysCallGlue.log("Updating Farmware: #{package}", true)
-      FarmbotCore.Celery.SysCallGlue.update_farmware(package)
     end
   end
 

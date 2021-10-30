@@ -139,21 +139,6 @@ defmodule FarmbotCore.Celery.CompilerTest do
              """)
   end
 
-  test "install_first_party_farmware" do
-    compiled =
-      compile(%AST{
-        kind: :install_first_party_farmware,
-        args: %{},
-        body: []
-      })
-
-    assert compiled ==
-             strip_nl("""
-             FarmbotCore.Celery.SysCallGlue.log("Installing dependencies...")
-             FarmbotCore.Celery.SysCallGlue.install_first_party_farmware()
-             """)
-  end
-
   test "compiles nothing" do
     compiled =
       compile(%AST{

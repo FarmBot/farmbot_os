@@ -52,9 +52,6 @@ defmodule FarmbotOS.SysCalls do
   defdelegate execute_script(name, env), to: Farmware
 
   @impl true
-  defdelegate update_farmware(name), to: Farmware
-
-  @impl true
   defdelegate flash_firmware(package), to: UARTCore
 
   @impl true
@@ -308,11 +305,6 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def coordinate(x, y, z) do
     %{x: x, y: y, z: z}
-  end
-
-  @impl true
-  def install_first_party_farmware() do
-    {:error, "install_first_party_farmware not yet supported"}
   end
 
   @impl true

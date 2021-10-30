@@ -38,9 +38,6 @@ defmodule FarmbotCore.Celery.SysCallGlue.Stubs do
   def execute_script(package, args), do: error(:execute_script, [package, args])
 
   @impl true
-  def update_farmware(package), do: error(:update_farmware, [package])
-
-  @impl true
   def factory_reset(package), do: error(:factory_reset, [package])
 
   @impl true
@@ -79,10 +76,6 @@ defmodule FarmbotCore.Celery.SysCallGlue.Stubs do
 
   @impl true
   def home(axis, speed), do: error(:home, [axis, speed])
-
-  @impl true
-  def install_first_party_farmware(),
-    do: error(:install_first_party_farmware, [])
 
   @impl true
   def move_absolute(x, y, z, speed), do: error(:move_absolute, [x, y, z, speed])

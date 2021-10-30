@@ -8,8 +8,6 @@ defmodule FarmbotExt.API.SyncGroupTest do
     FarmbotCore.Asset.FbosConfig,
     FarmbotCore.Asset.FirmwareConfig,
     FarmbotCore.Asset.FarmwareEnv,
-    FarmbotCore.Asset.FirstPartyFarmware,
-    FarmbotCore.Asset.FarmwareInstallation,
     FarmbotCore.Asset.Peripheral,
     FarmbotCore.Asset.Point,
     FarmbotCore.Asset.SensorReading,

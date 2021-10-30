@@ -125,12 +125,6 @@ defmodule FarmbotOS.SysCallsTest do
     assert SysCalls.nothing() == nil
   end
 
-  test "install_first_party_farmware()" do
-    expected = {:error, "install_first_party_farmware not yet supported"}
-    actual = SysCalls.install_first_party_farmware()
-    assert expected == actual
-  end
-
   test "fbos_config()" do
     {:ok, conf} = SysCalls.fbos_config()
 
