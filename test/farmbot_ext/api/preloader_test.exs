@@ -25,7 +25,6 @@ defmodule FarmbotExt.API.PreloaderTest do
     end)
 
     expect(Reconciler, :sync_group, 5, fn _, _ -> %Changeset{valid?: true} end)
-    Helpers.expect_log("Successfully preloaded resources.")
     assert :ok = Preloader.preload_all()
   end
 end

@@ -33,8 +33,6 @@ defmodule FarmbotOS.Init.FSCheckup do
       File.mkdir(@data_path)
     end
 
-    Logger.debug("Checking #{check_file}")
-
     msg = """
     version = #{@version}
     commit  = #{@ref}
