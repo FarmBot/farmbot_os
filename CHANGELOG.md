@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.6.1
+
+ * Genesis and Express firmware updates.
+
 # 14.6.0
 
  * Upgrade database driver.
