@@ -10,7 +10,6 @@ defmodule FarmbotOS.LegacyMigrator do
   def run(), do: spawn(__MODULE__, :do_run, [])
 
   def do_run() do
-    Logger.info("Running legacy data migrator...")
     # Add a sleep for good luck since this runs at boot.
     Process.sleep(10_000)
 
