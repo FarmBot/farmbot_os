@@ -16,6 +16,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   @error_timeout_ms 5000
   @pipe_dir "/tmp/farmware_runtime"
   @firmware_cmds %{
+    "noop" => "noop.py",
     "camera-calibration" => "quickscripts/capture_and_calibrate.py",
     "plant-detection" => "quickscripts/capture_and_detect_coordinates.py",
     "historical-camera-calibration" => "quickscripts/download_and_calibrate.py",
@@ -26,17 +27,17 @@ defmodule FarmbotCore.FarmwareRuntime do
   }
   # Default configs from the legacy manifest.json system, I think.
   @legacy_fallbacks %{
-    "measured_distance" => 0,
-    "disparity_search_depth" => 1,
-    "disparity_block_size" => 15,
-    "verbose" => 2,
-    "log_verbosity" => 1,
-    "calibration_factor" => 0,
-    "calibration_disparity_offset" => 0,
-    "calibration_image_width" => 0,
-    "calibration_image_height" => 0,
-    "calibration_measured_at_z" => 0,
-    "calibration_maximum" => 0
+    "measured_distance" => "0",
+    "disparity_search_depth" => "1",
+    "disparity_block_size" => "15",
+    "verbose" => "2",
+    "log_verbosity" => "1",
+    "calibration_factor" => "0",
+    "calibration_disparity_offset" => "0",
+    "calibration_image_width" => "0",
+    "calibration_image_height" => "0",
+    "calibration_measured_at_z" => "0",
+    "calibration_maximum" => "0"
   }
 
   defstruct [
