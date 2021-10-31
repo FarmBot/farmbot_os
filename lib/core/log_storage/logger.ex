@@ -1,59 +1,59 @@
-defmodule FarmbotCore.Logger do
+defmodule FarmbotOS.Logger do
   @moduledoc """
   Log messages to Farmot endpoints.
   """
 
   require Logger
-  alias FarmbotCore.{Log, Asset.Repo}
+  alias FarmbotOS.{Log, Asset.Repo}
   import Ecto.Query
   @log_types [:info, :debug, :busy, :warn, :success, :error, :fun, :assertion]
 
   @doc "Send a debug message to log endpoints"
   def debug(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:debug, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:debug, verbosity, message, meta)
     # end
   end
 
   @doc "Send an info message to log endpoints"
   def info(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:info, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:info, verbosity, message, meta)
     # end
   end
 
   @doc "Send an busy message to log endpoints"
   def busy(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:busy, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:busy, verbosity, message, meta)
     # end
   end
 
   @doc "Send an success message to log endpoints"
   def success(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:success, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:success, verbosity, message, meta)
     # end
   end
 
   @doc "Send an warn message to log endpoints"
   def warn(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:warn, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:warn, verbosity, message, meta)
     # end
   end
 
   @doc "Send an error message to log endpoints"
   def error(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:error, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:error, verbosity, message, meta)
     # end
   end
 
   @doc false
   def fun(verbosity, message, meta \\ []) do
     # quote bind_quoted: [verbosity: verbosity, message: message, meta: meta] do
-    FarmbotCore.Logger.dispatch_log(:fun, verbosity, message, meta)
+    FarmbotOS.Logger.dispatch_log(:fun, verbosity, message, meta)
     # end
   end
 
@@ -65,7 +65,7 @@ defmodule FarmbotCore.Logger do
         mod = inspect(__MODULE__)
         err = inspect(reason)
         msg = "#{mod} termination: #{err}"
-        FarmbotCore.Logger.info(3, msg)
+        FarmbotOS.Logger.info(3, msg)
       end
     end
   end
@@ -107,7 +107,7 @@ defmodule FarmbotCore.Logger do
 
   @doc "Gets a log by it's id, deletes it."
   def handle_log(id) do
-    case Repo.get(FarmbotCore.Log, id) do
+    case Repo.get(FarmbotOS.Log, id) do
       %Log{} = log -> Repo.delete!(log)
       nil -> nil
     end
@@ -115,7 +115,7 @@ defmodule FarmbotCore.Logger do
 
   @doc "Gets all available logs and deletes them."
   def handle_all_logs do
-    Repo.all(from(l in FarmbotCore.Log, order_by: l.inserted_at))
+    Repo.all(from(l in FarmbotOS.Log, order_by: l.inserted_at))
     |> Enum.map(&Repo.delete!/1)
   end
 
@@ -138,7 +138,7 @@ defmodule FarmbotCore.Logger do
   def dispatch_log(params) do
     log = insert_log!(params)
     maybe_espeak(params)
-    FarmbotCore.LogExecutor.execute(log)
+    FarmbotOS.LogExecutor.execute(log)
   end
 
   defp maybe_espeak(%{message: msg, meta: %{channels: c}}) when is_list(c) do

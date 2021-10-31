@@ -1,11 +1,11 @@
-defmodule FarmbotCore.FarmwareLogger do
+defmodule FarmbotOS.FarmwareLogger do
   require Logger
 
   defstruct name: "UNKNOWN FARMARE?"
   def new(name), do: %__MODULE__{name: name}
 
   defimpl Collectable do
-    alias FarmbotCore.FarmwareLogger, as: S
+    alias FarmbotOS.FarmwareLogger, as: S
 
     def into(%S{} = logger), do: {logger, &collector/2}
     defp collector(%S{} = logger, :done), do: logger

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.Scheduler do
+defmodule FarmbotOS.Celery.Scheduler do
   @moduledoc """
   Handles execution of CeleryScript.
 
@@ -7,7 +7,7 @@ defmodule FarmbotCore.Celery.Scheduler do
 
   A message will arrive in the callers inbox after either shaped like
 
-      {FarmbotCore.Celery.Scheduler, result}
+      {FarmbotOS.Celery.Scheduler, result}
 
   where result will be
 
@@ -19,8 +19,8 @@ defmodule FarmbotCore.Celery.Scheduler do
 
   use GenServer
   require Logger
-  require FarmbotCore.Logger
-  alias FarmbotCore.Celery.{AST, Scheduler, StepRunner}
+  require FarmbotOS.Logger
+  alias FarmbotOS.Celery.{AST, Scheduler, StepRunner}
   alias Scheduler, as: State
 
   # 15 minutes
@@ -51,7 +51,7 @@ defmodule FarmbotCore.Celery.Scheduler do
     GenServer.start_link(__MODULE__, args, opts)
   end
 
-  FarmbotCore.Logger.report_termination()
+  FarmbotOS.Logger.report_termination()
 
   @doc """
   Schedule CeleryScript to execute whenever there is time for it.
@@ -160,7 +160,7 @@ defmodule FarmbotCore.Celery.Scheduler do
       ) do
     send(
       pid,
-      {FarmbotCore.Celery,
+      {FarmbotOS.Celery,
        {:scheduled_execution, scheduled_at, executed_at, result}}
     )
 
@@ -310,11 +310,11 @@ defmodule FarmbotCore.Celery.Scheduler do
     case Registry.meta(name, {:last_calendar, pid}) do
       {:ok, ^calendar} ->
         Logger.debug("calendar for #{inspect(pid)} hasn't changed")
-        {FarmbotCore.Celery, {:calendar, calendar}}
+        {FarmbotOS.Celery, {:calendar, calendar}}
 
       _old_calendar ->
         Registry.put_meta(name, {:last_calendar, pid}, calendar)
-        send(pid, {FarmbotCore.Celery, {:calendar, calendar}})
+        send(pid, {FarmbotOS.Celery, {:calendar, calendar}})
     end
   end
 end

@@ -1,7 +1,7 @@
-defmodule FarmbotExt.MQTT.PingHandler do
+defmodule FarmbotOS.MQTT.PingHandler do
   alias __MODULE__, as: State
 
-  alias FarmbotExt.{
+  alias FarmbotOS.{
     MQTT,
     Time
   }
@@ -29,7 +29,7 @@ defmodule FarmbotExt.MQTT.PingHandler do
     if diff > @refresh_rate do
       # Force the bot to broadcast state tree- someone is
       # using the web app.
-      FarmbotExt.MQTT.BotStateHandler.read_status()
+      FarmbotOS.MQTT.BotStateHandler.read_status()
       {:noreply, %{state | last_refresh: now}}
     else
       # No one is using the web app. There is no point in

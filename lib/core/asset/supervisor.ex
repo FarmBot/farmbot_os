@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Asset.Supervisor do
+defmodule FarmbotOS.Asset.Supervisor do
   @moduledoc false
   use Supervisor
-  alias FarmbotCore.{ChangeSupervisor, AssetMonitor}
+  alias FarmbotOS.{ChangeSupervisor, AssetMonitor}
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,

@@ -1,14 +1,14 @@
-defmodule FarmbotCore.Asset.Peripheral do
+defmodule FarmbotOS.Asset.Peripheral do
   @moduledoc """
   Peripherals are descriptors for pins/modes.
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/peripherals"
+  use FarmbotOS.Asset.Schema, path: "/api/peripherals"
 
   schema "peripherals" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id
@@ -44,8 +44,8 @@ defmodule FarmbotCore.Asset.Peripheral do
     |> validate_required([])
   end
 
-  defimpl String.Chars, for: FarmbotCore.Asset.Peripheral do
-    def to_string(%FarmbotCore.Asset.Peripheral{pin: pin, label: label}) do
+  defimpl String.Chars, for: FarmbotOS.Asset.Peripheral do
+    def to_string(%FarmbotOS.Asset.Peripheral{pin: pin, label: label}) do
       "Peripheral #{label} Pin: #{pin}"
     end
   end

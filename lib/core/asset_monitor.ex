@@ -1,13 +1,13 @@
-defmodule FarmbotCore.AssetMonitor do
+defmodule FarmbotOS.AssetMonitor do
   @moduledoc """
   Handles starting a process for every Asset in the repo requiring an
   AssetWorker implementation.
   """
 
   use GenServer
-  import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
+  import FarmbotOS.TimeUtils, only: [compare_datetimes: 2]
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Repo,
     Device,
     FbosConfig,
@@ -20,7 +20,7 @@ defmodule FarmbotCore.AssetMonitor do
     PublicKey
   }
 
-  alias FarmbotCore.{ChangeSupervisor, AssetWorker}
+  alias FarmbotOS.{ChangeSupervisor, AssetWorker}
 
   require Logger
 

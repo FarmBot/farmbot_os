@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset.Regimen.Item do
+defmodule FarmbotOS.Asset.Regimen.Item do
   use Ecto.Schema
 
   import Ecto.Changeset
-  import FarmbotCore.Asset.View, only: [view: 2]
+  import FarmbotOS.Asset.View, only: [view: 2]
 
   @primary_key false
-  @behaviour FarmbotCore.Asset.View
+  @behaviour FarmbotOS.Asset.View
 
   view regimen_item do
     %{

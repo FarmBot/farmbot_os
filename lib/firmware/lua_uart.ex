@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.LuaUART do
+defmodule FarmbotOS.Firmware.LuaUART do
   # uart = uart.open("ttyACM1", 115200)
   # data, error = uart.read(30000)
   # print(data)

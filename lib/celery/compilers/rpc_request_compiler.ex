@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Celery.Compiler.RPCRequest do
-  alias FarmbotCore.Celery.Compiler.Utils
+defmodule FarmbotOS.Celery.Compiler.RPCRequest do
+  alias FarmbotOS.Celery.Compiler.Utils
 
   def rpc_request(%{args: %{label: _label}, body: block}, cs_scope) do
     steps =

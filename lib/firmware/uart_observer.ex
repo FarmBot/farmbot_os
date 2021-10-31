@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Firmware.UARTObserver do
+defmodule FarmbotOS.Firmware.UARTObserver do
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   alias __MODULE__, as: State
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
-  alias FarmbotCore.Firmware.UARTCore
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotOS.AssetWorker.FarmbotOS.Asset.FirmwareConfig
+  alias FarmbotOS.Firmware.UARTCore
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
 
   defstruct uart_pid: nil
 
@@ -29,7 +29,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
 
   def init(_) do
     Process.send_after(self(), :connect_uart, 5_000)
-    FarmbotCore.Leds.red(:slow_blink)
+    FarmbotOS.Leds.red(:slow_blink)
     {:ok, %State{}}
   end
 
@@ -44,8 +44,8 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   def handle_info({:data_available, FirmwareConfig}, state) do
-    old_config = FarmbotCore.BotState.fetch().mcu_params
-    new_config = FarmbotCore.Asset.firmware_config()
+    old_config = FarmbotOS.BotState.fetch().mcu_params
+    new_config = FarmbotOS.Asset.firmware_config()
 
     diff =
       old_config
@@ -54,7 +54,7 @@ defmodule FarmbotCore.Firmware.UARTObserver do
         new_value = Map.get(new_config, key)
 
         if new_value do
-          if FarmbotCore.Firmware.Parameter.is_param?(key) do
+          if FarmbotOS.Firmware.Parameter.is_param?(key) do
             if new_value != old_value do
               key
             end
@@ -74,11 +74,11 @@ defmodule FarmbotCore.Firmware.UARTObserver do
   end
 
   defp maybe_start_uart do
-    {package, path} = FarmbotCore.Firmware.UARTDetector.run()
+    {package, path} = FarmbotOS.Firmware.UARTDetector.run()
 
     if path && package do
       if Support.recent_boot?() do
-        FarmbotCore.Firmware.Flash.raw_flash(package, path)
+        FarmbotOS.Firmware.Flash.raw_flash(package, path)
       end
 
       {:ok, uart_pid} = UARTCore.start_link(path: path, fw_type: package)

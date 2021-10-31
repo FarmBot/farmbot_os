@@ -1,10 +1,10 @@
-defmodule FarmbotCore.BotStateNG.InformationalSettings do
+defmodule FarmbotOS.BotStateNG.InformationalSettings do
   @moduledoc false
-  alias FarmbotCore.BotStateNG.InformationalSettings
+  alias FarmbotOS.BotStateNG.InformationalSettings
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias FarmbotCore.Project
+  alias FarmbotOS.Project
 
   @primary_key false
 

@@ -14,7 +14,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   alias FarmbotOS.Platform.Target.Network.PreSetup
   alias FarmbotOS.Platform.Target.Configurator.{Validator, CaptivePortal}
-  alias FarmbotCore.{Asset, Config, Leds}
+  alias FarmbotOS.{Asset, Config, Leds}
 
   @default_network_not_found_timer_minutes 999_999
 
@@ -302,7 +302,7 @@ defmodule FarmbotOS.Platform.Target.Network do
 
   defp cancel_network_not_found_timer(state) do
     old_timer = state.network_not_found_timer
-    FarmbotExt.Time.cancel_timer(old_timer)
+    FarmbotOS.Time.cancel_timer(old_timer)
     %{state | network_not_found_timer: nil}
   end
 

@@ -1,6 +1,6 @@
 defmodule FarmbotOS.SysCalls.SetPinIOMode do
   @moduledoc false
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
 
   def set_pin_io_mode(pin_number, mode) do
     mode = extract_set_pin_mode(mode)

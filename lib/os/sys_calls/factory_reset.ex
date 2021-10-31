@@ -1,8 +1,8 @@
 defmodule FarmbotOS.SysCalls.FactoryReset do
   @moduledoc false
-  require FarmbotCore.Logger
-  alias FarmbotCore.{Asset, BotState}
-  alias FarmbotExt.APIFetcher
+  require FarmbotOS.Logger
+  alias FarmbotOS.{Asset, BotState}
+  alias FarmbotOS.APIFetcher
 
   def factory_reset("farmbot_os") do
     FarmbotOS.System.factory_reset("Soft resetting...", true)
@@ -10,7 +10,7 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
   end
 
   def factory_reset("arduino_firmware") do
-    FarmbotCore.Logger.warn(1, "Arduino Firmware going down for factory reset!")
+    FarmbotOS.Logger.warn(1, "Arduino Firmware going down for factory reset!")
 
     id = Asset.firmware_config(:id)
     if id, do: Asset.delete_firmware_config!(id)

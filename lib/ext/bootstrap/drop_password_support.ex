@@ -1,10 +1,10 @@
-defmodule FarmbotExt.Bootstrap.DropPasswordSupport do
+defmodule FarmbotOS.Bootstrap.DropPasswordSupport do
   @moduledoc """
   Task to make sure the plaintext password is dropped form
   the sqlite database.
   """
-  import FarmbotCore.Config, only: [update_config_value: 4, get_config_value: 3]
-  require FarmbotCore.Logger
+  import FarmbotOS.Config, only: [update_config_value: 4, get_config_value: 3]
+  require FarmbotOS.Logger
 
   def get_credentials do
     %{

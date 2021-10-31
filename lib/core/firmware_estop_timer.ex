@@ -1,4 +1,4 @@
-defmodule FarmbotCore.FirmwareEstopTimer do
+defmodule FarmbotOS.FirmwareEstopTimer do
   @moduledoc """
   Process that wraps a `Process.send_after/3` call.
   When `:timeout` is received, a `fatal_email` log message will be
@@ -6,7 +6,7 @@ defmodule FarmbotCore.FirmwareEstopTimer do
   """
 
   use GenServer
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   @msg "Farmbot has been E-Stopped for more than 10 minutes."
   @ten_minutes_ms 60_0000
@@ -53,7 +53,7 @@ defmodule FarmbotCore.FirmwareEstopTimer do
     {:noreply, %{state | timer: nil}, :hibernate}
   end
 
-  def do_log(), do: FarmbotCore.Logger.warn(1, @msg, channels: [:fatal_email])
+  def do_log(), do: FarmbotOS.Logger.warn(1, @msg, channels: [:fatal_email])
   defp maybe_cancel(nil), do: nil
   defp maybe_cancel(timer), do: Process.cancel_timer(timer)
 end

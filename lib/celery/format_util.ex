@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.FormatUtil do
+defmodule FarmbotOS.Celery.FormatUtil do
   def format_float(nil), do: nil
 
   def format_float(value) when is_integer(value) do

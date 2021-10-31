@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Asset.FarmEvent do
-  use FarmbotCore.Asset.Schema, path: "/api/farm_events"
+defmodule FarmbotOS.Asset.FarmEvent do
+  use FarmbotOS.Asset.Schema, path: "/api/farm_events"
 
-  alias FarmbotCore.Asset.FarmEvent.{
+  alias FarmbotOS.Asset.FarmEvent.{
     BodyNode,
     Execution,
     Calendar
@@ -10,7 +10,7 @@ defmodule FarmbotCore.Asset.FarmEvent do
   schema "farm_events" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.Interpolation do
+defmodule FarmbotOS.Celery.Interpolation do
   # Given the current X/Y position and a list of soil height samples, provides
   # the current Z coordinate via inverse distance weighting.
   def guess_z_value(soil_points, current_xy) do

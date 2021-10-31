@@ -1,4 +1,4 @@
-defmodule FarmbotCore.BotState.Supervisor do
+defmodule FarmbotOS.BotState.Supervisor do
   use Supervisor
 
   def start_link(args) do
@@ -11,8 +11,8 @@ defmodule FarmbotCore.BotState.Supervisor do
 
   def children,
     do: [
-      FarmbotCore.BotState,
-      FarmbotCore.BotState.FileSystem,
-      FarmbotCore.BotState.SchedulerUsageReporter
+      FarmbotOS.BotState,
+      FarmbotOS.BotState.FileSystem,
+      FarmbotOS.BotState.SchedulerUsageReporter
     ]
 end

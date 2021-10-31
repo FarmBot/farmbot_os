@@ -1,4 +1,4 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.RegimenInstance do
   @moduledoc """
   An instance of a running Regimen. Asset.Regimen is the blueprint by which a
   Regimen "instance" is created.
@@ -6,19 +6,19 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
 
   use GenServer
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Asset
-  alias FarmbotCore.Asset.{RegimenInstance, FarmEvent, Sequence, Regimen}
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.Asset
+  alias FarmbotOS.Asset.{RegimenInstance, FarmEvent, Sequence, Regimen}
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def preload(%RegimenInstance{}), do: [:farm_event, :regimen, :executions]
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def tracks_changes?(%RegimenInstance{}), do: false
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def start_link(regimen_instance, args) do
     GenServer.start_link(__MODULE__, [regimen_instance, args])
   end
@@ -70,7 +70,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
   end
 
   def handle_info(
-        {FarmbotCore.Celery,
+        {FarmbotOS.Celery,
          {:scheduled_execution, scheduled_at, executed_at, result}},
         state
       ) do
@@ -80,7 +80,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
           "ok"
 
         {:error, reason} ->
-          FarmbotCore.Logger.error(
+          FarmbotOS.Logger.error(
             2,
             "Regimen scheduled at #{scheduled_at} failed to execute: #{reason}"
           )
@@ -124,6 +124,6 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.RegimenInstance do
       })
 
     celery_ast = %{celery_ast | args: celery_args}
-    FarmbotCore.Celery.schedule(celery_ast, at, sequence)
+    FarmbotOS.Celery.schedule(celery_ast, at, sequence)
   end
 end

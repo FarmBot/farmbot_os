@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Leds do
+defmodule FarmbotOS.Leds do
   @moduledoc "API for controling Farmbot LEDS."
 
   @valid_status [:off, :solid, :slow_blink, :fast_blink, :really_fast_blink]

@@ -4,8 +4,8 @@ defmodule FarmbotOS.Lua.Firmware do
   """
   @axis ["x", "y", "z"]
 
-  alias FarmbotCore.Celery.SysCallGlue
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Celery.SysCallGlue
+  alias FarmbotOS.Firmware.Command
 
   def calibrate([axis], lua) when axis in @axis do
     case SysCallGlue.calibrate(axis) do

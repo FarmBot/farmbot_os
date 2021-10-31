@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Log do
+defmodule FarmbotOS.Log do
   @moduledoc """
   This is _not_ the same as the API's log asset.
   """
-  alias FarmbotCore.{Log, Project}
+  alias FarmbotOS.{Log, Project}
 
   defmodule LogLevelType do
     @moduledoc false

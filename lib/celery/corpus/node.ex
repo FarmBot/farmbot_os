@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.Corpus.Node do
+defmodule FarmbotOS.Celery.Corpus.Node do
   @moduledoc """
   Type information about a CeleryScript Node on the Corpus.
   """
@@ -9,10 +9,10 @@ defmodule FarmbotCore.Celery.Corpus.Node do
   @type body_type :: String.t()
   @type doc :: String.t()
 
-  @type t :: %FarmbotCore.Celery.Corpus.Node{
+  @type t :: %FarmbotOS.Celery.Corpus.Node{
           name: name(),
           doc: doc,
-          allowed_args: FarmbotCore.Celery.Corpus.Arg.name(),
+          allowed_args: FarmbotOS.Celery.Corpus.Arg.name(),
           allowed_body_types: body_type()
         }
 

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Project do
+defmodule FarmbotOS.Project do
   @moduledoc "Farmbot project config"
 
   @version Mix.Project.config()[:version] ||

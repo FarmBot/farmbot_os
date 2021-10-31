@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Platform.Target.InfoWorker.SocTemp do
   @moduledoc """
   Worker responsible for reporting current system
-  on a chip package temperature. 
+  on a chip package temperature.
 
   Specific to raspberry pi using the vcgencmd command
   """
@@ -10,7 +10,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.SocTemp do
   @default_timeout_ms 60_000
   @error_timeout_ms 5_000
 
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @doc false
   def start_link(args) do

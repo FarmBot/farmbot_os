@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Celery.Compiler.UpdateResource do
-  alias FarmbotCore.Celery.{AST, DotProps}
+defmodule FarmbotOS.Celery.Compiler.UpdateResource do
+  alias FarmbotOS.Celery.{AST, DotProps}
 
   def update_resource(%AST{args: args, body: body}, cs_scope) do
     update = unpair(body, %{})
@@ -11,19 +11,19 @@ defmodule FarmbotCore.Celery.Compiler.UpdateResource do
       cs_scope = unquote(cs_scope)
 
       case variable do
-        %FarmbotCore.Celery.AST{kind: :identifier} ->
+        %FarmbotOS.Celery.AST{kind: :identifier} ->
           args = Map.fetch!(variable, :args)
           label = Map.fetch!(args, :label)
 
           {:ok, resource} =
-            FarmbotCore.Celery.Compiler.Scope.fetch!(cs_scope, label)
+            FarmbotOS.Celery.Compiler.Scope.fetch!(cs_scope, label)
 
           me.do_update(resource, update)
 
-        %FarmbotCore.Celery.AST{kind: :point} ->
+        %FarmbotOS.Celery.AST{kind: :point} ->
           me.do_update(variable.args(), update)
 
-        %FarmbotCore.Celery.AST{kind: :resource} ->
+        %FarmbotOS.Celery.AST{kind: :resource} ->
           me.do_update(variable.args(), update)
 
         res ->
@@ -33,15 +33,15 @@ defmodule FarmbotCore.Celery.Compiler.UpdateResource do
   end
 
   def do_update(%{pointer_id: id, pointer_type: kind}, update_params) do
-    FarmbotCore.Celery.SysCallGlue.update_resource(kind, id, update_params)
+    FarmbotOS.Celery.SysCallGlue.update_resource(kind, id, update_params)
   end
 
   def do_update(%{resource_id: id, resource_type: kind}, update_params) do
-    FarmbotCore.Celery.SysCallGlue.update_resource(kind, id, update_params)
+    FarmbotOS.Celery.SysCallGlue.update_resource(kind, id, update_params)
   end
 
   def do_update(%{args: %{pointer_id: id, pointer_type: k}}, update_params) do
-    FarmbotCore.Celery.SysCallGlue.update_resource(k, id, update_params)
+    FarmbotOS.Celery.SysCallGlue.update_resource(k, id, update_params)
   end
 
   def do_update(other, update) do

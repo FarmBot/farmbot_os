@@ -1,15 +1,15 @@
-defmodule FarmbotExt.MQTT.LogHandler do
+defmodule FarmbotOS.MQTT.LogHandler do
   @moduledoc """
   Publishes JSON encoded bot state updates onto an MQTT channel
   """
 
   use GenServer
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
-  alias FarmbotCore.BotState
-  alias FarmbotExt.MQTT.LogHandlerSupport
+  alias FarmbotOS.BotState
+  alias FarmbotOS.MQTT.LogHandlerSupport
   alias __MODULE__, as: State
 
   defstruct [:client_id, :username, :state_cache]
@@ -32,11 +32,11 @@ defmodule FarmbotExt.MQTT.LogHandler do
 
   def handle_info(:timeout, %{state_cache: nil} = state) do
     initial_bot_state = BotState.subscribe()
-    FarmbotExt.Time.no_reply(%{state | state_cache: initial_bot_state}, 1000)
+    FarmbotOS.Time.no_reply(%{state | state_cache: initial_bot_state}, 1000)
   end
 
   def handle_info(:timeout, state) do
-    {:noreply, state, {:continue, FarmbotCore.Logger.handle_all_logs()}}
+    {:noreply, state, {:continue, FarmbotOS.Logger.handle_all_logs()}}
   end
 
   def handle_info({BotState, change}, state) do
@@ -64,7 +64,7 @@ defmodule FarmbotExt.MQTT.LogHandler do
 
   def do_handle_continue(_error, state, log, _rest) do
     # Reschedule log to be uploaded again
-    FarmbotCore.Logger.insert_log!(log)
+    FarmbotOS.Logger.insert_log!(log)
     {:noreply, state, @checkup_ms}
   end
 end

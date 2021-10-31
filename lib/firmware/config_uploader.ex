@@ -1,15 +1,15 @@
-defmodule FarmbotCore.Firmware.ConfigUploader do
-  alias FarmbotCore.Asset
-  alias FarmbotCore.BotState
+defmodule FarmbotOS.Firmware.ConfigUploader do
+  alias FarmbotOS.Asset
+  alias FarmbotOS.BotState
 
-  alias FarmbotCore.Firmware.{
+  alias FarmbotOS.Firmware.{
     GCode,
     Parameter,
     TxBuffer
   }
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   # Called at runtime when FirmwareConfig value(s) change.
   def refresh(state, new_keys) do
@@ -18,7 +18,7 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     if conf do
       new_data = Map.take(conf, new_keys)
       msg = "Updating firmware parameters: #{inspect(new_keys)}"
-      FarmbotCore.Logger.info(3, msg)
+      FarmbotOS.Logger.info(3, msg)
       %{state | tx_buffer: write_configs(new_data, state)}
     else
       state
@@ -131,15 +131,15 @@ defmodule FarmbotCore.Firmware.ConfigUploader do
     |> Enum.reverse()
     |> Enum.reduce(txb, fn
       :x, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "Finding home on x")
+        FarmbotOS.Logger.debug(3, "Finding home on x")
         TxBuffer.push(tx_buffer, nil, GCode.new(:F11, []))
 
       :y, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "Finding home on y")
+        FarmbotOS.Logger.debug(3, "Finding home on y")
         TxBuffer.push(tx_buffer, nil, GCode.new(:F12, []))
 
       :z, tx_buffer ->
-        FarmbotCore.Logger.debug(3, "Finding home on z")
+        FarmbotOS.Logger.debug(3, "Finding home on z")
         TxBuffer.push(tx_buffer, nil, GCode.new(:F13, []))
     end)
   end

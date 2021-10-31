@@ -1,11 +1,11 @@
-defmodule FarmbotExt.API.ImageUploader do
+defmodule FarmbotOS.API.ImageUploader do
   @moduledoc """
   Watches a dir and uploads images in that dir.
   """
-  alias FarmbotCore.BotState
-  require FarmbotCore.Logger
+  alias FarmbotOS.BotState
+  require FarmbotOS.Logger
 
-  alias FarmbotExt.APIFetcher
+  alias FarmbotOS.APIFetcher
 
   use GenServer
 
@@ -27,7 +27,7 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   def handle_cast(:force_checkup, state) do
-    FarmbotExt.Time.no_reply(state, 0)
+    FarmbotOS.Time.no_reply(state, 0)
   end
 
   def handle_info(:timeout, state) do
@@ -58,12 +58,12 @@ defmodule FarmbotExt.API.ImageUploader do
   end
 
   defp finalize(file, {:ok, %{status: s, body: _}}) when s > 199 and s < 300 do
-    FarmbotCore.Logger.success(3, "Uploaded image: #{file}")
+    FarmbotOS.Logger.success(3, "Uploaded image: #{file}")
     File.rm(file)
   end
 
   defp finalize(fname, other) do
-    FarmbotCore.Logger.error(3, "Upload Error (#{fname}): #{inspect(other)}")
+    FarmbotOS.Logger.error(3, "Upload Error (#{fname}): #{inspect(other)}")
   end
 
   # Stolen from

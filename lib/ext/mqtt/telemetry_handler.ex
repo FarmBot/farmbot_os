@@ -1,13 +1,13 @@
-defmodule FarmbotExt.MQTT.TelemetryHandler do
+defmodule FarmbotOS.MQTT.TelemetryHandler do
   use GenServer
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
 
   alias __MODULE__, as: State
-  alias FarmbotCore.{BotState, BotStateNG}
-  alias FarmbotExt.MQTT
+  alias FarmbotOS.{BotState, BotStateNG}
+  alias FarmbotOS.MQTT
 
   @consume_telemetry_timeout 1000
   @dispatch_metrics_timeout 300_000
@@ -37,7 +37,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
     metrics = BotStateNG.view(state.cache).informational_settings
 
     json =
-      FarmbotCore.JSON.encode!(%{
+      FarmbotOS.JSON.encode!(%{
         "telemetry_captured_at" => DateTime.utc_now(),
         "telemetry_soc_temp" => metrics.soc_temp,
         "telemetry_throttled" => metrics.throttled,
@@ -53,7 +53,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
 
     publish(state, json)
 
-    FarmbotExt.Time.send_after(
+    FarmbotOS.Time.send_after(
       self(),
       :dispatch_metrics,
       @dispatch_metrics_timeout
@@ -67,7 +67,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
       FarmbotTelemetry.consume_telemetry(fn
         {uuid, captured_at, kind, subsystem, measurement, value, meta} ->
           json =
-            FarmbotCore.JSON.encode!(%{
+            FarmbotOS.JSON.encode!(%{
               "telemetry.uuid" => uuid,
               "telemetry.measurement" => measurement,
               "telemetry.value" => value,
@@ -81,7 +81,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandler do
       end)
 
     _ =
-      FarmbotExt.Time.send_after(
+      FarmbotOS.Time.send_after(
         self(),
         :consume_telemetry,
         @consume_telemetry_timeout

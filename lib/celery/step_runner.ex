@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Celery.StepRunner do
+defmodule FarmbotOS.Celery.StepRunner do
   @moduledoc """
   Handles execution of compiled CeleryScript AST
   """
-  alias FarmbotCore.Celery.{AST, Compiler}
-  alias FarmbotCore.Celery.Compiler.Scope
+  alias FarmbotOS.Celery.{AST, Compiler}
+  alias FarmbotOS.Celery.Compiler.Scope
 
   require Logger
 

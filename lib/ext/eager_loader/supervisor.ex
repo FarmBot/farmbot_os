@@ -1,13 +1,13 @@
-defmodule FarmbotExt.EagerLoader.Supervisor do
+defmodule FarmbotOS.EagerLoader.Supervisor do
   @moduledoc """
   Responsible for supervising all assets that need to be
   eagerloaded
   """
 
   use Supervisor
-  alias FarmbotExt.EagerLoader
+  alias FarmbotOS.EagerLoader
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -32,7 +32,7 @@ defmodule FarmbotExt.EagerLoader.Supervisor do
   @doc "Drop all cached assets"
   def drop_all_cache() do
     for {_, pid, _, _} <-
-          Supervisor.which_children(FarmbotExt.EagerLoader.Supervisor),
+          Supervisor.which_children(FarmbotOS.EagerLoader.Supervisor),
         do: GenServer.cast(pid, :drop)
   end
 

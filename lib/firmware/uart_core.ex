@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.UARTCore do
+defmodule FarmbotOS.Firmware.UARTCore do
   @moduledoc """
   UARTCore is the central logic and processing module for all
   inbound and outbound UART data (GCode).
@@ -12,10 +12,10 @@ defmodule FarmbotCore.Firmware.UARTCore do
   """
 
   alias __MODULE__, as: State
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.BotState
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotOS.BotState
 
-  alias FarmbotCore.Firmware.{
+  alias FarmbotOS.Firmware.{
     RxBuffer,
     TxBuffer,
     GCodeDecoder,
@@ -23,7 +23,7 @@ defmodule FarmbotCore.Firmware.UARTCore do
   }
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   defstruct uart_pid: nil,
             logs_enabled: false,
@@ -144,14 +144,14 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
     if state3.needs_config && state3.rx_buffer.ready do
       Logger.debug("=== Uploading configuration")
-      {:noreply, FarmbotCore.Firmware.ConfigUploader.upload(state3)}
+      {:noreply, FarmbotOS.Firmware.ConfigUploader.upload(state3)}
     else
       {:noreply, state3}
     end
   end
 
   def handle_info({:refresh_config, new_keys}, state) do
-    {:noreply, FarmbotCore.Firmware.ConfigUploader.refresh(state, new_keys)}
+    {:noreply, FarmbotOS.Firmware.ConfigUploader.refresh(state, new_keys)}
   end
 
   def handle_info(:toggle_logging, state) do
@@ -165,15 +165,15 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
     if silent || borked do
       msg = "Rebooting inactive Farmduino. #{Support.uptime_ms()}"
-      FarmbotCore.Logger.debug(3, msg)
+      FarmbotOS.Logger.debug(3, msg)
 
       package =
         state.fw_type ||
-          FarmbotCore.Asset.fbos_config().firmware_hardware
+          FarmbotOS.Asset.fbos_config().firmware_hardware
 
       spawn(__MODULE__, :flash_firmware, [self(), package])
     else
-      FarmbotCore.Logger.debug(3, "Farmduino OK")
+      FarmbotOS.Logger.debug(3, "Farmduino OK")
     end
 
     {:noreply, state}
@@ -202,12 +202,12 @@ defmodule FarmbotCore.Firmware.UARTCore do
 
   def handle_call({:flash_firmware, nil}, _, %State{} = state) do
     msg = "Can't flash firmware yet because hardware is unknown."
-    FarmbotCore.Logger.info(1, msg)
+    FarmbotOS.Logger.info(1, msg)
     {:reply, :ok, state}
   end
 
   def handle_call({:flash_firmware, package}, _, %State{} = state) do
-    next_state = FarmbotCore.Firmware.Flash.run(state, package)
+    next_state = FarmbotOS.Firmware.Flash.run(state, package)
     Process.send_after(self(), :reset_state, 1)
     {:reply, :ok, next_state}
   end

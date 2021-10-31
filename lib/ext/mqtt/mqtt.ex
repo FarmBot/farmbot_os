@@ -1,11 +1,11 @@
-defmodule FarmbotExt.MQTT do
+defmodule FarmbotOS.MQTT do
   require Logger
 
   use Tortoise.Handler
 
   defstruct client_id: "NOT_SET", connection_status: :down, supervisor: nil
 
-  alias FarmbotExt.MQTT.{
+  alias FarmbotOS.MQTT.{
     PingHandler,
     RPCHandler,
     Support,
@@ -14,7 +14,7 @@ defmodule FarmbotExt.MQTT do
     TopicSupervisor
   }
 
-  alias FarmbotCore.Leds
+  alias FarmbotOS.Leds
 
   alias __MODULE__, as: State
 
