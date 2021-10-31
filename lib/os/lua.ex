@@ -102,7 +102,7 @@ defmodule FarmbotOS.Lua do
     |> set_table([:env], &DataManipulation.env/2)
     |> set_table([:fbos_version], &Info.fbos_version/2)
     |> set_table([:find_axis_length], &Firmware.calibrate/2)
-    |> set_table([:find_home], &Firmware.find_home/2)
+    |> set_table([:find_home], safe("find home", &Firmware.find_home/2))
     |> set_table([:firmware_version], &Info.firmware_version/2)
     |> set_table([:get_device], &DataManipulation.get_device/2)
     |> set_table([:get_fbos_config], &DataManipulation.get_fbos_config/2)
@@ -111,7 +111,7 @@ defmodule FarmbotOS.Lua do
       &DataManipulation.get_firmware_config/2
     )
     |> set_table([:get_position], &Firmware.get_position/2)
-    |> set_table([:go_to_home], &Firmware.go_to_home/2)
+    |> set_table([:go_to_home], safe("go to home", &Firmware.go_to_home/2))
     |> set_table([:http], &DataManipulation.http/2)
     |> set_table([:inspect], &DataManipulation.json_encode/2)
     |> set_table([:json], [
@@ -122,7 +122,10 @@ defmodule FarmbotOS.Lua do
       {:decode, &DataManipulation.b64_decode/2},
       {:encode, &DataManipulation.b64_encode/2}
     ])
-    |> set_table([:move_absolute], &Firmware.move_absolute/2)
+    |> set_table(
+      [:move_absolute],
+      safe("move device", &Firmware.move_absolute/2)
+    )
     |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
     |> set_table([:read_pin], &Firmware.read_pin/2)
     |> set_table([:read_status], &Info.read_status/2)
@@ -143,7 +146,7 @@ defmodule FarmbotOS.Lua do
       &DataManipulation.update_firmware_config/2
     )
     |> set_table([:wait], &Wait.wait/2)
-    |> set_table([:write_pin], &Firmware.write_pin/2)
+    |> set_table([:write_pin], safe("write pin", &Firmware.write_pin/2))
   end
 
   @spec set_table(t(), Path.t(), any()) :: t()
@@ -164,5 +167,17 @@ defmodule FarmbotOS.Lua do
 
     error, reason ->
       {{:error, {error, reason}}, lua}
+  end
+
+  # Wrap a function so that it cannot be called when device
+  # is locked.
+  def safe(action, fun) when is_function(fun, 2) do
+    fn args, lua ->
+      if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
+        {[nil, "Can't #{action} when locked."], :luerl.stop(lua)}
+      else
+        fun.(args, lua)
+      end
+    end
   end
 end
