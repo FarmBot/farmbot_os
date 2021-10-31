@@ -1,7 +1,6 @@
 defmodule FarmbotCore.BotState do
   @moduledoc "Central State accumulator."
   alias FarmbotCore.BotStateNG
-  alias FarmbotCore.BotState.JobProgress.Percent
 
   require Logger
   require FarmbotCore.Logger
@@ -103,12 +102,6 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:set_sync_status, s})
   end
 
-  @doc "sets informational_settings.update_available"
-  def set_update_available(bot_state_server \\ __MODULE__, bool)
-      when is_boolean(bool) do
-    GenServer.call(bot_state_server, {:set_update_available, bool})
-  end
-
   @doc "sets informational_settings.node_name"
   def set_node_name(bot_state_server \\ __MODULE__, node_name)
       when is_binary(node_name) do
@@ -118,10 +111,6 @@ defmodule FarmbotCore.BotState do
   @doc "sets informational_settings.private_ip"
   def set_private_ip(bot_state_server \\ __MODULE__, private_ip) do
     GenServer.call(bot_state_server, {:set_private_ip, private_ip})
-  end
-
-  def set_controller_uuid(bot_state_server \\ __MODULE__, uuid) do
-    GenServer.call(bot_state_server, {:set_controller_uuid, uuid})
   end
 
   @doc "Fetch the current state."
@@ -161,26 +150,6 @@ defmodule FarmbotCore.BotState do
     GenServer.call(bot_state_server, {:report_wifi_level_percent, percent})
   end
 
-  def report_farmware_installed(
-        bot_state_server \\ __MODULE__,
-        name,
-        %{} = manifest
-      ) do
-    GenServer.call(
-      bot_state_server,
-      {:report_farmware_installed, name, manifest}
-    )
-  end
-
-  @doc "Put FBOS into maintenance mode."
-  def enter_maintenance_mode(bot_state_server \\ __MODULE__) do
-    GenServer.call(bot_state_server, :enter_maintenance_mode)
-  end
-
-  def job_in_progress?(job_name, bot_state_server \\ __MODULE__) do
-    GenServer.call(bot_state_server, {:job_in_progress?, job_name})
-  end
-
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -189,13 +158,6 @@ defmodule FarmbotCore.BotState do
   @doc false
   def init([]) do
     {:ok, %{tree: BotStateNG.new(), subscribers: []}}
-  end
-
-  def handle_call({:job_in_progress?, job_name}, _from, state) do
-    progress = (state.tree.jobs[job_name] || %Percent{}).percent
-
-    in_progress? = progress > 0.0 && progress < 100.0
-    {:reply, in_progress?, state}
   end
 
   @doc false
@@ -333,13 +295,6 @@ defmodule FarmbotCore.BotState do
     {:reply, reply, state}
   end
 
-  def handle_call({:set_update_available, bool}, _from, state) do
-    change = %{informational_settings: %{update_available: bool}}
-
-    {reply, state} = get_reply_from_change(state, change)
-    {:reply, reply, state}
-  end
-
   def handle_call({:set_node_name, node_name}, _from, state) do
     change = %{informational_settings: %{node_name: node_name}}
 
@@ -349,13 +304,6 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:set_private_ip, private_ip}, _from, state) do
     change = %{informational_settings: %{private_ip: private_ip}}
-
-    {reply, state} = get_reply_from_change(state, change)
-    {:reply, reply, state}
-  end
-
-  def handle_call({:set_controller_uuid, controller_uuid}, _from, state) do
-    change = %{informational_settings: %{controller_uuid: controller_uuid}}
 
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
@@ -412,13 +360,6 @@ defmodule FarmbotCore.BotState do
 
   def handle_call({:report_wifi_level_percent, percent}, _form, state) do
     change = %{informational_settings: %{wifi_level_percent: percent}}
-
-    {reply, state} = get_reply_from_change(state, change)
-    {:reply, reply, state}
-  end
-
-  def handle_call(:enter_maintenance_mode, _form, state) do
-    change = %{informational_settings: %{sync_status: "maintenance"}}
 
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}

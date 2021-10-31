@@ -62,12 +62,6 @@ defmodule FarmbotExt.EagerLoader do
     |> GenServer.call({:get_cache, id})
   end
 
-  @doc "Don't use this in production"
-  def inspect_cache(module) do
-    pid(module)
-    |> GenServer.call(:get_cache)
-  end
-
   @doc """
   Cache a Changeset.
   This Changeset _must_ be complete. This includes:

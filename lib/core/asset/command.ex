@@ -195,14 +195,6 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  @doc "Returns a Ecto Changeset that can be cached or applied."
-  @callback new_changeset(kind, id, params) :: Ecto.Changeset.t()
-  def new_changeset(asset_kind, id, params) do
-    mod = as_module!(asset_kind)
-    asset = Repo.get_by(mod, id: id) || struct!(mod)
-    mod.changeset(asset, params)
-  end
-
   defp as_module!("Device"), do: Asset.Device
   defp as_module!("FarmEvent"), do: Asset.FarmEvent
   defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv

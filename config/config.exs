@@ -26,7 +26,6 @@ config :tesla, adapter: Tesla.Adapter.Hackney
   ],
   FarmbotCore.JSON => [json_parser: FarmbotCore.JSON.JasonParser],
   FarmbotCore.Leds => [gpio_handler: FarmbotCore.Leds.StubHandler],
-  FarmbotExt.API.Preloader => [preloader_impl: FarmbotExt.API.Preloader.HTTP],
   FarmbotExt.Time => [disable_timeouts: is_test?],
   FarmbotOS.Configurator => [
     network_layer: FarmbotOS.Configurator.FakeNetworkLayer

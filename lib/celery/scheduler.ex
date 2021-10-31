@@ -53,13 +53,6 @@ defmodule FarmbotCore.Celery.Scheduler do
 
   FarmbotCore.Logger.report_termination()
 
-  def register(sch \\ __MODULE__) do
-    state = :sys.get_state(sch)
-    {:ok, _} = Registry.register(state.registry_name, :dispatch, self())
-    dispatch(state)
-    :ok
-  end
-
   @doc """
   Schedule CeleryScript to execute whenever there is time for it.
   Calls are executed in a first in first out buffer, with things being added
@@ -80,13 +73,6 @@ defmodule FarmbotCore.Celery.Scheduler do
 
   def get_next(sch \\ __MODULE__) do
     GenServer.call(sch, :get_next)
-  end
-
-  def get_next_from_now(sch \\ __MODULE__) do
-    case get_next_at(sch) do
-      nil -> nil
-      at -> Timex.from_now(at)
-    end
   end
 
   def get_next_at(sch \\ __MODULE__) do

@@ -6,12 +6,6 @@ defmodule FarmbotCore.ChangeSupervisor do
   use Supervisor
   alias FarmbotCore.{Asset.Repo, AssetWorker}
 
-  @doc "List all children for an asset"
-  def list_children(kind) do
-    name = Module.concat(__MODULE__, kind)
-    Supervisor.which_children(name)
-  end
-
   @doc "looks up a pid for an asset"
   def whereis_child(%kind{local_id: id}) do
     :ok = Protocol.assert_impl!(AssetWorker, kind)

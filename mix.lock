@@ -52,6 +52,7 @@
   "mime": {:hex, :mime, "1.6.0", "dabde576a497cef4bbdd60aceee8160e02a6c89250d6c0b29e56c0dfb00db3d2", [:mix], [], "hexpm", "31a1a8613f8321143dde1dafc36006a17d28d02bdfecb9e95a880fa7aabd19a7"},
   "mimerl": {:hex, :mimerl, "1.2.0", "67e2d3f571088d5cfd3e550c383094b47159f3eee8ffa08e64106cdf5e981be3", [:rebar3], [], "hexpm", "f278585650aa581986264638ebf698f8bb19df297f66ad91b18910dfc6e19323"},
   "mimic": {:hex, :mimic, "1.5.1", "085f7ebfeb5b579a13a167aec3c712d71fecfc6cb8b298c0dd3056f97ea2c2a0", [:mix], [], "hexpm", "33a50ef9ff38f8f24b2586d52e529981a3ba2b8d061c872084aff0e993bf4bd5"},
+  "mix_unused": {:hex, :mix_unused, "0.3.0", "fc1dc0d0a677161b80a44fe6cea0e1169a8ed94553a082d916e97c36425a47d9", [:mix], [], "hexpm", "1ab9ea24ac8f150445f42a0b591c9b5835e92e284ab4a6dba58fe31b89ebbd65"},
   "mox": {:hex, :mox, "0.5.1", "f86bb36026aac1e6f924a4b6d024b05e9adbed5c63e8daa069bd66fb3292165b", [:mix], [], "hexpm"},
   "muontrap": {:hex, :muontrap, "0.6.1", "fa11dc9152470c4d0ce5a5fcb6524d8c1edc9bf6d63b3f6a89096f1e751ae271", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "86d1ef2fa0a30435a1d595e96f631ad4a24a931d8d855688e012fadd7147bd1d"},
   "nerves": {:hex, :nerves, "1.7.11", "67820b7055b541ce20f7bce40672a06268673ba8c47576a76e703d537a136a74", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "79535d00928c81a93ea5311497b00f0ca7bc0a8aa405134d16597a02b2616e89"},
