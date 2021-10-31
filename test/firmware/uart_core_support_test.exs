@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Firmware.UARTCoreSupportTest do
+defmodule FarmbotOS.Firmware.UARTCoreSupportTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Firmware.{
+  alias FarmbotOS.Firmware.{
     UARTCoreSupport,
     UARTCore
   }
 
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   test "connect/1" do
     expect(Circuits.UART, :start_link, 1, fn ->

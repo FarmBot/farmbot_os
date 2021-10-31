@@ -1,8 +1,8 @@
 # TODO: Delete this once FBOS 14.x reaches EOL.
 defmodule FarmbotOS.LegacyMigrator do
   import Ecto.Query
-  alias FarmbotCore.Config.NetworkInterface
-  alias FarmbotCore.Asset.Repo
+  alias FarmbotOS.Config.NetworkInterface
+  alias FarmbotOS.Asset.Repo
   require Logger
   @db_path "/root/config-prod.sqlite3"
   @done_flag "/root/v15_migration_done"
@@ -88,7 +88,7 @@ defmodule FarmbotOS.LegacyMigrator do
     end)
     |> Map.to_list()
     |> Enum.map(fn {key, value} ->
-      FarmbotCore.Config.update_config_value(
+      FarmbotOS.Config.update_config_value(
         :string,
         "authorization",
         key,

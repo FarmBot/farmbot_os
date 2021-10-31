@@ -2,13 +2,13 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
   @moduledoc false
 
   require Logger
-  require FarmbotCore.Logger
-  import FarmbotCore.Config, only: [get_config_value: 3, update_config_value: 4]
-  alias FarmbotExt.Bootstrap.Authorization
+  require FarmbotOS.Logger
+  import FarmbotOS.Config, only: [get_config_value: 3, update_config_value: 4]
+  alias FarmbotOS.Bootstrap.Authorization
 
   defmodule Support do
     def replace_credentials(email, secret, server) do
-      FarmbotCore.Logger.debug(3, "Replacing credentials")
+      FarmbotOS.Logger.debug(3, "Replacing credentials")
       update_config_value(:string, "authorization", "password", nil)
       update_config_value(:string, "authorization", "token", nil)
       update_config_value(:string, "authorization", "email", email)
@@ -36,7 +36,7 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
     case Authorization.authorize_with_secret(email, secret, server) do
       {:ok, _token} ->
         msg = "Farmbot is changing ownership to #{email} - #{server}"
-        FarmbotCore.Logger.warn(1, msg)
+        FarmbotOS.Logger.warn(1, msg)
 
         :ok = Support.replace_credentials(email, secret, server)
         :ok = Support.clean_assets()
@@ -44,7 +44,7 @@ defmodule FarmbotOS.SysCalls.ChangeOwnership do
         :ok
 
       {:error, _} ->
-        FarmbotCore.Logger.error(1, "Invalid credentials for change ownership")
+        FarmbotOS.Logger.error(1, "Invalid credentials for change ownership")
         {:error, "Invalid credentials for change ownership"}
     end
   end

@@ -1,5 +1,5 @@
-defmodule FarmbotCore.LogTest do
-  alias FarmbotCore.Log
+defmodule FarmbotOS.LogTest do
+  alias FarmbotOS.Log
   use ExUnit.Case
 
   test "to_chars" do

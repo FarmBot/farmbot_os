@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Asset.CommandTest do
+defmodule FarmbotOS.Asset.CommandTest do
   use ExUnit.Case
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     Asset,
     Asset.Device,
     Asset.FbosConfig,
@@ -11,16 +11,16 @@ defmodule FarmbotCore.Asset.CommandTest do
 
   def reset_configs!() do
     assets = [
-      FarmbotCore.Asset.Private.LocalMeta,
-      FarmbotCore.Asset.FbosConfig,
-      FarmbotCore.Asset.FirmwareConfig,
-      FarmbotCore.Asset.Sequence,
-      FarmbotCore.Asset.RegimenInstance,
-      FarmbotCore.Asset.Regimen,
-      FarmbotCore.Asset.FarmEvent
+      FarmbotOS.Asset.Private.LocalMeta,
+      FarmbotOS.Asset.FbosConfig,
+      FarmbotOS.Asset.FirmwareConfig,
+      FarmbotOS.Asset.Sequence,
+      FarmbotOS.Asset.RegimenInstance,
+      FarmbotOS.Asset.Regimen,
+      FarmbotOS.Asset.FarmEvent
     ]
 
-    Enum.map(assets, &FarmbotCore.Asset.Repo.delete_all/1)
+    Enum.map(assets, &FarmbotOS.Asset.Repo.delete_all/1)
   end
 
   test "update / destroy firmware config" do

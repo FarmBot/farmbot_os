@@ -1,8 +1,8 @@
-defmodule FarmbotExt.BotStateHandlerTest do
+defmodule FarmbotOS.BotStateHandlerTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.MQTT.BotStateHandler
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.MQTT.BotStateHandler
 
   import ExUnit.CaptureLog
 

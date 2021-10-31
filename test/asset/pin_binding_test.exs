@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset.PinBindingTest do
+defmodule FarmbotOS.Asset.PinBindingTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.PinBinding
+  alias FarmbotOS.Asset.PinBinding
 
   @expected_keys [:id, :pin_num, :sequence_id, :special_action]
 
   test "to_string" do
-    proto = String.Chars.FarmbotCore.Asset.PinBinding
+    proto = String.Chars.FarmbotOS.Asset.PinBinding
     pb1 = %PinBinding{special_action: "emergency_lock", pin_num: 16}
     assert proto.to_string(pb1) == "Button 1: E-Stop (Pi 16)"
     pb2 = %PinBinding{pin_num: 16}

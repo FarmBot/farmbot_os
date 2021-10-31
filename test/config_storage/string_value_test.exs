@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Config.StringValueTest do
+defmodule FarmbotOS.Config.StringValueTest do
   use ExUnit.Case
-  alias FarmbotCore.Config.StringValue
+  alias FarmbotOS.Config.StringValue
 
   test "changeset" do
     sv = %StringValue{value: "Foo"}

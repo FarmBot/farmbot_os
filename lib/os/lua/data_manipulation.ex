@@ -3,12 +3,12 @@ defmodule FarmbotOS.Lua.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  alias FarmbotCore.{Asset, JSON}
-  alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
+  alias FarmbotOS.{Asset, JSON}
+  alias FarmbotOS.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.HTTP
-  alias FarmbotCore.Celery.SpecialValue
+  alias FarmbotOS.Celery.SpecialValue
 
   @methods %{
     "connect" => :connect,

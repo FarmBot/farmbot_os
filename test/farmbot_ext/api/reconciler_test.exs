@@ -1,11 +1,11 @@
-defmodule FarmbotExt.API.ReconcilerTest do
+defmodule FarmbotOS.API.ReconcilerTest do
   require Helpers
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotExt.API.Reconciler
+  alias FarmbotOS.API.Reconciler
 
-  alias FarmbotExt.API
+  alias FarmbotOS.API
 
   setup :verify_on_exit!
 
@@ -26,22 +26,22 @@ defmodule FarmbotExt.API.ReconcilerTest do
       tools: []
     },
     errors: [],
-    data: %FarmbotCore.Asset.Sync{},
+    data: %FarmbotOS.Asset.Sync{},
     valid?: true
   }
 
   test "sync/0" do
-    FarmbotExt.API
+    FarmbotOS.API
 
     nope = fn -> [] end
-    expect(FarmbotExt.API.SyncGroup, :group_0, 1, nope)
-    expect(FarmbotExt.API.SyncGroup, :group_1, 1, nope)
-    expect(FarmbotExt.API.SyncGroup, :group_2, 1, nope)
-    expect(FarmbotExt.API.SyncGroup, :group_3, 1, nope)
-    expect(FarmbotExt.API.SyncGroup, :group_4, 1, nope)
+    expect(FarmbotOS.API.SyncGroup, :group_0, 1, nope)
+    expect(FarmbotOS.API.SyncGroup, :group_1, 1, nope)
+    expect(FarmbotOS.API.SyncGroup, :group_2, 1, nope)
+    expect(FarmbotOS.API.SyncGroup, :group_3, 1, nope)
+    expect(FarmbotOS.API.SyncGroup, :group_4, 1, nope)
 
     expect(API, :get_changeset, 1, fn mod ->
-      assert mod == FarmbotCore.Asset.Sync
+      assert mod == FarmbotOS.Asset.Sync
       {:ok, @fake_sync}
     end)
 

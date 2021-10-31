@@ -1,10 +1,10 @@
-defmodule FarmbotExt.APITest do
+defmodule FarmbotOS.APITest do
   use ExUnit.Case
   use Mimic
 
   setup :verify_on_exit!
 
-  alias FarmbotExt.{
+  alias FarmbotOS.{
     API,
     APIFetcher
   }
@@ -27,7 +27,7 @@ defmodule FarmbotExt.APITest do
       %{x: -50.0, y: -500.0, z: 200.0}
     ]
 
-    {:ok, results} = API.unwrap({:ok, fake_json}, %FarmbotCore.Asset.Point{})
+    {:ok, results} = API.unwrap({:ok, fake_json}, %FarmbotOS.Asset.Point{})
     [one, two] = results
     assert one.valid?
     assert two.valid?
@@ -38,7 +38,7 @@ defmodule FarmbotExt.APITest do
   test "unwrap - one" do
     fake_json = %{x: -50.0, y: -500.0, z: 200.0}
 
-    {:ok, one} = API.unwrap({:ok, fake_json}, %FarmbotCore.Asset.Point{})
+    {:ok, one} = API.unwrap({:ok, fake_json}, %FarmbotOS.Asset.Point{})
 
     assert one.valid?
     assert one.changes == fake_json
@@ -52,7 +52,7 @@ defmodule FarmbotExt.APITest do
   end
 
   test "get_changeset" do
-    resource = %FarmbotCore.Asset.Device{id: 15}
+    resource = %FarmbotOS.Asset.Device{id: 15}
     id = resource.id
     fake_changes = %{name: "Test Case"}
     expected_path = "/api/device/15.json"
@@ -66,13 +66,13 @@ defmodule FarmbotExt.APITest do
     fake_changes = %{name: "Test Case"}
     expected_path = "/api/device/15.json"
     stub_the_fetcher(expected_path, fake_changes)
-    {:ok, changeset} = API.get_changeset(FarmbotCore.Asset.Device, "15")
+    {:ok, changeset} = API.get_changeset(FarmbotOS.Asset.Device, "15")
     assert changeset.valid?
     assert changeset.changes == fake_changes
   end
 
   test "get_changeset - FirmwareConfig" do
-    resource = %FarmbotCore.Asset.FirmwareConfig{id: 15}
+    resource = %FarmbotOS.Asset.FirmwareConfig{id: 15}
     id = resource.id
     fake_changes = %{movement_timeout_y: 4.56}
     expected_path = "/api/firmware_config.json"
@@ -83,7 +83,7 @@ defmodule FarmbotExt.APITest do
   end
 
   test "get_changeset - FbosConfig" do
-    resource = %FarmbotCore.Asset.FbosConfig{id: 15}
+    resource = %FarmbotOS.Asset.FbosConfig{id: 15}
     id = resource.id
     fake_changes = %{firmware_path: "/dev/null"}
     expected_path = "/api/fbos_config.json"
@@ -94,23 +94,23 @@ defmodule FarmbotExt.APITest do
   end
 
   test "get_changeset - FirmwareConfig (Module only)" do
-    resource = %FarmbotCore.Asset.FirmwareConfig{id: 15}
+    resource = %FarmbotOS.Asset.FirmwareConfig{id: 15}
     id = resource.id
     fake_changes = %{pin_guard_5_active_state: 2.3}
     expected_path = "/api/firmware_config.json"
     stub_the_fetcher(expected_path, fake_changes)
-    {:ok, changeset} = API.get_changeset(FarmbotCore.Asset.FirmwareConfig, id)
+    {:ok, changeset} = API.get_changeset(FarmbotOS.Asset.FirmwareConfig, id)
     assert changeset.valid?
     assert changeset.changes == fake_changes
   end
 
   test "get_changeset - FbosConfig (Module only)" do
-    resource = %FarmbotCore.Asset.FbosConfig{id: 15}
+    resource = %FarmbotOS.Asset.FbosConfig{id: 15}
     id = resource.id
     fake_changes = %{firmware_path: "/dev/null"}
     expected_path = "/api/fbos_config.json"
     stub_the_fetcher(expected_path, fake_changes)
-    {:ok, changeset} = API.get_changeset(FarmbotCore.Asset.FbosConfig, id)
+    {:ok, changeset} = API.get_changeset(FarmbotOS.Asset.FbosConfig, id)
     assert changeset.valid?
     assert changeset.changes == fake_changes
   end

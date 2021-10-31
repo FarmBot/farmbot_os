@@ -3,7 +3,7 @@ defmodule FarmbotOS.SystemTest do
   use Mimic
 
   alias FarmbotOS.System
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
 
   require Helpers
   setup :verify_on_exit!

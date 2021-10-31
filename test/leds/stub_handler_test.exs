@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Leds.StubHandlerTest do
+defmodule FarmbotOS.Leds.StubHandlerTest do
   use ExUnit.Case
   @status [:fast_blink, :really_fast_blink, :slow_blink, :solid]
 
   def capture_led(color) do
     status = @status |> Enum.shuffle() |> Enum.at(0)
-    apply(FarmbotCore.Leds, color, [status])
+    apply(FarmbotOS.Leds, color, [status])
   end
 
   test "leds" do

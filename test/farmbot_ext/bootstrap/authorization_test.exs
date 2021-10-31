@@ -1,12 +1,12 @@
-defmodule FarmbotExt.Bootstrap.AuthorizationTest do
+defmodule FarmbotOS.Bootstrap.AuthorizationTest do
   require Helpers
 
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.JSON
-  alias FarmbotExt.Bootstrap.Authorization
-  alias FarmbotCore.JSON
+  alias FarmbotOS.JSON
+  alias FarmbotOS.Bootstrap.Authorization
+  alias FarmbotOS.JSON
 
   test "build_payload/1" do
     fake_secret =

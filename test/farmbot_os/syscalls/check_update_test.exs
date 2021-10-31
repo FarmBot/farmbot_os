@@ -9,7 +9,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdateTest do
   }
 
   test "terminate" do
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.message == "Upgrade halted: \"an error\""
     end)
 
@@ -52,7 +52,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdateTest do
       :ok
     end)
 
-    expect(FarmbotCore.Celery.SysCallGlue, :reboot, 1, fn ->
+    expect(FarmbotOS.Celery.SysCallGlue, :reboot, 1, fn ->
       :ok
     end)
 
@@ -86,7 +86,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdateTest do
       {:error, "a unit test"}
     end)
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.message == "Upgrade halted: \"a unit test\""
     end)
 

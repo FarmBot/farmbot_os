@@ -1,6 +1,6 @@
-defmodule FarmbotExt.JWTTest do
+defmodule FarmbotOS.JWTTest do
   use ExUnit.Case
-  alias FarmbotExt.JWT
+  alias FarmbotOS.JWT
 
   test "decode! (error)" do
     boom = fn -> JWT.decode!("{}.{}.{}") end

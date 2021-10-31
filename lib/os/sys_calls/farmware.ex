@@ -1,14 +1,14 @@
 defmodule FarmbotOS.SysCalls.Farmware do
   @moduledoc false
 
-  require FarmbotCore.Logger
-  alias FarmbotCore.FarmwareRuntime
-  alias FarmbotExt.API.ImageUploader
+  require FarmbotOS.Logger
+  alias FarmbotOS.FarmwareRuntime
+  alias FarmbotOS.API.ImageUploader
   @farmware_timeout 1_200_000
 
   # Entry point to starting a farmware
   def execute_script(farmware_name, env) do
-    fs = FarmbotCore.BotState.FileSystem
+    fs = FarmbotOS.BotState.FileSystem
     if Process.whereis(fs), do: send(fs, :timeout)
 
     with {:ok, runtime} <- FarmwareRuntime.start_link(farmware_name, env),
@@ -39,7 +39,7 @@ defmodule FarmbotOS.SysCalls.Farmware do
     runtime = inspect(farmware_runtime)
     msg = "Farmware did not exit after #{time} minutes. Terminating #{runtime}"
 
-    FarmbotCore.Logger.info(2, msg)
+    FarmbotOS.Logger.info(2, msg)
     FarmwareRuntime.stop(farmware_runtime)
     :ok
   end

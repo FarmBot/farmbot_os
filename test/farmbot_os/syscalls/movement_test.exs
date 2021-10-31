@@ -3,7 +3,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.Movement
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
 
   test "home/1" do
     expect(Command, :go_home, 2, fn
@@ -54,7 +54,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
 
     expect(Command, :move_abs, 1, fn _ -> msg end)
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.message == formatted_msg
     end)
 
@@ -67,7 +67,7 @@ defmodule FarmbotOS.SysCalls.MovementTest do
     msg = "boom"
     formatted_msg = "Movement failed. " <> inspect(msg)
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.message == formatted_msg
     end)
 
@@ -107,8 +107,8 @@ defmodule FarmbotOS.SysCalls.MovementTest do
   end
 
   test "get_cached_(x|y|z)" do
-    expect(FarmbotCore.BotState, :fetch, 3, fn ->
-      %FarmbotCore.BotStateNG{
+    expect(FarmbotOS.BotState, :fetch, 3, fn ->
+      %FarmbotOS.BotStateNG{
         location_data: %{
           position: %{
             x: 1,

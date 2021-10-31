@@ -1,7 +1,7 @@
-defmodule FarmbotCore.FarmwareRuntimeTest do
+defmodule FarmbotOS.FarmwareRuntimeTest do
   use ExUnit.Case
   import ExUnit.CaptureLog
-  alias FarmbotCore.FarmwareRuntime
+  alias FarmbotOS.FarmwareRuntime
 
   test "init" do
     t = fn ->
@@ -41,7 +41,7 @@ defmodule FarmbotCore.FarmwareRuntimeTest do
   end
 
   test "logger related helpers" do
-    l = FarmbotCore.FarmwareLogger.new("test case")
+    l = FarmbotOS.FarmwareLogger.new("test case")
     {logger, fun} = Collectable.into(l)
     assert l == logger
     assert is_function(fun)

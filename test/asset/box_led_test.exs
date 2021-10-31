@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.BoxLedTest do
+defmodule FarmbotOS.Asset.BoxLedTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.BoxLed
+  alias FarmbotOS.Asset.BoxLed
 
   test "to_string" do
     assert "BoxLed 23" == to_string(%BoxLed{id: 23})

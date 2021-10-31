@@ -1,8 +1,8 @@
-defmodule FarmbotExt.TerminalHandlerTest do
+defmodule FarmbotOS.TerminalHandlerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotExt.MQTT.{
+  alias FarmbotOS.MQTT.{
     TerminalHandler,
     TerminalHandlerSupport
   }

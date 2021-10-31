@@ -1,8 +1,8 @@
-defmodule FarmbotExt.SyncHandlerTest do
+defmodule FarmbotOS.SyncHandlerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotExt.MQTT.{
+  alias FarmbotOS.MQTT.{
     SyncHandler,
     SyncHandlerSupport
   }

@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.FarmEventTest do
+defmodule FarmbotOS.Asset.FarmEventTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.FarmEvent
+  alias FarmbotOS.Asset.FarmEvent
 
   @expected_keys [
     :id,

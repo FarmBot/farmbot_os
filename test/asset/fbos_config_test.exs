@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.FbosConfigTest do
+defmodule FarmbotOS.Asset.FbosConfigTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.FbosConfig
+  alias FarmbotOS.Asset.FbosConfig
 
   @expected_keys [
     :id,

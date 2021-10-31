@@ -2,8 +2,8 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
-  alias FarmbotCore.Asset.Peripheral
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Asset.Peripheral
+  alias FarmbotOS.Firmware.Command
 
   @digital 0
 
@@ -23,7 +23,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
 
   @tag :capture_log
   test "toggle_pin, 1 => 0" do
-    expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn pin ->
+    expect(FarmbotOS.Asset, :get_peripheral_by_pin, 1, fn pin ->
       assert pin == 12
       nil
     end)
@@ -50,7 +50,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
 
   @tag :capture_log
   test "toggle_pin, 0 => 1" do
-    expect(FarmbotCore.Asset, :get_peripheral_by_pin, 1, fn 12 ->
+    expect(FarmbotOS.Asset, :get_peripheral_by_pin, 1, fn 12 ->
       nil
     end)
 
@@ -93,8 +93,8 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   end
 
   test "read_cached_pin" do
-    expect(FarmbotCore.BotState, :fetch, 1, fn ->
-      %FarmbotCore.BotStateNG{pins: %{4 => %{value: 6}}}
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
+      %FarmbotOS.BotStateNG{pins: %{4 => %{value: 6}}}
     end)
 
     assert 6 == FarmbotOS.SysCalls.read_cached_pin(4)

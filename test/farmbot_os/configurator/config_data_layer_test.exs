@@ -67,7 +67,7 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
       type: "wired"
     }
 
-    FarmbotCore.Config
+    FarmbotOS.Config
     |> expect(:input_network_config!, 1, fn network_params ->
       assert expected == network_params
     end)

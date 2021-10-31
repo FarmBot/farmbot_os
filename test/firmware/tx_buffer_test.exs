@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Firmware.TxBufferTest do
+defmodule FarmbotOS.Firmware.TxBufferTest do
   use ExUnit.Case
   use Mimic
 
   import ExUnit.CaptureLog
 
-  alias FarmbotCore.Firmware.TxBuffer
-  alias FarmbotCore.Firmware.GCode
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  doctest FarmbotCore.Firmware.TxBuffer, import: true
+  alias FarmbotOS.Firmware.TxBuffer
+  alias FarmbotOS.Firmware.GCode
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
+  doctest FarmbotOS.Firmware.TxBuffer, import: true
 
   @fake_buffer1 TxBuffer.new()
                 |> TxBuffer.push(nil, GCode.new(:A, []))

@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.PublicKeyTest do
+defmodule FarmbotOS.Asset.PublicKeyTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.PublicKey
+  alias FarmbotOS.Asset.PublicKey
 
   @expected_keys [:id, :name, :public_key]
 

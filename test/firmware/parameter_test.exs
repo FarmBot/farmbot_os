@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.ParameterTest do
+defmodule FarmbotOS.Firmware.ParameterTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.Parameter
+  alias FarmbotOS.Firmware.Parameter
 
   @how_many_params_there_are 113
 

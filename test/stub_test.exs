@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Celery.SysCallGlue.StubsTest do
+defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
   use ExUnit.Case
-  alias FarmbotCore.Celery.SysCallGlue.Stubs
+  alias FarmbotOS.Celery.SysCallGlue.Stubs
 
   test "various stubs" do
     # This test is to:

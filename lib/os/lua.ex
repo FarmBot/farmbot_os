@@ -6,7 +6,7 @@ defmodule FarmbotOS.Lua do
 
   @type t() :: tuple()
   @type table() :: [{any, any}]
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
 
   alias FarmbotOS.Lua.{
@@ -20,7 +20,7 @@ defmodule FarmbotOS.Lua do
   @doc "Logs an assertion based on it's result"
   def log_assertion(passed?, type, message) do
     meta = [assertion_passed: passed?, assertion_type: type]
-    FarmbotCore.Logger.dispatch_log(:assertion, 2, message, meta)
+    FarmbotOS.Logger.dispatch_log(:assertion, 2, message, meta)
   end
 
   # HACK: Provide an implicit "return", since many users
@@ -62,7 +62,7 @@ defmodule FarmbotOS.Lua do
         {:error, "lua runtime error evaluating expression: #{inspect(error)}"}
 
       {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           """
           Failed to parse expression:
@@ -133,8 +133,8 @@ defmodule FarmbotOS.Lua do
     |> set_table([:take_photo], &DataManipulation.take_photo/2)
     |> set_table([:take_photo_raw], &DataManipulation.take_photo_raw/2)
     |> set_table([:uart], [
-      {:open, &FarmbotCore.Firmware.LuaUART.open/2},
-      {:list, &FarmbotCore.Firmware.LuaUART.list/2}
+      {:open, &FarmbotOS.Firmware.LuaUART.open/2},
+      {:list, &FarmbotOS.Firmware.LuaUART.list/2}
     ])
     |> set_table([:update_device], &DataManipulation.update_device/2)
     |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
