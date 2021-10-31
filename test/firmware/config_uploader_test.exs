@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Firmware.ConfigUploaderTest do
+defmodule FarmbotOS.Firmware.ConfigUploaderTest do
   use ExUnit.Case
   use Mimic
 
   require Helpers
 
-  alias FarmbotCore.Firmware.{
+  alias FarmbotOS.Firmware.{
     ConfigUploader,
     UARTCore,
     GCode
@@ -19,7 +19,7 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
   @state %UARTCore{}
 
   test "refresh/2" do
-    expected = %FarmbotCore.Firmware.TxBuffer{
+    expected = %FarmbotOS.Firmware.TxBuffer{
       autoinc: 2,
       current: nil,
       queue: [
@@ -35,7 +35,7 @@ defmodule FarmbotCore.Firmware.ConfigUploaderTest do
       "Updating firmware parameters: [:movement_stop_at_home_z]"
     )
 
-    expect(FarmbotCore.Asset, :firmware_config, 1, fn ->
+    expect(FarmbotOS.Asset, :firmware_config, 1, fn ->
       %{movement_stop_at_home_z: 1.23}
     end)
 

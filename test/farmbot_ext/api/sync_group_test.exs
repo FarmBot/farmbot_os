@@ -1,23 +1,23 @@
-defmodule FarmbotExt.API.SyncGroupTest do
+defmodule FarmbotOS.API.SyncGroupTest do
   require Helpers
   use ExUnit.Case
-  alias FarmbotExt.API.SyncGroup
+  alias FarmbotOS.API.SyncGroup
 
   @all [
-    FarmbotCore.Asset.Device,
-    FarmbotCore.Asset.FbosConfig,
-    FarmbotCore.Asset.FirmwareConfig,
-    FarmbotCore.Asset.FarmwareEnv,
-    FarmbotCore.Asset.Peripheral,
-    FarmbotCore.Asset.Point,
-    FarmbotCore.Asset.SensorReading,
-    FarmbotCore.Asset.Sensor,
-    FarmbotCore.Asset.Tool,
-    FarmbotCore.Asset.Sequence,
-    FarmbotCore.Asset.PointGroup,
-    FarmbotCore.Asset.Regimen,
-    FarmbotCore.Asset.PinBinding,
-    FarmbotCore.Asset.FarmEvent
+    FarmbotOS.Asset.Device,
+    FarmbotOS.Asset.FbosConfig,
+    FarmbotOS.Asset.FirmwareConfig,
+    FarmbotOS.Asset.FarmwareEnv,
+    FarmbotOS.Asset.Peripheral,
+    FarmbotOS.Asset.Point,
+    FarmbotOS.Asset.SensorReading,
+    FarmbotOS.Asset.Sensor,
+    FarmbotOS.Asset.Tool,
+    FarmbotOS.Asset.Sequence,
+    FarmbotOS.Asset.PointGroup,
+    FarmbotOS.Asset.Regimen,
+    FarmbotOS.Asset.PinBinding,
+    FarmbotOS.Asset.FarmEvent
   ]
   test "all_groups" do
     assert SyncGroup.all_groups() == @all

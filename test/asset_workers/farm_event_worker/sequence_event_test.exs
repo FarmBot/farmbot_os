@@ -1,9 +1,9 @@
-defmodule FarmbotCore.FarmEventWorker.SequenceTest do
+defmodule FarmbotOS.FarmEventWorker.SequenceTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.FarmEventWorker.SequenceEvent
-  alias FarmbotCore.Asset
+  alias FarmbotOS.FarmEventWorker.SequenceEvent
+  alias FarmbotOS.Asset
 
   test "init/1" do
     arry = [:farm_event, :args]
@@ -14,7 +14,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceTest do
   test "handle_info(:schedule, state)" do
     state = %{
       args: [],
-      farm_event: %FarmbotCore.Asset.FarmEvent{
+      farm_event: %FarmbotOS.Asset.FarmEvent{
         body: [],
         created_at: ~U[2021-10-08 21:28:19.200000Z],
         end_time: ~U[2051-10-09 22:30:00.000000Z],
@@ -33,8 +33,8 @@ defmodule FarmbotCore.FarmEventWorker.SequenceTest do
       timesync_waits: 0
     }
 
-    expect(FarmbotCore.Celery, :schedule, 25, fn celery_ast, _at, farm_event ->
-      assert %FarmbotCore.Celery.AST{} = celery_ast
+    expect(FarmbotOS.Celery, :schedule, 25, fn celery_ast, _at, farm_event ->
+      assert %FarmbotOS.Celery.AST{} = celery_ast
       assert state.farm_event.id == farm_event.id
       :ok
     end)

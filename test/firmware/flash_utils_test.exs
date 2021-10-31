@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.FlashUtilsTest do
+defmodule FarmbotOS.Firmware.FlashUtilsTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.FlashUtils
+  alias FarmbotOS.Firmware.FlashUtils
 
   test "find_hex_file/1" do
     %{

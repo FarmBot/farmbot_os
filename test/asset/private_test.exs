@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Asset.PrivateTest do
+defmodule FarmbotOS.Asset.PrivateTest do
   use ExUnit.Case
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     FbosConfig,
     FirmwareConfig,
     Point,
@@ -69,7 +69,7 @@ defmodule FarmbotCore.Asset.PrivateTest do
   end
 
   test "Private.any_stale?() returns false when there are not stale records" do
-    Repo.delete_all(FarmbotCore.Asset.Private.LocalMeta)
+    Repo.delete_all(FarmbotOS.Asset.Private.LocalMeta)
     refute Private.any_stale?()
   end
 end

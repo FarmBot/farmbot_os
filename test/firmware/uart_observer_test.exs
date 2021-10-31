@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Firmware.UARTObserverTest do
+defmodule FarmbotOS.Firmware.UARTObserverTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FirmwareConfig
-  alias FarmbotCore.Firmware.UARTCore
-  alias FarmbotCore.Firmware.UARTObserver
+  alias FarmbotOS.AssetWorker.FarmbotOS.Asset.FirmwareConfig
+  alias FarmbotOS.Firmware.UARTCore
+  alias FarmbotOS.Firmware.UARTObserver
 
   test "data_available/2" do
     parent_pid = self()
@@ -33,11 +33,11 @@ defmodule FarmbotCore.Firmware.UARTObserverTest do
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :fetch, 1, fn ->
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
       %{mcu_params: %{movement_axis_nr_steps_z: 100.0}}
     end)
 
-    expect(FarmbotCore.Asset, :firmware_config, 1, fn ->
+    expect(FarmbotOS.Asset, :firmware_config, 1, fn ->
       %{movement_axis_nr_steps_z: 200.0}
     end)
 
@@ -49,16 +49,16 @@ defmodule FarmbotCore.Firmware.UARTObserverTest do
   test ":connect_uart" do
     me = self()
 
-    expect(FarmbotCore.Firmware.UARTCore, :start_link, 1, fn opts ->
+    expect(FarmbotOS.Firmware.UARTCore, :start_link, 1, fn opts ->
       assert opts == [path: "path", fw_type: "package"]
       {:ok, me}
     end)
 
-    expect(FarmbotCore.Firmware.UARTDetector, :run, 1, fn ->
+    expect(FarmbotOS.Firmware.UARTDetector, :run, 1, fn ->
       {"package", "path"}
     end)
 
-    expect(FarmbotCore.Firmware.UARTCoreSupport, :recent_boot?, 1, fn ->
+    expect(FarmbotOS.Firmware.UARTCoreSupport, :recent_boot?, 1, fn ->
       false
     end)
 

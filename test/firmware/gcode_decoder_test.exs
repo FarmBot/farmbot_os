@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.GCodeDecoderTest do
+defmodule FarmbotOS.Firmware.GCodeDecoderTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.GCodeDecoder
+  alias FarmbotOS.Firmware.GCodeDecoder
 
   @fake_txt [
     "R00 Q0",

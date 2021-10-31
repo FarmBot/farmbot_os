@@ -1,12 +1,12 @@
-defmodule FarmbotCore.RegimenInstanceAssetWorkerTest do
+defmodule FarmbotOS.RegimenInstanceAssetWorkerTest do
   use ExUnit.Case
-  alias FarmbotCore.{AssetWorker}
+  alias FarmbotOS.{AssetWorker}
   alias Farmbot.TestSupport.AssetFixtures
   use Mimic
 
   describe "regimen instance worker" do
     test "schedules sequence" do
-      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
+      FarmbotOS.Asset.update_device!(%{timezone: "America/Chicago"})
       seq = AssetFixtures.sequence()
 
       regimen_instance =
@@ -20,7 +20,7 @@ defmodule FarmbotCore.RegimenInstanceAssetWorkerTest do
       state = %{regimen_instance: regimen_instance}
       result = GenServer.cast(pid, {:schedule, state})
       assert :ok == result
-      # expect(FarmbotCore.Celery, :schedule, 1, fn _ast, _at, _data -> 1 end)
+      # expect(FarmbotOS.Celery, :schedule, 1, fn _ast, _at, _data -> 1 end)
     end
   end
 end

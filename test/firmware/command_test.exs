@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Firmware.CommandTest do
+defmodule FarmbotOS.Firmware.CommandTest do
   require Helpers
   use ExUnit.Case
   use Mimic
-  alias FarmbotCore.Firmware.{Command, UARTCore}
-  alias FarmbotCore.BotState
+  alias FarmbotOS.Firmware.{Command, UARTCore}
+  alias FarmbotOS.BotState
 
   setup :verify_on_exit!
 
@@ -38,7 +38,7 @@ defmodule FarmbotCore.Firmware.CommandTest do
       {:ok, :not_really_used_just_stubbed}
     end)
 
-    expect(FarmbotCore.BotState, :fetch, 1, fn ->
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
       %{pins: %{13 => %{value: 1.0}}}
     end)
 

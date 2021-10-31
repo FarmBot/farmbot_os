@@ -1,7 +1,7 @@
-defmodule FarmbotCore.BotStateTest do
+defmodule FarmbotOS.BotStateTest do
   use ExUnit.Case
-  alias FarmbotCore.BotState
-  alias FarmbotCore.BotState.JobProgress.Percent
+  alias FarmbotOS.BotState
+  alias FarmbotOS.BotState.JobProgress.Percent
 
   describe "bot state pub/sub" do
     test "subscribes to bot state updates" do

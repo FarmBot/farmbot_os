@@ -5,7 +5,7 @@ defmodule FarmbotOS.SysCalls.SetPinIOModeTest do
   setup :verify_on_exit!
 
   alias FarmbotOS.SysCalls.SetPinIOMode
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
 
   test "set_pin_io_mode error handler" do
     real_reason = {:error, "a unit test"}

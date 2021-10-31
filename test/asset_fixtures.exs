@@ -1,5 +1,5 @@
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     Regimen,

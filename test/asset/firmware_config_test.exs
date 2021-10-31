@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.FirmwareConfigTest do
+defmodule FarmbotOS.Asset.FirmwareConfigTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.FirmwareConfig
+  alias FarmbotOS.Asset.FirmwareConfig
 
   @keys [
     :encoder_enabled_x,

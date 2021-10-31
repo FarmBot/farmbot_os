@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.FarmEvent.CalendarTest do
+defmodule FarmbotOS.Asset.FarmEvent.CalendarTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.FarmEvent.Calendar
+  alias FarmbotOS.Asset.FarmEvent.Calendar
 
   describe "calendar" do
     test "skips the grace period" do

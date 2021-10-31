@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Firmware.ErrorDetectorTest do
+defmodule FarmbotOS.Firmware.ErrorDetectorTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Firmware.ErrorDetector
+  alias FarmbotOS.Firmware.ErrorDetector
 
   setup :verify_on_exit!
 

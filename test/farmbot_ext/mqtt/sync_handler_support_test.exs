@@ -1,12 +1,12 @@
-defmodule FarmbotExt.SyncHandlerSupportTest do
+defmodule FarmbotOS.SyncHandlerSupportTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotExt.MQTT.SyncHandlerSupport, as: Support
-  alias FarmbotExt.MQTT.SyncHandler, as: State
-  alias FarmbotCore.{BotState, JSON, Leds, Asset}
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.EagerLoader
+  alias FarmbotOS.MQTT.SyncHandlerSupport, as: Support
+  alias FarmbotOS.MQTT.SyncHandler, as: State
+  alias FarmbotOS.{BotState, JSON, Leds, Asset}
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.EagerLoader
 
   @fake_state %State{
     client_id: "fboslol",
@@ -78,7 +78,7 @@ defmodule FarmbotExt.SyncHandlerSupportTest do
       _ -> raise "Sync status is wrong"
     end)
 
-    expect(FarmbotExt.Time, :send_after, 1, fn pid, msg, timeout ->
+    expect(FarmbotOS.Time, :send_after, 1, fn pid, msg, timeout ->
       assert pid == self()
       assert msg == :preload
       assert timeout == 5000

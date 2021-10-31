@@ -120,8 +120,7 @@ defmodule FarmbotOS.Celery.Compiler.If do
     #    nothing()
     # end
     quote location: :keep do
-      prefix_string =
-        FarmbotOS.Celery.SysCallGlue.format_lhs(unquote(lhs_ast))
+      prefix_string = FarmbotOS.Celery.SysCallGlue.format_lhs(unquote(lhs_ast))
 
       # examples:
       # "current x position is 100"

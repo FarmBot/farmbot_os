@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.FloatingPointTest do
+defmodule FarmbotOS.Firmware.FloatingPointTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.FloatingPoint
+  alias FarmbotOS.Firmware.FloatingPoint
 
   @arbitrary_precision [
     {"1741.15", 1741.1474},
