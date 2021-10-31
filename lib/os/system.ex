@@ -27,14 +27,6 @@ defmodule FarmbotOS.System do
     _ = Application.ensure_all_started(:farmbot)
   end
 
-  @doc "Reads the last shutdown is there was one."
-  def last_shutdown_reason do
-    case File.read(FarmbotOS.FileSystem.shutdown_reason_path()) do
-      {:ok, data} -> data
-      _ -> nil
-    end
-  end
-
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(any) :: no_return
   def factory_reset(reason, _ \\ nil) do

@@ -31,27 +31,11 @@ defmodule FarmbotCore.AssetMonitor do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  # This is helpful for tests, but should probably be avoided
-  @doc false
-  def force_checkup do
-    GenServer.call(__MODULE__, :force_checkup, :infinity)
-  end
-
   def init(_args) do
     state = Map.new(order(), fn module -> {module, %{}} end)
     state = Map.put(state, :order, order())
     state = Map.put(state, :force_callers, [])
     {:ok, state, 0}
-  end
-
-  def handle_call(:force_checkup, caller, state) do
-    state = %{
-      state
-      | force_callers: state.force_callers ++ [caller],
-        order: order()
-    }
-
-    {:noreply, state, 0}
   end
 
   def handle_info(:timeout, %{order: []} = state) do

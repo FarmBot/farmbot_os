@@ -33,31 +33,4 @@ defmodule FarmbotCore.BotState.JobProgress do
             time: DateTime.t()
           }
   end
-
-  defmodule Bytes do
-    @moduledoc "Bytes job."
-    defstruct status: "working",
-              bytes: 0,
-              unit: "bytes",
-              type: "ota",
-              time: nil,
-              file_type: nil
-
-    defimpl Inspect, for: __MODULE__ do
-      def inspect(%{bytes: bytes}, _) do
-        "#bytes<#{bytes}>"
-      end
-    end
-
-    @type t :: %__MODULE__{
-            status: JobProgress.status(),
-            bytes: integer,
-            unit: JobProgress.unit(),
-            type: String.t(),
-            file_type: binary(),
-            time: DateTime.t()
-          }
-  end
-
-  @type t :: Bytes.t() | Percent.t()
 end

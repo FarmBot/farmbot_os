@@ -13,7 +13,6 @@ defmodule FarmbotCore.Asset do
     FbosConfig,
     FirmwareConfig,
     Peripheral,
-    PinBinding,
     Point,
     PointGroup,
     PublicKey,
@@ -240,15 +239,6 @@ defmodule FarmbotCore.Asset do
 
   ## End RegimenInstance
 
-  ## Begin PinBinding
-
-  @doc "Lists all available pin bindings"
-  def list_pin_bindings do
-    Repo.all(PinBinding)
-  end
-
-  ## End PinBinding
-
   ## Begin Point
 
   def get_point(params) do
@@ -280,10 +270,10 @@ defmodule FarmbotCore.Asset do
   end
 
   @doc "Returns all points matching Point.pointer_type"
-  def get_all_points_by_type(type, order_by \\ "random") do
+  def get_all_points_by_type(type) do
     from(p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
     |> Repo.all()
-    |> sort_points(order_by)
+    |> sort_points("random")
   end
 
   def sort_points(points, order_by) do
@@ -494,21 +484,6 @@ defmodule FarmbotCore.Asset do
 
   def delete_public_key!(public_key) do
     Repo.delete!(public_key)
-  end
-
-  def new_public_key_from_home!() do
-    public_key_path = Path.join([System.get_env("HOME"), ".ssh", "id_rsa.pub"])
-    public_key = File.read!(public_key_path)
-
-    %PublicKey{}
-    |> PublicKey.changeset(%{public_key: public_key})
-    |> Repo.insert()
-  end
-
-  def new_public_key_from_string!(public_key) do
-    %PublicKey{}
-    |> PublicKey.changeset(%{public_key: public_key})
-    |> Repo.insert()
   end
 
   ## End PublicKey
