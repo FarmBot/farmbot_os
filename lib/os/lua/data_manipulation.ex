@@ -88,14 +88,6 @@ defmodule FarmbotOS.Lua.DataManipulation do
     end
   end
 
-  def take_photo(_, lua) do
-    case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", %{}) do
-      {:error, reason} -> {[reason], lua}
-      :ok -> {[], lua}
-      other -> {[inspect(other)], lua}
-    end
-  end
-
   def update_device([table], lua) do
     params = Map.new(table)
     _ = ResourceUpdate.update_resource("Device", nil, params)
