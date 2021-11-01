@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Celery.LuaTest do
+defmodule FarmbotOS.Celery.LuaTest do
   use ExUnit.Case
-  alias FarmbotCore.Celery.Compiler.Lua
-  alias FarmbotCore.Celery.Compiler.Scope
+  alias FarmbotOS.Celery.Compiler.Lua
+  alias FarmbotOS.Celery.Compiler.Scope
 
   test "variable lookup" do
     variable = %{"x" => 1000}

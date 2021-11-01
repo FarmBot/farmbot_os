@@ -13,7 +13,7 @@ defmodule FarmbotOS.EctoMigrator do
 
   @doc "Replacement for Mix.Tasks.Ecto.Migrate"
   def migrate do
-    repo = FarmbotCore.Asset.Repo
+    repo = FarmbotOS.Asset.Repo
     migration_path = Path.join([:code.priv_dir(:farmbot), "repo", "migrations"])
     _ = Ecto.Migrator.run(repo, migration_path, :up, all: true)
     Process.sleep(5000)

@@ -1,5 +1,5 @@
-# FarmbotExt.Time.no_reply()
-defmodule FarmbotExt.Time do
+# FarmbotOS.Time.no_reply()
+defmodule FarmbotOS.Time do
   @conf Application.get_env(:farmbot, __MODULE__) || []
   @disabled Keyword.get(@conf, :disable_timeouts, false)
 

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.TxBuffer do
+defmodule FarmbotOS.Firmware.TxBuffer do
   @moduledoc """
   This is a data structure that manages a single "leg" of the
   UARTCore state tree. As the name suggests, it handles
@@ -6,8 +6,8 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   """
 
   alias __MODULE__, as: State
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.Firmware.{GCode, ErrorDetector}
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotOS.Firmware.{GCode, ErrorDetector}
   # List of IDs that need to be processed (FIFO)
   defstruct queue: [],
             # Last `Q` param that was sent to MCU.
@@ -16,7 +16,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
             current: nil
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   def new() do
     %State{}
@@ -25,15 +25,15 @@ defmodule FarmbotCore.Firmware.TxBuffer do
   @doc ~S"""
   Append a GCode line to the TxBufer.
 
-  iex> push(new(), nil, FarmbotCore.Firmware.GCode.new("E", []))
-  %FarmbotCore.Firmware.TxBuffer{
+  iex> push(new(), nil, FarmbotOS.Firmware.GCode.new("E", []))
+  %FarmbotOS.Firmware.TxBuffer{
     current: nil,
     autoinc: 2,
     queue: [
       %{
         id: 2,
         caller: nil,
-        gcode: %FarmbotCore.Firmware.GCode{
+        gcode: %FarmbotOS.Firmware.GCode{
           command: "E",
           echo: nil,
           params: [],
@@ -88,7 +88,7 @@ defmodule FarmbotCore.Firmware.TxBuffer do
     msg = ErrorDetector.detect(error_code)
 
     if msg do
-      FarmbotCore.Logger.error(1, msg)
+      FarmbotOS.Logger.error(1, msg)
     end
 
     reply(state, queue, {:error, nil})

@@ -1,14 +1,14 @@
-defmodule FarmbotExt.MQTT.RPCHandler do
+defmodule FarmbotOS.MQTT.RPCHandler do
   use GenServer
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.JSON
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.Time
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.JSON
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.Time
   alias __MODULE__, as: State
 
   @timeoutmsg {:csvm_done, {:error, "timeout"}}
@@ -32,7 +32,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
     ast = JSON.decode!(payload) |> AST.decode()
     channel_pid = self()
     ref = make_ref()
-    _pid = spawn(fn -> FarmbotCore.Celery.execute(ast, ref, channel_pid) end)
+    _pid = spawn(fn -> FarmbotOS.Celery.execute(ast, ref, channel_pid) end)
     timeout = ast.args[:timeout] || 0
     has_timer? = timeout > 0
     timer = if has_timer?, do: Time.send_after(self(), @timeoutmsg, timeout)
@@ -51,7 +51,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        FarmbotExt.Time.cancel_timer(timer)
+        FarmbotOS.Time.cancel_timer(timer)
         result_ast = %{kind: :rpc_ok, args: %{label: label}}
         send_reply(state, JSON.encode!(result_ast))
         {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
@@ -66,7 +66,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
 
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
-        FarmbotExt.Time.cancel_timer(timer)
+        FarmbotOS.Time.cancel_timer(timer)
 
         result_ast = %{
           kind: :rpc_error,
@@ -79,7 +79,7 @@ defmodule FarmbotExt.MQTT.RPCHandler do
         }
 
         send_reply(state, JSON.encode!(result_ast))
-        FarmbotCore.Logger.error(2, "Failed to execute command: #{reason}")
+        FarmbotOS.Logger.error(2, "Failed to execute command: #{reason}")
         {:noreply, %{state | rpc_requests: Map.delete(state.rpc_requests, ref)}}
 
       _ ->

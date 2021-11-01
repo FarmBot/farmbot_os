@@ -1,4 +1,4 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.PinBinding do
   @moduledoc """
   Worker for monitoring hardware GPIO. (not related to the mcu firmware.)
 
@@ -11,15 +11,15 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
 
   use GenServer
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     Asset.PinBinding,
     Asset.Sequence,
     Asset
   }
 
-  alias FarmbotCore.Celery.AST
+  alias FarmbotOS.Celery.AST
 
   @error_retry_time_ms 5000
 
@@ -71,7 +71,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
       ) do
     case Asset.get_sequence(pin_binding.sequence_id) do
       %Sequence{name: name} = seq ->
-        FarmbotCore.Logger.info(
+        FarmbotOS.Logger.info(
           1,
           "#{pin_binding} triggered, executing #{name}"
         )
@@ -80,7 +80,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         |> execute(state)
 
       nil ->
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           "Failed to find associated Sequence for: #{pin_binding}"
         )
@@ -94,7 +94,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         %{pin_binding: %{special_action: "emergency_lock"} = pin_binding} =
           state
       ) do
-    FarmbotCore.Logger.info(
+    FarmbotOS.Logger.info(
       1,
       "#{pin_binding} triggered, executing Emergency Lock"
     )
@@ -110,7 +110,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         %{pin_binding: %{special_action: "emergency_unlock"} = pin_binding} =
           state
       ) do
-    FarmbotCore.Logger.info(
+    FarmbotOS.Logger.info(
       1,
       "#{pin_binding} triggered, executing Emergency Unlock"
     )
@@ -125,7 +125,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :trigger,
         %{pin_binding: %{special_action: "power_off"} = pin_binding} = state
       ) do
-    FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Power Off")
+    FarmbotOS.Logger.info(1, "#{pin_binding} triggered, executing Power Off")
 
     AST.Factory.new()
     |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
@@ -137,7 +137,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :trigger,
         %{pin_binding: %{special_action: "read_status"} = pin_binding} = state
       ) do
-    FarmbotCore.Logger.info(
+    FarmbotOS.Logger.info(
       1,
       "#{pin_binding} triggered, executing Read Status"
     )
@@ -152,8 +152,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :trigger,
         %{pin_binding: %{special_action: "reboot"} = pin_binding} = state
       ) do
-    FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Reboot")
-    FarmbotCore.Celery.SysCallGlue.reboot()
+    FarmbotOS.Logger.info(1, "#{pin_binding} triggered, executing Reboot")
+    FarmbotOS.Celery.SysCallGlue.reboot()
     {:noreply, state}
   end
 
@@ -161,8 +161,8 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :trigger,
         %{pin_binding: %{special_action: "sync"} = pin_binding} = state
       ) do
-    FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Sync")
-    FarmbotCore.Celery.SysCallGlue.sync()
+    FarmbotOS.Logger.info(1, "#{pin_binding} triggered, executing Sync")
+    FarmbotOS.Celery.SysCallGlue.sync()
     {:noreply, state}
   end
 
@@ -170,7 +170,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
         :trigger,
         %{pin_binding: %{special_action: "take_photo"} = pin_binding} = state
       ) do
-    FarmbotCore.Logger.info(1, "#{pin_binding} triggered, executing Take Photo")
+    FarmbotOS.Logger.info(1, "#{pin_binding} triggered, executing Take Photo")
 
     AST.Factory.new()
     |> AST.Factory.rpc_request("pin_binding.#{pin_binding.pin_num}")
@@ -179,7 +179,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   end
 
   def handle_cast(:trigger, %{pin_binding: pin_binding} = state) do
-    FarmbotCore.Logger.error(1, "Unknown PinBinding: #{pin_binding}")
+    FarmbotOS.Logger.error(1, "Unknown PinBinding: #{pin_binding}")
     {:noreply, state}
   end
 
@@ -216,14 +216,14 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PinBinding do
   end
 
   defp execute(%AST{} = ast, state) do
-    case FarmbotCore.Celery.execute(ast, make_ref()) do
+    case FarmbotOS.Celery.execute(ast, make_ref()) do
       :ok ->
         :ok
 
       {:error, reason} ->
         Logger.error("BAD AST: " <> inspect(ast))
 
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           "error executing #{state.pin_binding}: #{reason}"
         )

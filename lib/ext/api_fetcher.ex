@@ -1,18 +1,18 @@
-defmodule FarmbotExt.APIFetcher do
+defmodule FarmbotOS.APIFetcher do
   @moduledoc """
-  Provides network related function for FarmbotExt.API
+  Provides network related function for FarmbotOS.API
   """
 
   use Tesla
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{BotState, BotState.JobProgress.Percent, Project}
-  alias FarmbotCore.Asset.StorageAuth
-  alias FarmbotCore.JSON
-  alias FarmbotExt.JWT
+  alias FarmbotOS.{BotState, BotState.JobProgress.Percent, Project}
+  alias FarmbotOS.Asset.StorageAuth
+  alias FarmbotOS.JSON
+  alias FarmbotOS.JWT
   alias Tesla.Multipart
 
-  import FarmbotCore.Config, only: [get_config_value: 3]
+  import FarmbotOS.Config, only: [get_config_value: 3]
 
   @file_chunk 4096
   @progress_steps 50
@@ -26,7 +26,7 @@ defmodule FarmbotExt.APIFetcher do
   def get_body!(path) do
     case get(client(), path) do
       {:ok, %{status: 401}} ->
-        FarmbotExt.Bootstrap.reauth()
+        FarmbotOS.Bootstrap.reauth()
         {:error, "Token is expired. Please try again."}
 
       {:ok, %{body: body, status: 200}} ->
@@ -91,7 +91,7 @@ defmodule FarmbotExt.APIFetcher do
 
   def upload_image(image_filename, meta \\ %{}) do
     # I don't like that APIFetcher calls API- refactr out?
-    {:ok, changeset} = FarmbotExt.API.get_changeset(StorageAuth)
+    {:ok, changeset} = FarmbotOS.API.get_changeset(StorageAuth)
 
     storage_auth =
       %StorageAuth{form_data: form_data} =
@@ -155,7 +155,7 @@ defmodule FarmbotExt.APIFetcher do
       r
     else
       {:ok, %{status: s, body: body}} when s > 399 ->
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           "Failed to upload image (HTTP: #{s}): #{inspect(body)}"
         )
@@ -169,7 +169,7 @@ defmodule FarmbotExt.APIFetcher do
         {:error, body}
 
       er ->
-        FarmbotCore.Logger.error(1, "Failed to upload image: #{inspect(er)}")
+        FarmbotOS.Logger.error(1, "Failed to upload image: #{inspect(er)}")
 
         BotState.set_job_progress(image_filename, %{
           prog

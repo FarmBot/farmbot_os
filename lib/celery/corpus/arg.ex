@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.Corpus.Arg do
+defmodule FarmbotOS.Celery.Corpus.Arg do
   @moduledoc """
   Type information about a CeleryScript Arg on the Corpus.
   """
@@ -9,7 +9,7 @@ defmodule FarmbotCore.Celery.Corpus.Arg do
   @type value :: String.t()
   @type doc :: String.t()
 
-  @type t :: %FarmbotCore.Celery.Corpus.Arg{
+  @type t :: %FarmbotOS.Celery.Corpus.Arg{
           name: name(),
           allowed_values: [value],
           doc: doc()

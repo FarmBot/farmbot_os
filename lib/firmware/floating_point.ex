@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.FloatingPoint do
+defmodule FarmbotOS.Firmware.FloatingPoint do
   def encode(number) when is_integer(number) do
     encode(number / 1)
   end

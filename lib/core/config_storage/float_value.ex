@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Config.FloatValue do
+defmodule FarmbotOS.Config.FloatValue do
   @moduledoc false
 
   use Ecto.Schema

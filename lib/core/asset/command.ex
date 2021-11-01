@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset.Command do
+defmodule FarmbotOS.Asset.Command do
   @moduledoc """
   A collection of functions that _write_ to the DB
   """
   require Logger
-  alias FarmbotCore.{Asset, Asset.Repo}
+  alias FarmbotOS.{Asset, Asset.Repo}
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmEvent,

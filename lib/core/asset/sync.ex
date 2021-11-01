@@ -1,16 +1,16 @@
-defmodule FarmbotCore.Asset.Sync do
+defmodule FarmbotOS.Asset.Sync do
   @moduledoc """
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/device/sync"
+  use FarmbotOS.Asset.Schema, path: "/api/device/sync"
 
   defmodule Item do
     @moduledoc false
     use Ecto.Schema
 
     @primary_key false
-    @behaviour FarmbotCore.Asset.View
-    import FarmbotCore.Asset.View, only: [view: 2]
+    @behaviour FarmbotOS.Asset.View
+    import FarmbotOS.Asset.View, only: [view: 2]
 
     view sync_item do
       %{

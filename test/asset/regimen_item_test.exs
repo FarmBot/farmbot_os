@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.Regimen.ItemTest do
+defmodule FarmbotOS.Asset.Regimen.ItemTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Regimen.Item
+  alias FarmbotOS.Asset.Regimen.Item
 
   @expected_keys [:time_offset, :sequence_id]
 

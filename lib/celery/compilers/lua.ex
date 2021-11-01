@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Celery.Compiler.Lua do
-  alias FarmbotCore.Celery.SysCallGlue
-  alias FarmbotCore.Celery.Compiler.{VariableTransformer, Scope}
+defmodule FarmbotOS.Celery.Compiler.Lua do
+  alias FarmbotOS.Celery.SysCallGlue
+  alias FarmbotOS.Celery.Compiler.{VariableTransformer, Scope}
 
   def lua(%{args: %{lua: lua}}, cs_scope) do
     quote location: :keep do

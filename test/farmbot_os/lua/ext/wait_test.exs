@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Lua.WaitTest do
   alias FarmbotOS.Lua.Wait
-  alias FarmbotCore.Celery.SysCallGlue
+  alias FarmbotOS.Celery.SysCallGlue
 
   use ExUnit.Case
   use Mimic

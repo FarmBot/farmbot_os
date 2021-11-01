@@ -1,8 +1,8 @@
-defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
+defmodule FarmbotOS.FarmEventWorker.RegimenEventTest do
   use ExUnit.Case
-  alias FarmbotCore.FarmEventWorker.RegimenEvent
+  alias FarmbotOS.FarmEventWorker.RegimenEvent
   alias Farmbot.TestSupport.AssetFixtures
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Asset
   import ExUnit.CaptureLog
   require Logger
   use Mimic
@@ -58,7 +58,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "handles regimen instance exists" do
-      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
+      FarmbotOS.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
@@ -73,7 +73,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
             DateTime.utc_now() |> DateTime.add(-@two_days_in_seconds, :second)
         })
 
-      stub(FarmbotCore.Asset, :get_regimen_instance, fn _fe ->
+      stub(FarmbotOS.Asset, :get_regimen_instance, fn _fe ->
         regimen_instance
       end)
 
@@ -89,7 +89,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "creates regimen instance" do
-      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
+      FarmbotOS.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
@@ -109,7 +109,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
     end
 
     test "removes regimen instance" do
-      FarmbotCore.Asset.update_device!(%{timezone: "America/Chicago"})
+      FarmbotOS.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
       farm_event = AssetFixtures.regimen_event(regimen, %{})
       args = %{}
@@ -124,7 +124,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
             DateTime.utc_now() |> DateTime.add(@two_days_in_seconds, :second)
         })
 
-      stub(FarmbotCore.Asset, :get_regimen_instance, fn _fe ->
+      stub(FarmbotOS.Asset, :get_regimen_instance, fn _fe ->
         regimen_instance
       end)
 
@@ -155,7 +155,7 @@ defmodule FarmbotCore.FarmEventWorker.RegimenEventTest do
             |> DateTime.add(@two_days_in_seconds * 2, :second)
         })
 
-      stub(FarmbotCore.Asset, :get_regimen_instance, fn _fe ->
+      stub(FarmbotOS.Asset, :get_regimen_instance, fn _fe ->
         regimen_instance
       end)
 

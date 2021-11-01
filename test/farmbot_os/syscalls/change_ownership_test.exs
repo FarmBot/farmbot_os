@@ -5,12 +5,12 @@ defmodule FarmbotOS.SysCalls.ChangeOwnershipTest do
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.SysCalls.ChangeOwnership
-  alias FarmbotExt.Bootstrap.Authorization
+  alias FarmbotOS.Bootstrap.Authorization
 
   test "replace_credentials(email, secret, server)" do
     Helpers.expect_log("Replacing credentials")
 
-    expect(FarmbotCore.Config, :update_config_value, 5, fn
+    expect(FarmbotOS.Config, :update_config_value, 5, fn
       :string, "authorization", "token", nil -> :ok
       :string, "authorization", "server", "server" -> :ok
       :string, "authorization", "secret", "secret" -> :ok

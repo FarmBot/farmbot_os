@@ -6,11 +6,11 @@ defmodule FarmbotOS.UpdateSupportTest do
 
   test "handle_http_response - 422 error" do
     body = %{1 => "A", 2 => "B"}
-    {:ok, json} = FarmbotCore.JSON.encode(body)
+    {:ok, json} = FarmbotOS.JSON.encode(body)
     fake_payload = {:ok, {{"", 422, ""}, [], json}}
     expected = %{"image_url" => nil}
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.message == "Not updating: [\"A\", \"B\"]"
     end)
 
@@ -21,11 +21,11 @@ defmodule FarmbotOS.UpdateSupportTest do
 
   test "handle_http_response - 500 error" do
     body = %{1 => "A", 2 => "B"}
-    {:ok, json} = FarmbotCore.JSON.encode(body)
+    {:ok, json} = FarmbotOS.JSON.encode(body)
     fake_payload = {:ok, {{"", 500, ""}, [], json}}
     expected = %{"image_url" => nil}
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       msg =
         "Error downloading update. Please try again. " <>
           "{:ok, {{\"\", 500, \"\"}, [], " <>
@@ -41,7 +41,7 @@ defmodule FarmbotOS.UpdateSupportTest do
 
   test "handle_http_response - 200 OK" do
     body = %{"foo" => "bar"}
-    {:ok, json} = FarmbotCore.JSON.encode(body)
+    {:ok, json} = FarmbotOS.JSON.encode(body)
     fake_payload = {:ok, {{"", 200, ""}, [], json}}
 
     assert body == UpdateSupport.handle_http_response(fake_payload)

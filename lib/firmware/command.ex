@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.Command do
-  alias FarmbotCore.BotState
-  alias FarmbotCore.Firmware.{GCode, UARTCore}
+defmodule FarmbotOS.Firmware.Command do
+  alias FarmbotOS.BotState
+  alias FarmbotOS.Firmware.{GCode, UARTCore}
 
   # G00(X, Y, Z, A, B, C) Move to location at given speed
   # for axis in absolute coordinates
@@ -124,7 +124,7 @@ defmodule FarmbotCore.Firmware.Command do
   }
 
   defp max_speeds() do
-    conf = FarmbotCore.Asset.firmware_config() || @temp_fallback
+    conf = FarmbotOS.Asset.firmware_config() || @temp_fallback
 
     {
       Map.fetch!(conf, :movement_max_spd_x) || 800.0,

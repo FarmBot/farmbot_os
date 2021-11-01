@@ -2,31 +2,31 @@ use Mix.Config
 is_test? = Mix.env() == :test
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 
-config :exqlite, :json_library, FarmbotCore.JSON
-config :farmbot, ecto_repos: [FarmbotCore.Asset.Repo]
+config :exqlite, :json_library, FarmbotOS.JSON
+config :farmbot, ecto_repos: [FarmbotOS.Asset.Repo]
 config :logger, backends: [:console]
 config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 config :tesla, adapter: Tesla.Adapter.Hackney
 
 %{
-  Elixir.FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey => [
-    ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+  Elixir.FarmbotOS.AssetWorker.FarmbotOS.Asset.PublicKey => [
+    ssh_handler: FarmbotOS.PublicKeyHandler.StubSSHHandler
   ],
-  FarmbotCore.Asset.Repo => [
+  FarmbotOS.Asset.Repo => [
     database: "database.#{Mix.env()}.db",
     log: false
   ],
-  FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [
-    gpio_handler: FarmbotCore.PinBindingWorker.StubGPIOHandler
+  FarmbotOS.AssetWorker.FarmbotOS.Asset.PinBinding => [
+    gpio_handler: FarmbotOS.PinBindingWorker.StubGPIOHandler
   ],
-  FarmbotCore.BotState.FileSystem => [root_dir: "/tmp/farmbot_state"],
-  FarmbotCore.Celery.SysCallGlue => [sys_calls: FarmbotOS.SysCalls],
-  FarmbotCore.Core.CeleryScript.RunTimeWrapper => [
-    celery_script_io_layer: FarmbotCore.Core.CeleryScript.StubIOLayer
+  FarmbotOS.BotState.FileSystem => [root_dir: "/tmp/farmbot_state"],
+  FarmbotOS.Celery.SysCallGlue => [sys_calls: FarmbotOS.SysCalls],
+  FarmbotOS.Core.CeleryScript.RunTimeWrapper => [
+    celery_script_io_layer: FarmbotOS.Core.CeleryScript.StubIOLayer
   ],
-  FarmbotCore.JSON => [json_parser: FarmbotCore.JSON.JasonParser],
-  FarmbotCore.Leds => [gpio_handler: FarmbotCore.Leds.StubHandler],
-  FarmbotExt.Time => [disable_timeouts: is_test?],
+  FarmbotOS.JSON => [json_parser: FarmbotOS.JSON.JasonParser],
+  FarmbotOS.Leds => [gpio_handler: FarmbotOS.Leds.StubHandler],
+  FarmbotOS.Time => [disable_timeouts: is_test?],
   FarmbotOS.Configurator => [
     network_layer: FarmbotOS.Configurator.FakeNetworkLayer
   ],

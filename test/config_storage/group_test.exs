@@ -1,3 +1,3 @@
-defmodule FarmbotCore.Config.GroupTest do
+defmodule FarmbotOS.Config.GroupTest do
   use ExUnit.Case
 end

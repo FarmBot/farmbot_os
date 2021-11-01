@@ -1,5 +1,5 @@
-defmodule FarmbotCore.TimeUtilsTest do
-  alias FarmbotCore.TimeUtils
+defmodule FarmbotOS.TimeUtilsTest do
+  alias FarmbotOS.TimeUtils
   use ExUnit.Case
 
   test "compare_datetimes" do

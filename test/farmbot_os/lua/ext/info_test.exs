@@ -8,7 +8,7 @@ defmodule FarmbotOS.Lua.InfoTest do
   end
 
   test "auth_token()" do
-    expect(FarmbotCore.Config, :get_config_value, 1, fn t, k, v ->
+    expect(FarmbotOS.Config, :get_config_value, 1, fn t, k, v ->
       assert t == :string
       assert k == "authorization"
       assert v == "token"

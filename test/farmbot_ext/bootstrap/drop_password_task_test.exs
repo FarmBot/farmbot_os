@@ -1,4 +1,4 @@
-defmodule FarmbotExt.Bootstrap.DropPasswordTaskTest do
+defmodule FarmbotOS.Bootstrap.DropPasswordTaskTest do
   require Helpers
 
   use ExUnit.Case
@@ -7,7 +7,7 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTaskTest do
   setup :verify_on_exit!
   setup :set_mimic_global
 
-  alias FarmbotExt.Bootstrap.{
+  alias FarmbotOS.Bootstrap.{
     DropPasswordTask,
     Authorization,
     DropPasswordSupport
@@ -39,7 +39,7 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTaskTest do
   test "drop_password (error)" do
     state = %{backoff: 12345, timer: nil}
 
-    expect(FarmbotExt.Time, :send_after, 1, fn _pid, :checkup, _state ->
+    expect(FarmbotOS.Time, :send_after, 1, fn _pid, :checkup, _state ->
       :fake_timer
     end)
 

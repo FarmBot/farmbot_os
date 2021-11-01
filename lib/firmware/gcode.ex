@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Firmware.GCode do
-  alias FarmbotCore.Firmware.FloatingPoint
+defmodule FarmbotOS.Firmware.GCode do
+  alias FarmbotOS.Firmware.FloatingPoint
 
   defstruct [:string, :command, :params, :echo]
 

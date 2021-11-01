@@ -1,8 +1,8 @@
-defmodule FarmbotCore.FarmwareRuntime.PipeWorkerTest do
+defmodule FarmbotOS.FarmwareRuntime.PipeWorkerTest do
   use ExUnit.Case
   use Mimic
   import ExUnit.CaptureLog
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
+  alias FarmbotOS.FarmwareRuntime.PipeWorker
   setup :verify_on_exit!
 
   defmodule FakeState do

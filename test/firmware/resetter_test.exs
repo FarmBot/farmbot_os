@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Firmware.ResetterTest do
+defmodule FarmbotOS.Firmware.ResetterTest do
   require Helpers
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Firmware.Resetter
+  alias FarmbotOS.Firmware.Resetter
 
   setup :verify_on_exit!
 

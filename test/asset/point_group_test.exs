@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.PointGroupTest do
+defmodule FarmbotOS.Asset.PointGroupTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.PointGroup
+  alias FarmbotOS.Asset.PointGroup
 
   def fake_pg() do
     %PointGroup{

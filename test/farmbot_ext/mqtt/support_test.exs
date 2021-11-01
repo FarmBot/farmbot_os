@@ -1,7 +1,7 @@
-defmodule FarmbotExt.MQTT.SupportTest do
+defmodule FarmbotOS.MQTT.SupportTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotExt.MQTT.Support
+  alias FarmbotOS.MQTT.Support
 
   test "forward_message" do
     msg = {"topic", "message"}

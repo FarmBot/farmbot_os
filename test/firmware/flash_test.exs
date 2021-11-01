@@ -1,16 +1,16 @@
-defmodule FarmbotCore.Firmware.FlashTest do
+defmodule FarmbotOS.Firmware.FlashTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotCore.Firmware.Avrdude
-  alias FarmbotCore.Firmware.Flash
-  alias FarmbotCore.Firmware.Resetter
-  alias FarmbotCore.Firmware.UARTCoreSupport
+  alias FarmbotOS.Firmware.Avrdude
+  alias FarmbotOS.Firmware.Flash
+  alias FarmbotOS.Firmware.Resetter
+  alias FarmbotOS.Firmware.UARTCoreSupport
 
   setup :verify_on_exit!
 
   test "Flash.run/2" do
     File.write!("/tmp/fake.hex", "12345")
-    real_state = %FarmbotCore.Firmware.UARTCore{uart_path: "ttyACM0"}
+    real_state = %FarmbotOS.Firmware.UARTCore{uart_path: "ttyACM0"}
     real_package = "arduino"
 
     expect(Resetter, :find_reset_fun, 1, fn package ->
@@ -18,7 +18,7 @@ defmodule FarmbotCore.Firmware.FlashTest do
       {:ok, fn -> "test pass" end}
     end)
 
-    expect(FarmbotCore.Firmware.FlashUtils, :find_hex_file, 1, fn package ->
+    expect(FarmbotOS.Firmware.FlashUtils, :find_hex_file, 1, fn package ->
       assert real_package == package
       {:ok, "/tmp/fake.hex"}
     end)
@@ -29,11 +29,11 @@ defmodule FarmbotCore.Firmware.FlashTest do
       {:ok, :fake_uart_pid}
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_hardware, 1, fn package ->
+    expect(FarmbotOS.BotState, :set_firmware_hardware, 1, fn package ->
       assert real_package == package
     end)
 
-    expect(FarmbotCore.Firmware.UARTCore, :restart_firmware, 1, fn ->
+    expect(FarmbotOS.Firmware.UARTCore, :restart_firmware, 1, fn ->
       :ok
     end)
 

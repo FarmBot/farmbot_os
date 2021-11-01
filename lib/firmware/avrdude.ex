@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Firmware.Avrdude do
+defmodule FarmbotOS.Firmware.Avrdude do
   @uart_speed 115_200
   @max_attempts 10
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
 
   def flash(hex_path, tty_path, reset_fun) do
@@ -31,19 +31,19 @@ defmodule FarmbotCore.Firmware.Avrdude do
 
   def call_avr_dude(reset_fun, args, attempts \\ 1) do
     call_reset_fun(reset_fun)
-    FarmbotCore.Logger.debug(3, "Begin flash attempt #{attempts}")
+    FarmbotOS.Logger.debug(3, "Begin flash attempt #{attempts}")
     {msg, exit_code} = MuonTrap.cmd("avrdude", args, stderr_to_stdout: true)
     give_up? = attempts > @max_attempts
 
     if exit_code == 0 || give_up? do
       if give_up? do
-        FarmbotCore.Logger.info(3, "Failed after #{attempts} attempts.")
+        FarmbotOS.Logger.info(3, "Failed after #{attempts} attempts.")
       end
 
       {msg, exit_code}
     else
-      FarmbotCore.Logger.debug(3, "Attempt #{attempts} failed.")
-      FarmbotCore.Logger.debug(3, "#{inspect(msg)}")
+      FarmbotOS.Logger.debug(3, "Attempt #{attempts} failed.")
+      FarmbotOS.Logger.debug(3, "#{inspect(msg)}")
       call_avr_dude(reset_fun, args, attempts + 1)
     end
   end
@@ -53,7 +53,7 @@ defmodule FarmbotCore.Firmware.Avrdude do
       reset_fun.()
     catch
       error_type, error ->
-        FarmbotCore.Logger.error(1, """
+        FarmbotOS.Logger.error(1, """
         Error calling reset function: #{inspect(reset_fun)}
         error type: #{error_type}
         error: #{inspect(error)}

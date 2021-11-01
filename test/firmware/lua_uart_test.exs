@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Firmware.LuaUARTTest do
+defmodule FarmbotOS.Firmware.LuaUARTTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
 
-  alias FarmbotCore.Firmware.LuaUART
+  alias FarmbotOS.Firmware.LuaUART
 
   test "open/2" do
     lua = %{fake_lua: true}

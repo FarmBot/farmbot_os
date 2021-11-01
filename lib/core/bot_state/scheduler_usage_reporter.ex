@@ -1,5 +1,5 @@
-defmodule FarmbotCore.BotState.SchedulerUsageReporter do
-  alias FarmbotCore.BotState
+defmodule FarmbotOS.BotState.SchedulerUsageReporter do
+  alias FarmbotOS.BotState
   require Logger
 
   use GenServer

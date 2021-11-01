@@ -1,6 +1,6 @@
-defmodule FarmbotCore.BotStateNG.LocationData do
+defmodule FarmbotOS.BotStateNG.LocationData do
   @moduledoc false
-  alias FarmbotCore.BotStateNG.LocationData
+  alias FarmbotOS.BotStateNG.LocationData
   alias LocationData.{Vec3, Vec3String}
   use Ecto.Schema
   import Ecto.Changeset

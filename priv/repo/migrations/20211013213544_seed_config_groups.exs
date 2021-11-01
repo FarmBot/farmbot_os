@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Config.Repo.Migrations.SeedGroups do
+defmodule FarmbotOS.Config.Repo.Migrations.SeedGroups do
   use Ecto.Migration
 
   def change do

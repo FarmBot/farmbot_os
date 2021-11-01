@@ -1,7 +1,7 @@
 defmodule FarmbotOS.Configurator.Router do
   @moduledoc "Routes web connections for configuring farmbot os"
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
   require FarmbotTelemetry
 
@@ -264,7 +264,7 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   get "/finish" do
-    FarmbotCore.Logger.debug(1, "Configuration complete")
+    FarmbotOS.Logger.debug(1, "Configuration complete")
 
     # TODO(Rick): This pattern match is not 100% accurate.
     # TO see what I mean, try calling `save_config/1` with
@@ -278,12 +278,12 @@ defmodule FarmbotOS.Configurator.Router do
         "auth_config_password" => _,
         "auth_config_server" => _
       } ->
-        FarmbotCore.Logger.debug(1, "Configuration success!")
+        FarmbotOS.Logger.debug(1, "Configuration success!")
         save_config(get_session(conn))
         render_page(conn, "finish")
 
       _ ->
-        FarmbotCore.Logger.debug(1, "Configuration FAIL")
+        FarmbotOS.Logger.debug(1, "Configuration FAIL")
         redir(conn, "/")
     end
   end
@@ -317,7 +317,7 @@ defmodule FarmbotOS.Configurator.Router do
   defp render_json(conn, data) do
     conn = put_resp_header(conn, "content-type", "application/json")
 
-    case FarmbotCore.JSON.encode(data) do
+    case FarmbotOS.JSON.encode(data) do
       {:ok, json} ->
         send_resp(conn, 200, json)
 
@@ -325,7 +325,7 @@ defmodule FarmbotOS.Configurator.Router do
         send_resp(
           conn,
           501,
-          FarmbotCore.JSON.encode!(%{error: "failed to render json"})
+          FarmbotOS.JSON.encode!(%{error: "failed to render json"})
         )
     end
   end
@@ -352,7 +352,7 @@ defmodule FarmbotOS.Configurator.Router do
         uri
 
       _ ->
-        FarmbotCore.Logger.error(1, "#{inspect(uri)} is not valid")
+        FarmbotOS.Logger.error(1, "#{inspect(uri)} is not valid")
         nil
     end
   end
@@ -391,5 +391,5 @@ defmodule FarmbotOS.Configurator.Router do
     @telemetry_layer.cpu_usage()
   end
 
-  defp version, do: FarmbotCore.Project.version()
+  defp version, do: FarmbotOS.Project.version()
 end

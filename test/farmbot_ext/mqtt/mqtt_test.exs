@@ -1,9 +1,9 @@
-defmodule FarmbotExt.MQTTTest do
+defmodule FarmbotOS.MQTTTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.MQTT.Support
-  alias FarmbotExt.MQTT.TopicSupervisor
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.MQTT.Support
+  alias FarmbotOS.MQTT.TopicSupervisor
 
   test "new_supervisor(opts) - corner case" do
     fake_opts = [foo: :bar]
@@ -30,7 +30,7 @@ defmodule FarmbotExt.MQTTTest do
   end
 
   test "terminate/2" do
-    expect(FarmbotCore.Leds, :blue, fn mode ->
+    expect(FarmbotOS.Leds, :blue, fn mode ->
       assert mode == :off
       :ok
     end)
@@ -80,19 +80,19 @@ defmodule FarmbotExt.MQTTTest do
     ]
 
     expect(Support, :forward_message, 4, fn
-      FarmbotExt.MQTT.PingHandler, {topic, payload} ->
+      FarmbotOS.MQTT.PingHandler, {topic, payload} ->
         assert topic == fake_ping
         assert payload == fake_payload
 
-      FarmbotExt.MQTT.TerminalHandler, {topic, payload} ->
+      FarmbotOS.MQTT.TerminalHandler, {topic, payload} ->
         assert topic == fake_terminal_input
         assert payload == fake_payload
 
-      FarmbotExt.MQTT.RPCHandler, {topic, payload} ->
+      FarmbotOS.MQTT.RPCHandler, {topic, payload} ->
         assert topic == fake_from_clients
         assert payload == fake_payload
 
-      FarmbotExt.MQTT.SyncHandler, {topic, payload} ->
+      FarmbotOS.MQTT.SyncHandler, {topic, payload} ->
         assert topic == fake_sync
         assert payload == fake_payload
     end)

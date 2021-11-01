@@ -1,3 +1,3 @@
-defmodule FarmbotCore.AssetHelperTest do
+defmodule FarmbotOS.AssetHelperTest do
   use ExUnit.Case
 end

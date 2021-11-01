@@ -1,11 +1,11 @@
-defmodule FarmbotCore.FarmEventWorker.RegimenEvent do
+defmodule FarmbotOS.FarmEventWorker.RegimenEvent do
   @moduledoc """
   Periodically checks the current date versus the date that
   a regimen should be started.
   """
   require Logger
   use GenServer
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Asset
 
   @impl GenServer
   def init([event, args]) do

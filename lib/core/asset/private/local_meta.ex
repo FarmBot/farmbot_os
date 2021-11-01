@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.Private.LocalMeta do
+defmodule FarmbotOS.Asset.Private.LocalMeta do
   @moduledoc """
   Existance of LocalMeta is a hint to Farmbot that
   an Asset needs to be reconciled with the remote API.
@@ -6,7 +6,7 @@ defmodule FarmbotCore.Asset.Private.LocalMeta do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Repo,
     Device,
     FarmEvent,

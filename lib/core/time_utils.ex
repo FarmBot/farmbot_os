@@ -1,4 +1,4 @@
-defmodule FarmbotCore.TimeUtils do
+defmodule FarmbotOS.TimeUtils do
   @moduledoc "Helper functions for working with time."
 
   @doc """

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.Repo.Migrations.InitialMigration do
+defmodule FarmbotOS.Asset.Repo.Migrations.InitialMigration do
   use Ecto.Migration
 
   def up do

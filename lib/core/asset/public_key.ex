@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Asset.PublicKey do
+defmodule FarmbotOS.Asset.PublicKey do
   @moduledoc """
   Public keys can be used to SSH into a device for
   debug purposes
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/public_keys"
+  use FarmbotOS.Asset.Schema, path: "/api/public_keys"
   alias Ecto.Changeset
 
   @callback ready?() :: boolean()
@@ -13,7 +13,7 @@ defmodule FarmbotCore.Asset.PublicKey do
   schema "public_keys" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

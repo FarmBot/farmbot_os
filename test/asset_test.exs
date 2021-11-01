@@ -1,9 +1,9 @@
-defmodule FarmbotCore.AssetTest do
+defmodule FarmbotOS.AssetTest do
   use ExUnit.Case
 
-  alias FarmbotCore.Asset.RegimenInstance
+  alias FarmbotOS.Asset.RegimenInstance
 
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Asset
   import Farmbot.TestSupport.AssetFixtures
 
   describe "regimen instances" do
@@ -21,13 +21,13 @@ defmodule FarmbotCore.AssetTest do
 
   test "Asset.device/1" do
     assert nil == Asset.device(:ota_hour)
-    assert %FarmbotCore.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
+    assert %FarmbotOS.Asset.Device{} = Asset.update_device!(%{ota_hour: 17})
     assert 17 == Asset.device(:ota_hour)
   end
 
   describe "firmware config" do
     test "retrieves a single field" do
-      FarmbotCore.Asset.Repo.delete_all(FarmbotCore.Asset.FirmwareConfig)
+      FarmbotOS.Asset.Repo.delete_all(FarmbotOS.Asset.FirmwareConfig)
       conf = Asset.firmware_config()
       refute 1.23 == Asset.firmware_config(:movement_steps_acc_dec_x)
       Asset.update_firmware_config!(conf, %{movement_steps_acc_dec_x: 1.23})

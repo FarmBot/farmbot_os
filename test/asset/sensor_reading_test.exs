@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Asset.SensorReadingTest do
+defmodule FarmbotOS.Asset.SensorReadingTest do
   use ExUnit.Case
 
-  alias FarmbotCore.Asset.SensorReading
+  alias FarmbotOS.Asset.SensorReading
 
   test "changeset" do
     s = %SensorReading{

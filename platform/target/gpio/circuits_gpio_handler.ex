@@ -1,12 +1,12 @@
 defmodule FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler do
   @moduledoc "Circuits gpio handler for PinBindings"
 
-  @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
+  @behaviour FarmbotOS.AssetWorker.FarmbotOS.Asset.PinBinding
   require Logger
   use GenServer
   alias Circuits.GPIO
-  require FarmbotCore.Logger
-  FarmbotCore.Logger.report_termination()
+  require FarmbotOS.Logger
+  FarmbotOS.Logger.report_termination()
 
   @debounce_timeout_ms 1000
 

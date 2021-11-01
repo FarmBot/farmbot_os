@@ -1,10 +1,10 @@
-defmodule FarmbotExt.MQTT.SyncHandler do
-  require FarmbotCore.Logger
+defmodule FarmbotOS.MQTT.SyncHandler do
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
 
   alias __MODULE__, as: State
-  alias FarmbotExt.MQTT.SyncHandlerSupport, as: Support
+  alias FarmbotOS.MQTT.SyncHandlerSupport, as: Support
 
   defstruct client_id: "NOT_SET", username: "NOT_SET", preloaded: false
 

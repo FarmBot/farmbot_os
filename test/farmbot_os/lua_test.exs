@@ -2,7 +2,7 @@ defmodule FarmbotOS.LuaTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
   alias FarmbotOS.Lua
 
   alias FarmbotOS.Lua.{
@@ -25,7 +25,7 @@ defmodule FarmbotOS.LuaTest do
 
   test "assertion logs" do
     # Hmmm
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       assert log.level == "assertion"
       assert log.message == "this is an assertion"
       assert log.meta == %{assertion_passed: true, assertion_type: :assertion}
@@ -130,14 +130,14 @@ defmodule FarmbotOS.LuaTest do
     end)
 
     Enum.map(@documentation_examples, fn lua ->
-      scope = %FarmbotCore.Celery.Compiler.Scope{
+      scope = %FarmbotOS.Celery.Compiler.Scope{
         declarations: %{
           "parent" => %{"x" => 1000}
         },
         parent: nil
       }
 
-      extra_vm_args = FarmbotCore.Celery.Compiler.Lua.scope_to_lua(scope)
+      extra_vm_args = FarmbotOS.Celery.Compiler.Lua.scope_to_lua(scope)
       result = FarmbotOS.Lua.perform_lua(lua, extra_vm_args, lua)
 
       case result do
