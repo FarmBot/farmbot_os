@@ -6,7 +6,7 @@ defmodule FarmbotOS do
   @telemetry_config [
     access: :read_write,
     type: :set,
-    file: '/tmp/farmbot_telemetry.dets'
+    file: '/tmp/farmbot_telemetry_new.dets'
   ]
   def start(_type, _args) do
     {:ok, :farmbot} = :dets.open_file(:farmbot, @telemetry_config)
