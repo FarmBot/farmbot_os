@@ -56,3 +56,5 @@ test_tmp/
 tmp/
 ttb_last_config
 upload.sh
+capture_*.jpg
+__pycache__
