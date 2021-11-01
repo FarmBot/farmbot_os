@@ -1,9 +1,9 @@
-defmodule FarmbotCore.CeleryTest do
+defmodule FarmbotOS.CeleryTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Celery.SysCallGlue.Stubs
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.Celery.SysCallGlue.Stubs
 
   import ExUnit.CaptureLog
 
@@ -14,16 +14,16 @@ defmodule FarmbotCore.CeleryTest do
     ast = AST.decode(%{kind: :rpc_request, args: %{label: "X"}, body: []})
     data = %{foo: :bar}
 
-    expect(FarmbotCore.Celery.Scheduler, :schedule, 1, fn actual_ast,
-                                                          actual_at,
-                                                          actual_data ->
+    expect(FarmbotOS.Celery.Scheduler, :schedule, 1, fn actual_ast,
+                                                        actual_at,
+                                                        actual_data ->
       assert actual_ast == ast
       assert actual_at == at
       assert actual_data == data
       :ok
     end)
 
-    assert :ok == FarmbotCore.Celery.schedule(ast, at, data)
+    assert :ok == FarmbotOS.Celery.schedule(ast, at, data)
   end
 
   test "uses default values when no parameter is found" do
@@ -75,7 +75,7 @@ defmodule FarmbotCore.CeleryTest do
     end)
 
     capture_log(fn ->
-      result = FarmbotCore.Celery.execute(sequence_ast, me)
+      result = FarmbotOS.Celery.execute(sequence_ast, me)
       assert :ok == result
     end) =~ "[error] CeleryScript syscall stubbed: log"
   end
@@ -92,7 +92,7 @@ defmodule FarmbotCore.CeleryTest do
       |> AST.decode()
 
     expect(Stubs, :read_pin, 1, fn _, _ -> {:error, "failed to read pin!"} end)
-    result = FarmbotCore.Celery.execute(execute_ast, execute_ast)
+    result = FarmbotOS.Celery.execute(execute_ast, execute_ast)
     assert {:error, "failed to read pin!"} = result
 
     assert_receive {:csvm_done, ^execute_ast, {:error, "failed to read pin!"}}
@@ -116,7 +116,7 @@ defmodule FarmbotCore.CeleryTest do
     io =
       capture_log(fn ->
         assert {:error, "big oops"} ==
-                 FarmbotCore.Celery.execute(execute_ast, execute_ast)
+                 FarmbotOS.Celery.execute(execute_ast, execute_ast)
       end)
 
     assert io =~ "CeleryScript Exception"

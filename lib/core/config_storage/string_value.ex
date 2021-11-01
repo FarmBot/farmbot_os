@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Config.StringValue do
+defmodule FarmbotOS.Config.StringValue do
   @moduledoc false
 
   use Ecto.Schema

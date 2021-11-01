@@ -1,10 +1,10 @@
-defmodule FarmbotExt.DirtyWorkerTest do
+defmodule FarmbotOS.DirtyWorkerTest do
   require Helpers
 
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     FbosConfig,
     Point,
     Private,
@@ -12,9 +12,9 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Repo
   }
 
-  alias FarmbotExt.DirtyWorker.Supervisor
+  alias FarmbotOS.DirtyWorker.Supervisor
 
-  alias FarmbotExt.DirtyWorker
+  alias FarmbotOS.DirtyWorker
 
   setup :verify_on_exit!
 
@@ -41,7 +41,7 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Private.mark_stale!(p)
     assert Private.any_stale?()
 
-    expect(FarmbotCore.Celery.SysCallGlue, :sync, 1, fn ->
+    expect(FarmbotOS.Celery.SysCallGlue, :sync, 1, fn ->
       Private.mark_clean!(p)
     end)
 
@@ -64,11 +64,11 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Repo.delete_all(FbosConfig)
 
     conf =
-      FarmbotCore.Asset.fbos_config()
+      FarmbotOS.Asset.fbos_config()
       |> FbosConfig.changeset()
       |> Repo.insert!()
 
-    expect(FarmbotCore.Celery.SysCallGlue, :sync, 1, fn ->
+    expect(FarmbotOS.Celery.SysCallGlue, :sync, 1, fn ->
       "I expect a 409 response to trigger a sync."
     end)
 
@@ -83,7 +83,7 @@ defmodule FarmbotExt.DirtyWorkerTest do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
 
-    stub(FarmbotCore.Celery.SysCallGlue, :sync, fn ->
+    stub(FarmbotOS.Celery.SysCallGlue, :sync, fn ->
       flunk("Never should call sync")
     end)
 

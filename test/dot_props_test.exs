@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.DotPropsTest do
+defmodule FarmbotOS.Celery.DotPropsTest do
   use ExUnit.Case
-  doctest FarmbotCore.Celery.DotProps, import: true
+  doctest FarmbotOS.Celery.DotProps, import: true
 end

@@ -1,12 +1,12 @@
-defmodule FarmbotCore.Asset.RegimenTest do
+defmodule FarmbotOS.Asset.RegimenTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Regimen
+  alias FarmbotOS.Asset.Regimen
 
   @expected_keys [:id, :name, :regimen_items, :body]
 
   def regimen_json() do
     File.read!("fixtures/regimens/regimen_with_variables.json")
-    |> FarmbotCore.JSON.decode!()
+    |> FarmbotOS.JSON.decode!()
   end
 
   test "loading of body" do

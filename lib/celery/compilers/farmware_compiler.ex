@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Celery.Compiler.Farmware do
-  alias FarmbotCore.Celery.Compiler
+defmodule FarmbotOS.Celery.Compiler.Farmware do
+  alias FarmbotOS.Celery.Compiler
 
   def take_photo(%{body: params}, cs_scope) do
     execute_script(%{args: %{label: "take-photo"}, body: params}, cs_scope)
@@ -14,8 +14,8 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
     quote location: :keep do
       package = unquote(Compiler.celery_to_elixir(package, cs_scope))
       env = unquote(Macro.escape(Map.new(env)))
-      FarmbotCore.Celery.SysCallGlue.log(unquote(format_log(package)), true)
-      FarmbotCore.Celery.SysCallGlue.execute_script(package, env)
+      FarmbotOS.Celery.SysCallGlue.log(unquote(format_log(package)), true)
+      FarmbotOS.Celery.SysCallGlue.execute_script(package, env)
     end
   end
 
@@ -23,7 +23,7 @@ defmodule FarmbotCore.Celery.Compiler.Farmware do
     kvs =
       Enum.map(pairs, fn %{kind: :pair, args: %{label: key, value: value}} ->
         quote location: :keep do
-          FarmbotCore.Celery.SysCallGlue.set_user_env(
+          FarmbotOS.Celery.SysCallGlue.set_user_env(
             unquote(key),
             unquote(value)
           )

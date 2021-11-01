@@ -1,31 +1,31 @@
 defmodule FarmbotOS.SysCalls do
   @moduledoc """
-  Implementation for FarmbotCore.Celery.SysCallGlue
+  Implementation for FarmbotOS.Celery.SysCallGlue
   """
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Asset
-  alias FarmbotCore.BotState
-  alias FarmbotCore.Leds
-  alias FarmbotExt.API
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.Asset
+  alias FarmbotOS.BotState
+  alias FarmbotOS.Leds
+  alias FarmbotOS.API
   alias FarmbotOS.Lua
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     BoxLed,
     Private,
     Sync
   }
 
-  alias FarmbotCore.Firmware.{
+  alias FarmbotOS.Firmware.{
     Command,
     UARTCore
   }
 
-  alias FarmbotExt.API.{
+  alias FarmbotOS.API.{
     Reconciler,
     SyncGroup
   }
@@ -43,7 +43,7 @@ defmodule FarmbotOS.SysCalls do
     SetPinIOMode
   }
 
-  @behaviour FarmbotCore.Celery.SysCallGlue
+  @behaviour FarmbotOS.Celery.SysCallGlue
 
   @impl true
   defdelegate send_message(level, message, channels), to: SendMessage
@@ -61,7 +61,7 @@ defmodule FarmbotOS.SysCalls do
   defdelegate check_update(), to: CheckUpdate
 
   @impl true
-  defdelegate read_status(), to: FarmbotExt.MQTT.BotStateHandler
+  defdelegate read_status(), to: FarmbotOS.MQTT.BotStateHandler
 
   @impl true
   defdelegate factory_reset(package), to: FactoryReset
@@ -147,8 +147,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def log(message, force?) do
-    if force? || FarmbotCore.Asset.fbos_config(:sequence_body_log) do
-      FarmbotCore.Logger.info(2, message)
+    if force? || FarmbotOS.Asset.fbos_config(:sequence_body_log) do
+      FarmbotOS.Logger.info(2, message)
       :ok
     else
       :ok
@@ -157,8 +157,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def sequence_init_log(message) do
-    if FarmbotCore.Asset.fbos_config(:sequence_init_log) do
-      FarmbotCore.Logger.info(2, message)
+    if FarmbotOS.Asset.fbos_config(:sequence_init_log) do
+      FarmbotOS.Logger.info(2, message)
       :ok
     else
       :ok
@@ -167,8 +167,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def sequence_complete_log(message) do
-    if FarmbotCore.Asset.fbos_config(:sequence_complete_log) do
-      FarmbotCore.Logger.info(2, message)
+    if FarmbotOS.Asset.fbos_config(:sequence_complete_log) do
+      FarmbotOS.Logger.info(2, message)
       :ok
     else
       :ok
@@ -189,7 +189,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def firmware_reboot do
-    FarmbotCore.Firmware.UARTCore.restart_firmware()
+    FarmbotOS.Firmware.UARTCore.restart_firmware()
     :ok
   end
 
@@ -210,8 +210,8 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_lock do
     Command.lock()
-    FarmbotCore.Logger.error(1, "E-stopped")
-    FarmbotCore.FirmwareEstopTimer.start_timer()
+    FarmbotOS.Logger.error(1, "E-stopped")
+    FarmbotOS.FirmwareEstopTimer.start_timer()
     Leds.red(:off)
     Leds.yellow(:slow_blink)
     :ok
@@ -220,7 +220,7 @@ defmodule FarmbotOS.SysCalls do
   @impl true
   def emergency_unlock do
     Command.unlock()
-    FarmbotCore.Logger.success(1, "Unlocked")
+    FarmbotOS.Logger.success(1, "Unlocked")
     Leds.yellow(:off)
     Leds.red(:solid)
     :ok
@@ -270,7 +270,7 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def sync() do
-    FarmbotCore.Logger.busy(3, "Syncing")
+    FarmbotOS.Logger.busy(3, "Syncing")
 
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
          :ok <- BotState.set_sync_status("syncing"),
@@ -285,7 +285,7 @@ defmodule FarmbotOS.SysCalls do
            Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
          _sync_changeset <-
            Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
-      FarmbotCore.Logger.success(3, "Synced")
+      FarmbotOS.Logger.success(3, "Synced")
       :ok = BotState.set_sync_status("synced")
       _ = Leds.green(:solid)
 
@@ -318,8 +318,8 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   def fbos_config() do
-    conf = FarmbotCore.Asset.fbos_config()
-    output = FarmbotCore.Asset.FbosConfig.render(conf)
+    conf = FarmbotOS.Asset.fbos_config()
+    output = FarmbotOS.Asset.FbosConfig.render(conf)
     {:ok, output}
   end
 end

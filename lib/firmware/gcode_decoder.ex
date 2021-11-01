@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.GCodeDecoder do
+defmodule FarmbotOS.Firmware.GCodeDecoder do
   @moduledoc """
   """
 

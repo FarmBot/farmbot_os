@@ -1,10 +1,10 @@
-defmodule FarmbotExt.BootstrapTest do
+defmodule FarmbotOS.BootstrapTest do
   require Helpers
   use ExUnit.Case
   use Mimic
   import ExUnit.CaptureLog
-  alias FarmbotExt.Bootstrap
-  alias FarmbotExt.Bootstrap.Authorization
+  alias FarmbotOS.Bootstrap
+  alias FarmbotOS.Bootstrap.Authorization
   setup :verify_on_exit!
 
   test "performs a factory reset if the email is wrong" do
@@ -13,7 +13,7 @@ defmodule FarmbotExt.BootstrapTest do
         {:error, "Bad email or password."}
     end)
 
-    expect(FarmbotCore.Celery.SysCallGlue, :factory_reset, 1, fn "farmbot_os" ->
+    expect(FarmbotOS.Celery.SysCallGlue, :factory_reset, 1, fn "farmbot_os" ->
       :ok
     end)
 
@@ -28,7 +28,7 @@ defmodule FarmbotExt.BootstrapTest do
   end
 
   test "reauthorizes as needed" do
-    expect(FarmbotCore.Config, :get_config_value, 3, fn
+    expect(FarmbotOS.Config, :get_config_value, 3, fn
       :string, "authorization", "email" -> "the_email"
       :string, "authorization", "server" -> "the_server"
       :string, "authorization", "secret" -> "the_secret"
@@ -40,7 +40,7 @@ defmodule FarmbotExt.BootstrapTest do
       {:ok, "the_token"}
     end)
 
-    expect(FarmbotCore.Config, :update_config_value, 1, fn
+    expect(FarmbotOS.Config, :update_config_value, 1, fn
       :string, "authorization", "token", "the_token" -> :ok
     end)
 

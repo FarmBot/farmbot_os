@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Celery do
+defmodule FarmbotOS.Celery do
   @moduledoc """
   Operations for Farmbot's internal scripting language.
   """
 
-  alias FarmbotCore.Celery.{AST, StepRunner, Scheduler}
-  require FarmbotCore.Logger
+  alias FarmbotOS.Celery.{AST, StepRunner, Scheduler}
+  require FarmbotOS.Logger
 
   @doc "Schedule an AST to execute on a DateTime"
   def schedule(%AST{} = ast, %DateTime{} = at, %{} = data) do

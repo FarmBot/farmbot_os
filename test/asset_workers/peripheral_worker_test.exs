@@ -1,10 +1,10 @@
-defmodule FarmbotCore.Asset.PeripheralWorkerTest do
+defmodule FarmbotOS.Asset.PeripheralWorkerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.Peripheral, as: Worker
-  alias FarmbotCore.Asset.Peripheral
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.AssetWorker.FarmbotOS.Asset.Peripheral, as: Worker
+  alias FarmbotOS.Asset.Peripheral
 
   setup :verify_on_exit!
 

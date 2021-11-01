@@ -1,4 +1,4 @@
-defmodule FarmbotCore.BotStateNG.LocationData.Vec3String do
+defmodule FarmbotOS.BotStateNG.LocationData.Vec3String do
   @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset

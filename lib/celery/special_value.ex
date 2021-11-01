@@ -1,22 +1,22 @@
-defmodule FarmbotCore.Celery.SpecialValue do
-  alias FarmbotCore.Celery.Interpolation
-  alias FarmbotCore.Asset.{Repo, Point}
+defmodule FarmbotOS.Celery.SpecialValue do
+  alias FarmbotOS.Celery.Interpolation
+  alias FarmbotOS.Asset.{Repo, Point}
   import Ecto.Query
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
 
   @msg "Need at least 3 soil height samples to guess soil height. " <>
          "Using fallback value instead: "
   def safe_height() do
-    FarmbotCore.Asset.fbos_config(:safe_height) || 0.0
+    FarmbotOS.Asset.fbos_config(:safe_height) || 0.0
   end
 
   def soil_height(%{x: _, y: _} = xy) do
     points = soil_samples()
 
     if Enum.count(points) < 3 do
-      fallback = FarmbotCore.Asset.fbos_config(:soil_height) || 0.0
-      FarmbotCore.Logger.warn(3, @msg <> inspect(fallback))
+      fallback = FarmbotOS.Asset.fbos_config(:soil_height) || 0.0
+      FarmbotOS.Logger.warn(3, @msg <> inspect(fallback))
       fallback
     else
       Interpolation.guess_z_value(points, xy)

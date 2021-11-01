@@ -1,4 +1,4 @@
-defmodule FarmbotExt.Bootstrap.Authorization do
+defmodule FarmbotOS.Bootstrap.Authorization do
   @moduledoc "Functionality responsible for getting a JWT."
 
   @typedoc "Email used to configure this bot."
@@ -16,9 +16,9 @@ defmodule FarmbotExt.Bootstrap.Authorization do
   @typedoc "Token that was fetched with the credentials."
   @type token :: binary
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{JSON, Project}
+  alias FarmbotOS.{JSON, Project}
 
   @version Project.version()
   @target Project.target()
@@ -106,7 +106,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
       # Network error such such as wifi disconnect, dns down etc.
       # Try again.
       {:error, reason} when tries_remaining == 0 ->
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           "Farmbot failed to request token: #{inspect(reason)}"
         )
@@ -114,7 +114,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
         {:error, reason}
 
       {:error, _reason} ->
-        FarmbotExt.Time.sleep(2500)
+        FarmbotOS.Time.sleep(2500)
         request_token(server, payload, tries_remaining - 1)
     end
   end
@@ -141,7 +141,7 @@ defmodule FarmbotExt.Bootstrap.Authorization do
       {:ok, {{_, c, _}, _headers, body}} when c >= 400 and c <= 499 ->
         err = get_error_message(body)
 
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           "Authorization error for url: #{url} #{err}"
         )
@@ -149,12 +149,12 @@ defmodule FarmbotExt.Bootstrap.Authorization do
         {:error, {:authorization, err}}
 
       {:ok, {{_, c, _}, _headers, body}} when c >= 500 and c <= 599 ->
-        FarmbotExt.Time.sleep(state.backoff)
+        FarmbotOS.Time.sleep(state.backoff)
 
         unless state.log_dispatch_flag do
           err = get_error_message(body)
 
-          FarmbotCore.Logger.warn(
+          FarmbotOS.Logger.warn(
             1,
             "Farmbot web app failed complete request for url: #{url} #{err}"
           )

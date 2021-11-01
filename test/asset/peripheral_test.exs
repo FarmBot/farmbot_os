@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.PeripheralTest do
+defmodule FarmbotOS.Asset.PeripheralTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Peripheral
+  alias FarmbotOS.Asset.Peripheral
 
   @expected_keys [:id, :pin, :mode, :label]
 
@@ -8,7 +8,7 @@ defmodule FarmbotCore.Asset.PeripheralTest do
     pin = 1
     label = "foo"
     peripheral = %Peripheral{pin: pin, label: label}
-    proto = String.Chars.FarmbotCore.Asset.Peripheral
+    proto = String.Chars.FarmbotOS.Asset.Peripheral
     expected = "Peripheral #{label} Pin: #{pin}"
     actual = proto.to_string(peripheral)
     assert expected == actual

@@ -1,10 +1,10 @@
-defmodule FarmbotExt.API do
+defmodule FarmbotOS.API do
   @moduledoc """
   Module where all Farmbot specific HTTP calls are done
   """
 
-  alias FarmbotExt.APIFetcher
-  alias FarmbotCore.Asset.{FbosConfig, FirmwareConfig}
+  alias FarmbotOS.APIFetcher
+  alias FarmbotOS.Asset.{FbosConfig, FirmwareConfig}
 
   @doc "helper for `GET`ing api resources."
   def get_changeset(module) when is_atom(module) do

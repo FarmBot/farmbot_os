@@ -1,9 +1,9 @@
-defmodule FarmbotExt.MQTT.LogHandlerSupport do
-  require FarmbotCore.Logger
+defmodule FarmbotOS.MQTT.LogHandlerSupport do
+  require FarmbotOS.Logger
   require Logger
 
-  alias FarmbotExt.MQTT
-  alias FarmbotCore.JSON
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.JSON
 
   # List extracted from:
   # https://github.com/FarmBot/Farmbot-Web-App/blob/b7f09e51e856bfca5cfedd7fef3c572bebdbe809/frontend/devices/actions.ts#L38
@@ -50,7 +50,7 @@ defmodule FarmbotExt.MQTT.LogHandlerSupport do
   end
 
   defp should_publish?(log) do
-    should_log? = FarmbotCore.Logger.should_log?(log.module, log.verbosity)
+    should_log? = FarmbotOS.Logger.should_log?(log.module, log.verbosity)
     clean? = !Regex.match?(@bad_words, String.upcase(log.message))
     should_log? && clean?
   end

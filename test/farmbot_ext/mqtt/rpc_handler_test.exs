@@ -1,10 +1,10 @@
-defmodule FarmbotExt.RPCHandlerTest do
+defmodule FarmbotOS.RPCHandlerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.JSON
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.MQTT.RPCHandler, as: RPC
+  alias FarmbotOS.JSON
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.MQTT.RPCHandler, as: RPC
 
   import ExUnit.CaptureLog
 
@@ -37,7 +37,7 @@ defmodule FarmbotExt.RPCHandlerTest do
     end
 
     assert capture_log(misc) =~
-             "FarmbotExt.MQTT.RPCHandler Uncaught message: \"SOMETHING ELSE\""
+             "FarmbotOS.MQTT.RPCHandler Uncaught message: \"SOMETHING ELSE\""
   end
 
   test "handle_info({:inbound, [_, _, from_clients], payload}, state)" do
@@ -77,13 +77,13 @@ defmodule FarmbotExt.RPCHandlerTest do
 
     msg = {:csvm_done, fake_ref, {:error, reason}}
 
-    expected_state = %FarmbotExt.MQTT.RPCHandler{
+    expected_state = %FarmbotOS.MQTT.RPCHandler{
       client_id: "device_321",
       rpc_requests: %{},
       username: "device321.13.0.1"
     }
 
-    expect(FarmbotExt.Time, :cancel_timer, 1, fn timer ->
+    expect(FarmbotOS.Time, :cancel_timer, 1, fn timer ->
       assert timer == fake_timer
     end)
 

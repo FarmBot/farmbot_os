@@ -1,4 +1,4 @@
-defmodule FarmbotExt.APIFetcherTest do
+defmodule FarmbotOS.APIFetcherTest do
   require Helpers
 
   use ExUnit.Case
@@ -6,7 +6,7 @@ defmodule FarmbotExt.APIFetcherTest do
 
   setup :verify_on_exit!
 
-  alias FarmbotExt.APIFetcher
+  alias FarmbotOS.APIFetcher
 
   test "client" do
     Helpers.use_fake_jwt()

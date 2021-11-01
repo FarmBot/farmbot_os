@@ -1,15 +1,15 @@
-defmodule FarmbotCore.FarmwareRuntime do
+defmodule FarmbotOS.FarmwareRuntime do
   @moduledoc """
   Handles execution of Farmware plugins.
   """
 
   require Logger
-  import FarmbotCore.Config, only: [get_config_value: 3]
+  import FarmbotOS.Config, only: [get_config_value: 3]
 
-  alias FarmbotCore.{Asset, JSON, Project, FarmwareLogger}
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
-  alias FarmbotCore.BotState.FileSystem
+  alias FarmbotOS.{Asset, JSON, Project, FarmwareLogger}
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.FarmwareRuntime.PipeWorker
+  alias FarmbotOS.BotState.FileSystem
   alias __MODULE__, as: State
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
@@ -254,7 +254,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       ref = make_ref()
       Logger.debug("executing rpc from farmware: #{inspect(rpc)}")
       # todo(connor) replace this with StepRunner?
-      FarmbotCore.Celery.execute(rpc, ref)
+      FarmbotOS.Celery.execute(rpc, ref)
 
       {:noreply,
        %{state | rpc: rpc, scheduler_ref: ref, context: :process_request},

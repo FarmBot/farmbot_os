@@ -39,16 +39,16 @@ config :vintage_net,
   config: [{"wlan0", %{type: VintageNet.Technology.Null}}]
 
 %{
-  FarmbotCore.Asset.Repo => [
+  FarmbotOS.Asset.Repo => [
     database: "/root/database.#{Mix.env()}.db"
   ],
-  FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding => [
+  FarmbotOS.AssetWorker.FarmbotOS.Asset.PinBinding => [
     gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler
   ],
-  FarmbotCore.AssetWorker.FarmbotCore.Asset.PublicKey => [
+  FarmbotOS.AssetWorker.FarmbotOS.Asset.PublicKey => [
     ssh_handler: FarmbotOS.Platform.Target.SSHConsole
   ],
-  FarmbotCore.Leds => [
+  FarmbotOS.Leds => [
     gpio_handler: FarmbotOS.Platform.Target.Leds.CircuitsHandler
   ],
   FarmbotOS.Configurator => [

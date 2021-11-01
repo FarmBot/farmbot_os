@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Celery.Compiler.Utils do
-  alias FarmbotCore.Celery.{
+defmodule FarmbotOS.Celery.Compiler.Utils do
+  alias FarmbotOS.Celery.{
     Compiler,
     AST,
     Compiler.Scope
@@ -51,7 +51,7 @@ defmodule FarmbotCore.Celery.Compiler.Utils do
     front = [
       quote do
         fn ->
-          FarmbotCore.Celery.SysCallGlue.sequence_init_log(unquote(message))
+          FarmbotOS.Celery.SysCallGlue.sequence_init_log(unquote(message))
           :ok
         end
       end
@@ -60,7 +60,7 @@ defmodule FarmbotCore.Celery.Compiler.Utils do
     back = [
       quote do
         fn ->
-          FarmbotCore.Celery.SysCallGlue.sequence_complete_log(
+          FarmbotOS.Celery.SysCallGlue.sequence_complete_log(
             "Completed #{unquote(sequence_name)}"
           )
 

@@ -1,9 +1,9 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmEvent do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FarmEvent do
   require Logger
 
-  alias FarmbotCore.Asset.FarmEvent
+  alias FarmbotOS.Asset.FarmEvent
 
-  alias FarmbotCore.FarmEventWorker.{
+  alias FarmbotOS.FarmEventWorker.{
     RegimenEvent,
     SequenceEvent
   }

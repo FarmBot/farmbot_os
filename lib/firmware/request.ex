@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.Request do
+defmodule FarmbotOS.Firmware.Request do
   @moduledoc """
   The lifecycle of a firmware request explained:
 

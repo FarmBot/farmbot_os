@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Platform.Target.Network.Utils do
   @moduledoc "common network related utilities"
-  import FarmbotCore.Config, only: [get_config_value: 3]
+  import FarmbotOS.Config, only: [get_config_value: 3]
 
   def build_hostap_ssid do
     {:ok, hostname} = :inet.gethostname()
@@ -63,7 +63,7 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
     name = :"farmbot@#{hostname}.local"
     _ = :os.cmd('epmd -daemon')
     _ = :net_kernel.stop()
-    FarmbotCore.BotState.set_node_name(to_string(name))
+    FarmbotOS.BotState.set_node_name(to_string(name))
     :net_kernel.start([name])
   end
 end

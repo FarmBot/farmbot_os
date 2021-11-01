@@ -1,4 +1,4 @@
-defmodule FarmbotExt.API.Reconciler do
+defmodule FarmbotOS.API.Reconciler do
   @moduledoc """
   Handles additions, deletions and changes of remote API resources
 
@@ -10,11 +10,11 @@ defmodule FarmbotExt.API.Reconciler do
   alias Ecto.Changeset
   import Ecto.Query
 
-  alias FarmbotExt.{API, EagerLoader}
+  alias FarmbotOS.{API, EagerLoader}
   alias API.SyncGroup
 
-  alias FarmbotCore.Asset.{Command, Repo, Sync, Sync.Item}
-  import FarmbotCore.TimeUtils, only: [compare_datetimes: 2]
+  alias FarmbotOS.Asset.{Command, Repo, Sync, Sync.Item}
+  import FarmbotOS.TimeUtils, only: [compare_datetimes: 2]
 
   @doc """
   Reconcile remote updates. The following steps are wrapped in a tranaction

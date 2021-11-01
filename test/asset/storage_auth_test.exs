@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.StorageAuthTest do
+defmodule FarmbotOS.Asset.StorageAuthTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.StorageAuth
+  alias FarmbotOS.Asset.StorageAuth
 
   @expected_keys [:verb, :url, :form_data]
 

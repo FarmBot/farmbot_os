@@ -1,4 +1,4 @@
-defmodule FarmbotCore.BotState.JobProgress do
+defmodule FarmbotOS.BotState.JobProgress do
   @moduledoc "Interface for job progress."
 
   @typedoc "Unit of the job. Will be `percent` | `bytes`"
@@ -7,7 +7,7 @@ defmodule FarmbotCore.BotState.JobProgress do
   @typedoc "Status of the job. Will be `error` | `working` | `complete`"
   @type status :: String.t()
 
-  alias FarmbotCore.BotState.JobProgress
+  alias FarmbotOS.BotState.JobProgress
 
   defmodule Percent do
     @moduledoc "Percent job."

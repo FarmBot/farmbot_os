@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Asset.CriteriaRetriever do
-  alias FarmbotCore.Asset.{PointGroup, Repo, Point}
+defmodule FarmbotOS.Asset.CriteriaRetriever do
+  alias FarmbotOS.Asset.{PointGroup, Repo, Point}
   import Ecto.Query
 
   @moduledoc """

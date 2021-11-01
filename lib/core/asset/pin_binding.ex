@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Asset.PinBinding do
+defmodule FarmbotOS.Asset.PinBinding do
   @moduledoc """
   When a pin binding is triggered a sequence fires.
   """
-  use FarmbotCore.Asset.Schema, path: "/api/pin_bindings"
+  use FarmbotOS.Asset.Schema, path: "/api/pin_bindings"
 
   schema "pin_bindings" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id
@@ -64,63 +64,63 @@ defmodule FarmbotCore.Asset.PinBinding do
   end
 end
 
-defimpl String.Chars, for: FarmbotCore.Asset.PinBinding do
-  def to_string(%FarmbotCore.Asset.PinBinding{
+defimpl String.Chars, for: FarmbotOS.Asset.PinBinding do
+  def to_string(%FarmbotOS.Asset.PinBinding{
         special_action: action,
         pin_num: 16
       }) do
     special_action(1, action, 16)
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 16}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: 16}) do
     "Button 1: (Pi 16)"
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{
+  def to_string(%FarmbotOS.Asset.PinBinding{
         special_action: action,
         pin_num: 22
       }) do
     special_action(2, action, 22)
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 22}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: 22}) do
     "Button 2: (Pi 22)"
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{
+  def to_string(%FarmbotOS.Asset.PinBinding{
         special_action: action,
         pin_num: 26
       }) do
     special_action(3, action, 26)
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 26}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: 26}) do
     "Button 3: (Pi 26)"
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{
+  def to_string(%FarmbotOS.Asset.PinBinding{
         special_action: action,
         pin_num: 5
       }) do
     special_action(4, action, 5)
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 5}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: 5}) do
     "Button 4: (Pi 5)"
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{
+  def to_string(%FarmbotOS.Asset.PinBinding{
         special_action: action,
         pin_num: 20
       }) do
     special_action(5, action, 20)
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: 20}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: 20}) do
     "Button 5: (Pi 20)"
   end
 
-  def to_string(%FarmbotCore.Asset.PinBinding{pin_num: num}) do
+  def to_string(%FarmbotOS.Asset.PinBinding{pin_num: num}) do
     "Pi GPIO #{num}"
   end
 

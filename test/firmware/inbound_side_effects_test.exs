@@ -1,15 +1,15 @@
-defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
+defmodule FarmbotOS.Firmware.InboundSideEffectsTest do
   use ExUnit.Case
   use Mimic
 
   import ExUnit.CaptureLog
 
-  alias FarmbotCore.Firmware.InboundSideEffects
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Firmware.InboundSideEffects
+  alias FarmbotOS.Asset
 
   require Helpers
 
-  @fake_state %FarmbotCore.Firmware.UARTCore{}
+  @fake_state %FarmbotOS.Firmware.UARTCore{}
   @relevant_keys [
     :logs_enabled,
     :needs_config,
@@ -46,7 +46,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   test ":motor_load_report" do
     params = %{x: 7.8, y: 9.0, z: 1.2}
 
-    expect(FarmbotCore.BotState, :set_load, 1, fn x, y, z ->
+    expect(FarmbotOS.BotState, :set_load, 1, fn x, y, z ->
       assert params.x == x
       assert params.y == y
       assert params.z == z
@@ -65,12 +65,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
     gcode = [{:not_configured, %{}}]
     state = @fake_state
 
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_idle, 1, fn value ->
       refute value
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_busy, 1, fn value ->
       assert value
       :ok
     end)
@@ -117,7 +117,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":pin_value_report" do
-    expect(FarmbotCore.BotState, :set_pin_value, 1, fn p, v, m ->
+    expect(FarmbotOS.BotState, :set_pin_value, 1, fn p, v, m ->
       assert p == 2.0
       assert v == 4.5
       assert m in [0, nil]
@@ -130,7 +130,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   test ":software_version" do
     version = "v0.0.0-unit_test"
 
-    expect(FarmbotCore.BotState, :set_firmware_version, 1, fn v ->
+    expect(FarmbotOS.BotState, :set_firmware_version, 1, fn v ->
       assert v == version
       :ok
     end)
@@ -139,7 +139,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":emergency_lock" do
-    expect(FarmbotCore.BotState, :set_firmware_locked, 1, fn ->
+    expect(FarmbotOS.BotState, :set_firmware_locked, 1, fn ->
       :ok
     end)
 
@@ -147,7 +147,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":param_value_report" do
-    expect(FarmbotCore.Firmware.ConfigUploader, :verify_param, 1, fn s, val ->
+    expect(FarmbotOS.Firmware.ConfigUploader, :verify_param, 1, fn s, val ->
       assert val == {1.0, 3.4}
       s
     end)
@@ -170,12 +170,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":start" do
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_idle, 1, fn value ->
       refute value
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_busy, 1, fn value ->
       assert value
       :ok
     end)
@@ -184,7 +184,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":echo (unlock device)" do
-    expect(FarmbotCore.BotState, :set_firmware_unlocked, 1, fn ->
+    expect(FarmbotOS.BotState, :set_firmware_unlocked, 1, fn ->
       :ok
     end)
 
@@ -194,12 +194,12 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   test ":echo", do: simple_case([{:echo, "*F20*"}])
 
   test ":running" do
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_idle, 1, fn value ->
       refute value
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_busy, 1, fn value ->
       assert value
       :ok
     end)
@@ -255,7 +255,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":encoder_position_scaled" do
-    expect(FarmbotCore.BotState, :set_encoders_scaled, 1, fn
+    expect(FarmbotOS.BotState, :set_encoders_scaled, 1, fn
       1.2, 3.4, 5.6 -> :ok
       _, _, _ -> raise "Unexpected input"
     end)
@@ -264,7 +264,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":encoder_position_raw" do
-    expect(FarmbotCore.BotState, :set_encoders_raw, 1, fn
+    expect(FarmbotOS.BotState, :set_encoders_raw, 1, fn
       1.2, 3.4, 5.6 -> :ok
       _, _, _ -> raise "Unexpected input"
     end)
@@ -273,7 +273,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":current_position" do
-    expect(FarmbotCore.BotState, :set_position, 1, fn
+    expect(FarmbotOS.BotState, :set_position, 1, fn
       1.2, 3.4, 5.6 -> :ok
       _, _, _ -> raise "Unexpected input"
     end)
@@ -282,7 +282,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":axis_state_report" do
-    expect(FarmbotCore.BotState, :set_axis_state, fn
+    expect(FarmbotOS.BotState, :set_axis_state, fn
       :x, "idle" ->
         :ok
 
@@ -304,29 +304,29 @@ defmodule FarmbotCore.Firmware.InboundSideEffectsTest do
   end
 
   test ":idle" do
-    expect(FarmbotCore.FirmwareEstopTimer, :cancel_timer, 1, fn ->
+    expect(FarmbotOS.FirmwareEstopTimer, :cancel_timer, 1, fn ->
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_unlocked, 1, fn ->
+    expect(FarmbotOS.BotState, :set_firmware_unlocked, 1, fn ->
       :ok
     end)
 
-    expect(FarmbotCore.Firmware.TxBuffer, :process_next_message, 1, fn _, _ ->
+    expect(FarmbotOS.Firmware.TxBuffer, :process_next_message, 1, fn _, _ ->
       @fake_state.tx_buffer
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_idle, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_idle, 1, fn value ->
       assert value
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_firmware_busy, 1, fn value ->
+    expect(FarmbotOS.BotState, :set_firmware_busy, 1, fn value ->
       refute value
       :ok
     end)
 
-    expect(FarmbotCore.BotState, :set_axis_state, 3, fn
+    expect(FarmbotOS.BotState, :set_axis_state, 3, fn
       :x, value ->
         assert value == "idle"
         :ok

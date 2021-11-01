@@ -1,9 +1,9 @@
 defmodule FarmbotOS.SysCalls.Movement do
   @moduledoc false
 
-  require FarmbotCore.Logger
-  alias FarmbotCore.Firmware.Command
-  alias FarmbotCore.BotState
+  require FarmbotOS.Logger
+  alias FarmbotOS.Firmware.Command
+  alias FarmbotOS.BotState
 
   def get_current_x do
     get_position(:x)
@@ -87,7 +87,7 @@ defmodule FarmbotOS.SysCalls.Movement do
 
   def finish_movement(reason) do
     msg = "Movement failed. #{inspect(reason)}"
-    FarmbotCore.Logger.error(1, msg)
+    FarmbotOS.Logger.error(1, msg)
     {:error, msg}
   end
 

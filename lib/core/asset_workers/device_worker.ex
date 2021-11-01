@@ -1,8 +1,8 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
-  alias FarmbotCore.{Asset, Asset.Device}
-  alias FarmbotCore.Celery.AST
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.Device do
+  alias FarmbotOS.{Asset, Asset.Device}
+  alias FarmbotOS.Celery.AST
   use GenServer
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   def tracks_changes?(%Device{}), do: true
 
@@ -27,7 +27,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       |> AST.Factory.rpc_request("RESET_DEVICE_NOW")
       |> AST.Factory.factory_reset("farmbot_os")
 
-    :ok = FarmbotCore.Celery.execute(ast, make_ref())
+    :ok = FarmbotOS.Celery.execute(ast, make_ref())
 
     {:noreply, state}
   end
@@ -63,13 +63,13 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
 
     Enum.each(difference, fn
       {:ota_hour, nil} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Farmbot will apply updates as soon as possible"
         )
 
       {:ota_hour, hour} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Farmbot will apply updates during the hour of #{hour}:00"
         )
@@ -77,9 +77,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
       {:mounted_tool_id, nil} ->
         if old_device.mounted_tool_id do
           if tool = Asset.get_tool(id: old_device.mounted_tool_id) do
-            FarmbotCore.Logger.info(2, "Dismounted the #{tool.name}")
+            FarmbotOS.Logger.info(2, "Dismounted the #{tool.name}")
           else
-            FarmbotCore.Logger.info(2, "Dismounted unknown tool")
+            FarmbotOS.Logger.info(2, "Dismounted unknown tool")
           end
         else
           # no previously mounted tool
@@ -88,9 +88,9 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Device do
 
       {:mounted_tool_id, id} ->
         if tool = Asset.get_tool(id: id) do
-          FarmbotCore.Logger.info(2, "Mounted the #{tool.name}")
+          FarmbotOS.Logger.info(2, "Mounted the #{tool.name}")
         else
-          FarmbotCore.Logger.info(2, "Mounted unknown tool")
+          FarmbotOS.Logger.info(2, "Mounted unknown tool")
         end
 
       {_key, _value} ->

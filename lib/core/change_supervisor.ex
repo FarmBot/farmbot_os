@@ -1,10 +1,10 @@
-defmodule FarmbotCore.ChangeSupervisor do
+defmodule FarmbotOS.ChangeSupervisor do
   @moduledoc """
   Supervises all database-backed records.
   """
 
   use Supervisor
-  alias FarmbotCore.{Asset.Repo, AssetWorker}
+  alias FarmbotOS.{Asset.Repo, AssetWorker}
 
   @doc "looks up a pid for an asset"
   def whereis_child(%kind{local_id: id}) do

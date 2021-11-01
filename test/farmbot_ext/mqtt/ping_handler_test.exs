@@ -1,8 +1,8 @@
-defmodule FarmbotExt.PingHandlerTest do
+defmodule FarmbotOS.PingHandlerTest do
   use ExUnit.Case
   use Mimic
-  alias FarmbotExt.{MQTT, Time}
-  alias FarmbotExt.MQTT.{PingHandler}
+  alias FarmbotOS.{MQTT, Time}
+  alias FarmbotOS.MQTT.{PingHandler}
   @fake_client "my_client_id"
 
   @fake_state %PingHandler{

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.JSON.Parser do
+defmodule FarmbotOS.JSON.Parser do
   @moduledoc """
   Callback module for wrapping a json dependency.
   """

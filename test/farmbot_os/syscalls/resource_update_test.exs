@@ -4,8 +4,8 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
 
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.SysCalls.PointLookup
-  alias FarmbotCore.Asset.{Point, Repo}
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Asset.{Point, Repo}
+  alias FarmbotOS.Asset
 
   setup :verify_on_exit!
 
@@ -19,7 +19,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdateTest do
     fake_coords!()
     params = %{name: "X is {{ x }}"}
     assert :ok == ResourceUpdate.update_resource("Device", 0, params)
-    assert "X is 1.2" == FarmbotCore.Asset.device().name
+    assert "X is 1.2" == FarmbotOS.Asset.device().name
   end
 
   test "update_resource/3 - Point" do

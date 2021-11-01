@@ -1,14 +1,14 @@
-defmodule FarmbotExt.Bootstrap do
+defmodule FarmbotOS.Bootstrap do
   @moduledoc """
   Task responsible for using
   a token, secret, or password for logging into an account
   """
 
   use GenServer
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
-  alias FarmbotExt.{Bootstrap, Bootstrap.Authorization}
-  import FarmbotCore.Config, only: [update_config_value: 4, get_config_value: 3]
+  alias FarmbotOS.{Bootstrap, Bootstrap.Authorization}
+  import FarmbotOS.Config, only: [update_config_value: 4, get_config_value: 3]
 
   @doc false
   def start_link(args) do
@@ -32,11 +32,11 @@ defmodule FarmbotExt.Bootstrap do
   # state machine implementation
   @doc false
   def try_auth(nil, _server, _password, _secret) do
-    FarmbotExt.Time.no_reply(nil, 5000)
+    FarmbotOS.Time.no_reply(nil, 5000)
   end
 
   def try_auth(_email, nil, _password, _secret) do
-    FarmbotExt.Time.no_reply(nil, 5000)
+    FarmbotOS.Time.no_reply(nil, 5000)
   end
 
   def try_auth(email, server, nil, secret) when is_binary(secret) do
@@ -48,7 +48,7 @@ defmodule FarmbotExt.Bootstrap do
          {:ok, pid} <- Supervisor.start_child(FarmbotOS, Bootstrap.Supervisor) do
       {:noreply, pid}
     else
-      _ -> FarmbotExt.Time.no_reply(nil, 5000)
+      _ -> FarmbotOS.Time.no_reply(nil, 5000)
     end
   end
 
@@ -64,15 +64,15 @@ defmodule FarmbotExt.Bootstrap do
       {:error, "Bad email or password."} ->
         msg = "Password auth failed! Check again and reconfigurate."
         Logger.error(msg)
-        FarmbotCore.Logger.debug(3, msg)
-        FarmbotCore.Celery.SysCallGlue.factory_reset("farmbot_os")
-        FarmbotExt.Time.no_reply(nil, 5000)
+        FarmbotOS.Logger.debug(3, msg)
+        FarmbotOS.Celery.SysCallGlue.factory_reset("farmbot_os")
+        FarmbotOS.Time.no_reply(nil, 5000)
 
       er ->
         msg = "Bootstrap try_auth: #{inspect(er)} "
         Logger.error(msg)
-        FarmbotCore.Logger.debug(3, msg)
-        FarmbotExt.Time.no_reply(nil, 5000)
+        FarmbotOS.Logger.debug(3, msg)
+        FarmbotOS.Time.no_reply(nil, 5000)
     end
   end
 

@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.RxBuffer do
+defmodule FarmbotOS.Firmware.RxBuffer do
   @moduledoc """
   Serial character buffering doesn't always make sense. When
   reading serial input of line oriented data, you might not
@@ -30,7 +30,7 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   Create a new line buffer object.
 
   iex> new("r88 Q00")
-  %FarmbotCore.Firmware.RxBuffer{
+  %FarmbotOS.Firmware.RxBuffer{
     buffer: "",
     output: ["R88 Q00"],
     ready: true
@@ -44,7 +44,7 @@ defmodule FarmbotCore.Firmware.RxBuffer do
   Create a new line buffer by appending to an existing buffer.
 
   iex> new("r88 Q00\n") |> puts("R99 ARDUINO STARTUP COMPLETE\n")
-  %FarmbotCore.Firmware.RxBuffer{
+  %FarmbotOS.Firmware.RxBuffer{
     buffer: "",
     output: ["R99 ARDUINO STARTUP COMPLETE\n"],
     ready: true

@@ -1,6 +1,6 @@
-defmodule FarmbotCore.BotState.JobProgressTest do
+defmodule FarmbotOS.BotState.JobProgressTest do
   use ExUnit.Case
-  alias FarmbotCore.BotState.JobProgress
+  alias FarmbotOS.BotState.JobProgress
 
   test "serialization of percentages" do
     assert inspect(%JobProgress.Percent{percent: 42}) == "#Percent<42>"

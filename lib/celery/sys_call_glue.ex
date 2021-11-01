@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Celery.SysCallGlue do
+defmodule FarmbotOS.Celery.SysCallGlue do
   @moduledoc """
   Behaviour for abstracting CeleryScript functionality.
   """
-  alias FarmbotCore.Celery.{AST, RuntimeError}
+  alias FarmbotOS.Celery.{AST, RuntimeError}
 
   @sys_calls Application.get_env(:farmbot, __MODULE__)[:sys_calls]
   @sys_calls ||
     Mix.raise("""
-    config :farmbot, FarmbotCore.Celery.SysCallGlue, [
+    config :farmbot, FarmbotOS.Celery.SysCallGlue, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
     ]
     """)
@@ -44,7 +44,7 @@ defmodule FarmbotCore.Celery.SysCallGlue do
   @callback get_cached_y() :: number() | error()
   @callback get_cached_z() :: number() | error()
 
-  @callback get_sequence(resource_id) :: FarmbotCore.Celery.AST.t() | error()
+  @callback get_sequence(resource_id) :: FarmbotOS.Celery.AST.t() | error()
   @callback get_toolslot_for_tool(resource_id) ::
               %{x: number(), y: number(), z: number()} | error()
   @callback home(axis, speed :: number()) :: ok_or_error
@@ -305,7 +305,7 @@ defmodule FarmbotCore.Celery.SysCallGlue do
   end
 
   def read_status(sys_calls \\ @sys_calls) do
-    fs = FarmbotCore.BotState.FileSystem
+    fs = FarmbotOS.BotState.FileSystem
     if Process.whereis(fs), do: send(fs, :timeout)
     ok_or_error(sys_calls, :read_status, [])
   end

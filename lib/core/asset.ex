@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset do
+defmodule FarmbotOS.Asset do
   @moduledoc """
   Top level module, with some helpers. Persists application resources to disk.
   Submodules of this module usually (but not always) correspond to a
   resource in the REST API. See official REST API docs for details.
   """
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     CriteriaRetriever,
     Device,
     FarmEvent,
@@ -25,7 +25,7 @@ defmodule FarmbotCore.Asset do
     Tool
   }
 
-  alias FarmbotCore.ChangeSupervisor
+  alias FarmbotOS.ChangeSupervisor
 
   import Ecto.Query
   require Logger
@@ -130,7 +130,7 @@ defmodule FarmbotCore.Asset do
 
   @doc """
   This function updates Farmbot OS's local database. It will **NOT** send any
-  HTTP requests to the API. To do this, `FarmbotCore.Asset.Private.mark_dirty!/2`
+  HTTP requests to the API. To do this, `FarmbotOS.Asset.Private.mark_dirty!/2`
   is almost certainly what you want.
   """
   def update_fbos_config!(fbos_config \\ nil, params) do
@@ -387,7 +387,7 @@ defmodule FarmbotCore.Asset do
           "#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it."
         )
 
-        FarmbotCore.ChangeSupervisor.update_child(asset)
+        FarmbotOS.ChangeSupervisor.update_child(asset)
       end
     end
 
@@ -571,7 +571,7 @@ defmodule FarmbotCore.Asset do
       end)
 
     for asset <- farm_events ++ regimen_instances do
-      FarmbotCore.ChangeSupervisor.update_child(asset)
+      FarmbotOS.ChangeSupervisor.update_child(asset)
     end
 
     Sequence.changeset(sequence, params)

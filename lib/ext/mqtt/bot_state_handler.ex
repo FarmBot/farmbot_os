@@ -1,10 +1,10 @@
-defmodule FarmbotExt.MQTT.BotStateHandler do
+defmodule FarmbotOS.MQTT.BotStateHandler do
   @moduledoc """
   Publishes JSON encoded bot state updates onto an MQTT channel
   """
 
-  alias FarmbotCore.{BotState, BotStateNG, JSON}
-  alias FarmbotExt.MQTT
+  alias FarmbotOS.{BotState, BotStateNG, JSON}
+  alias FarmbotOS.MQTT
   require FarmbotTelemetry
   require Logger
   use GenServer

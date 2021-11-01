@@ -1,5 +1,5 @@
-defmodule FarmbotExt.MQTT.TerminalHandlerSupport do
-  alias FarmbotExt.MQTT
+defmodule FarmbotOS.MQTT.TerminalHandlerSupport do
+  alias FarmbotOS.MQTT
 
   @default_dot_iex [".iex.exs", "~/.iex.exs", "/etc/iex.exs"]
 

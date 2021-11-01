@@ -1,11 +1,11 @@
-defmodule FarmbotExt.Bootstrap.DropPasswordTask do
+defmodule FarmbotOS.Bootstrap.DropPasswordTask do
   @moduledoc """
   Task to make sure the plaintext password is dropped form
   the sqlite database.
   """
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotExt.Bootstrap.{
+  alias FarmbotOS.Bootstrap.{
     Authorization,
     DropPasswordSupport
   }
@@ -39,7 +39,7 @@ defmodule FarmbotExt.Bootstrap.DropPasswordTask do
         {:noreply, state, :hibernate}
 
       {:error, _} ->
-        timer = FarmbotExt.Time.send_after(self(), :checkup, state.backoff)
+        timer = FarmbotOS.Time.send_after(self(), :checkup, state.backoff)
         {:noreply, %{state | backoff: state.backoff + 1000, timer: timer}}
     end
   end

@@ -1,8 +1,8 @@
 defmodule FarmbotOS.UpdateProgress do
   use GenServer
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     BotState.JobProgress.Percent,
     BotState
   }

@@ -1,7 +1,7 @@
-defmodule FarmbotExt.API.SyncGroup do
+defmodule FarmbotOS.API.SyncGroup do
   @moduledoc "Handles dependency ordering."
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,

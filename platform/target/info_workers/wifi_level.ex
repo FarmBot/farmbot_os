@@ -7,7 +7,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   @report_interval 7_000
 
   use GenServer
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @doc false
   def start_link(args) do
@@ -27,12 +27,12 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
   end
 
   def handle_info(:load_network_config, state) do
-    if FarmbotCore.Config.get_network_config("eth0") do
+    if FarmbotOS.Config.get_network_config("eth0") do
       VintageNet.subscribe(["interface", "eth0"])
 
       {:noreply, state}
     else
-      case FarmbotCore.Config.get_network_config("wlan0") do
+      case FarmbotOS.Config.get_network_config("wlan0") do
         %{ssid: ssid} ->
           VintageNet.subscribe(["interface", "wlan0"])
           {:noreply, %{state | ssid: ssid}, @report_interval}
@@ -49,7 +49,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.WifiLevel do
          [%{address: address} | _], _meta},
         state
       ) do
-    FarmbotCore.BotState.set_private_ip(to_string(:inet.ntoa(address)))
+    FarmbotOS.BotState.set_private_ip(to_string(:inet.ntoa(address)))
     {:noreply, state, @report_interval}
   end
 

@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Firmware.UARTCoreSupport do
+defmodule FarmbotOS.Firmware.UARTCoreSupport do
   require Logger
 
   defstruct path: "null", uart_pid: nil
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @default_opts [
     active: true,
@@ -39,7 +39,7 @@ defmodule FarmbotCore.Firmware.UARTCoreSupport do
   # Returns the uart path of the device that was disconnected
   def disconnect(%{uart_path: tty} = state, reason) do
     # Genserer.reply to everyone with {:error, reason}
-    FarmbotCore.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
+    FarmbotOS.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
     uart = state.uart_pid
 
     if is_pid(uart) && Process.alive?(uart) do

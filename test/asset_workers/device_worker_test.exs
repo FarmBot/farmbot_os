@@ -1,11 +1,11 @@
-defmodule FarmbotCore.DeviceWorkerTest do
+defmodule FarmbotOS.DeviceWorkerTest do
   use ExUnit.Case
   use Mimic
 
   alias Farmbot.TestSupport.AssetFixtures
-  alias FarmbotCore.Celery.SysCallGlue.Stubs
-  alias FarmbotCore.Asset.Device
-  alias FarmbotCore.AssetWorker
+  alias FarmbotOS.Celery.SysCallGlue.Stubs
+  alias FarmbotOS.Asset.Device
+  alias FarmbotOS.AssetWorker
 
   @im_so_sorry 300
 

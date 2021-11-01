@@ -1,15 +1,15 @@
-defmodule FarmbotCore.BotState do
+defmodule FarmbotOS.BotState do
   @moduledoc "Central State accumulator."
-  alias FarmbotCore.BotStateNG
+  alias FarmbotOS.BotStateNG
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   use GenServer
 
-  FarmbotCore.Logger.report_termination()
+  FarmbotOS.Logger.report_termination()
 
   def firmware_offline() do
-    FarmbotCore.BotState.set_firmware_version("")
+    FarmbotOS.BotState.set_firmware_version("")
   end
 
   @doc "Subscribe to BotState changes"

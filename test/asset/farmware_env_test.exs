@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.FarmwareEnvTest do
+defmodule FarmbotOS.Asset.FarmwareEnvTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.FarmwareEnv
+  alias FarmbotOS.Asset.FarmwareEnv
 
   @expected_keys [:id, :key, :value]
 

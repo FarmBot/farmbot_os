@@ -2,9 +2,9 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   @moduledoc false
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     Asset,
     Asset.Private
   }
@@ -37,7 +37,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
       name = @friendly_names[kind] || kind
       property = @friendly_names["#{k}"] || k
       msg = "Setting #{name} #{id} #{property} to #{inspect(v)}"
-      FarmbotCore.Logger.info(3, msg)
+      FarmbotOS.Logger.info(3, msg)
     end)
   end
 
@@ -74,14 +74,14 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
     else
       nil ->
         msg = "#{type}.#{id} is not currently synced. Please re-sync."
-        FarmbotCore.Logger.error(3, msg)
+        FarmbotOS.Logger.error(3, msg)
         {:error, msg}
 
       {:error, _changeset} ->
         msg =
           "Failed update (#{type}.#{id}): Ensure the data is properly formatted"
 
-        FarmbotCore.Logger.error(3, msg)
+        FarmbotOS.Logger.error(3, msg)
         {:error, msg}
 
       err ->

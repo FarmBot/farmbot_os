@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.GCodeTest do
+defmodule FarmbotOS.Firmware.GCodeTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.GCode
+  alias FarmbotOS.Firmware.GCode
 
   test "bad input" do
     e = fn -> GCode.new(:G00, M: "wrong") end

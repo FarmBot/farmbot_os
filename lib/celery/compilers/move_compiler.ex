@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Celery.Compiler.Move do
-  alias FarmbotCore.Celery.SysCallGlue
-  alias FarmbotCore.Celery.SpecialValue
-  alias FarmbotCore.Celery.Compiler.Scope
+defmodule FarmbotOS.Celery.Compiler.Move do
+  alias FarmbotOS.Celery.SysCallGlue
+  alias FarmbotOS.Celery.SpecialValue
+  alias FarmbotOS.Celery.Compiler.Scope
 
   def move(%{body: body}, cs_scope) do
     quote location: :keep do
@@ -117,7 +117,7 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   #                   Z height. If X/Y values were to change, it
   #                   would invalidate the Z height calculation.
   def create_list_of_operations(body) do
-    mapper = &FarmbotCore.Celery.Compiler.Move.mapper/1
+    mapper = &FarmbotOS.Celery.Compiler.Move.mapper/1
     # Move X/Y operations to the front of the list and move
     # Z operations to the back, but DO NOT SORT!:
     {xy, z} =
@@ -249,7 +249,7 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   end
 
   def to_number(axis, %{kind: :tool, args: %{tool_id: id}}) do
-    tool = FarmbotCore.Celery.SysCallGlue.get_toolslot_for_tool(id)
+    tool = FarmbotOS.Celery.SysCallGlue.get_toolslot_for_tool(id)
     to_number(axis, tool)
   end
 
@@ -258,12 +258,12 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   end
 
   def move_abs(%{x: x, y: y, z: z, speed_x: sx, speed_y: sy, speed_z: sz} = k) do
-    x_str = FarmbotCore.Celery.FormatUtil.format_float(x)
-    y_str = FarmbotCore.Celery.FormatUtil.format_float(y)
-    z_str = FarmbotCore.Celery.FormatUtil.format_float(z)
+    x_str = FarmbotOS.Celery.FormatUtil.format_float(x)
+    y_str = FarmbotOS.Celery.FormatUtil.format_float(y)
+    z_str = FarmbotOS.Celery.FormatUtil.format_float(z)
     msg = "Moving to (#{x_str}, #{y_str}, #{z_str})"
 
-    FarmbotCore.Celery.SysCallGlue.log(msg, true)
+    FarmbotOS.Celery.SysCallGlue.log(msg, true)
     :ok = SysCallGlue.move_absolute(x, y, z, sx, sy, sz)
     k
   end
@@ -273,7 +273,7 @@ defmodule FarmbotCore.Celery.Compiler.Move do
   def cz, do: SysCallGlue.get_current_z()
 
   def convert_lua_to_number(lua, cs_scope) do
-    case FarmbotCore.Celery.Compiler.Lua.do_lua(lua, cs_scope) do
+    case FarmbotOS.Celery.Compiler.Lua.do_lua(lua, cs_scope) do
       {:ok, [data]} ->
         if is_number(data) do
           data
