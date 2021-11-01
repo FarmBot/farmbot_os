@@ -355,6 +355,7 @@ ExUnit.configure(
   FarmbotOS.SysCalls.Farmware,
   FarmbotOS.SysCalls.Movement,
   FarmbotOS.SysCalls.ResourceUpdate,
+  FarmbotOS.System,
   FarmbotOS.UpdateSupport,
   FarmbotTelemetry,
   File,
