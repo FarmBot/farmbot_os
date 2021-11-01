@@ -227,21 +227,24 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   test "take_photo - OK" do
     mock = fn "take-photo", %{} -> :ok end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {[], :lua} == actual
   end
 
   test "take_photo - 'normal' errors" do
     mock = fn "take-photo", %{} -> {:error, "whatever"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {["whatever"], :lua} == actual
   end
 
   test "take_photo - malformed errors" do
     mock = fn "take-photo", %{} -> {:something_else, "whoops"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {[inspect({:something_else, "whoops"})], :lua} == actual
   end
 
