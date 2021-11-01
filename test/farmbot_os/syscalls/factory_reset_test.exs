@@ -11,6 +11,7 @@ defmodule FarmbotOS.SysCalls.FactoryResetTest do
       assert flag
       :ok
     end)
+
     assert :ok == FactoryReset.factory_reset("farmbot_os")
   end
 end
