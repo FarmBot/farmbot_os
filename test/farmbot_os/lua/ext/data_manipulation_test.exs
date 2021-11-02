@@ -123,6 +123,22 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [true]} == lua("update device test", lua_code)
   end
 
+  test "garden_size/0" do
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
+      %{
+        mcu_params: %{
+          movement_axis_nr_steps_y: 2.3,
+          movement_step_per_mm_y: 4.5,
+          movement_axis_nr_steps_x: 6.7,
+          movement_step_per_mm_x: 8.9
+        }
+      }
+    end)
+
+    expected = [[{"x", 0.7528089887640449}, {"y", 0.5111111111111111}]]
+    assert {:ok, expected} == lua("get garden size", "return garden_size()")
+  end
+
   test "get_device/0" do
     fake_device = %{fake: :device}
     expect(FarmbotOS.Asset, :device, 1, fn -> fake_device end)
