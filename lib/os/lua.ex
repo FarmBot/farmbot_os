@@ -162,6 +162,7 @@ defmodule FarmbotOS.Lua do
       find_axis_length: &Firmware.calibrate/2,
       find_home: safe("find home", &Firmware.find_home/2),
       firmware_version: &Info.firmware_version/2,
+      garden_size: &DataManipulation.garden_size/2,
       get_device: &DataManipulation.get_device/2,
       get_fbos_config: &DataManipulation.get_fbos_config/2,
       get_firmware_config: &DataManipulation.get_firmware_config/2,

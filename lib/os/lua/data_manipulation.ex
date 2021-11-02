@@ -170,6 +170,17 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[Base.encode64(data)], lua}
   end
 
+  def garden_size(_data, lua) do
+    p = FarmbotOS.BotState.fetch().mcu_params
+
+    result = %{
+      y: p.movement_axis_nr_steps_y / p.movement_step_per_mm_y,
+      x: p.movement_axis_nr_steps_x / p.movement_step_per_mm_x
+    }
+
+    {[Util.map_to_table(result)], lua}
+  end
+
   # Output is jpg encoded string.
   # Optionally emits an error.
   def take_photo_raw(_, lua) do
