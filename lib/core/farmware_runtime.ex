@@ -289,8 +289,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
 
     python_paths =
-      [package, "farmware_tools"]
-      |> Enum.map(fn n -> Path.join(runtime_dir(), n) end)
+      [Path.join(runtime_dir(), package), runtime_dir()]
       |> Enum.join(":")
 
     base =
@@ -302,6 +301,8 @@ defmodule FarmbotOS.FarmwareRuntime do
       |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
       |> Map.put("PYTHONPATH", python_paths)
+
+    Logger.info("=== PYTHONPATH: " <> inspect(python_paths))
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
