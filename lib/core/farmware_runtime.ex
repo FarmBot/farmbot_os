@@ -288,6 +288,11 @@ defmodule FarmbotOS.FarmwareRuntime do
     images_dir = "/tmp/images"
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
 
+    python_paths =
+      [package, "farmware_tools"]
+      |> Enum.map(fn n -> Path.join(runtime_dir(), n) end)
+      |> Enum.join(":")
+
     base =
       @legacy_fallbacks
       |> Map.put("FARMWARE_API_V2_REQUEST_PIPE", request_pipe)
@@ -296,7 +301,7 @@ defmodule FarmbotOS.FarmwareRuntime do
       |> Map.put("FARMBOT_OS_IMAGES_DIR", images_dir)
       |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
-      |> Map.put("PYTHONPATH", Path.join(runtime_dir(), package))
+      |> Map.put("PYTHONPATH", python_paths)
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
