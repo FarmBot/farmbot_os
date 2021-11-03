@@ -98,7 +98,7 @@ defmodule FarmbotOS.FarmwareRuntime do
 
     response_pipe = Path.join([@pipe_dir, prefix <> "response-pipe"])
 
-    env = build_env(env, request_pipe, response_pipe)
+    env = build_env(package, env, request_pipe, response_pipe)
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
     python = System.find_executable("python")
@@ -288,23 +288,11 @@ defmodule FarmbotOS.FarmwareRuntime do
 
   # RPC ENV is passed in to `start_link` and overwrites everything
   # except the `base` data.
-  def build_env(rpc_env, request_pipe, response_pipe) do
+  def build_env(package, rpc_env, request_pipe, response_pipe) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
-
-    farmwares =
-      [
-        runtime_dir("farmware_tools"),
-        runtime_dir("measure-soil-height"),
-        runtime_dir("plant_detection"),
-        runtime_dir("take-photo"),
-        runtime_dir("quickscripts"),
-        runtime_dir()
-      ]
-      |> Enum.join(":")
-
-    python_path = "#{runtime_dir()}:#{farmwares}"
+    python_path = [runtime_dir(package), runtime_dir()] |> Enum.join(":")
 
     base =
       @legacy_fallbacks
@@ -335,6 +323,14 @@ defmodule FarmbotOS.FarmwareRuntime do
   end
 
   def runtime_dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
+  def runtime_dir("camera-calibration"), do: runtime_dir("quickscripts")
+
+  def runtime_dir("historical-camera-calibration"),
+    do: runtime_dir("quickscripts")
+
+  def runtime_dir("historical-plant-detection"), do: runtime_dir("quickscripts")
   def runtime_dir("Measure Soil Height"), do: runtime_dir("measure-soil-height")
+  def runtime_dir("plant-detection"), do: runtime_dir("quickscripts")
+  def runtime_dir("take-photo"), do: runtime_dir("take-photo")
   def runtime_dir(dir_name), do: Path.join(runtime_dir(), dir_name)
 end
