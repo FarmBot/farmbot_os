@@ -98,7 +98,7 @@ defmodule FarmbotOS.FarmwareRuntime do
 
     response_pipe = Path.join([@pipe_dir, prefix <> "response-pipe"])
 
-    env = build_env(package, env, request_pipe, response_pipe)
+    env = build_env(env, request_pipe, response_pipe)
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
     python = System.find_executable("python")
@@ -106,7 +106,7 @@ defmodule FarmbotOS.FarmwareRuntime do
 
     opts = [
       env: env,
-      cd: package_dir(package),
+      cd: runtime_dir(package),
       into: FarmwareLogger.new(package)
     ]
 
@@ -243,7 +243,7 @@ defmodule FarmbotOS.FarmwareRuntime do
   # (a valid use case), When the Farmware completes
   # the pipe will still be waiting for information
   # and prevent the pipes from closing.
-  defp async_request_pipe_read(state, size) do
+  def async_request_pipe_read(state, size) do
     mon = PipeWorker.read(state.request_pipe_handle, size)
     %{state | mon: mon}
   end
@@ -271,7 +271,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     end
   end
 
-  defp decode_ast(data) do
+  def decode_ast(data) do
     try do
       case AST.decode(data) do
         %{kind: :rpc_request} = ast ->
@@ -288,14 +288,23 @@ defmodule FarmbotOS.FarmwareRuntime do
 
   # RPC ENV is passed in to `start_link` and overwrites everything
   # except the `base` data.
-  defp build_env(package, rpc_env, request_pipe, response_pipe) do
+  def build_env(rpc_env, request_pipe, response_pipe) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
 
-    python_paths =
-      [package_dir(package), runtime_dir()]
+    farmwares =
+      [
+        runtime_dir("farmware_tools"),
+        runtime_dir("measure-soil-height"),
+        runtime_dir("plant_detection"),
+        runtime_dir("take-photo"),
+        runtime_dir("quickscripts"),
+        runtime_dir()
+      ]
       |> Enum.join(":")
+
+    python_path = "#{runtime_dir()}:#{farmwares}"
 
     base =
       @legacy_fallbacks
@@ -305,9 +314,9 @@ defmodule FarmbotOS.FarmwareRuntime do
       |> Map.put("FARMBOT_OS_IMAGES_DIR", images_dir)
       |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
-      |> Map.put("PYTHONPATH", python_paths)
+      |> Map.put("PYTHONPATH", python_path)
 
-    Logger.info("=== PYTHONPATH: " <> inspect(python_paths))
+    Logger.info("=== PYTHONPATH: " <> inspect(python_path))
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
@@ -315,7 +324,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     |> Map.merge(base)
   end
 
-  defp add_header(%AST{} = rpc) do
+  def add_header(%AST{} = rpc) do
     payload = rpc |> Map.from_struct() |> JSON.encode!()
 
     header =
@@ -325,12 +334,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     header <> payload
   end
 
-  defp runtime_dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
-
-  @dirname_override %{"Measure Soil Height" => "measure-soil-height"}
-
-  def package_dir(package) do
-    dir_name = Map.get(@dirname_override, package, package)
-    Path.join(runtime_dir(), dir_name)
-  end
+  def runtime_dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
+  def runtime_dir("Measure Soil Height"), do: runtime_dir("measure-soil-height")
+  def runtime_dir(dir_name), do: Path.join(runtime_dir(), dir_name)
 end
