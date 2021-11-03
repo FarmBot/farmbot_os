@@ -103,7 +103,12 @@ defmodule FarmbotOS.FarmwareRuntime do
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
     python = System.find_executable("python")
     script = Path.join([runtime_dir(), Map.fetch!(@firmware_cmds, package)])
-    opts = [env: env, cd: runtime_dir(), into: FarmwareLogger.new(package)]
+
+    opts = [
+      env: env,
+      cd: package_dir(package),
+      into: FarmwareLogger.new(package)
+    ]
 
     cmd_args = ["sh", ["-c", "#{python} #{script}"], opts]
     {cmd, _} = spawn_monitor(MuonTrap, :cmd, cmd_args)
@@ -289,7 +294,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
 
     python_paths =
-      [Path.join(runtime_dir(), package), runtime_dir()]
+      [package_dir(package), runtime_dir()]
       |> Enum.join(":")
 
     base =
@@ -321,4 +326,11 @@ defmodule FarmbotOS.FarmwareRuntime do
   end
 
   defp runtime_dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
+
+  @dirname_override %{"Measure Soil Height" => "measure-soil-height"}
+
+  def package_dir(package) do
+    dir_name = Map.get(@dirname_override, package, package)
+    Path.join(runtime_dir(), dir_name)
+  end
 end
