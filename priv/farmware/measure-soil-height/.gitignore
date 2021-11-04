@@ -8,3 +8,4 @@ tests/view
 !module_graph.svg
 .vscode
 *.json
+!manifest.json

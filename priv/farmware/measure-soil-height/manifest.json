@@ -1,0 +1,70 @@
+{
+  "package": "Measure Soil Height",
+  "language": "python",
+  "author": "FarmBot, Inc.",
+  "description": "Measure soil z height at the current position.",
+  "farmware_manifest_version": "2.0.0",
+  "package_version": "1.4.6",
+  "farmbot_os_version_requirement": ">=8.0.0",
+  "url": "https://raw.githubusercontent.com/FarmBot-Labs/measure-soil-height/main/manifest.json",
+  "zip": "https://github.com/FarmBot-Labs/measure-soil-height/archive/main.zip",
+  "executable": "python",
+  "args": "measure-soil-height-main/measure_height.py",
+  "config": {
+    "0": {
+      "name": "measured_distance",
+      "label": "Measured distance from camera to soil in millimeters (required input for calibration)",
+      "value": 0
+    },
+    "1": {
+      "name": "disparity_search_depth",
+      "label": "Disparity search depth",
+      "value": 1
+    },
+    "2": {
+      "name": "disparity_block_size",
+      "label": "Disparity block size",
+      "value": 15
+    },
+    "3": {
+      "name": "verbose",
+      "label": "Image output",
+      "value": 2
+    },
+    "4": {
+      "name": "log_verbosity",
+      "label": "Log verbosity",
+      "value": 1
+    },
+    "5": {
+      "name": "calibration_factor",
+      "label": "Calibration factor result",
+      "value": 0
+    },
+    "6": {
+      "name": "calibration_disparity_offset",
+      "label": "Calibration offset result",
+      "value": 0
+    },
+    "7": {
+      "name": "calibration_image_width",
+      "label": "Image width during calibration",
+      "value": 0
+    },
+    "8": {
+      "name": "calibration_image_height",
+      "label": "Image height during calibration",
+      "value": 0
+    },
+    "9": {
+      "name": "calibration_measured_at_z",
+      "label": "Z-axis position during calibration",
+      "value": 0
+    },
+    "10": {
+      "name": "calibration_maximum",
+      "label": "Calibration maximum",
+      "value": 0
+    }
+  }
+}
