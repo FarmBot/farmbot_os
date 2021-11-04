@@ -106,11 +106,12 @@ defmodule FarmbotOS.FarmwareRuntime do
 
     opts = [
       env: env,
-      cd: dir(),
+      cd: dir(package),
       into: FarmwareLogger.new(package)
     ]
 
     cmd_args = ["sh", ["-c", "#{python} #{script}"], opts]
+    Logger.info(inspect(cmd_args))
     {cmd, _} = spawn_monitor(MuonTrap, :cmd, cmd_args)
 
     state = %State{
@@ -329,6 +330,5 @@ defmodule FarmbotOS.FarmwareRuntime do
   def dir("Measure Soil Height"), do: dir("measure-soil-height")
   def dir("noop"), do: dir()
   def dir("plant-detection"), do: dir("quickscripts")
-  def dir("take-photo"), do: dir("take-photo")
   def dir(dir_name), do: Path.join(dir(), dir_name)
 end
