@@ -102,11 +102,11 @@ defmodule FarmbotOS.FarmwareRuntime do
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
     python = System.find_executable("python")
-    script = Path.join([runtime_dir(), Map.fetch!(@firmware_cmds, package)])
+    script = Path.join([dir(), Map.fetch!(@firmware_cmds, package)])
 
     opts = [
       env: env,
-      cd: runtime_dir(package),
+      cd: dir(),
       into: FarmwareLogger.new(package)
     ]
 
@@ -292,7 +292,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
-    python_path = [runtime_dir(package), runtime_dir()] |> Enum.join(":")
+    python_path = [dir(package), dir()] |> Enum.join(":")
 
     base =
       @legacy_fallbacks
@@ -322,15 +322,13 @@ defmodule FarmbotOS.FarmwareRuntime do
     header <> payload
   end
 
-  def runtime_dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
-  def runtime_dir("camera-calibration"), do: runtime_dir("quickscripts")
-
-  def runtime_dir("historical-camera-calibration"),
-    do: runtime_dir("quickscripts")
-
-  def runtime_dir("historical-plant-detection"), do: runtime_dir("quickscripts")
-  def runtime_dir("Measure Soil Height"), do: runtime_dir("measure-soil-height")
-  def runtime_dir("plant-detection"), do: runtime_dir("quickscripts")
-  def runtime_dir("take-photo"), do: runtime_dir("take-photo")
-  def runtime_dir(dir_name), do: Path.join(runtime_dir(), dir_name)
+  def dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
+  def dir("camera-calibration"), do: dir("quickscripts")
+  def dir("historical-camera-calibration"), do: dir("quickscripts")
+  def dir("historical-plant-detection"), do: dir("quickscripts")
+  def dir("Measure Soil Height"), do: dir("measure-soil-height")
+  def dir("noop"), do: dir()
+  def dir("plant-detection"), do: dir("quickscripts")
+  def dir("take-photo"), do: dir("take-photo")
+  def dir(dir_name), do: Path.join(dir(), dir_name)
 end
