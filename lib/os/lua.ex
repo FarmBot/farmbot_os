@@ -180,7 +180,7 @@ defmodule FarmbotOS.Lua do
       take_photo_raw: &DataManipulation.take_photo_raw/2,
       take_photo: execute_script("take-photo"),
       calibrate_camera: execute_script("camera-calibration"),
-      detect_plants: execute_script("plant-detection"),
+      detect_weeds: execute_script("plant-detection"),
       measure_soil_height: execute_script("Measure Soil Height"),
       update_device: &DataManipulation.update_device/2,
       update_fbos_config: &DataManipulation.update_fbos_config/2,
