@@ -1,5 +1,11 @@
 # Changelog
 
+# 14.6.1
+
+ * Remove need to download farmwares over the network (improves offline experience)
+ * Remove references to legacy components (FarmbotCore, FarmbotExt, etc..)
+ * Add new Lua functions: `detect_weeds`, `garden_size`, `measure_soil_height`
+
 # 14.6.0
 
  * Upgrade database driver.

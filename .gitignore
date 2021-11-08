@@ -1,3 +1,4 @@
+__pycache__
 _nerves-tmp
 !/nerves/host
 !/nerves/target
@@ -11,12 +12,14 @@ _nerves-tmp
 *.db-journal
 *.db-shm
 *.db-wal
+*.db*
 *.ez
 *.img
 *.lua
 *.o
 *.pem
 *.priv
+*.pyc
 *.so
 *.sqlite3
 *.sqlite3*
@@ -43,6 +46,7 @@ _nerves-tmp
 artifacts
 auth_secret_test.exs
 auth_secret.exs
+capture_*
 erl_crash.dump
 farmbot_ext-*.tar
 farmbot_ng-*.tar
@@ -56,5 +60,3 @@ test_tmp/
 tmp/
 ttb_last_config
 upload.sh
-capture_*.jpg
-__pycache__
