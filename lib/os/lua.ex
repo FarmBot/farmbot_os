@@ -48,8 +48,7 @@ defmodule FarmbotOS.Lua do
   `extra_vm_args` is a set of extra args to place inside the
   Lua sandbox. The extra args are passed to set_table/3
   """
-  def perform_lua(lua_code, extra_vm_args, comment) do
-    comment = comment || "sequence"
+  def perform_lua(lua_code, extra_vm_args, _comment) do
     lua_code = add_implicit_return(lua_code)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
@@ -58,33 +57,9 @@ defmodule FarmbotOS.Lua do
       {:ok, value} ->
         {:ok, value}
 
-      {:error, {:lua_error, error, _lua}} ->
-        {:error, "lua runtime error evaluating expression: #{inspect(error)}"}
-
-      {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
-        FarmbotOS.Logger.error(
-          1,
-          """
-          Failed to parse expression:
-          `#{comment}.lua:#{line}`
-
-          #{IO.iodata_to_binary(parse_error)}
-          """,
-          channels: [:toast]
-        )
-
-        {:error,
-         "failed to parse expression (line:#{line}): #{IO.iodata_to_binary(parse_error)}"}
-
-      {:error, error, backtrace} ->
-        IO.inspect(backtrace, label: "=== LUA ERROR TRACE")
-        {:error, error}
-
-      {:error, error} ->
-        {:error, error}
-
       error ->
-        {:error, inspect(error)}
+        Logger.error("==== Lua error: " <> String.slice(inspect(error), 0..80))
+        {:error, "Lua error"}
     end
   end
 
@@ -117,7 +92,7 @@ defmodule FarmbotOS.Lua do
   def safe(action, fun) when is_function(fun, 2) do
     fn args, lua ->
       if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
-        {[nil, "Can't #{action} when locked."], :luerl.stop(lua)}
+        {[nil, "Can't #{action} when locked."], :luerl.init()}
       else
         fun.(args, lua)
       end
