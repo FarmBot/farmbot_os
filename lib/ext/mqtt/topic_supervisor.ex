@@ -1,7 +1,7 @@
-defmodule FarmbotExt.MQTT.TopicSupervisor do
+defmodule FarmbotOS.MQTT.TopicSupervisor do
   use Supervisor
 
-  alias FarmbotExt.MQTT.{
+  alias FarmbotOS.MQTT.{
     BotStateHandler,
     LogHandler,
     PingHandler,

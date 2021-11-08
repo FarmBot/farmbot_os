@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.ParameterTest do
+defmodule FarmbotOS.Firmware.ParameterTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.Parameter
+  alias FarmbotOS.Firmware.Parameter
 
   @how_many_params_there_are 113
 
@@ -24,19 +24,5 @@ defmodule FarmbotCore.Firmware.ParameterTest do
       |> Enum.count() == 1
 
     assert all_atoms?
-  end
-
-  test "numbers" do
-    numbers = Parameter.numbers()
-    assert Enum.count(numbers) == @how_many_params_there_are
-    assert is_number(Enum.at(numbers, 0))
-
-    all_numbers? =
-      numbers
-      |> Enum.map(fn name -> is_number(name) end)
-      |> Enum.uniq()
-      |> Enum.count() == 1
-
-    assert all_numbers?
   end
 end

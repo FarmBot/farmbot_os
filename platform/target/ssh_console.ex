@@ -4,9 +4,9 @@ defmodule FarmbotOS.Platform.Target.SSHConsole do
   """
   use GenServer
   require Logger
-  alias FarmbotCore.Asset.PublicKey
+  alias FarmbotOS.Asset.PublicKey
 
-  @behaviour FarmbotCore.Asset.PublicKey
+  @behaviour FarmbotOS.Asset.PublicKey
 
   def ready? do
     is_pid(GenServer.whereis(__MODULE__))

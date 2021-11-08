@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Asset.SyncTest do
+defmodule FarmbotOS.Asset.SyncTest do
   use ExUnit.Case
 
-  alias FarmbotCore.Asset.Sync
+  alias FarmbotOS.Asset.Sync
 
   @expected_keys [
     :devices,

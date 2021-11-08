@@ -1,7 +1,7 @@
-defmodule FarmbotCore.JSON do
+defmodule FarmbotOS.JSON do
   @moduledoc "Wraps a dependency for easy upgrade and no vendor lock."
 
-  @parser FarmbotCore.JSON.JasonParser
+  @parser FarmbotOS.JSON.JasonParser
   @spec decode(iodata, term) :: {:ok, term} | {:error, term}
   def decode(iodata, opts \\ []), do: @parser.decode(iodata, opts)
 

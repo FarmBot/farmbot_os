@@ -1,10 +1,10 @@
-defmodule FarmbotCore.BotStateNG do
+defmodule FarmbotOS.BotStateNG do
   @moduledoc """
   The data strucutre behind the bot state tree (not the living process).
   Also has some helpers for batching changes.
   """
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     BotStateNG,
     BotStateNG.McuParams,
     BotStateNG.LocationData,
@@ -17,6 +17,112 @@ defmodule FarmbotCore.BotStateNG do
 
   @primary_key false
 
+  @legacy_info %{
+    farmwares: %{
+      "Measure Soil Height": %{
+        config: %{
+          "0": %{
+            label:
+              "Measured distance from camera to soil in millimeters (required input for calibration)",
+            name: "measured_distance",
+            value: 0
+          },
+          "1": %{
+            label: "Disparity search depth",
+            name: "disparity_search_depth",
+            value: 1
+          },
+          "10": %{
+            label: "Calibration maximum",
+            name: "calibration_maximum",
+            value: 0
+          },
+          "2": %{
+            label: "Disparity block size",
+            name: "disparity_block_size",
+            value: 15
+          },
+          "3": %{
+            label: "Image output",
+            name: "verbose",
+            value: 2
+          },
+          "4": %{
+            label: "Log verbosity",
+            name: "log_verbosity",
+            value: 1
+          },
+          "5": %{
+            label: "Calibration factor result",
+            name: "calibration_factor",
+            value: 0
+          },
+          "6": %{
+            label: "Calibration offset result",
+            name: "calibration_disparity_offset",
+            value: 0
+          },
+          "7": %{
+            label: "Image width during calibration",
+            name: "calibration_image_width",
+            value: 0
+          },
+          "8": %{
+            label: "Image height during calibration",
+            name: "calibration_image_height",
+            value: 0
+          },
+          "9": %{
+            label: "Z-axis position during calibration",
+            name: "calibration_measured_at_z",
+            value: 0
+          }
+        },
+        description: "Measure soil z height at the current position.",
+        farmware_manifest_version: "2.0.0",
+        package: "Measure Soil Height",
+        package_version: "1.4.6"
+      },
+      "camera-calibration": %{
+        config: %{},
+        description: "Calibrate the camera for use in plant-detection.",
+        farmware_manifest_version: "2.0.0",
+        package: "camera-calibration",
+        package_version: "0.0.2"
+      },
+      "historical-camera-calibration": %{
+        config: %{},
+        description:
+          "Calibrate the camera with historical image for use in plant-detection.",
+        farmware_manifest_version: "2.0.0",
+        package: "historical-camera-calibration",
+        package_version: "0.0.2"
+      },
+      "historical-plant-detection": %{
+        config: %{},
+        description:
+          "Detect and mark plants in historical image. Prerequisite: camera-calibration",
+        farmware_manifest_version: "2.0.0",
+        package: "historical-plant-detection",
+        package_version: "0.0.2"
+      },
+      "plant-detection": %{
+        config: %{},
+        description: "Detect and mark plants. Prerequisite: camera-calibration",
+        farmware_manifest_version: "2.0.0",
+        package: "plant-detection",
+        package_version: "0.0.18"
+      },
+      "take-photo": %{
+        config: %{},
+        description: "Take a photo using a USB or Raspberry Pi camera.",
+        farmware_manifest_version: "2.0.0",
+        package: "take-photo",
+        package_version: "1.0.19"
+      }
+    }
+  }
+
   embedded_schema do
     embeds_one(:mcu_params, McuParams, on_replace: :update)
     embeds_one(:location_data, LocationData, on_replace: :update)
@@ -27,7 +133,7 @@ defmodule FarmbotCore.BotStateNG do
 
     embeds_one(:configuration, Configuration, on_replace: :update)
     field(:user_env, :map, default: %{})
-    field(:process_info, :map, default: %{farmwares: %{}})
+    field(:process_info, :map, default: @legacy_info)
     field(:pins, :map, default: %{})
     field(:jobs, :map, default: %{})
   end
@@ -58,7 +164,7 @@ defmodule FarmbotCore.BotStateNG do
       informational_settings:
         InformationalSettings.view(bot_state.informational_settings),
       configuration: Configuration.view(bot_state.configuration),
-      process_info: bot_state.process_info,
+      process_info: Map.merge(@legacy_info, bot_state.process_info),
       user_env: bot_state.user_env,
       pins: bot_state.pins,
       jobs: bot_state.jobs
@@ -75,19 +181,6 @@ defmodule FarmbotCore.BotStateNG do
       |> Map.put(number, %{mode: mode, value: value})
 
     put_change(cs, :pins, new_pins)
-  end
-
-  @doc "Add or update a farmware to state.farmwares"
-  def add_or_update_farmware(state, name, %{} = manifest) do
-    cs = changeset(state, %{})
-
-    new_farmwares =
-      cs
-      |> get_field(:process_info)
-      |> Map.get(:farmwares)
-      |> Map.put(name, manifest)
-
-    put_change(cs, :process_info, %{farmwares: new_farmwares})
   end
 
   @doc "Sets an env var on the state.user_env"

@@ -1,9 +1,9 @@
-defmodule FarmbotExt.MQTT.SupervisorTest do
+defmodule FarmbotOS.MQTT.SupervisorTest do
   require Helpers
 
   use ExUnit.Case
   use Mimic
-  alias FarmbotExt.MQTT.Supervisor, as: S
+  alias FarmbotOS.MQTT.Supervisor, as: S
 
   setup :verify_on_exit!
   setup :set_mimic_global

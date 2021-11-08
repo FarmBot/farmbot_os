@@ -119,8 +119,6 @@
         "find_home",
         "flash_firmware",
         "home",
-        "install_farmware",
-        "install_first_party_farmware",
         "move",
         "move_absolute",
         "move_relative",
@@ -128,14 +126,12 @@
         "read_pin",
         "read_status",
         "reboot",
-        "remove_farmware",
         "send_message",
         "set_servo_angle",
         "set_user_env",
         "sync",
         "take_photo",
         "toggle_pin",
-        "update_farmware",
         "update_resource",
         "wait",
         "write_pin",
@@ -322,8 +318,6 @@
         "FlashFirmware",
         "Home",
         "Identifier",
-        "InstallFarmware",
-        "InstallFirstPartyFarmware",
         "InternalEntryPoint",
         "InternalFarmEvent",
         "InternalRegimen",
@@ -336,7 +330,6 @@
         "PowerOff",
         "ReadStatus",
         "Reboot",
-        "RemoveFarmware",
         "RpcError",
         "RpcOk",
         "RpcRequest",
@@ -349,7 +342,6 @@
         "TakePhoto",
         "TogglePin",
         "Tool",
-        "UpdateFarmware",
         "VariableDeclaration",
         "Wait",
         "Zero",
@@ -1122,30 +1114,6 @@
       "docs": ""
     },
     {
-      "allowed_args": [
-        "url"
-      ],
-      "allowed_body_types": [],
-      "name": "install_farmware",
-      "tags": [
-        "function",
-        "network_user",
-        "disk_user",
-        "api_writer"
-      ],
-      "docs": ""
-    },
-    {
-      "allowed_args": [],
-      "allowed_body_types": [],
-      "name": "install_first_party_farmware",
-      "tags": [
-        "function",
-        "network_user"
-      ],
-      "docs": ""
-    },
-    {
       "allowed_args": [],
       "allowed_body_types": [],
       "name": "internal_entry_point",
@@ -1284,17 +1252,6 @@
     },
     {
       "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "remove_farmware",
-      "tags": [
-        "function"
-      ],
-      "docs": ""
-    },
-    {
-      "allowed_args": [
         "label"
       ],
       "allowed_body_types": [
@@ -1335,8 +1292,6 @@
         "find_home",
         "flash_firmware",
         "home",
-        "install_farmware",
-        "install_first_party_farmware",
         "_if",
         "move_absolute",
         "move_relative",
@@ -1345,7 +1300,6 @@
         "read_pin",
         "read_status",
         "reboot",
-        "remove_farmware",
         "update_resource",
         "send_message",
         "set_servo_angle",
@@ -1353,7 +1307,6 @@
         "sync",
         "take_photo",
         "toggle_pin",
-        "update_farmware",
         "wait",
         "write_pin",
         "zero"
@@ -1408,8 +1361,6 @@
         "find_home",
         "flash_firmware",
         "home",
-        "install_farmware",
-        "install_first_party_farmware",
         "_if",
         "move_absolute",
         "move_relative",
@@ -1418,7 +1369,6 @@
         "read_pin",
         "read_status",
         "reboot",
-        "remove_farmware",
         "update_resource",
         "send_message",
         "set_servo_angle",
@@ -1426,7 +1376,6 @@
         "sync",
         "take_photo",
         "toggle_pin",
-        "update_farmware",
         "wait",
         "write_pin",
         "zero"
@@ -1504,19 +1453,6 @@
       "tags": [
         "data",
         "location_like",
-        "api_validated"
-      ],
-      "docs": ""
-    },
-    {
-      "allowed_args": [
-        "package"
-      ],
-      "allowed_body_types": [],
-      "name": "update_farmware",
-      "tags": [
-        "function",
-        "network_user",
         "api_validated"
       ],
       "docs": ""

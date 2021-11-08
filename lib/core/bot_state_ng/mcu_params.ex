@@ -1,6 +1,6 @@
-defmodule FarmbotCore.BotStateNG.McuParams do
+defmodule FarmbotOS.BotStateNG.McuParams do
   @moduledoc false
-  alias FarmbotCore.BotStateNG.McuParams
+  alias FarmbotOS.BotStateNG.McuParams
   use Ecto.Schema
   import Ecto.Changeset
 

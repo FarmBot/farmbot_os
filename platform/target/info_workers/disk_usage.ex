@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Platform.Target.InfoWorker.DiskUsage do
   @moduledoc """
-  Worker responsible for reporting disk usage to the 
+  Worker responsible for reporting disk usage to the
   bot_state server
   """
 
@@ -9,7 +9,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.DiskUsage do
   @default_timeout_ms 60_000
   @error_timeout_ms 5_000
 
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @doc false
   def start_link(args) do

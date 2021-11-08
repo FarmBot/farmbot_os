@@ -1,11 +1,11 @@
-defmodule FarmbotCore.BotState.FileSystem do
+defmodule FarmbotOS.BotState.FileSystem do
   @moduledoc """
   Serializes Farmbot's state into a location on a filesystem.
   """
 
   require Logger
   use GenServer
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @root_dir Application.get_env(:farmbot, __MODULE__)[:root_dir]
   @sleep_time 8_000

@@ -1,0 +1,20 @@
+doc-warnings: true
+test-warnings: false
+strictness: veryhigh
+
+pep8:
+  full: true
+pep257:
+  disable:
+    - D203
+pylint:
+  disable:
+    - too-many-instance-attributes
+
+python-targets:
+  - 2
+  - 3
+
+autodetect: true
+requirements:
+  - requirements.txt

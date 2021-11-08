@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Firmware.CommandTest do
+defmodule FarmbotOS.Firmware.CommandTest do
   require Helpers
   use ExUnit.Case
   use Mimic
-  alias FarmbotCore.Firmware.{Command, UARTCore}
-  alias FarmbotCore.BotState
+  alias FarmbotOS.Firmware.{Command, UARTCore}
+  alias FarmbotOS.BotState
 
   setup :verify_on_exit!
 
@@ -38,7 +38,7 @@ defmodule FarmbotCore.Firmware.CommandTest do
       {:ok, :not_really_used_just_stubbed}
     end)
 
-    expect(FarmbotCore.BotState, :fetch, 1, fn ->
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
       %{pins: %{13 => %{value: 1.0}}}
     end)
 
@@ -114,32 +114,6 @@ defmodule FarmbotCore.Firmware.CommandTest do
     simple_case("find_length(:z)", "F16", fn -> Command.find_length(:z) end)
   end
 
-  test "read_params()" do
-    simple_case("read_params()", "F20", fn -> Command.read_params() end)
-  end
-
-  test "read_param(param)" do
-    t = fn -> Command.read_param(2) end
-    simple_case("read_param(param)", "F21 P2.00", t)
-  end
-
-  test "write_param(param, val)" do
-    t = fn -> Command.write_param(4, 1.0) end
-    simple_case("write_param(param, val)", "F22 P4.00 V1.00", t)
-  end
-
-  test "report_end_stops()" do
-    simple_case("report_end_stops()", "F81", fn ->
-      Command.report_end_stops()
-    end)
-  end
-
-  test "report_software_version()" do
-    simple_case("report_software_version()", "F83", fn ->
-      Command.report_software_version()
-    end)
-  end
-
   test "set_zero(:x)" do
     simple_case("set_zero(:x)", "F84 X1.00 Y0.00 Z0.00", fn ->
       Command.set_zero(:x)
@@ -161,12 +135,6 @@ defmodule FarmbotCore.Firmware.CommandTest do
   test "move_servo(pin, angle)" do
     simple_case("move_servo(pin, angle)", "F61 P13.00 V179.00", fn ->
       Command.move_servo(13, 179)
-    end)
-  end
-
-  test "update_param(param, val)" do
-    simple_case("update_param(param, val)", "F22 P1.00 V2.30", fn ->
-      Command.update_param(1, 2.3)
     end)
   end
 

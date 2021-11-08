@@ -1,14 +1,12 @@
-defmodule FarmbotCore.Asset.Supervisor do
+defmodule FarmbotOS.Asset.Supervisor do
   @moduledoc false
   use Supervisor
-  alias FarmbotCore.{ChangeSupervisor, AssetMonitor}
+  alias FarmbotOS.{ChangeSupervisor, AssetMonitor}
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
-    FirstPartyFarmware,
     FbosConfig,
     FirmwareConfig,
     PinBinding,
@@ -36,8 +34,6 @@ defmodule FarmbotCore.Asset.Supervisor do
       {ChangeSupervisor, module: PinBinding},
       {ChangeSupervisor, module: PublicKey},
       {ChangeSupervisor, module: Peripheral},
-      {ChangeSupervisor, module: FirstPartyFarmware},
-      {ChangeSupervisor, module: FarmwareInstallation},
       {ChangeSupervisor, module: FarmwareEnv},
       AssetMonitor
     ]

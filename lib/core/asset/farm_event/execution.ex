@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Asset.FarmEvent.Execution do
-  alias FarmbotCore.Asset.FarmEvent
+defmodule FarmbotOS.Asset.FarmEvent.Execution do
+  alias FarmbotOS.Asset.FarmEvent
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}

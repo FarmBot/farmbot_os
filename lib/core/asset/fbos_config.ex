@@ -1,14 +1,14 @@
-defmodule FarmbotCore.Asset.FbosConfig do
+defmodule FarmbotOS.Asset.FbosConfig do
   @moduledoc """
   Farmbot's configuration database
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/fbos_config"
+  use FarmbotOS.Asset.Schema, path: "/api/fbos_config"
 
   schema "fbos_configs" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

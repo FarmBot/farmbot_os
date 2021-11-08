@@ -1,4 +1,4 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FbosConfig do
   @moduledoc """
   This asset worker does not get restarted. It inistead responds to GenServer
   calls.
@@ -6,16 +6,16 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
   use GenServer
   require Logger
-  require FarmbotCore.Logger
-  alias FarmbotCore.{Asset.FbosConfig, BotState}
+  require FarmbotOS.Logger
+  alias FarmbotOS.{Asset.FbosConfig, BotState}
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def preload(%FbosConfig{}), do: []
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def tracks_changes?(%FbosConfig{}), do: true
 
-  @impl FarmbotCore.AssetWorker
+  @impl FarmbotOS.AssetWorker
   def start_link(%FbosConfig{} = fbos_config, _args) do
     GenServer.start_link(__MODULE__, %FbosConfig{} = fbos_config)
   end
@@ -64,41 +64,41 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FbosConfig do
 
     Enum.each(difference, fn
       {:os_auto_update, bool} ->
-        FarmbotCore.Logger.success(1, "Set OS auto update to #{bool}")
+        FarmbotOS.Logger.success(1, "Set OS auto update to #{bool}")
 
       {:network_not_found_timer, minutes} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Set connection attempt period to #{minutes} minutes"
         )
 
       {:sequence_body_log, bool} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Set sequence step log messages to #{bool}"
         )
 
       {:sequence_complete_log, bool} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Set sequence complete log messages to #{bool}"
         )
 
       {:sequence_init_log, bool} ->
-        FarmbotCore.Logger.success(
+        FarmbotOS.Logger.success(
           1,
           "Set sequence init log messages to #{bool}"
         )
 
       {param, value} ->
-        FarmbotCore.Logger.success(1, "Set #{param} to #{value}")
+        FarmbotOS.Logger.success(1, "Set #{param} to #{value}")
     end)
 
     set_config_to_state(new_fbos_config)
   end
 
   def set_config_to_state(fbos_config) do
-    # firmware_hardware is set by FarmbotCore.Firmware.SideEffects
+    # firmware_hardware is set by FarmbotOS.Firmware.SideEffects
     :ok =
       BotState.set_config_value(
         :network_not_found_timer,

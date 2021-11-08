@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Celery.Compiler.Sequence do
-  alias FarmbotCore.Celery.Compiler.{Scope, Utils}
+defmodule FarmbotOS.Celery.Compiler.Sequence do
+  alias FarmbotOS.Celery.Compiler.{Scope, Utils}
 
   def sequence(ast, cs_scope) do
     sequence_header = ast.args.locals.body

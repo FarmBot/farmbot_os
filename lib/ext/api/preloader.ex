@@ -1,4 +1,4 @@
-defmodule FarmbotExt.API.Preloader do
+defmodule FarmbotOS.API.Preloader do
   @moduledoc """
   Task to ensure download and insert or cache
   all resources stored in the API.
@@ -6,11 +6,11 @@ defmodule FarmbotExt.API.Preloader do
 
   alias Ecto.Changeset
 
-  require FarmbotCore.Logger
-  alias FarmbotExt.API
-  alias FarmbotExt.API.{Reconciler, SyncGroup}
+  require FarmbotOS.Logger
+  alias FarmbotOS.API
+  alias FarmbotOS.API.{Reconciler, SyncGroup}
 
-  alias FarmbotCore.Asset.Sync
+  alias FarmbotOS.Asset.Sync
 
   @doc """
   Syncronous call to sync or preload assets.
@@ -20,13 +20,12 @@ defmodule FarmbotExt.API.Preloader do
     with {:ok, sync_changeset} <- API.get_changeset(Sync),
          sync_changeset <-
            Reconciler.sync_group(sync_changeset, SyncGroup.group_0()) do
-      FarmbotCore.Logger.success(3, "Successfully preloaded resources.")
       do_auto_sync(sync_changeset)
     end
   end
 
   defp do_auto_sync(%Changeset{} = sync_changeset) do
-    FarmbotCore.Logger.busy(3, "Starting auto sync")
+    FarmbotOS.Logger.busy(3, "Starting auto sync")
 
     with %Changeset{valid?: true} = sync_changeset <-
            Reconciler.sync_group(sync_changeset, SyncGroup.group_1()),
@@ -36,11 +35,11 @@ defmodule FarmbotExt.API.Preloader do
            Reconciler.sync_group(sync_changeset, SyncGroup.group_3()),
          %Changeset{valid?: true} <-
            Reconciler.sync_group(sync_changeset, SyncGroup.group_4()) do
-      FarmbotCore.Logger.success(3, "Auto sync complete")
+      FarmbotOS.Logger.success(3, "Auto sync complete")
       :ok
     else
       error ->
-        FarmbotCore.Logger.error(3, "Auto sync failed #{inspect(error)}")
+        FarmbotOS.Logger.error(3, "Auto sync failed #{inspect(error)}")
         error
     end
   end

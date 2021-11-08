@@ -1,4 +1,4 @@
-defmodule FarmbotExt.API.ViewTest do
+defmodule FarmbotOS.API.ViewTest do
   use ExUnit.Case
 
   def render(%{ok: :ok}) do
@@ -6,7 +6,7 @@ defmodule FarmbotExt.API.ViewTest do
   end
 
   test "render/2" do
-    result = FarmbotExt.API.View.render(__MODULE__, %{ok: :ok})
+    result = FarmbotOS.API.View.render(__MODULE__, %{ok: :ok})
     assert :yep == result
   end
 end

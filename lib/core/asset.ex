@@ -1,21 +1,18 @@
-defmodule FarmbotCore.Asset do
+defmodule FarmbotOS.Asset do
   @moduledoc """
   Top level module, with some helpers. Persists application resources to disk.
   Submodules of this module usually (but not always) correspond to a
   resource in the REST API. See official REST API docs for details.
   """
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     CriteriaRetriever,
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
-    FirstPartyFarmware,
     Peripheral,
-    PinBinding,
     Point,
     PointGroup,
     PublicKey,
@@ -28,7 +25,7 @@ defmodule FarmbotCore.Asset do
     Tool
   }
 
-  alias FarmbotCore.ChangeSupervisor
+  alias FarmbotOS.ChangeSupervisor
 
   import Ecto.Query
   require Logger
@@ -133,7 +130,7 @@ defmodule FarmbotCore.Asset do
 
   @doc """
   This function updates Farmbot OS's local database. It will **NOT** send any
-  HTTP requests to the API. To do this, `FarmbotCore.Asset.Private.mark_dirty!/2`
+  HTTP requests to the API. To do this, `FarmbotOS.Asset.Private.mark_dirty!/2`
   is almost certainly what you want.
   """
   def update_fbos_config!(fbos_config \\ nil, params) do
@@ -242,15 +239,6 @@ defmodule FarmbotCore.Asset do
 
   ## End RegimenInstance
 
-  ## Begin PinBinding
-
-  @doc "Lists all available pin bindings"
-  def list_pin_bindings do
-    Repo.all(PinBinding)
-  end
-
-  ## End PinBinding
-
   ## Begin Point
 
   def get_point(params) do
@@ -282,10 +270,10 @@ defmodule FarmbotCore.Asset do
   end
 
   @doc "Returns all points matching Point.pointer_type"
-  def get_all_points_by_type(type, order_by \\ "random") do
+  def get_all_points_by_type(type) do
     from(p in Point, where: p.pointer_type == ^type and is_nil(p.discarded_at))
     |> Repo.all()
-    |> sort_points(order_by)
+    |> sort_points("random")
   end
 
   def sort_points(points, order_by) do
@@ -399,7 +387,7 @@ defmodule FarmbotCore.Asset do
           "#{inspect(asset)} uses PointGroup: #{inspect(point_group)}. Reindexing it."
         )
 
-        FarmbotCore.ChangeSupervisor.update_child(asset)
+        FarmbotOS.ChangeSupervisor.update_child(asset)
       end
     end
 
@@ -498,21 +486,6 @@ defmodule FarmbotCore.Asset do
     Repo.delete!(public_key)
   end
 
-  def new_public_key_from_home!() do
-    public_key_path = Path.join([System.get_env("HOME"), ".ssh", "id_rsa.pub"])
-    public_key = File.read!(public_key_path)
-
-    %PublicKey{}
-    |> PublicKey.changeset(%{public_key: public_key})
-    |> Repo.insert()
-  end
-
-  def new_public_key_from_string!(public_key) do
-    %PublicKey{}
-    |> PublicKey.changeset(%{public_key: public_key})
-    |> Repo.insert()
-  end
-
   ## End PublicKey
 
   ## Begin Regimen
@@ -598,7 +571,7 @@ defmodule FarmbotCore.Asset do
       end)
 
     for asset <- farm_events ++ regimen_instances do
-      FarmbotCore.ChangeSupervisor.update_child(asset)
+      FarmbotOS.ChangeSupervisor.update_child(asset)
     end
 
     Sequence.changeset(sequence, params)
@@ -611,54 +584,6 @@ defmodule FarmbotCore.Asset do
   end
 
   ## End Sequence
-
-  ## Begin FarmwareInstallation
-
-  @doc "Get a FarmwareManifest by it's name."
-  def get_farmware_manifest(package) do
-    first_party_farmwares =
-      Repo.all(from(fwi in FirstPartyFarmware, select: fwi.manifest))
-
-    regular_farmwares =
-      Repo.all(from(fwi in FarmwareInstallation, select: fwi.manifest))
-
-    Enum.find(
-      first_party_farmwares ++ regular_farmwares,
-      fn
-        %{package: pkg} -> pkg == package
-        _ -> false
-      end
-    )
-  end
-
-  def get_farmware_installation(package) do
-    first_party_farmwares = Repo.all(from(fwi in FirstPartyFarmware))
-    regular_farmwares = Repo.all(from(fwi in FarmwareInstallation))
-
-    Enum.find(
-      first_party_farmwares ++ regular_farmwares,
-      fn
-        %{manifest: %{package: pkg}} -> pkg == package
-        _ -> false
-      end
-    )
-  end
-
-  def upsert_farmware_manifest_by_id(id, params) do
-    fwi = Repo.get_by(FarmwareInstallation, id: id) || %FarmwareInstallation{}
-
-    FarmwareInstallation.changeset(fwi, params)
-    |> Repo.insert_or_update()
-  end
-
-  def upsert_first_party_farmware_manifest_by_id(id, params) do
-    fwi = Repo.get_by(FirstPartyFarmware, id: id) || %FirstPartyFarmware{}
-
-    FirstPartyFarmware.changeset(fwi, params)
-    |> Repo.insert_or_update()
-  end
-
-  ## End FarmwareInstallation
 
   ## Begin FarmwareEnv
 

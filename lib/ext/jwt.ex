@@ -1,4 +1,4 @@
-defmodule FarmbotExt.JWT do
+defmodule FarmbotOS.JWT do
   @moduledoc "Functions for dealing with the Farmbot JSON Web Token"
 
   defstruct [
@@ -12,8 +12,8 @@ defmodule FarmbotExt.JWT do
     :beta_os_update_server
   ]
 
-  alias FarmbotExt.JWT
-  alias FarmbotCore.JSON
+  alias FarmbotOS.JWT
+  alias FarmbotOS.JSON
 
   @typedoc "Type def for Farmbot Web Token."
   @type t :: %__MODULE__{

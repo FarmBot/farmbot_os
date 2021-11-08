@@ -1,18 +1,18 @@
-defmodule FarmbotExt.MQTT.TelemetryHandlerTest do
+defmodule FarmbotOS.MQTT.TelemetryHandlerTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.BotStateNG
-  alias FarmbotCore.JSON
-  alias FarmbotExt.MQTT
-  alias FarmbotExt.MQTT.TelemetryHandler, as: T
+  alias FarmbotOS.BotStateNG
+  alias FarmbotOS.JSON
+  alias FarmbotOS.MQTT
+  alias FarmbotOS.MQTT.TelemetryHandler, as: T
 
   import ExUnit.CaptureLog
 
   test "unknown messages" do
     log = capture_log(fn -> T.handle_info(:misc, %{}) end)
 
-    assert log =~ "FarmbotExt.MQTT.TelemetryHandler Uncaught message: :misc"
+    assert log =~ "FarmbotOS.MQTT.TelemetryHandler Uncaught message: :misc"
   end
 
   # I don't like this test.
@@ -33,7 +33,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandlerTest do
         })
     end)
 
-    expect(FarmbotExt.Time, :send_after, 1, fn pid, msg, timeout ->
+    expect(FarmbotOS.Time, :send_after, 1, fn pid, msg, timeout ->
       assert pid == self()
       assert msg == :consume_telemetry
       assert timeout == 1000
@@ -80,7 +80,7 @@ defmodule FarmbotExt.MQTT.TelemetryHandlerTest do
         _ = Map.fetch!(json, "telemetry_wifi_level_percent")
     end)
 
-    expect(FarmbotExt.Time, :send_after, 1, fn pid, msg, timeout ->
+    expect(FarmbotOS.Time, :send_after, 1, fn pid, msg, timeout ->
       assert pid == self()
       assert msg == :dispatch_metrics
       assert timeout == 300_000

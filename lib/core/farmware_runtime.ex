@@ -1,50 +1,44 @@
-defmodule FarmbotCore.FarmwareLogger do
-  require Logger
-
-  defstruct name: "UNKNOWN FARMARE?"
-  def new(name), do: %__MODULE__{name: name}
-
-  defimpl Collectable do
-    alias FarmbotCore.FarmwareLogger, as: S
-
-    def into(%S{} = logger), do: {logger, &collector/2}
-    defp collector(%S{} = logger, :done), do: logger
-    defp collector(%S{} = _, :halt), do: :ok
-
-    defp collector(%S{} = logger, {:cont, text}) do
-      Logger.debug("[#{inspect(logger.name)}] " <> text)
-      logger
-    end
-  end
-end
-
-defmodule FarmbotCore.FarmwareRuntime do
+defmodule FarmbotOS.FarmwareRuntime do
   @moduledoc """
   Handles execution of Farmware plugins.
   """
 
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Asset.FarmwareInstallation.Manifest
-  alias FarmbotCore.AssetWorker.FarmbotCore.Asset.FarmwareInstallation
-  alias FarmbotCore.BotState.FileSystem
-  alias FarmbotCore.FarmwareRuntime.PipeWorker
-  alias FarmbotCore.Project
-  import FarmwareInstallation, only: [install_dir: 1]
-
-  alias FarmbotCore.{Asset, JSON}
-  import FarmbotCore.Config, only: [get_config_value: 3]
   require Logger
+  import FarmbotOS.Config, only: [get_config_value: 3]
 
-  @error_timeout_ms 5000
-  @runtime_dir "/tmp/farmware_runtime"
-
-  @muontrap_opts Application.get_env(:farmbot, __MODULE__)[:muontrap_opts]
-  @muontrap_opts @muontrap_opts || []
-
+  alias FarmbotOS.{Asset, JSON, Project, FarmwareLogger}
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.FarmwareRuntime.PipeWorker
+  alias FarmbotOS.BotState.FileSystem
+  alias __MODULE__, as: State
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
-
-  alias __MODULE__, as: State
+  @error_timeout_ms 5000
+  @pipe_dir "/tmp/farmware_runtime"
+  @firmware_cmds %{
+    "noop" => "noop.py",
+    "camera-calibration" => "quickscripts/capture_and_calibrate.py",
+    "plant-detection" => "quickscripts/capture_and_detect_coordinates.py",
+    "historical-camera-calibration" => "quickscripts/download_and_calibrate.py",
+    "historical-plant-detection" =>
+      "quickscripts/download_and_detect_coordinates.py",
+    "take-photo" => "take-photo/take_photo.py",
+    "Measure Soil Height" => "measure-soil-height/measure_height.py"
+  }
+  # Default configs from the legacy manifest.json system, I think.
+  @legacy_fallbacks %{
+    "measured_distance" => "0",
+    "disparity_search_depth" => "1",
+    "disparity_block_size" => "15",
+    "verbose" => "2",
+    "log_verbosity" => "1",
+    "calibration_factor" => "0",
+    "calibration_disparity_offset" => "0",
+    "calibration_image_width" => "0",
+    "calibration_image_height" => "0",
+    "calibration_measured_at_z" => "0",
+    "calibration_maximum" => "0"
+  }
 
   defstruct [
     :caller,
@@ -80,10 +74,8 @@ defmodule FarmbotCore.FarmwareRuntime do
         }
 
   @doc "Start a Farmware"
-  def start_link(%Manifest{} = manifest, env \\ %{}) do
-    package = manifest.package
-
-    GenServer.start_link(__MODULE__, [manifest, env, self()],
+  def start_link(package, env \\ %{}) do
+    GenServer.start_link(__MODULE__, [package, env, self()],
       name: String.to_atom(package)
     )
   end
@@ -97,50 +89,30 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  def init([manifest, env, caller]) do
-    package = manifest.package
-    <<clause1::binary-size(8), _::binary>> = Ecto.UUID.generate()
+  def init([package, env, caller]) do
+    File.mkdir_p(@pipe_dir)
+    clause1 = String.slice(Ecto.UUID.generate(), 0..7)
+    prefix = "#{package}-#{clause1}-farmware-"
 
-    request_pipe =
-      Path.join([
-        @runtime_dir,
-        package <> "-" <> clause1 <> "-farmware-request-pipe"
-      ])
+    request_pipe = Path.join([@pipe_dir, prefix <> "request-pipe"])
 
-    response_pipe =
-      Path.join([
-        @runtime_dir,
-        package <> "-" <> clause1 <> "-farmware-response-pipe"
-      ])
+    response_pipe = Path.join([@pipe_dir, prefix <> "response-pipe"])
 
-    env = build_env(manifest, env, request_pipe, response_pipe)
-
-    # Create pipe dir if it doesn't exist
-    _ = File.mkdir_p(@runtime_dir)
-
-    # Open pipes
+    env = build_env(package, env, request_pipe, response_pipe)
     {:ok, req} = PipeWorker.start_link(request_pipe, :in)
     {:ok, resp} = PipeWorker.start_link(response_pipe, :out)
+    python = System.find_executable("python")
+    script = Path.join([dir(), Map.fetch!(@firmware_cmds, package)])
 
-    exec = System.find_executable(manifest.executable)
-    installation_path = install_dir(manifest)
+    opts = [
+      env: env,
+      cd: dir(package),
+      into: FarmwareLogger.new(package)
+    ]
 
-    opts =
-      Keyword.merge(@muontrap_opts,
-        env: env,
-        cd: installation_path,
-        into: FarmbotCore.FarmwareLogger.new(package)
-      )
-
-    # Start the plugin.
-    Logger.debug("spawning farmware: #{exec} #{manifest.args}")
-
-    {cmd, _} =
-      spawn_monitor(MuonTrap, :cmd, [
-        "sh",
-        ["-c", "#{exec} #{manifest.args}"],
-        opts
-      ])
+    cmd_args = ["sh", ["-c", "#{python} #{script}"], opts]
+    Logger.info(inspect(cmd_args))
+    {cmd, _} = spawn_monitor(MuonTrap, :cmd, cmd_args)
 
     state = %State{
       caller: caller,
@@ -272,7 +244,7 @@ defmodule FarmbotCore.FarmwareRuntime do
   # (a valid use case), When the Farmware completes
   # the pipe will still be waiting for information
   # and prevent the pipes from closing.
-  defp async_request_pipe_read(state, size) do
+  def async_request_pipe_read(state, size) do
     mon = PipeWorker.read(state.request_pipe_handle, size)
     %{state | mon: mon}
   end
@@ -288,7 +260,7 @@ defmodule FarmbotCore.FarmwareRuntime do
       ref = make_ref()
       Logger.debug("executing rpc from farmware: #{inspect(rpc)}")
       # todo(connor) replace this with StepRunner?
-      FarmbotCore.Celery.execute(rpc, ref)
+      FarmbotOS.Celery.execute(rpc, ref)
 
       {:noreply,
        %{state | rpc: rpc, scheduler_ref: ref, context: :process_request},
@@ -300,7 +272,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     end
   end
 
-  defp decode_ast(data) do
+  def decode_ast(data) do
     try do
       case AST.decode(data) do
         %{kind: :rpc_request} = ast ->
@@ -317,21 +289,23 @@ defmodule FarmbotCore.FarmwareRuntime do
 
   # RPC ENV is passed in to `start_link` and overwrites everything
   # except the `base` data.
-  defp build_env(manifest, rpc_env, request_pipe, response_pipe) do
+  def build_env(package, rpc_env, request_pipe, response_pipe) do
     token = get_config_value(:string, "authorization", "token")
     images_dir = "/tmp/images"
-    installation_path = install_dir(manifest)
     state_root_dir = Application.get_env(:farmbot, FileSystem)[:root_dir]
+    python_path = [dir(package), dir()] |> Enum.join(":")
 
     base =
-      Map.new()
+      @legacy_fallbacks
       |> Map.put("FARMWARE_API_V2_REQUEST_PIPE", request_pipe)
       |> Map.put("FARMWARE_API_V2_RESPONSE_PIPE", response_pipe)
       |> Map.put("FARMBOT_API_TOKEN", token)
       |> Map.put("FARMBOT_OS_IMAGES_DIR", images_dir)
       |> Map.put("FARMBOT_OS_VERSION", Project.version())
       |> Map.put("FARMBOT_OS_STATE_DIR", state_root_dir)
-      |> Map.put("PYTHONPATH", installation_path)
+      |> Map.put("PYTHONPATH", python_path)
+
+    Logger.info("=== PYTHONPATH: " <> inspect(python_path))
 
     Asset.list_farmware_env()
     |> Map.new(fn %{key: key, value: val} -> {key, val} end)
@@ -339,7 +313,7 @@ defmodule FarmbotCore.FarmwareRuntime do
     |> Map.merge(base)
   end
 
-  defp add_header(%AST{} = rpc) do
+  def add_header(%AST{} = rpc) do
     payload = rpc |> Map.from_struct() |> JSON.encode!()
 
     header =
@@ -348,4 +322,13 @@ defmodule FarmbotCore.FarmwareRuntime do
 
     header <> payload
   end
+
+  def dir(), do: Application.app_dir(:farmbot, ["priv", "farmware"])
+  def dir("camera-calibration"), do: dir("quickscripts")
+  def dir("historical-camera-calibration"), do: dir("quickscripts")
+  def dir("historical-plant-detection"), do: dir("quickscripts")
+  def dir("Measure Soil Height"), do: dir("measure-soil-height")
+  def dir("noop"), do: dir()
+  def dir("plant-detection"), do: dir("quickscripts")
+  def dir(dir_name), do: Path.join(dir(), dir_name)
 end

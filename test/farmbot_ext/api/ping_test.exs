@@ -1,11 +1,11 @@
-defmodule FarmbotExt.API.PingTest do
+defmodule FarmbotOS.API.PingTest do
   require Helpers
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
   setup :set_mimic_global
-  alias FarmbotExt.API.Ping
-  alias FarmbotExt.APIFetcher
+  alias FarmbotOS.API.Ping
+  alias FarmbotOS.APIFetcher
 
   test "random_ms/1" do
     results =
@@ -20,7 +20,7 @@ defmodule FarmbotExt.API.PingTest do
   end
 
   test "ping_after/1" do
-    expect(FarmbotExt.Time, :send_after, 1, fn pid, :ping, ms ->
+    expect(FarmbotOS.Time, :send_after, 1, fn pid, :ping, ms ->
       assert ms == 1234
       assert pid == self()
     end)
@@ -48,7 +48,7 @@ defmodule FarmbotExt.API.PingTest do
       assert url == "/api/device"
     end)
 
-    expect(FarmbotExt.Time, :send_after, 1, fn _pid, :ping, _ms ->
+    expect(FarmbotOS.Time, :send_after, 1, fn _pid, :ping, _ms ->
       :this_is_my_timer
     end)
 

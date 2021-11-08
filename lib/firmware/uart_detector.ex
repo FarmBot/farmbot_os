@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Firmware.UARTDetector do
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.Asset
+defmodule FarmbotOS.Firmware.UARTDetector do
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotOS.Asset
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   @failure "UNABLE TO SELECT FARMDUINO! Please connect farmduino or set a valid firmware path."
   @third_guess %{
@@ -17,11 +17,11 @@ defmodule FarmbotCore.Firmware.UARTDetector do
   # Returns nil or a string path to the Farmduino.
   # Example: "ttyAMA0", "ttyUSB0", etc..
   def run do
-    recent_boot = FarmbotCore.Firmware.UARTCoreSupport.recent_boot?()
+    recent_boot = FarmbotOS.Firmware.UARTCoreSupport.recent_boot?()
 
     if recent_boot do
       uarts = inspect(uart_list())
-      FarmbotCore.Logger.info(1, "Detecting available UARTs: #{uarts}")
+      FarmbotOS.Logger.info(1, "Detecting available UARTs: #{uarts}")
     end
 
     conf = Asset.fbos_config()
@@ -30,7 +30,7 @@ defmodule FarmbotCore.Firmware.UARTDetector do
     path_or_nil = maybe_use_path(p) || second_guess() || third_guess(fwhw)
 
     if !path_or_nil && recent_boot do
-      FarmbotCore.Logger.error(1, @failure)
+      FarmbotOS.Logger.error(1, @failure)
     end
 
     {fwhw, path_or_nil}

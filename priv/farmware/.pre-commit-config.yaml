@@ -1,0 +1,10 @@
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    sha: v0.7.1
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: autopep8-wrapper
+    -   id: check-yaml
+    -   id: check-merge-conflict
+    -   id: check-ast
+    -   id: check-added-large-files

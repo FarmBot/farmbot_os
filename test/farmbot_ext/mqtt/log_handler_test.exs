@@ -1,9 +1,9 @@
-defmodule FarmbotExt.LogHandlerTest do
+defmodule FarmbotOS.LogHandlerTest do
   use ExUnit.Case
   use Mimic
-  # alias FarmbotExt.MQTT
-  alias FarmbotExt.MQTT.{LogHandler, LogHandlerSupport}
-  alias FarmbotCore.{BotState, Logger, Log}
+  # alias FarmbotOS.MQTT
+  alias FarmbotOS.MQTT.{LogHandler, LogHandlerSupport}
+  alias FarmbotOS.{BotState, Logger, Log}
 
   import ExUnit.CaptureLog
 
@@ -96,7 +96,7 @@ defmodule FarmbotExt.LogHandlerTest do
       {:error, "This is a test..."}
     end)
 
-    expect(FarmbotCore.Logger, :insert_log!, 1, fn log ->
+    expect(FarmbotOS.Logger, :insert_log!, 1, fn log ->
       assert log == log1
     end)
 

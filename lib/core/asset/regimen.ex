@@ -1,15 +1,15 @@
-defmodule FarmbotCore.Asset.Regimen do
+defmodule FarmbotOS.Asset.Regimen do
   @moduledoc """
   A Regimen is a schedule to run sequences on.
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/regimens"
-  alias FarmbotCore.Asset.Regimen.{Item, BodyNode}
+  use FarmbotOS.Asset.Schema, path: "/api/regimens"
+  alias FarmbotOS.Asset.Regimen.{Item, BodyNode}
 
   schema "regimens" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id

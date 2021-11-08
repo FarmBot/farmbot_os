@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Asset.CriteriaRetrieverTest do
+defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     CriteriaRetriever,
     Point,
     PointGroup,

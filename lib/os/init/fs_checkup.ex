@@ -9,10 +9,10 @@ defmodule FarmbotOS.Init.FSCheckup do
 
   @data_path FarmbotOS.FileSystem.data_path()
 
-  @ref FarmbotCore.Project.commit()
-  @version FarmbotCore.Project.version()
-  @target FarmbotCore.Project.target()
-  @env FarmbotCore.Project.env()
+  @ref FarmbotOS.Project.commit()
+  @version FarmbotOS.Project.version()
+  @target FarmbotOS.Project.target()
+  @env FarmbotOS.Project.env()
   System.put_env("NERVES_FW_VCS_IDENTIFIER", @ref)
 
   @doc false
@@ -33,8 +33,6 @@ defmodule FarmbotOS.Init.FSCheckup do
       File.mkdir(@data_path)
     end
 
-    Logger.debug("Checking #{check_file}")
-
     msg = """
     version = #{@version}
     commit  = #{@ref}
@@ -51,7 +49,7 @@ defmodule FarmbotOS.Init.FSCheckup do
           File.rm_rf(fw)
         end
 
-        if FarmbotCore.Project.target() != :host do
+        if FarmbotOS.Project.target() != :host do
           init_logger()
         end
 

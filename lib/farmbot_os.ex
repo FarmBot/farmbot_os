@@ -6,24 +6,24 @@ defmodule FarmbotOS do
   @telemetry_config [
     access: :read_write,
     type: :set,
-    file: '/tmp/farmbot_telemetry.dets'
+    file: '/tmp/farmbot_telemetry_new.dets'
   ]
   def start(_type, _args) do
     {:ok, :farmbot} = :dets.open_file(:farmbot, @telemetry_config)
 
     children = [
-      FarmbotCore.Asset.Repo,
+      FarmbotOS.Asset.Repo,
       FarmbotOS.EctoMigrator,
-      FarmbotCore.BotState.Supervisor,
-      FarmbotExt.Bootstrap,
+      FarmbotOS.BotState.Supervisor,
+      FarmbotOS.Bootstrap,
       {FarmbotOS.Configurator.Supervisor, []},
       {FarmbotOS.Init.Supervisor, []},
-      FarmbotCore.Leds,
-      FarmbotCore.Celery.Scheduler,
-      FarmbotCore.FirmwareEstopTimer,
+      FarmbotOS.Leds,
+      FarmbotOS.Celery.Scheduler,
+      FarmbotOS.FirmwareEstopTimer,
       {FarmbotOS.Platform.Supervisor, []},
-      FarmbotCore.Asset.Supervisor,
-      FarmbotCore.Firmware.UARTObserver
+      FarmbotOS.Asset.Supervisor,
+      FarmbotOS.Firmware.UARTObserver
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)

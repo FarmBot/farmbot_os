@@ -1,5 +1,5 @@
 defmodule FarmbotOs.AvrdudeTest do
-  alias FarmbotCore.Firmware.Avrdude
+  alias FarmbotOS.Firmware.Avrdude
   use ExUnit.Case
   use Mimic
 
@@ -10,7 +10,7 @@ defmodule FarmbotOs.AvrdudeTest do
       raise RuntimeError, "foo"
     end
 
-    expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+    expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
       msg = log.message
       assert String.contains?(msg, "%RuntimeError{message: \"foo\"}")
     end)

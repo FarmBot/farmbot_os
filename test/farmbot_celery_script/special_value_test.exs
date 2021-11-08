@@ -1,8 +1,8 @@
-defmodule FarmbotCore.Celery.SpecialValueTest do
+defmodule FarmbotOS.Celery.SpecialValueTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Celery.SpecialValue
+  alias FarmbotOS.Celery.SpecialValue
   require Helpers
 
   setup :verify_on_exit!
@@ -13,8 +13,8 @@ defmodule FarmbotCore.Celery.SpecialValueTest do
         " soil height. Using fallback value instead: 0.0"
 
     Helpers.expect_log(expected)
-    expect(FarmbotCore.Asset.Repo, :all, 1, fn _sql -> [] end)
-    refute FarmbotCore.Asset.fbos_config(:soil_height)
+    expect(FarmbotOS.Asset.Repo, :all, 1, fn _sql -> [] end)
+    refute FarmbotOS.Asset.fbos_config(:soil_height)
     assert 0.0 == SpecialValue.soil_height(%{x: 0.0, y: 0.0})
   end
 
@@ -42,7 +42,7 @@ defmodule FarmbotCore.Celery.SpecialValueTest do
         }
       end)
 
-    expect(FarmbotCore.Asset.Repo, :all, 1, fn _sql -> fakes end)
+    expect(FarmbotOS.Asset.Repo, :all, 1, fn _sql -> fakes end)
     assert -309.68 == SpecialValue.soil_height(%{x: 25.0, y: 75.0})
   end
 

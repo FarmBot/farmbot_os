@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Config.Config do
+defmodule FarmbotOS.Config.Config do
   @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias FarmbotCore.Config.{Group, BoolValue, FloatValue, StringValue}
+  alias FarmbotOS.Config.{Group, BoolValue, FloatValue, StringValue}
 
   schema "configs" do
     belongs_to(:group, Group)

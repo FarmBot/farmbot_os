@@ -1,17 +1,16 @@
-defmodule FarmbotExt.DirtyWorker.Supervisor do
+defmodule FarmbotOS.DirtyWorker.Supervisor do
   @moduledoc """
   Responsible for supervising assets that will need to be
   uploaded to the API via a `POST` or `PUT` request.
   """
 
   use Supervisor
-  alias FarmbotExt.DirtyWorker
+  alias FarmbotOS.DirtyWorker
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
     Peripheral,
@@ -44,7 +43,6 @@ defmodule FarmbotExt.DirtyWorker.Supervisor do
       {DirtyWorker, FirmwareConfig},
       {DirtyWorker, FarmEvent},
       {DirtyWorker, FarmwareEnv},
-      {DirtyWorker, FarmwareInstallation},
       {DirtyWorker, Peripheral},
       {DirtyWorker, PinBinding},
       {DirtyWorker, Point},

@@ -1,8 +1,8 @@
 defmodule FarmbotOS.UpdateSupport do
   @moduledoc false
-  require FarmbotCore.Logger
-  alias FarmbotCore.JSON
-  alias FarmbotCore.Config
+  require FarmbotOS.Logger
+  alias FarmbotOS.JSON
+  alias FarmbotOS.Config
 
   @skip %{"image_url" => nil}
   @dl_path '/root/upgrade.fw'
@@ -45,7 +45,7 @@ defmodule FarmbotOS.UpdateSupport do
   # progress.
   def prevent_double_installation!() do
     if in_progress?() do
-      FarmbotCore.Logger.error(3, @double_flash_error)
+      FarmbotOS.Logger.error(3, @double_flash_error)
       raise @double_flash_error
     end
   end
@@ -80,14 +80,14 @@ defmodule FarmbotOS.UpdateSupport do
   # :httpc callback when a JSON download succeeds (/api/releases?platform=foo)
   def handle_http_response({:ok, {{_, 422, _}, _response_headers, body}}) do
     {:ok, map} = JSON.decode(body)
-    FarmbotCore.Logger.info(3, "Not updating: " <> inspect(Map.values(map)))
+    FarmbotOS.Logger.info(3, "Not updating: " <> inspect(Map.values(map)))
     @skip
   end
 
   # :httpc callback when a JSON download fails (/api/releases?platform=foo)
   def handle_http_response(error) do
     e = "Error downloading update. Please try again. #{inspect(error)}"
-    FarmbotCore.Logger.error(3, e)
+    FarmbotOS.Logger.error(3, e)
     @skip
   end
 
@@ -96,7 +96,7 @@ defmodule FarmbotOS.UpdateSupport do
   # URL to a *.fw. It is _not_ a *.fw, however.
   def download_meta_data(target) do
     url = calculate_url(target)
-    t = FarmbotCore.Config.get_config_value(:string, "authorization", "token")
+    t = FarmbotOS.Config.get_config_value(:string, "authorization", "token")
     params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
     http_resp = FarmbotOS.HTTP.request(:get, params, [], [])
     handle_http_response(http_resp)
@@ -111,7 +111,7 @@ defmodule FarmbotOS.UpdateSupport do
     rescue
       error ->
         e = inspect(error)
-        FarmbotCore.Logger.error(3, "Error getting target meta data: #{e}")
+        FarmbotOS.Logger.error(3, "Error getting target meta data: #{e}")
         "none"
     end
   end

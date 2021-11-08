@@ -1,15 +1,6 @@
-defmodule FarmbotCore.Firmware.FloatingPointTest do
+defmodule FarmbotOS.Firmware.FloatingPointTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.FloatingPoint
-
-  @flavors_of_zero [
-    {"-0.00", 0.0},
-    {"-0.0", 0.0},
-    {"-0", 0.0},
-    {"0", 0.0},
-    {"0.0", 0.0},
-    {"0.00", 0.0}
-  ]
+  alias FarmbotOS.Firmware.FloatingPoint
 
   @arbitrary_precision [
     {"1741.15", 1741.1474},
@@ -48,12 +39,6 @@ defmodule FarmbotCore.Firmware.FloatingPointTest do
     {"-174.00", -174.0},
     {"-0.14", -0.14}
   ]
-
-  test "decoder" do
-    Enum.map(@flavors_of_zero ++ @testcases, fn {string, number} ->
-      assert FloatingPoint.decode(string) == number
-    end)
-  end
 
   test "encoder" do
     Enum.map(@arbitrary_precision ++ @testcases, fn {string, number} ->

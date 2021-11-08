@@ -4,10 +4,10 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   import ExUnit.CaptureLog
 
   alias FarmbotOS.SysCalls.PointLookup
-  alias FarmbotCore.Asset.Point
-  alias FarmbotCore.Asset.Repo
+  alias FarmbotOS.Asset.Point
+  alias FarmbotOS.Asset.Repo
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Point,
     PointGroup,
     Repo,
@@ -17,7 +17,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
   setup :verify_on_exit!
 
   test "catch malfored return values" do
-    expect(FarmbotCore.Asset, :get_point, 1, fn _ ->
+    expect(FarmbotOS.Asset, :get_point, 1, fn _ ->
       :example_error_for_unit_tests
     end)
 

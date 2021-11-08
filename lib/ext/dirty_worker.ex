@@ -1,8 +1,8 @@
-defmodule FarmbotExt.DirtyWorker do
+defmodule FarmbotOS.DirtyWorker do
   @moduledoc "Handles uploading/downloading of data from the APIFetcher."
-  alias FarmbotCore.Asset.{Private, Repo}
+  alias FarmbotOS.Asset.{Private, Repo}
 
-  alias FarmbotExt.{
+  alias FarmbotOS.{
     API,
     DirtyWorker,
     APIFetcher
@@ -11,14 +11,14 @@ defmodule FarmbotExt.DirtyWorker do
   import API.View, only: [render: 2]
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   use GenServer
   @timeout 1000
   # these resources can't be accessed by `id`.
   @singular [
-    FarmbotCore.Asset.Device,
-    FarmbotCore.Asset.FirmwareConfig,
-    FarmbotCore.Asset.FbosConfig
+    FarmbotOS.Asset.Device,
+    FarmbotOS.Asset.FirmwareConfig,
+    FarmbotOS.Asset.FbosConfig
   ]
   @stale_warning "Stale data detected. Please check internet connection and re-sync."
 
@@ -41,22 +41,22 @@ defmodule FarmbotExt.DirtyWorker do
   @impl GenServer
   def init(args) do
     module = Keyword.fetch!(args, :module)
-    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
+    FarmbotOS.Time.send_after(self(), :do_work, @timeout)
     {:ok, %{module: module}}
   end
 
   @impl GenServer
   def handle_info(:do_work, %{module: module} = state) do
-    FarmbotExt.Time.sleep(@timeout)
+    FarmbotOS.Time.sleep(@timeout)
     maybe_resync(module)
     maybe_upload(module)
-    FarmbotExt.Time.send_after(self(), :do_work, @timeout)
+    FarmbotOS.Time.send_after(self(), :do_work, @timeout)
     {:noreply, state}
   end
 
   def work(dirty, module) do
     # Go easy on the API
-    FarmbotExt.Time.sleep(@timeout)
+    FarmbotOS.Time.sleep(@timeout)
     response = http_request(dirty, module)
     handle_http_response(dirty, module, response)
   end
@@ -107,7 +107,7 @@ defmodule FarmbotExt.DirtyWorker do
 
       if race? do
         # Pause until the race condition goes away.
-        FarmbotExt.Time.sleep(@timeout * 8)
+        FarmbotOS.Time.sleep(@timeout * 8)
         true
       else
         # This is OK! We expect the data to equal itself.
@@ -118,10 +118,10 @@ defmodule FarmbotExt.DirtyWorker do
   end
 
   def do_stale_recovery(timeout) do
-    FarmbotCore.Logger.error(4, @stale_warning)
+    FarmbotOS.Logger.error(4, @stale_warning)
     Private.recover_from_row_lock_failure()
-    FarmbotCore.Celery.SysCallGlue.sync()
-    FarmbotExt.Time.sleep(timeout * 10)
+    FarmbotOS.Celery.SysCallGlue.sync()
+    FarmbotOS.Time.sleep(timeout * 10)
     true
   end
 
@@ -156,7 +156,7 @@ defmodule FarmbotExt.DirtyWorker do
   # Invalid data
   def handle_http_response(dirty, module, {:ok, %{status: s, body: %{} = body}})
       when s > 399 and s < 500 do
-    FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
+    FarmbotOS.Logger.error(2, "HTTP Error #{s}. #{inspect(body)}")
     changeset = module.changeset(dirty)
 
     Enum.reduce(body, changeset, fn {key, val}, changeset ->
@@ -168,7 +168,7 @@ defmodule FarmbotExt.DirtyWorker do
   # Invalid data, but the API didn't say why
   def handle_http_response(dirty, module, {:ok, %{status: s, body: _body}})
       when s > 399 and s < 500 do
-    FarmbotCore.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
+    FarmbotOS.Logger.error(2, "HTTP Error #{s}. #{inspect(dirty)}")
 
     module.changeset(dirty)
     |> Map.put(:valid?, false)
@@ -181,7 +181,7 @@ defmodule FarmbotExt.DirtyWorker do
     e = inspect(error)
     id = Repo.encode_local_id(dirty.local_id)
     msg = "[#{m} #{id} #{inspect(self())}] HTTP Error: #{e}"
-    FarmbotCore.Logger.error(2, msg)
+    FarmbotOS.Logger.error(2, msg)
     error
   end
 
@@ -199,7 +199,7 @@ defmodule FarmbotExt.DirtyWorker do
       end)
       |> Enum.join("\n")
 
-    FarmbotCore.Logger.error(3, "Failed to sync: #{module} \n #{message}")
+    FarmbotOS.Logger.error(3, "Failed to sync: #{module} \n #{message}")
     _ = Repo.delete!(data)
     :ok
   end

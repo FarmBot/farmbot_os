@@ -6,7 +6,7 @@ defmodule FarmbotOS.Lua do
 
   @type t() :: tuple()
   @type table() :: [{any, any}]
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
 
   alias FarmbotOS.Lua.{
@@ -20,7 +20,7 @@ defmodule FarmbotOS.Lua do
   @doc "Logs an assertion based on it's result"
   def log_assertion(passed?, type, message) do
     meta = [assertion_passed: passed?, assertion_type: type]
-    FarmbotCore.Logger.dispatch_log(:assertion, 2, message, meta)
+    FarmbotOS.Logger.dispatch_log(:assertion, 2, message, meta)
   end
 
   # HACK: Provide an implicit "return", since many users
@@ -62,7 +62,7 @@ defmodule FarmbotOS.Lua do
         {:error, "lua runtime error evaluating expression: #{inspect(error)}"}
 
       {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
-        FarmbotCore.Logger.error(
+        FarmbotOS.Logger.error(
           1,
           """
           Failed to parse expression:
@@ -88,70 +88,16 @@ defmodule FarmbotOS.Lua do
     end
   end
 
-  @spec init() :: t()
   def init do
-    :luerl.init()
-    |> set_table([:check_position], &Firmware.check_position/2)
-    |> set_table([:coordinate], &Firmware.coordinate/2)
-    |> set_table([:current_hour], &Info.current_hour/2)
-    |> set_table([:current_minute], &Info.current_minute/2)
-    |> set_table([:current_month], &Info.current_month/2)
-    |> set_table([:current_second], &Info.current_second/2)
-    |> set_table([:emergency_lock], &Firmware.emergency_lock/2)
-    |> set_table([:emergency_unlock], &Firmware.emergency_unlock/2)
-    |> set_table([:env], &DataManipulation.env/2)
-    |> set_table([:fbos_version], &Info.fbos_version/2)
-    |> set_table([:find_axis_length], &Firmware.calibrate/2)
-    |> set_table([:find_home], &Firmware.find_home/2)
-    |> set_table([:firmware_version], &Info.firmware_version/2)
-    |> set_table([:get_device], &DataManipulation.get_device/2)
-    |> set_table([:get_fbos_config], &DataManipulation.get_fbos_config/2)
-    |> set_table(
-      [:get_firmware_config],
-      &DataManipulation.get_firmware_config/2
-    )
-    |> set_table([:get_position], &Firmware.get_position/2)
-    |> set_table([:go_to_home], &Firmware.go_to_home/2)
-    |> set_table([:http], &DataManipulation.http/2)
-    |> set_table([:inspect], &DataManipulation.json_encode/2)
-    |> set_table([:json], [
-      {:decode, &DataManipulation.json_decode/2},
-      {:encode, &DataManipulation.json_encode/2}
-    ])
-    |> set_table([:base64], [
-      {:decode, &DataManipulation.b64_decode/2},
-      {:encode, &DataManipulation.b64_encode/2}
-    ])
-    |> set_table([:move_absolute], &Firmware.move_absolute/2)
-    |> set_table([:new_sensor_reading], &DataManipulation.new_sensor_reading/2)
-    |> set_table([:read_pin], &Firmware.read_pin/2)
-    |> set_table([:read_status], &Info.read_status/2)
-    |> set_table([:send_message], &Info.send_message/2)
-    |> set_table([:auth_token], &Info.auth_token/2)
-    |> set_table([:set_pin_io_mode], &Firmware.set_pin_io_mode/2)
-    |> set_table([:soil_height], &DataManipulation.soil_height/2)
-    |> set_table([:take_photo], &DataManipulation.take_photo/2)
-    |> set_table([:take_photo_raw], &DataManipulation.take_photo_raw/2)
-    |> set_table([:uart], [
-      {:open, &FarmbotCore.Firmware.LuaUART.open/2},
-      {:list, &FarmbotCore.Firmware.LuaUART.list/2}
-    ])
-    |> set_table([:update_device], &DataManipulation.update_device/2)
-    |> set_table([:update_fbos_config], &DataManipulation.update_fbos_config/2)
-    |> set_table(
-      [:update_firmware_config],
-      &DataManipulation.update_firmware_config/2
-    )
-    |> set_table([:wait], &Wait.wait/2)
-    |> set_table([:write_pin], &Firmware.write_pin/2)
+    # FarmbotOS.Lua.init()
+    reducer = fn {k, v}, lua -> set_table(lua, [k], v) end
+    Enum.reduce(builtins(), :luerl.init(), reducer)
   end
 
-  @spec set_table(t(), Path.t(), any()) :: t()
   def set_table(lua, path, value) do
     :luerl.set_table(path, value, lua)
   end
 
-  @spec raw_eval(t(), String.t()) :: {:ok, any()} | {:error, any()}
   def raw_eval(lua, hook) when is_binary(hook) do
     :luerl.eval(hook, lua)
   end
@@ -164,5 +110,83 @@ defmodule FarmbotOS.Lua do
 
     error, reason ->
       {{:error, {error, reason}}, lua}
+  end
+
+  # Wrap a function so that it cannot be called when device
+  # is locked.
+  def safe(action, fun) when is_function(fun, 2) do
+    fn args, lua ->
+      if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
+        {[nil, "Can't #{action} when locked."], :luerl.stop(lua)}
+      else
+        fun.(args, lua)
+      end
+    end
+  end
+
+  def execute_script(name) do
+    fn _, lua ->
+      case FarmbotOS.SysCalls.Farmware.execute_script(name, %{}) do
+        {:error, reason} -> {[reason], lua}
+        :ok -> {[], lua}
+        other -> {[inspect(other)], lua}
+      end
+    end
+  end
+
+  def builtins() do
+    %{
+      base64: [
+        {:decode, &DataManipulation.b64_decode/2},
+        {:encode, &DataManipulation.b64_encode/2}
+      ],
+      json: [
+        {:decode, &DataManipulation.json_decode/2},
+        {:encode, &DataManipulation.json_encode/2}
+      ],
+      uart: [
+        {:open, &FarmbotOS.Firmware.LuaUART.open/2},
+        {:list, &FarmbotOS.Firmware.LuaUART.list/2}
+      ],
+      auth_token: &Info.auth_token/2,
+      check_position: &Firmware.check_position/2,
+      coordinate: &Firmware.coordinate/2,
+      current_hour: &Info.current_hour/2,
+      current_minute: &Info.current_minute/2,
+      current_month: &Info.current_month/2,
+      current_second: &Info.current_second/2,
+      emergency_lock: &Firmware.emergency_lock/2,
+      emergency_unlock: &Firmware.emergency_unlock/2,
+      env: &DataManipulation.env/2,
+      fbos_version: &Info.fbos_version/2,
+      find_axis_length: &Firmware.calibrate/2,
+      find_home: safe("find home", &Firmware.find_home/2),
+      firmware_version: &Info.firmware_version/2,
+      garden_size: &DataManipulation.garden_size/2,
+      get_device: &DataManipulation.get_device/2,
+      get_fbos_config: &DataManipulation.get_fbos_config/2,
+      get_firmware_config: &DataManipulation.get_firmware_config/2,
+      get_position: &Firmware.get_position/2,
+      go_to_home: safe("go to home", &Firmware.go_to_home/2),
+      http: &DataManipulation.http/2,
+      inspect: &DataManipulation.json_encode/2,
+      move_absolute: safe("move device", &Firmware.move_absolute/2),
+      new_sensor_reading: &DataManipulation.new_sensor_reading/2,
+      read_pin: &Firmware.read_pin/2,
+      read_status: &Info.read_status/2,
+      send_message: &Info.send_message/2,
+      set_pin_io_mode: &Firmware.set_pin_io_mode/2,
+      soil_height: &DataManipulation.soil_height/2,
+      take_photo_raw: &DataManipulation.take_photo_raw/2,
+      take_photo: execute_script("take-photo"),
+      calibrate_camera: execute_script("camera-calibration"),
+      detect_weeds: execute_script("plant-detection"),
+      measure_soil_height: execute_script("Measure Soil Height"),
+      update_device: &DataManipulation.update_device/2,
+      update_fbos_config: &DataManipulation.update_fbos_config/2,
+      update_firmware_config: &DataManipulation.update_firmware_config/2,
+      wait: &Wait.wait/2,
+      write_pin: safe("write pin", &Firmware.write_pin/2)
+    }
   end
 end

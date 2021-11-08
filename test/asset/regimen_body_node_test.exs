@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.Regimen.BodyNodeTest do
+defmodule FarmbotOS.Asset.Regimen.BodyNodeTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Regimen.BodyNode
+  alias FarmbotOS.Asset.Regimen.BodyNode
 
   @expected_keys [:kind, :args]
 

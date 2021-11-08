@@ -1,12 +1,10 @@
-defmodule FarmbotExt.API.SyncGroup do
+defmodule FarmbotOS.API.SyncGroup do
   @moduledoc "Handles dependency ordering."
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmwareEnv,
-    FirstPartyFarmware,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
     Peripheral,
@@ -29,9 +27,7 @@ defmodule FarmbotExt.API.SyncGroup do
       Device,
       FbosConfig,
       FirmwareConfig,
-      FarmwareEnv,
-      FirstPartyFarmware,
-      FarmwareInstallation
+      FarmwareEnv
     ]
 
   @doc "Group 1 should have no external requirements"

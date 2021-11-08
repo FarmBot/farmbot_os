@@ -1,14 +1,14 @@
-defmodule FarmbotCore.Asset.Sensor do
+defmodule FarmbotOS.Asset.Sensor do
   @moduledoc """
   Sensors are descriptors for pins/modes.
   """
 
-  use FarmbotCore.Asset.Schema, path: "/api/sensors"
+  use FarmbotOS.Asset.Schema, path: "/api/sensors"
 
   schema "sensors" do
     field(:id, :id)
 
-    has_one(:local_meta, FarmbotCore.Asset.Private.LocalMeta,
+    has_one(:local_meta, FarmbotOS.Asset.Private.LocalMeta,
       on_delete: :delete_all,
       references: :local_id,
       foreign_key: :asset_local_id
@@ -44,8 +44,8 @@ defmodule FarmbotCore.Asset.Sensor do
     |> validate_required([:id, :pin, :mode, :label])
   end
 
-  defimpl String.Chars, for: FarmbotCore.Asset.Sensor do
-    def to_string(%FarmbotCore.Asset.Sensor{pin: pin, label: label}) do
+  defimpl String.Chars, for: FarmbotOS.Asset.Sensor do
+    def to_string(%FarmbotOS.Asset.Sensor{pin: pin, label: label}) do
       "Sensor #{label} Pin: #{pin}"
     end
   end

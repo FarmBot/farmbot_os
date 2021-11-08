@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.PointTest do
+defmodule FarmbotOS.Asset.PointTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Point
+  alias FarmbotOS.Asset.Point
 
   @expected_keys [
     :id,

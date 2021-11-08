@@ -1,11 +1,11 @@
-defmodule FarmbotExt.MQTT.SyncHandlerSupport do
-  require FarmbotCore.Logger
+defmodule FarmbotOS.MQTT.SyncHandlerSupport do
+  require FarmbotOS.Logger
   require FarmbotTelemetry
   require Logger
 
-  alias FarmbotCore.{Asset, BotState, JSON, Leds}
-  alias FarmbotExt.API.Preloader
-  alias FarmbotExt.{MQTT, EagerLoader}
+  alias FarmbotOS.{Asset, BotState, JSON, Leds}
+  alias FarmbotOS.API.Preloader
+  alias FarmbotOS.{MQTT, EagerLoader}
 
   defstruct client_id: "NOT_SET", username: "NOT_SET", preloaded: false
 
@@ -30,7 +30,7 @@ defmodule FarmbotExt.MQTT.SyncHandlerSupport do
       error: inspect(reason)
     )
 
-    FarmbotExt.Time.send_after(self(), :preload, 5000)
+    FarmbotOS.Time.send_after(self(), :preload, 5000)
 
     {:noreply, state}
   end

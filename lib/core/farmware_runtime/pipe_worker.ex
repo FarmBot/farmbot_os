@@ -1,4 +1,4 @@
-defmodule FarmbotCore.FarmwareRuntime.PipeWorker do
+defmodule FarmbotOS.FarmwareRuntime.PipeWorker do
   @moduledoc """
   Proxy for Pipe IO operations.
   """

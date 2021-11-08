@@ -1,11 +1,11 @@
 # This is a "kitchen sink" of sorts.
-defmodule FarmbotCore.Celery.IntegrationTest do
+defmodule FarmbotOS.Celery.IntegrationTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotCore.Celery.Compiler
-  alias FarmbotCore.Celery.AST
-  alias FarmbotCore.Celery.Compiler.Scope
+  alias FarmbotOS.Celery.Compiler
+  alias FarmbotOS.Celery.AST
+  alias FarmbotOS.Celery.Compiler.Scope
 
   setup :verify_on_exit!
 
@@ -24,11 +24,11 @@ defmodule FarmbotCore.Celery.IntegrationTest do
   ]
 
   test "all the fixtures (should not crash!)" do
-    expect(FarmbotCore.Celery.SysCallGlue, :get_sequence, 7, fn _id ->
+    expect(FarmbotOS.Celery.SysCallGlue, :get_sequence, 7, fn _id ->
       compile_celery_file("fixtures/inner_sequence.json")
     end)
 
-    expect(FarmbotCore.Celery.SysCallGlue, :point, 12, fn _type, _id ->
+    expect(FarmbotOS.Celery.SysCallGlue, :point, 12, fn _type, _id ->
       %{x: 99, y: 88, z: 77}
     end)
 

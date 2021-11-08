@@ -1,11 +1,11 @@
-defmodule FarmbotExt.MQTT.Supervisor do
+defmodule FarmbotOS.MQTT.Supervisor do
   @moduledoc """
   Supervises the MQTT handler.
   """
   use Supervisor
-  alias FarmbotCore.Config
-  alias FarmbotCore.Project
-  alias FarmbotExt.JWT
+  alias FarmbotOS.Config
+  alias FarmbotOS.Project
+  alias FarmbotOS.JWT
   @wss "wss:"
 
   def start_link(_, opts \\ [name: __MODULE__]) do
@@ -46,7 +46,7 @@ defmodule FarmbotExt.MQTT.Supervisor do
       user_name: username,
       password: raw_token,
       server: server,
-      handler: {FarmbotExt.MQTT, [client_id: client_id, username: username]},
+      handler: {FarmbotOS.MQTT, [client_id: client_id, username: username]},
       # Tortoise will double the min_interval on every attempt.
       backoff: [min_interval: 7_500, max_interval: 120_000],
       subscriptions: [

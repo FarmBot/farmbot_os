@@ -1,15 +1,15 @@
-defmodule FarmbotCore.Celery.AST.Factory do
+defmodule FarmbotOS.Celery.AST.Factory do
   @moduledoc """
   Helpers for creating ASTs.
   """
 
-  alias FarmbotCore.Celery.AST
+  alias FarmbotOS.Celery.AST
 
   @doc """
   Create an empty AST WITH ARG SET TO `nil`.
 
   iex> new()
-  %FarmbotCore.Celery.AST{
+  %FarmbotOS.Celery.AST{
     args: nil,
     body: [],
     comment: nil,
@@ -26,7 +26,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
   converted to symbols.
 
   iex> new("foo")
-  %FarmbotCore.Celery.AST{
+  %FarmbotOS.Celery.AST{
     args: %{},
     body: [],
     comment: nil,
@@ -51,7 +51,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> set_pin_io_mode(13, 1)).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     kind: :set_pin_io_mode,
     args: %{ pin_io_mode: 1, pin_number: 13 },
     body: [],
@@ -66,7 +66,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> emergency_lock()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -80,7 +80,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> emergency_unlock()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -94,7 +94,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> read_status()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -108,7 +108,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> power_off()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -122,7 +122,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> reboot()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -136,7 +136,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> sync()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -150,7 +150,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> take_photo()).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
     body: [],
     comment: nil,
     meta: nil,
@@ -164,7 +164,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> flash_firmware("arduino")).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
       kind: :flash_firmware,
       comment: nil,
       meta: nil,
@@ -178,7 +178,7 @@ defmodule FarmbotCore.Celery.AST.Factory do
 
   @doc """
   iex> (new() |> rpc_request("x") |> factory_reset("arduino")).body
-  [%FarmbotCore.Celery.AST{
+  [%FarmbotOS.Celery.AST{
       kind: :factory_reset,
       comment: nil,
       meta: nil,

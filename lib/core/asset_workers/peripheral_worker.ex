@@ -1,9 +1,9 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.Peripheral do
   use GenServer
   require Logger
 
-  alias FarmbotCore.{Asset.Repo, Asset.Peripheral, BotState}
-  alias FarmbotCore.Celery.AST
+  alias FarmbotOS.{Asset.Repo, Asset.Peripheral, BotState}
+  alias FarmbotOS.Celery.AST
 
   @retry_ms 1_000
 
@@ -55,7 +55,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.Peripheral do
     Logger.debug("Read peripheral: #{peripheral.label}")
     rpc = peripheral_to_rpc(peripheral)
 
-    case FarmbotCore.Celery.execute(rpc, make_ref()) do
+    case FarmbotOS.Celery.execute(rpc, make_ref()) do
       :ok ->
         Logger.debug("Read peripheral: #{peripheral.label} ok")
         {:noreply, state}

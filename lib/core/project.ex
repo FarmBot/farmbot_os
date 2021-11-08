@@ -1,12 +1,10 @@
-defmodule FarmbotCore.Project do
+defmodule FarmbotOS.Project do
   @moduledoc "Farmbot project config"
 
   @version Mix.Project.config()[:version] ||
              Mix.raise("Missing Project key version")
   @commit Mix.Project.config()[:commit] ||
             Mix.raise("Missing Project key commit")
-  @branch Mix.Project.config()[:branch] ||
-            Mix.raise("Missing Project key branch")
 
   @target Mix.target()
   @env Mix.env()
@@ -21,10 +19,6 @@ defmodule FarmbotCore.Project do
   @doc "*#{@commit}*"
   @compile {:inline, commit: 0}
   def commit, do: @commit
-
-  @doc "*#{@branch}*"
-  @compile {:inline, branch: 0}
-  def branch, do: @branch
 
   @doc "*#{@target}*"
   @compile {:inline, target: 0}

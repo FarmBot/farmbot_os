@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.Command do
-  alias FarmbotCore.BotState
-  alias FarmbotCore.Firmware.{GCode, UARTCore}
+defmodule FarmbotOS.Firmware.Command do
+  alias FarmbotOS.BotState
+  alias FarmbotOS.Firmware.{GCode, UARTCore}
 
   # G00(X, Y, Z, A, B, C) Move to location at given speed
   # for axis in absolute coordinates
@@ -58,17 +58,8 @@ defmodule FarmbotCore.Firmware.Command do
   # F16 Find length of Z axis (measure length + find 0) *
   def find_length(:z), do: schedule(:F16, [])
 
-  # F20 List all parameters and value
-  def read_params(), do: schedule(:F20, [])
-
   # # F21(P) Read parameter
   def read_param(param), do: schedule(:F21, P: param)
-
-  # F22(P, V) Write parameter
-  def write_param(param, val), do: schedule(:F22, P: param, V: val)
-
-  # F81 Report end stop
-  def report_end_stops(), do: schedule(:F81, [])
 
   # F82
   def report_current_position() do
@@ -76,9 +67,6 @@ defmodule FarmbotCore.Firmware.Command do
     pos = %{x: _, y: _, z: _} = cached_position()
     {:ok, pos}
   end
-
-  # F83
-  def report_software_version(), do: schedule(:F83, [])
 
   # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
   def set_pin_io_mode(pin, mode) do
@@ -125,11 +113,6 @@ defmodule FarmbotCore.Firmware.Command do
     schedule(:F84, params)
   end
 
-  # F23(P, V) Update parameter (during calibration)
-  def update_param(param, val) do
-    schedule(:F22, P: param, V: val)
-  end
-
   defp schedule(command, parameters) do
     UARTCore.start_job(GCode.new(command, parameters))
   end
@@ -141,7 +124,7 @@ defmodule FarmbotCore.Firmware.Command do
   }
 
   defp max_speeds() do
-    conf = FarmbotCore.Asset.firmware_config() || @temp_fallback
+    conf = FarmbotOS.Asset.firmware_config() || @temp_fallback
 
     {
       Map.fetch!(conf, :movement_max_spd_x) || 800.0,

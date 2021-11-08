@@ -3,8 +3,8 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
 
   alias Circuits.GPIO
   use GenServer
-  @behaviour FarmbotCore.Leds.Handler
-  alias FarmbotCore.Leds.StubHandler
+  @behaviour FarmbotOS.Leds.Handler
+  alias FarmbotOS.Leds.StubHandler
 
   @slow_blink_speed 1000
   @fast_blink_speed 250
@@ -216,7 +216,7 @@ defmodule FarmbotOS.Platform.Target.Leds.CircuitsHandler do
   defp color_to_pin(:white5), do: 13
 
   defp cancel_timer(ref) do
-    FarmbotExt.Time.cancel_timer(ref)
+    FarmbotOS.Time.cancel_timer(ref)
     :ok
   end
 

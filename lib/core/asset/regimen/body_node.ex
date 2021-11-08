@@ -1,14 +1,14 @@
-defmodule FarmbotCore.Asset.Regimen.BodyNode do
+defmodule FarmbotOS.Asset.Regimen.BodyNode do
   @moduledoc """
   This is one of the node types that may or may
   not exist within the `regimen.body` array.
   """
   use Ecto.Schema
   import Ecto.Changeset
-  import FarmbotCore.Asset.View, only: [view: 2]
+  import FarmbotOS.Asset.View, only: [view: 2]
 
   @primary_key false
-  @behaviour FarmbotCore.Asset.View
+  @behaviour FarmbotOS.Asset.View
 
   embedded_schema do
     field(:kind, :string)

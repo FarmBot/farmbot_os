@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Firmware.ErrorDetector do
+defmodule FarmbotOS.Firmware.ErrorDetector do
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   # See `ErrorListEnum` in Farmbot Arduino firmware for
   # complete list of error codes.

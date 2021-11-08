@@ -1,11 +1,11 @@
-defmodule FarmbotExt.EagerLoaderTest do
+defmodule FarmbotOS.EagerLoaderTest do
   use ExUnit.Case
   use Mimic
   setup :verify_on_exit!
 
-  alias FarmbotExt.EagerLoader
-  alias FarmbotCore.Asset.Sync
-  alias FarmbotExt.API.SyncGroup
+  alias FarmbotOS.EagerLoader
+  alias FarmbotOS.Asset.Sync
+  alias FarmbotOS.API.SyncGroup
 
   defmodule Fake do
     def __schema__(:source), do: "tools"
@@ -13,14 +13,14 @@ defmodule FarmbotExt.EagerLoaderTest do
   end
 
   test "child_spec/1" do
-    opts = [[module: FarmbotExt.EagerLoaderTest.Fake]]
+    opts = [[module: FarmbotOS.EagerLoaderTest.Fake]]
     actual = EagerLoader.child_spec(Fake)
 
     expected = %{
-      id: {FarmbotExt.EagerLoader, FarmbotExt.EagerLoaderTest.Fake},
+      id: {FarmbotOS.EagerLoader, FarmbotOS.EagerLoaderTest.Fake},
       restart: :permanent,
       shutdown: 500,
-      start: {FarmbotExt.EagerLoader, :start_link, opts},
+      start: {FarmbotOS.EagerLoader, :start_link, opts},
       type: :worker
     }
 
@@ -28,7 +28,7 @@ defmodule FarmbotExt.EagerLoaderTest do
   end
 
   test "preload(%Sync{})" do
-    # FarmbotCore.Asset.Tool
+    # FarmbotOS.Asset.Tool
     expect(SyncGroup, :all_groups, 1, fn ->
       [Fake]
     end)

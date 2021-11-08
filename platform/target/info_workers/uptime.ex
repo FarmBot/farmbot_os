@@ -8,7 +8,7 @@ defmodule FarmbotOS.Platform.Target.InfoWorker.Uptime do
   @default_timeout_ms 60_000
   @error_timeout_ms 5_000
 
-  alias FarmbotCore.BotState
+  alias FarmbotOS.BotState
 
   @doc false
   def start_link(args) do

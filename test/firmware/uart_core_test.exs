@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Firmware.UARTCoreTest do
+defmodule FarmbotOS.Firmware.UARTCoreTest do
   use ExUnit.Case
   use Mimic
 
   import ExUnit.CaptureLog
 
-  alias FarmbotCore.Firmware.UARTCore
-  alias FarmbotCore.Firmware.UARTCoreSupport, as: Support
-  alias FarmbotCore.Firmware.ConfigUploader
-  alias FarmbotCore.BotState
+  alias FarmbotOS.Firmware.UARTCore
+  alias FarmbotOS.Firmware.UARTCoreSupport, as: Support
+  alias FarmbotOS.Firmware.ConfigUploader
+  alias FarmbotOS.BotState
 
   require Helpers
 
@@ -22,7 +22,7 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
       %{informational_settings: %{firmware_version: nil}}
     end)
 
-    expect(FarmbotCore.Asset, :fbos_config, 1, fn ->
+    expect(FarmbotOS.Asset, :fbos_config, 1, fn ->
       %{firmware_hardware: "none"}
     end)
 
@@ -109,7 +109,7 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
     assert_receive {:"$gen_call", {_, _}, {:flash_firmware, "express_k10"}}, 800
     state1 = %UARTCore{}
 
-    expect(FarmbotCore.Firmware.Flash, :run, 1, fn state, package ->
+    expect(FarmbotOS.Firmware.Flash, :run, 1, fn state, package ->
       assert state == state1
       assert package == fake_pkg
       state
@@ -172,7 +172,7 @@ defmodule FarmbotCore.Firmware.UARTCoreTest do
       :ok
     end)
 
-    expect(FarmbotCore.Firmware.TxBuffer, :error_all, 1, fn buffer, msg ->
+    expect(FarmbotOS.Firmware.TxBuffer, :error_all, 1, fn buffer, msg ->
       assert msg == "Emergency locked"
       buffer
     end)

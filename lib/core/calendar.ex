@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Asset.FarmEvent.Calendar do
+defmodule FarmbotOS.Asset.FarmEvent.Calendar do
   defstruct [:end_sec, :events, :grace_period, :start_sec, :step]
 
   @max_generated 500

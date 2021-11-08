@@ -1,4 +1,4 @@
-defmodule FarmbotExt.API.Ping do
+defmodule FarmbotOS.API.Ping do
   @moduledoc """
   a ~15-20 minute timer that will do an `HTTP` request to
   `/api/device`. This refreshes the `last_seen_api` field which
@@ -6,9 +6,9 @@ defmodule FarmbotExt.API.Ping do
   """
   use GenServer
 
-  alias FarmbotExt.APIFetcher
+  alias FarmbotOS.APIFetcher
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   @lower_bound_ms 900_000
   @upper_bound_ms 1_200_000
@@ -37,7 +37,7 @@ defmodule FarmbotExt.API.Ping do
 
   def handle_response(error, state, timer) do
     failures = state.failures + 1
-    FarmbotCore.Logger.error(3, "Ping failed. #{inspect(error)}")
+    FarmbotOS.Logger.error(3, "Ping failed. #{inspect(error)}")
     {:noreply, %{state | timer: timer, failures: failures}}
   end
 
@@ -46,6 +46,6 @@ defmodule FarmbotExt.API.Ping do
   end
 
   def ping_after(ms) do
-    FarmbotExt.Time.send_after(self(), :ping, ms)
+    FarmbotOS.Time.send_after(self(), :ping, ms)
   end
 end

@@ -1,16 +1,15 @@
-defmodule FarmbotCore.Asset.Command do
+defmodule FarmbotOS.Asset.Command do
   @moduledoc """
   A collection of functions that _write_ to the DB
   """
   require Logger
-  alias FarmbotCore.{Asset, Asset.Repo}
+  alias FarmbotOS.{Asset, Asset.Repo}
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     FarmEvent,
     FarmwareEnv,
-    FarmwareInstallation,
     FbosConfig,
     FirmwareConfig,
     PublicKey,
@@ -100,15 +99,6 @@ defmodule FarmbotCore.Asset.Command do
   def update(FarmwareEnv, id, params) do
     Asset.upsert_farmware_env_by_id(id, params)
     :ok
-  end
-
-  def update(FarmwareInstallation, id, params) do
-    Asset.upsert_farmware_manifest_by_id(id, params)
-    :ok
-  end
-
-  def update(FirstPartyFarmware, id, params) do
-    Asset.upsert_first_party_farmware_manifest_by_id(id, params)
   end
 
   def update(FarmEvent, id, params) do
@@ -205,19 +195,9 @@ defmodule FarmbotCore.Asset.Command do
     :ok
   end
 
-  @doc "Returns a Ecto Changeset that can be cached or applied."
-  @callback new_changeset(kind, id, params) :: Ecto.Changeset.t()
-  def new_changeset(asset_kind, id, params) do
-    mod = as_module!(asset_kind)
-    asset = Repo.get_by(mod, id: id) || struct!(mod)
-    mod.changeset(asset, params)
-  end
-
   defp as_module!("Device"), do: Asset.Device
   defp as_module!("FarmEvent"), do: Asset.FarmEvent
   defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv
-  defp as_module!("FirstPartyFarmware"), do: Asset.FirstPartyFarmware
-  defp as_module!("FarmwareInstallation"), do: Asset.FarmwareInstallation
   defp as_module!("FbosConfig"), do: Asset.FbosConfig
   defp as_module!("FirmwareConfig"), do: Asset.FirmwareConfig
   defp as_module!("Peripheral"), do: Asset.Peripheral

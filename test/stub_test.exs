@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Celery.SysCallGlue.StubsTest do
+defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
   use ExUnit.Case
-  alias FarmbotCore.Celery.SysCallGlue.Stubs
+  alias FarmbotOS.Celery.SysCallGlue.Stubs
 
   test "various stubs" do
     # This test is to:
@@ -65,7 +65,6 @@ defmodule FarmbotCore.Celery.SysCallGlue.StubsTest do
     Stubs.get_sequence(resource_id)
     Stubs.get_toolslot_for_tool(resource_id)
     Stubs.home(axis, speed)
-    Stubs.install_first_party_farmware()
     Stubs.log(message, force?)
     Stubs.move_absolute(x, y, z, speed)
     Stubs.move_absolute(x, y, z, sx, sy, sz)
@@ -86,7 +85,6 @@ defmodule FarmbotCore.Celery.SysCallGlue.StubsTest do
     Stubs.set_user_env(env_name, env_value)
     Stubs.sync()
     Stubs.toggle_pin(pin_num)
-    Stubs.update_farmware(package)
     Stubs.update_resource(kind, id, params)
     Stubs.wait(millis)
     Stubs.write_pin(pin_num, pin_mode, pin_value)

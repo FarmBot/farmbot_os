@@ -1,6 +1,6 @@
-defmodule FarmbotCore.Asset.DeviceTest do
+defmodule FarmbotOS.Asset.DeviceTest do
   use ExUnit.Case
-  alias FarmbotCore.Asset.Device
+  alias FarmbotOS.Asset.Device
 
   @expected_keys [
     :id,
@@ -18,7 +18,7 @@ defmodule FarmbotCore.Asset.DeviceTest do
   end
 
   test "render - part II" do
-    result = FarmbotCore.Asset.View.render(Device, %Device{})
+    result = FarmbotOS.Asset.View.render(Device, %Device{})
     mapper = fn key -> assert Map.has_key?(result, key) end
     Enum.map(@expected_keys, mapper)
   end

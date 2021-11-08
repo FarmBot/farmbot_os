@@ -1,8 +1,8 @@
 # Manages state related to CeleryScript's variable scoping.
 # These structs are passed between CeleryScript nodes to store
 # variable names and values.
-defmodule FarmbotCore.Celery.Compiler.Scope do
-  alias FarmbotCore.Celery.AST
+defmodule FarmbotOS.Celery.Compiler.Scope do
+  alias FarmbotOS.Celery.AST
 
   defstruct [
     # 25 July 2021: I might remove this later to have scope
@@ -94,7 +94,7 @@ defmodule FarmbotCore.Celery.Compiler.Scope do
   end
 
   defp do_perform_expansion(scope, {label, group_id}) do
-    case FarmbotCore.Asset.find_points_via_group(group_id) do
+    case FarmbotOS.Asset.find_points_via_group(group_id) do
       nil ->
         {:error, "Point group not found: #{label}/#{group_id}"}
 

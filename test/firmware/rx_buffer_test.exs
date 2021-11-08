@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Firmware.RxBufferTest do
+defmodule FarmbotOS.Firmware.RxBufferTest do
   use ExUnit.Case
-  alias FarmbotCore.Firmware.RxBuffer
-  doctest FarmbotCore.Firmware.RxBuffer, import: true
+  alias FarmbotOS.Firmware.RxBuffer
+  doctest FarmbotOS.Firmware.RxBuffer, import: true
 end

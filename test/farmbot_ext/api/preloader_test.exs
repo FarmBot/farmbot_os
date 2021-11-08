@@ -1,13 +1,13 @@
-defmodule FarmbotExt.API.PreloaderTest do
+defmodule FarmbotOS.API.PreloaderTest do
   require Helpers
 
   use ExUnit.Case
   use Mimic
 
   alias Ecto.Changeset
-  alias FarmbotCore.Asset.Sync
-  alias FarmbotExt.API
-  alias FarmbotExt.API.{Reconciler, Preloader}
+  alias FarmbotOS.Asset.Sync
+  alias FarmbotOS.API
+  alias FarmbotOS.API.{Reconciler, Preloader}
 
   setup :verify_on_exit!
 
@@ -25,7 +25,6 @@ defmodule FarmbotExt.API.PreloaderTest do
     end)
 
     expect(Reconciler, :sync_group, 5, fn _, _ -> %Changeset{valid?: true} end)
-    Helpers.expect_log("Successfully preloaded resources.")
     assert :ok = Preloader.preload_all()
   end
 end

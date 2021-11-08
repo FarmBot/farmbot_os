@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Leds.Handler do
+defmodule FarmbotOS.Leds.Handler do
   @moduledoc """
   Led behaviour.
   """

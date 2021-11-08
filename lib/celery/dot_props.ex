@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Celery.DotProps do
+defmodule FarmbotOS.Celery.DotProps do
   @dot "."
   @doc ~S"""
   Takes a "dotted" key and val.

@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Asset.RegimenInstance.Execution do
-  alias FarmbotCore.Asset.RegimenInstance
+defmodule FarmbotOS.Asset.RegimenInstance.Execution do
+  alias FarmbotOS.Asset.RegimenInstance
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}

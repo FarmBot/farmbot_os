@@ -1,9 +1,9 @@
-defmodule FarmbotCore.Config do
+defmodule FarmbotOS.Config do
   @moduledoc "API for accessing config data."
 
-  alias FarmbotCore.Asset.Repo
+  alias FarmbotOS.Asset.Repo
 
-  alias FarmbotCore.Config.{
+  alias FarmbotOS.Config.{
     BoolValue,
     Config,
     FloatValue,

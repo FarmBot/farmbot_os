@@ -1,4 +1,4 @@
-defmodule FarmbotExt.Bootstrap.Supervisor do
+defmodule FarmbotOS.Bootstrap.Supervisor do
   @moduledoc """
   Supervisor responsible for starting all
   the tasks and processes that require authentication.
@@ -19,12 +19,12 @@ defmodule FarmbotExt.Bootstrap.Supervisor do
     config = Application.get_env(:farmbot, __MODULE__) || []
 
     Keyword.get(config, :children, [
-      FarmbotExt.EagerLoader.Supervisor,
-      FarmbotExt.DirtyWorker.Supervisor,
-      FarmbotExt.MQTT.Supervisor,
-      FarmbotExt.API.ImageUploader,
-      FarmbotExt.Bootstrap.DropPasswordTask,
-      FarmbotExt.API.Ping
+      FarmbotOS.EagerLoader.Supervisor,
+      FarmbotOS.DirtyWorker.Supervisor,
+      FarmbotOS.MQTT.Supervisor,
+      FarmbotOS.API.ImageUploader,
+      FarmbotOS.Bootstrap.DropPasswordTask,
+      FarmbotOS.API.Ping
     ])
   end
 end

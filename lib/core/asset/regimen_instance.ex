@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset.RegimenInstance do
+defmodule FarmbotOS.Asset.RegimenInstance do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
   # _usec
   @timestamps_opts inserted_at: :created_at, type: :utc_datetime
 
-  alias FarmbotCore.Asset.{FarmEvent, Regimen, RegimenInstance.Execution}
+  alias FarmbotOS.Asset.{FarmEvent, Regimen, RegimenInstance.Execution}
 
   schema "regimen_instances" do
     belongs_to(:regimen, Regimen,
@@ -66,7 +66,7 @@ defmodule FarmbotCore.Asset.RegimenInstance do
   # returns midnight of today
   @spec build_epoch(DateTime.t()) :: DateTime.t()
   def build_epoch(%DateTime{} = datetime) do
-    case FarmbotCore.Asset.device().timezone do
+    case FarmbotOS.Asset.device().timezone do
       nil ->
         IO.puts("===== WHY IS THIS NIL????")
         :error

@@ -2,7 +2,7 @@ Application.ensure_all_started(:mimic)
 Application.ensure_all_started(:farmbot)
 
 defmodule Helpers do
-  alias FarmbotCore.Asset.{Repo, Point}
+  alias FarmbotOS.Asset.{Repo, Point}
 
   @wait_time 180
   @fake_jwt "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZ" <>
@@ -70,7 +70,7 @@ defmodule Helpers do
 
   defmacro fake_jwt_object() do
     quote do
-      FarmbotExt.JWT.decode!(unquote(@fake_jwt))
+      FarmbotOS.JWT.decode!(unquote(@fake_jwt))
     end
   end
 
@@ -80,13 +80,13 @@ defmodule Helpers do
         Helpers.fake_jwt()
       end
 
-      expect(FarmbotCore.Config, :get_config_value, 1, cb)
+      expect(FarmbotOS.Config, :get_config_value, 1, cb)
     end
   end
 
   defmacro expect_log(msg) do
     quote do
-      expect(FarmbotCore.LogExecutor, :execute, 1, fn log ->
+      expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
         assert log.message =~ unquote(msg)
       end)
     end
@@ -96,7 +96,7 @@ defmodule Helpers do
     log_count = Enum.count(strings)
 
     quote do
-      expect(FarmbotCore.LogExecutor, :execute, unquote(log_count), fn log ->
+      expect(FarmbotOS.LogExecutor, :execute, unquote(log_count), fn log ->
         assert Enum.member?(unquote(strings), log.message)
       end)
     end
@@ -204,7 +204,7 @@ defmodule SimpleCounter do
 end
 
 defmodule Farmbot.TestSupport.AssetFixtures do
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Device,
     FarmEvent,
     Regimen,
@@ -298,51 +298,51 @@ ExUnit.configure(
   Circuits.UART,
   Ecto.Changeset,
   ExTTY,
-  FarmbotCore.Asset,
-  FarmbotCore.Asset.Command,
-  FarmbotCore.Asset.Device,
-  FarmbotCore.Asset.FbosConfig,
-  FarmbotCore.Asset.FirmwareConfig,
-  FarmbotCore.Asset.Private,
-  FarmbotCore.Asset.Repo,
-  FarmbotCore.BotState,
-  FarmbotCore.Celery,
-  FarmbotCore.Celery.AST.Factory,
-  FarmbotCore.Celery.Compiler.Lua,
-  FarmbotCore.Celery.Scheduler,
-  FarmbotCore.Celery.SpecialValue,
-  FarmbotCore.Celery.SysCallGlue,
-  FarmbotCore.Celery.SysCallGlue.Stubs,
-  FarmbotCore.Config,
-  FarmbotCore.FarmwareRuntime,
-  FarmbotCore.Firmware.Avrdude,
-  FarmbotCore.Firmware.Command,
-  FarmbotCore.Firmware.ConfigUploader,
-  FarmbotCore.Firmware.Flash,
-  FarmbotCore.Firmware.FlashUtils,
-  FarmbotCore.Firmware.Resetter,
-  FarmbotCore.Firmware.TxBuffer,
-  FarmbotCore.Firmware.UARTCore,
-  FarmbotCore.Firmware.UARTCoreSupport,
-  FarmbotCore.Firmware.UARTDetector,
-  FarmbotCore.FirmwareEstopTimer,
-  FarmbotCore.Leds,
-  FarmbotCore.LogExecutor,
-  FarmbotCore.Logger,
-  FarmbotExt.API,
-  FarmbotExt.API.Reconciler,
-  FarmbotExt.API.SyncGroup,
-  FarmbotExt.APIFetcher,
-  FarmbotExt.Bootstrap.Authorization,
-  FarmbotExt.Bootstrap.DropPasswordSupport,
-  FarmbotExt.EagerLoader.Supervisor,
-  FarmbotExt.MQTT,
-  FarmbotExt.MQTT.LogHandlerSupport,
-  FarmbotExt.MQTT.Support,
-  FarmbotExt.MQTT.SyncHandlerSupport,
-  FarmbotExt.MQTT.TerminalHandlerSupport,
-  FarmbotExt.MQTT.TopicSupervisor,
-  FarmbotExt.Time,
+  FarmbotOS.Asset,
+  FarmbotOS.Asset.Command,
+  FarmbotOS.Asset.Device,
+  FarmbotOS.Asset.FbosConfig,
+  FarmbotOS.Asset.FirmwareConfig,
+  FarmbotOS.Asset.Private,
+  FarmbotOS.Asset.Repo,
+  FarmbotOS.BotState,
+  FarmbotOS.Celery,
+  FarmbotOS.Celery.AST.Factory,
+  FarmbotOS.Celery.Compiler.Lua,
+  FarmbotOS.Celery.Scheduler,
+  FarmbotOS.Celery.SpecialValue,
+  FarmbotOS.Celery.SysCallGlue,
+  FarmbotOS.Celery.SysCallGlue.Stubs,
+  FarmbotOS.Config,
+  FarmbotOS.FarmwareRuntime,
+  FarmbotOS.Firmware.Avrdude,
+  FarmbotOS.Firmware.Command,
+  FarmbotOS.Firmware.ConfigUploader,
+  FarmbotOS.Firmware.Flash,
+  FarmbotOS.Firmware.FlashUtils,
+  FarmbotOS.Firmware.Resetter,
+  FarmbotOS.Firmware.TxBuffer,
+  FarmbotOS.Firmware.UARTCore,
+  FarmbotOS.Firmware.UARTCoreSupport,
+  FarmbotOS.Firmware.UARTDetector,
+  FarmbotOS.FirmwareEstopTimer,
+  FarmbotOS.Leds,
+  FarmbotOS.LogExecutor,
+  FarmbotOS.Logger,
+  FarmbotOS.API,
+  FarmbotOS.API.Reconciler,
+  FarmbotOS.API.SyncGroup,
+  FarmbotOS.APIFetcher,
+  FarmbotOS.Bootstrap.Authorization,
+  FarmbotOS.Bootstrap.DropPasswordSupport,
+  FarmbotOS.EagerLoader.Supervisor,
+  FarmbotOS.MQTT,
+  FarmbotOS.MQTT.LogHandlerSupport,
+  FarmbotOS.MQTT.Support,
+  FarmbotOS.MQTT.SyncHandlerSupport,
+  FarmbotOS.MQTT.TerminalHandlerSupport,
+  FarmbotOS.MQTT.TopicSupervisor,
+  FarmbotOS.Time,
   FarmbotOS.Configurator.ConfigDataLayer,
   FarmbotOS.Configurator.DetsTelemetryLayer,
   FarmbotOS.Configurator.FakeNetworkLayer,
@@ -355,6 +355,7 @@ ExUnit.configure(
   FarmbotOS.SysCalls.Farmware,
   FarmbotOS.SysCalls.Movement,
   FarmbotOS.SysCalls.ResourceUpdate,
+  FarmbotOS.System,
   FarmbotOS.UpdateSupport,
   FarmbotTelemetry,
   File,

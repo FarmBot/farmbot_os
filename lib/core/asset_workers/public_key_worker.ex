@@ -1,12 +1,12 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.PublicKey do
-  alias FarmbotCore.Asset.PublicKey
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.PublicKey do
+  alias FarmbotOS.Asset.PublicKey
   use GenServer
 
   @ssh_handler Application.get_env(:farmbot, __MODULE__)[:ssh_handler]
   @ssh_handler ||
     Mix.raise("""
       config :farmbot, #{__MODULE__},
-        ssh_handler: FarmbotCore.PublicKeyHandler.StubSSHHandler
+        ssh_handler: FarmbotOS.PublicKeyHandler.StubSSHHandler
     """)
 
   def tracks_changes?(%PublicKey{}), do: false

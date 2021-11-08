@@ -1,6 +1,6 @@
-defmodule FarmbotCore.BotState.FileSystemTest do
+defmodule FarmbotOS.BotState.FileSystemTest do
   use ExUnit.Case
-  alias FarmbotCore.{BotState, BotState.FileSystem}
+  alias FarmbotOS.{BotState, BotState.FileSystem}
   import ExUnit.CaptureLog
 
   describe "serializer" do

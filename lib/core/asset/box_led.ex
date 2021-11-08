@@ -1,11 +1,11 @@
-defmodule FarmbotCore.Asset.BoxLed do
+defmodule FarmbotOS.Asset.BoxLed do
   @moduledoc """
   """
 
   defstruct [:id]
 
-  defimpl String.Chars, for: FarmbotCore.Asset.BoxLed do
-    def to_string(%FarmbotCore.Asset.BoxLed{id: id}) do
+  defimpl String.Chars, for: FarmbotOS.Asset.BoxLed do
+    def to_string(%FarmbotOS.Asset.BoxLed{id: id}) do
       "BoxLed #{id}"
     end
   end

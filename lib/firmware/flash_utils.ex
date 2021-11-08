@@ -1,5 +1,5 @@
-defmodule FarmbotCore.Firmware.FlashUtils do
-  require FarmbotCore.Logger
+defmodule FarmbotOS.Firmware.FlashUtils do
+  require FarmbotOS.Logger
 
   @doc "Returns the absolute path to the hex file associated with `package`"
   def find_hex_file("arduino"), do: find("arduino_firmware.hex")
@@ -19,10 +19,10 @@ defmodule FarmbotCore.Firmware.FlashUtils do
 
   defp find(name) do
     if File.exists?(@custom_firmware) do
-      FarmbotCore.Logger.warn(3, @scary_warning)
+      FarmbotOS.Logger.warn(3, @scary_warning)
       {:ok, @custom_firmware}
     else
-      assert_exists(Application.app_dir(:farmbot, ["priv", name]))
+      assert_exists(Application.app_dir(:farmbot, ["priv", "firmware", name]))
     end
   end
 

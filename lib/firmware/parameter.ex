@@ -1,4 +1,4 @@
-defmodule FarmbotCore.Firmware.Parameter do
+defmodule FarmbotOS.Firmware.Parameter do
   @all [
     {000, :param_version},
     {001, :param_test},
@@ -120,7 +120,6 @@ defmodule FarmbotCore.Firmware.Parameter do
            end)
 
   def translate(key), do: Map.fetch!(@decoder, key)
-  def numbers(), do: Enum.map(@all, fn {code, _name} -> code end)
   def names(), do: Enum.map(@all, fn {_code, name} -> name end)
   def is_param?(key), do: Map.has_key?(@decoder, key)
 end

@@ -3,9 +3,9 @@ defmodule FarmbotOS.Lua.Info do
   Lua extensions for gathering information about a running Farmbot
   """
 
-  alias FarmbotCore.Celery.SysCallGlue
+  alias FarmbotOS.Celery.SysCallGlue
   alias FarmbotOS.Lua.Util
-  alias FarmbotCore.Config
+  alias FarmbotOS.Config
 
   @doc """
   # Example Usage
@@ -38,13 +38,13 @@ defmodule FarmbotOS.Lua.Info do
 
   @doc "Returns data about the bot's state"
   def read_status([], lua) do
-    bot_state = FarmbotCore.BotState.fetch() |> FarmbotCore.BotStateNG.view()
+    bot_state = FarmbotOS.BotState.fetch() |> FarmbotOS.BotStateNG.view()
 
     {[Util.map_to_table(bot_state)], lua}
   end
 
   def read_status(path, lua) do
-    bot_state = FarmbotCore.BotState.fetch() |> FarmbotCore.BotStateNG.view()
+    bot_state = FarmbotOS.BotState.fetch() |> FarmbotOS.BotStateNG.view()
     path = List.flatten(path) |> Enum.map(&String.to_atom(&1))
 
     case get_in(bot_state, path) do
@@ -58,12 +58,12 @@ defmodule FarmbotOS.Lua.Info do
 
   @doc "Returns the current version of farmbot."
   def fbos_version(_args, lua) do
-    {[FarmbotCore.Project.version(), nil], lua}
+    {[FarmbotOS.Project.version(), nil], lua}
   end
 
   @doc "Returns the current firmware version."
   def firmware_version(_args, lua) do
-    state = FarmbotCore.BotStateNG.view(FarmbotCore.BotState.fetch())
+    state = FarmbotOS.BotStateNG.view(FarmbotOS.BotState.fetch())
     v = state.informational_settings.firmware_version
     {[v, nil], lua}
   end

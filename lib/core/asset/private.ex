@@ -1,14 +1,14 @@
-defmodule FarmbotCore.Asset.Private do
+defmodule FarmbotOS.Asset.Private do
   @moduledoc """
   Private Assets are those that are internal to
   Farmbot that _are not_ stored in the API, but
   _are_ stored in Farmbot's database.
   """
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
-  alias FarmbotCore.{Asset.Repo, Asset.Private.LocalMeta}
-  alias FarmbotCore.Asset.{FbosConfig, FirmwareConfig}
+  alias FarmbotOS.{Asset.Repo, Asset.Private.LocalMeta}
+  alias FarmbotOS.Asset.{FbosConfig, FirmwareConfig}
 
   import Ecto.Query, warn: false
   import Ecto.Changeset, warn: false
@@ -142,7 +142,7 @@ defmodule FarmbotCore.Asset.Private do
         Ecto.Changeset.apply_changes(changeset)
 
       type, reason ->
-        FarmbotCore.Logger.error(1, """
+        FarmbotOS.Logger.error(1, """
         Caught unexpected error marking data as dirty
         table: #{inspect(table)}
         id: #{inspect(asset.local_id)}

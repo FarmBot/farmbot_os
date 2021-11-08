@@ -1,9 +1,9 @@
-defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
+defmodule FarmbotOS.FarmEventWorker.SequenceEvent do
   require Logger
-  require FarmbotCore.Logger
-  alias FarmbotCore.Celery.AST
+  require FarmbotOS.Logger
+  alias FarmbotOS.Celery.AST
 
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     Asset,
     Asset.FarmEvent
   }
@@ -44,7 +44,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
   end
 
   def handle_info(
-        {FarmbotCore.Celery,
+        {FarmbotOS.Celery,
          {:scheduled_execution, scheduled_at, executed_at, result}},
         state
       ) do
@@ -54,7 +54,7 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
           "ok"
 
         {:error, reason} ->
-          FarmbotCore.Logger.error(
+          FarmbotOS.Logger.error(
             2,
             "Event scheduled at #{scheduled_at} failed to execute: #{reason}"
           )
@@ -87,6 +87,6 @@ defmodule FarmbotCore.FarmEventWorker.SequenceEvent do
       })
 
     celery_ast = %{celery_ast | args: celery_args}
-    FarmbotCore.Celery.schedule(celery_ast, at, farm_event)
+    FarmbotOS.Celery.schedule(celery_ast, at, farm_event)
   end
 end

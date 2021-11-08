@@ -1,0 +1,11 @@
+*.pyc
+results
+tests/images
+tests/view
+*.png
+*.jpg
+*.svg
+!module_graph.svg
+.vscode
+*.json
+!manifest.json

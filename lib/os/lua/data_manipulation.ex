@@ -3,12 +3,12 @@ defmodule FarmbotOS.Lua.DataManipulation do
   Extensions for manipulating data from Lua
   """
 
-  alias FarmbotCore.{Asset, JSON}
-  alias FarmbotCore.Asset.{Device, FbosConfig, FirmwareConfig}
+  alias FarmbotOS.{Asset, JSON}
+  alias FarmbotOS.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.HTTP
-  alias FarmbotCore.Celery.SpecialValue
+  alias FarmbotOS.Celery.SpecialValue
 
   @methods %{
     "connect" => :connect,
@@ -85,14 +85,6 @@ defmodule FarmbotOS.Lua.DataManipulation do
       {[Util.map_to_table(map)], lua}
     else
       _ -> {[nil, "Error parsing JSON."], lua}
-    end
-  end
-
-  def take_photo(_, lua) do
-    case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", %{}) do
-      {:error, reason} -> {[reason], lua}
-      :ok -> {[], lua}
-      other -> {[inspect(other)], lua}
     end
   end
 
@@ -176,6 +168,17 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
   def b64_encode([data], lua) when is_bitstring(data) do
     {[Base.encode64(data)], lua}
+  end
+
+  def garden_size(_data, lua) do
+    p = FarmbotOS.BotState.fetch().mcu_params
+
+    result = %{
+      y: p.movement_axis_nr_steps_y / p.movement_step_per_mm_y,
+      x: p.movement_axis_nr_steps_x / p.movement_step_per_mm_x
+    }
+
+    {[Util.map_to_table(result)], lua}
   end
 
   # Output is jpg encoded string.

@@ -1,7 +1,7 @@
-defmodule FarmbotCore.Firmware.InboundSideEffects do
+defmodule FarmbotOS.Firmware.InboundSideEffects do
   @moduledoc """
   """
-  alias FarmbotCore.{
+  alias FarmbotOS.{
     Asset,
     BotState,
     Firmware.TxBuffer,
@@ -11,7 +11,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   }
 
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   def process(state, gcode_list) do
     # Spawn() so that LED problems don't cause FW Handler to
@@ -167,7 +167,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:param_value_report, %{pin_or_param: p_float, value1: v}}, s) do
-    FarmbotCore.Firmware.ConfigUploader.verify_param(s, {trunc(p_float), v})
+    FarmbotOS.Firmware.ConfigUploader.verify_param(s, {trunc(p_float), v})
   end
 
   defp reduce({:software_version, version}, state) do
@@ -196,7 +196,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
           %{pin_or_param: p, value1: v}},
          state
        ) do
-    k = FarmbotCore.Firmware.Parameter.translate(trunc(p))
+    k = FarmbotOS.Firmware.Parameter.translate(trunc(p))
 
     %{k => v}
     |> Asset.update_firmware_config!()
@@ -206,7 +206,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
   end
 
   defp reduce({:movement_retry, _}, state) do
-    FarmbotCore.Logger.debug(1, "Retrying movement")
+    FarmbotOS.Logger.debug(1, "Retrying movement")
     state
   end
 
@@ -221,7 +221,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
 
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
-    FarmbotCore.Logger.info(3, msg)
+    FarmbotOS.Logger.info(3, msg)
     state
   end
 
@@ -237,7 +237,7 @@ defmodule FarmbotCore.Firmware.InboundSideEffects do
       end
 
     msg = "Stopping at #{axis} #{place} " <> disclaimer
-    FarmbotCore.Logger.info(3, msg)
+    FarmbotOS.Logger.info(3, msg)
     state
   end
 

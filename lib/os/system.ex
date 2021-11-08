@@ -2,9 +2,9 @@ defmodule FarmbotOS.System do
   @moduledoc """
   Common functionality that should be implemented by a system
   """
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   require Logger
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Firmware.Command
 
   error_msg = """
   Please configure `:system_tasks`!
@@ -27,20 +27,12 @@ defmodule FarmbotOS.System do
     _ = Application.ensure_all_started(:farmbot)
   end
 
-  @doc "Reads the last shutdown is there was one."
-  def last_shutdown_reason do
-    case File.read(FarmbotOS.FileSystem.shutdown_reason_path()) do
-      {:ok, data} -> data
-      _ -> nil
-    end
-  end
-
   @doc "Remove all configuration data, and reboot."
   @spec factory_reset(any) :: no_return
   def factory_reset(reason, _ \\ nil) do
     try_lock_fw()
     set_shutdown_reason(reason)
-    IO.puts("TODO: FarmbotCore.EctoMigrator.drop()")
+    IO.puts("TODO: FarmbotOS.EctoMigrator.drop()")
     reboot(reason)
     :ok
   end
@@ -62,7 +54,7 @@ defmodule FarmbotOS.System do
   end
 
   def set_shutdown_reason(reason) do
-    FarmbotCore.Logger.busy(1, reason)
+    FarmbotOS.Logger.busy(1, reason)
     file = FarmbotOS.FileSystem.shutdown_reason_path()
     if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
   end
@@ -72,7 +64,7 @@ defmodule FarmbotOS.System do
       Command.lock()
     rescue
       _ ->
-        FarmbotCore.Logger.error(1, "Emergency lock failed. Powering down.")
+        FarmbotOS.Logger.error(1, "Emergency lock failed. Powering down.")
     end
   end
 end

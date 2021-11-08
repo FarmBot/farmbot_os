@@ -1,12 +1,12 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FirmwareConfig do
   @moduledoc """
   This asset worker does not get restarted. It instead responds to GenServer
   calls.
   """
 
   use GenServer
-  require FarmbotCore.Logger
-  alias FarmbotCore.Asset.FirmwareConfig
+  require FarmbotOS.Logger
+  alias FarmbotOS.Asset.FirmwareConfig
 
   def preload(%FirmwareConfig{}), do: []
 
@@ -21,7 +21,7 @@ defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FirmwareConfig do
   end
 
   def handle_cast({:new_data, new_fw_config}, _old_fw_config) do
-    FarmbotCore.Firmware.UARTObserver.data_available(__MODULE__)
+    FarmbotOS.Firmware.UARTObserver.data_available(__MODULE__)
     {:noreply, new_fw_config}
   end
 end

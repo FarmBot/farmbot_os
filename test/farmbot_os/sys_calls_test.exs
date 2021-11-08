@@ -1,10 +1,10 @@
 defmodule FarmbotOS.SysCallsTest do
   use ExUnit.Case
   alias FarmbotOS.SysCalls
-  alias FarmbotCore.Asset
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.Asset
+  alias FarmbotOS.Firmware.Command
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     Repo,
     Sequence,
     BoxLed
@@ -14,12 +14,12 @@ defmodule FarmbotOS.SysCallsTest do
   setup :verify_on_exit!
 
   test "emergency_unlock" do
-    expect(FarmbotCore.Leds, :yellow, 1, fn mode ->
+    expect(FarmbotOS.Leds, :yellow, 1, fn mode ->
       assert mode == :off
       :ok
     end)
 
-    expect(FarmbotCore.Leds, :red, 1, fn mode ->
+    expect(FarmbotOS.Leds, :red, 1, fn mode ->
       assert mode == :solid
       :ok
     end)
@@ -29,12 +29,12 @@ defmodule FarmbotOS.SysCallsTest do
   end
 
   test "emergency_lock" do
-    expect(FarmbotCore.Leds, :red, 1, fn mode ->
+    expect(FarmbotOS.Leds, :red, 1, fn mode ->
       assert mode == :off
       :ok
     end)
 
-    expect(FarmbotCore.Leds, :yellow, 1, fn mode ->
+    expect(FarmbotOS.Leds, :yellow, 1, fn mode ->
       assert mode == :slow_blink
       :ok
     end)
@@ -125,17 +125,10 @@ defmodule FarmbotOS.SysCallsTest do
     assert SysCalls.nothing() == nil
   end
 
-  test "install_first_party_farmware()" do
-    expected = {:error, "install_first_party_farmware not yet supported"}
-    actual = SysCalls.install_first_party_farmware()
-    assert expected == actual
-  end
-
   test "fbos_config()" do
     {:ok, conf} = SysCalls.fbos_config()
 
-    expected =
-      FarmbotCore.Asset.FbosConfig.render(FarmbotCore.Asset.fbos_config())
+    expected = FarmbotOS.Asset.FbosConfig.render(FarmbotOS.Asset.fbos_config())
 
     assert conf == expected
   end

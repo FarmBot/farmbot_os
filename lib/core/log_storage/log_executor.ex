@@ -1,8 +1,8 @@
-# This module could have existed within FarmbotCore.Logger.
+# This module could have existed within FarmbotOS.Logger.
 # Pulling this function into a different module facilitates
 # mocking of tests.
-defmodule FarmbotCore.LogExecutor do
-  alias FarmbotCore.Log
+defmodule FarmbotOS.LogExecutor do
+  alias FarmbotOS.Log
 
   def execute(%Log{} = log) do
     logger_meta = [

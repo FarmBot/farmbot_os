@@ -1,7 +1,7 @@
-defimpl FarmbotCore.AssetWorker, for: FarmbotCore.Asset.FarmwareEnv do
+defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FarmwareEnv do
   use GenServer
 
-  alias FarmbotCore.{Asset.FarmwareEnv, BotState}
+  alias FarmbotOS.{Asset.FarmwareEnv, BotState}
 
   def preload(%FarmwareEnv{}), do: []
 

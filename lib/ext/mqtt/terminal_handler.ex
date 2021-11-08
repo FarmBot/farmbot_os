@@ -1,6 +1,6 @@
-defmodule FarmbotExt.MQTT.TerminalHandler do
+defmodule FarmbotOS.MQTT.TerminalHandler do
   use GenServer
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   # 5 minutes
   @iex_timeout 300 * 1000
@@ -8,7 +8,7 @@ defmodule FarmbotExt.MQTT.TerminalHandler do
   defstruct [:client_id, :username, :iex_pid]
 
   alias __MODULE__, as: State
-  alias FarmbotExt.MQTT.TerminalHandlerSupport, as: Support
+  alias FarmbotOS.MQTT.TerminalHandlerSupport, as: Support
 
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)

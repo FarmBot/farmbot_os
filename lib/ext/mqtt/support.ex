@@ -1,5 +1,5 @@
-defmodule FarmbotExt.MQTT.Support do
-  alias FarmbotCore.Leds
+defmodule FarmbotOS.MQTT.Support do
+  alias FarmbotOS.Leds
 
   # Dropped message.
   def forward_message(nil, _msg), do: nil

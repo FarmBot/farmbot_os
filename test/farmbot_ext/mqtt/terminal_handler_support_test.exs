@@ -1,9 +1,9 @@
-defmodule FarmbotExt.TerminalHandlerSupportTest do
+defmodule FarmbotOS.TerminalHandlerSupportTest do
   use ExUnit.Case
   use Mimic
 
-  alias FarmbotExt.MQTT.TerminalHandlerSupport, as: S
-  alias FarmbotExt.MQTT.TerminalHandler, as: T
+  alias FarmbotOS.MQTT.TerminalHandlerSupport, as: S
+  alias FarmbotOS.MQTT.TerminalHandler, as: T
 
   test "shell_opts" do
     actual = S.shell_opts()
@@ -15,7 +15,7 @@ defmodule FarmbotExt.TerminalHandlerSupportTest do
     state = %T{username: "device_456", client_id: "wow"}
     data = "~ EXAMPLE DATA ~"
 
-    expect(FarmbotExt.MQTT, :publish, 1, fn client_id, topic, actual_data ->
+    expect(FarmbotOS.MQTT, :publish, 1, fn client_id, topic, actual_data ->
       assert topic == "bot/device_456/terminal_output"
       assert client_id == state.client_id
       assert actual_data == data

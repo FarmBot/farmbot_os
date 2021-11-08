@@ -1,23 +1,23 @@
 defmodule FarmbotOS.SysCalls.PinControl do
   @moduledoc false
 
-  alias FarmbotCore.{Asset, Leds}
-  alias FarmbotCore.Firmware.Command
+  alias FarmbotOS.{Asset, Leds}
+  alias FarmbotOS.Firmware.Command
 
-  alias FarmbotCore.Asset.{
+  alias FarmbotOS.Asset.{
     BoxLed,
     Peripheral,
     Sensor
   }
 
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
 
   def read_cached_pin(%_{pin: number}) do
     read_cached_pin(number)
   end
 
   def read_cached_pin(pin_number) do
-    FarmbotCore.BotState.fetch().pins()[pin_number][:value]
+    FarmbotOS.BotState.fetch().pins()[pin_number][:value]
   end
 
   def toggle_pin(pin_number) when is_number(pin_number) do
@@ -127,7 +127,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
        when is_number(pin_number) do
     case Command.read_pin(pin_number, 0) do
       {:ok, 1} ->
-        FarmbotCore.Logger.info(
+        FarmbotOS.Logger.info(
           2,
           "The #{label} peripheral value is ON (digital)"
         )
@@ -135,7 +135,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         1
 
       {:ok, 0} ->
-        FarmbotCore.Logger.info(
+        FarmbotOS.Logger.info(
           2,
           "The #{label} peripheral value is OFF (digital)"
         )
@@ -143,7 +143,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         0
 
       {:ok, value} ->
-        FarmbotCore.Logger.info(
+        FarmbotOS.Logger.info(
           2,
           "The #{label} peripheral value is #{value} (analog)"
         )
@@ -162,7 +162,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
     case Command.read_pin(pin_number, 1) do
       {:ok, value} ->
         msg = "The #{label} peripheral value is #{value} (analog)"
-        FarmbotCore.Logger.info(2, msg)
+        FarmbotOS.Logger.info(2, msg)
         value
 
       {:error, reason} ->
@@ -177,16 +177,16 @@ defmodule FarmbotOS.SysCalls.PinControl do
        when is_number(pin_number) do
     case Command.read_pin(pin_number, 0) do
       {:ok, 1} ->
-        FarmbotCore.Logger.info(2, "The #{label} sensor value is 1 (digital)")
+        FarmbotOS.Logger.info(2, "The #{label} sensor value is 1 (digital)")
         1
 
       {:ok, 0} ->
-        FarmbotCore.Logger.info(2, "The #{label} sensor value is 0 (digital)")
+        FarmbotOS.Logger.info(2, "The #{label} sensor value is 0 (digital)")
         0
 
       {:ok, value} ->
         msg = "The #{label} sensor value is #{value} (analog)"
-        FarmbotCore.Logger.info(2, msg)
+        FarmbotOS.Logger.info(2, msg)
 
       {:error, reason} ->
         FarmbotOS.SysCalls.give_firmware_reason("do_read_pin(%Sensor)", reason)
@@ -200,7 +200,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
     case Command.read_pin(pin_number, 1) do
       {:ok, value} ->
         msg = "The #{label} sensor value is #{value} (analog)"
-        FarmbotCore.Logger.info(2, msg)
+        FarmbotOS.Logger.info(2, msg)
         value
 
       {:error, reason} ->
@@ -218,15 +218,15 @@ defmodule FarmbotOS.SysCalls.PinControl do
   defp do_read_pin(pin_number, 0) when is_number(pin_number) do
     case Command.read_pin(pin_number, 0) do
       {:ok, 0} ->
-        FarmbotCore.Logger.info(2, "Pin #{pin_number} value is OFF (digital)")
+        FarmbotOS.Logger.info(2, "Pin #{pin_number} value is OFF (digital)")
         0
 
       {:ok, 1} ->
-        FarmbotCore.Logger.info(2, "Pin #{pin_number} value is ON (digital)")
+        FarmbotOS.Logger.info(2, "Pin #{pin_number} value is ON (digital)")
         1
 
       {:ok, value} ->
-        FarmbotCore.Logger.info(2, "Pin #{pin_number} is #{value} (analog)")
+        FarmbotOS.Logger.info(2, "Pin #{pin_number} is #{value} (analog)")
         value
 
       {:error, reason} ->
@@ -241,7 +241,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   defp do_read_pin(pin_number, 1) when is_number(pin_number) do
     case Command.read_pin(pin_number, 1) do
       {:ok, value} ->
-        FarmbotCore.Logger.info(2, "Pin #{pin_number} is #{value} (analog)")
+        FarmbotOS.Logger.info(2, "Pin #{pin_number} is #{value} (analog)")
         value
 
       {:error, reason} ->
@@ -271,25 +271,25 @@ defmodule FarmbotOS.SysCalls.PinControl do
   end
 
   def write_pin(%BoxLed{id: 3}, 0, 1) do
-    FarmbotCore.Logger.info(2, "Turning Boxled3 ON")
+    FarmbotOS.Logger.info(2, "Turning Boxled3 ON")
     Leds.white4(:solid)
     :ok
   end
 
   def write_pin(%BoxLed{id: 3}, 0, 0) do
-    FarmbotCore.Logger.info(2, "Turning Boxled3 OFF")
+    FarmbotOS.Logger.info(2, "Turning Boxled3 OFF")
     Leds.white4(:off)
     :ok
   end
 
   def write_pin(%BoxLed{id: 4}, 0, 1) do
-    FarmbotCore.Logger.info(2, "Turning Boxled4 ON")
+    FarmbotOS.Logger.info(2, "Turning Boxled4 ON")
     Leds.white5(:solid)
     :ok
   end
 
   def write_pin(%BoxLed{id: 4}, 0, 0) do
-    FarmbotCore.Logger.info(2, "Turning Boxled4 OFF")
+    FarmbotOS.Logger.info(2, "Turning Boxled4 OFF")
     Leds.white5(:off)
     :ok
   end
@@ -314,7 +314,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
   def do_write_pin(pin_number, mode, value) do
     case Command.write_pin(pin_number, value, mode) do
       {:ok, _} ->
-        FarmbotCore.BotState.set_pin_value(pin_number, value / 1, mode)
+        FarmbotOS.BotState.set_pin_value(pin_number, value / 1, mode)
         :ok
 
       {:error, reason} ->

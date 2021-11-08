@@ -13,7 +13,7 @@ defmodule FarmbotOS.SysCalls.SendMessage do
 
     case render(templ) do
       {:ok, message} ->
-        FarmbotCore.Logger.dispatch_log(type, 1, message, meta)
+        FarmbotOS.Logger.dispatch_log(type, 1, message, meta)
         # Give LogChannel time to catch up and ingest logs.
         # Removing this line will result in non-deterministic
         # loss of duplicate logs or general "funny business"
@@ -56,18 +56,18 @@ defmodule FarmbotOS.SysCalls.SendMessage do
 
     {:ok,
      [
-       x: FarmbotCore.Celery.FormatUtil.format_float(x),
-       y: FarmbotCore.Celery.FormatUtil.format_float(y),
-       z: FarmbotCore.Celery.FormatUtil.format_float(z)
+       x: FarmbotOS.Celery.FormatUtil.format_float(x),
+       y: FarmbotOS.Celery.FormatUtil.format_float(y),
+       z: FarmbotOS.Celery.FormatUtil.format_float(z)
      ]}
   end
 
   def pins() do
     {:ok,
-     FarmbotCore.BotState.fetch().pins
+     FarmbotOS.BotState.fetch().pins
      |> Map.new()
      |> Enum.map(fn {p, %{value: v}} ->
-       {:"pin#{p}", FarmbotCore.Celery.FormatUtil.format_float(v)}
+       {:"pin#{p}", FarmbotOS.Celery.FormatUtil.format_float(v)}
      end)}
   end
 

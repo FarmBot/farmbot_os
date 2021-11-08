@@ -1,7 +1,25 @@
-defmodule FarmbotCore.FarmwareRuntimeTest do
+defmodule FarmbotOS.FarmwareRuntimeTest do
   use ExUnit.Case
   import ExUnit.CaptureLog
-  alias FarmbotCore.FarmwareRuntime
+  alias FarmbotOS.FarmwareRuntime
+
+  test "init" do
+    t = fn ->
+      {:ok, state} = FarmwareRuntime.init(["noop", %{}, self()])
+      assert state.caller == self()
+      assert is_pid(state.cmd)
+      assert state.context == :get_header
+      assert state.mon == nil
+      assert state.request_pipe =~ "-farmware-request-pipe"
+      assert is_pid(state.request_pipe_handle)
+      assert state.response_pipe =~ "-farmware-response-pipe"
+      assert is_pid(state.response_pipe_handle)
+      assert state.rpc == nil
+      assert state.scheduler_ref == nil
+    end
+
+    assert capture_log(t) =~ "opening pipe: /tmp/farmware_runtime/noop-"
+  end
 
   test "error handling" do
     state = %FarmwareRuntime{
@@ -23,7 +41,7 @@ defmodule FarmbotCore.FarmwareRuntimeTest do
   end
 
   test "logger related helpers" do
-    l = FarmbotCore.FarmwareLogger.new("test case")
+    l = FarmbotOS.FarmwareLogger.new("test case")
     {logger, fun} = Collectable.into(l)
     assert l == logger
     assert is_function(fun)

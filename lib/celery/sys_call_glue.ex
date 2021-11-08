@@ -1,13 +1,13 @@
-defmodule FarmbotCore.Celery.SysCallGlue do
+defmodule FarmbotOS.Celery.SysCallGlue do
   @moduledoc """
   Behaviour for abstracting CeleryScript functionality.
   """
-  alias FarmbotCore.Celery.{AST, RuntimeError}
+  alias FarmbotOS.Celery.{AST, RuntimeError}
 
   @sys_calls Application.get_env(:farmbot, __MODULE__)[:sys_calls]
   @sys_calls ||
     Mix.raise("""
-    config :farmbot, FarmbotCore.Celery.SysCallGlue, [
+    config :farmbot, FarmbotOS.Celery.SysCallGlue, [
       sys_calls: SomeModuleThatImplementsTheBehaviour
     ]
     """)
@@ -32,7 +32,6 @@ defmodule FarmbotCore.Celery.SysCallGlue do
   @callback emergency_lock() :: ok_or_error
   @callback emergency_unlock() :: ok_or_error
   @callback execute_script(package, args :: map()) :: ok_or_error
-  @callback update_farmware(package) :: ok_or_error
   @callback factory_reset(package :: String.t()) :: ok_or_error
   @callback find_home(axis) :: ok_or_error
   @callback firmware_reboot() :: ok_or_error
@@ -45,11 +44,10 @@ defmodule FarmbotCore.Celery.SysCallGlue do
   @callback get_cached_y() :: number() | error()
   @callback get_cached_z() :: number() | error()
 
-  @callback get_sequence(resource_id) :: FarmbotCore.Celery.AST.t() | error()
+  @callback get_sequence(resource_id) :: FarmbotOS.Celery.AST.t() | error()
   @callback get_toolslot_for_tool(resource_id) ::
               %{x: number(), y: number(), z: number()} | error()
   @callback home(axis, speed :: number()) :: ok_or_error
-  @callback install_first_party_farmware() :: ok_or_error
   @callback move_absolute(
               x :: number(),
               y :: number(),
@@ -186,11 +184,6 @@ defmodule FarmbotCore.Celery.SysCallGlue do
     ok_or_error(sys_calls, :execute_script, [package, env])
   end
 
-  def update_farmware(sys_calls \\ @sys_calls, package)
-      when is_binary(package) do
-    ok_or_error(sys_calls, :update_farmware, [package])
-  end
-
   def factory_reset(sys_calls \\ @sys_calls, package) do
     ok_or_error(sys_calls, :factory_reset, [package])
   end
@@ -246,10 +239,6 @@ defmodule FarmbotCore.Celery.SysCallGlue do
       when axis in ["x", "y", "z"]
       when is_number(speed) do
     ok_or_error(sys_calls, :home, [axis, speed])
-  end
-
-  def install_first_party_farmware(sys_calls \\ @sys_calls) do
-    ok_or_error(sys_calls, :install_first_party_farmware, [])
   end
 
   def move_absolute(sys_calls \\ @sys_calls, x, y, z, speed)
@@ -316,7 +305,7 @@ defmodule FarmbotCore.Celery.SysCallGlue do
   end
 
   def read_status(sys_calls \\ @sys_calls) do
-    fs = FarmbotCore.BotState.FileSystem
+    fs = FarmbotOS.BotState.FileSystem
     if Process.whereis(fs), do: send(fs, :timeout)
     ok_or_error(sys_calls, :read_status, [])
   end

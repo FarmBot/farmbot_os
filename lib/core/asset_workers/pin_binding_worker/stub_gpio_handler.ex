@@ -1,29 +1,19 @@
-defmodule FarmbotCore.PinBindingWorker.StubGPIOHandler do
+defmodule FarmbotOS.PinBindingWorker.StubGPIOHandler do
   @moduledoc "Stub gpio handler for PinBindings"
-  @behaviour FarmbotCore.AssetWorker.FarmbotCore.Asset.PinBinding
+  @behaviour FarmbotOS.AssetWorker.FarmbotOS.Asset.PinBinding
   require Logger
-  require FarmbotCore.Logger
+  require FarmbotOS.Logger
   use GenServer
 
   def start_link(pin_number, fun) do
     GenServer.start_link(__MODULE__, [pin_number, fun], name: name(pin_number))
   end
 
-  FarmbotCore.Logger.report_termination()
-
-  def debug_trigger(pin_number) do
-    GenServer.call(name(pin_number), :debug_trigger)
-  end
+  FarmbotOS.Logger.report_termination()
 
   def init([pin_number, fun]) do
     Logger.info("StubBindingHandler init")
     {:ok, %{pin_number: pin_number, fun: fun}}
-  end
-
-  def handle_call(:debug_trigger, _from, state) do
-    Logger.debug("DebugTrigger: #{state.pin_number}")
-    r = state.fun.()
-    {:reply, r, state}
   end
 
   def name(pin_number), do: :"#{__MODULE__}.#{pin_number}"

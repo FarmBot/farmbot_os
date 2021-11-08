@@ -81,12 +81,12 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "update_firmware_config([table], lua)" do
-    expect(FarmbotCore.Asset, :update_firmware_config!, 1, fn resource ->
+    expect(FarmbotOS.Asset, :update_firmware_config!, 1, fn resource ->
       assert Map.fetch!(resource, "movement_axis_stealth_x") == 1.0
       resource
     end)
 
-    expect(FarmbotCore.Asset.Private, :mark_dirty!, 1, fn resource, opts ->
+    expect(FarmbotOS.Asset.Private, :mark_dirty!, 1, fn resource, opts ->
       assert Map.fetch!(resource, "movement_axis_stealth_x") == 1.0
       assert opts == %{}
       resource
@@ -100,7 +100,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "soil_height" do
-    expect(FarmbotCore.Celery.SpecialValue, :soil_height, 1, fn params ->
+    expect(FarmbotOS.Celery.SpecialValue, :soil_height, 1, fn params ->
       assert params.x == 9.9
       assert params.y == 8.8
       5.55
@@ -123,10 +123,26 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [true]} == lua("update device test", lua_code)
   end
 
+  test "garden_size/0" do
+    expect(FarmbotOS.BotState, :fetch, 1, fn ->
+      %{
+        mcu_params: %{
+          movement_axis_nr_steps_y: 2.3,
+          movement_step_per_mm_y: 4.5,
+          movement_axis_nr_steps_x: 6.7,
+          movement_step_per_mm_x: 8.9
+        }
+      }
+    end)
+
+    expected = [[{"x", 0.7528089887640449}, {"y", 0.5111111111111111}]]
+    assert {:ok, expected} == lua("get garden size", "return garden_size()")
+  end
+
   test "get_device/0" do
     fake_device = %{fake: :device}
-    expect(FarmbotCore.Asset, :device, 1, fn -> fake_device end)
-    expect(FarmbotCore.Asset.Device, :render, 1, fn dev -> dev end)
+    expect(FarmbotOS.Asset, :device, 1, fn -> fake_device end)
+    expect(FarmbotOS.Asset.Device, :render, 1, fn dev -> dev end)
 
     lua_code = """
     get_device()
@@ -138,8 +154,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "get_device/1" do
     fake_device = %{name: "my farmbot", id: 23}
-    expect(FarmbotCore.Asset, :device, 1, fn -> fake_device end)
-    expect(FarmbotCore.Asset.Device, :render, 1, fn dev -> dev end)
+    expect(FarmbotOS.Asset, :device, 1, fn -> fake_device end)
+    expect(FarmbotOS.Asset.Device, :render, 1, fn dev -> dev end)
 
     lua_code = """
     return get_device("id") == 23
@@ -150,8 +166,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "get_fbos_config/1" do
     fake_config = %{id: 47}
-    expect(FarmbotCore.Asset, :fbos_config, 1, fn -> fake_config end)
-    expect(FarmbotCore.Asset.FbosConfig, :render, 1, fn params -> params end)
+    expect(FarmbotOS.Asset, :fbos_config, 1, fn -> fake_config end)
+    expect(FarmbotOS.Asset.FbosConfig, :render, 1, fn params -> params end)
 
     lua_code = "return 47 == get_fbos_config(\"id\")"
 
@@ -160,8 +176,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "get_fbos_config/0" do
     fake_config = %{id: 47, foo: "bar"}
-    expect(FarmbotCore.Asset, :fbos_config, 1, fn -> fake_config end)
-    expect(FarmbotCore.Asset.FbosConfig, :render, 1, fn params -> params end)
+    expect(FarmbotOS.Asset, :fbos_config, 1, fn -> fake_config end)
+    expect(FarmbotOS.Asset.FbosConfig, :render, 1, fn params -> params end)
 
     lua_code = """
     c = get_fbos_config()
@@ -173,9 +189,9 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "get_firmware_config/1" do
     fake_config = %{id: 47}
-    expect(FarmbotCore.Asset, :firmware_config, 1, fn -> fake_config end)
+    expect(FarmbotOS.Asset, :firmware_config, 1, fn -> fake_config end)
 
-    expect(FarmbotCore.Asset.FirmwareConfig, :render, 1, fn params -> params end)
+    expect(FarmbotOS.Asset.FirmwareConfig, :render, 1, fn params -> params end)
 
     lua_code = "return 47 == get_firmware_config(\"id\")"
 
@@ -184,9 +200,9 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "get_firmware_config/0" do
     fake_config = %{id: 47, foo: "bar"}
-    expect(FarmbotCore.Asset, :firmware_config, 1, fn -> fake_config end)
+    expect(FarmbotOS.Asset, :firmware_config, 1, fn -> fake_config end)
 
-    expect(FarmbotCore.Asset.FirmwareConfig, :render, 1, fn params -> params end)
+    expect(FarmbotOS.Asset.FirmwareConfig, :render, 1, fn params -> params end)
 
     lua_code = """
     c = get_firmware_config()
@@ -197,7 +213,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "new_sensor_reading" do
-    expect(FarmbotCore.Asset, :new_sensor_reading!, 1, fn params ->
+    expect(FarmbotOS.Asset, :new_sensor_reading!, 1, fn params ->
       expected = %{
         "mode" => 1,
         "pin" => 0,
@@ -227,21 +243,24 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   test "take_photo - OK" do
     mock = fn "take-photo", %{} -> :ok end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {[], :lua} == actual
   end
 
   test "take_photo - 'normal' errors" do
     mock = fn "take-photo", %{} -> {:error, "whatever"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {["whatever"], :lua} == actual
   end
 
   test "take_photo - malformed errors" do
     mock = fn "take-photo", %{} -> {:something_else, "whoops"} end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    actual = DataManipulation.take_photo(:none, :lua)
+    fun = FarmbotOS.Lua.execute_script("take-photo")
+    actual = fun.(:none, :lua)
     assert {[inspect({:something_else, "whoops"})], :lua} == actual
   end
 
@@ -262,7 +281,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "env/1" do
     mock = fn -> [%__MODULE__{key: "foo", value: "bar"}] end
-    expect(FarmbotCore.Asset, :list_farmware_env, 2, mock)
+    expect(FarmbotOS.Asset, :list_farmware_env, 2, mock)
     results = DataManipulation.env(["foo"], :lua)
     assert {["bar"], :lua} == results
     results = DataManipulation.env(["wrong"], :lua)

@@ -5,10 +5,10 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
   """
 
   @behaviour FarmbotOS.Configurator.DataLayer
-  require FarmbotCore.Logger
-  alias FarmbotCore.Config
+  require FarmbotOS.Logger
+  alias FarmbotOS.Config
   alias FarmbotOS.FileSystem
-  alias FarmbotCore.Asset
+  alias FarmbotOS.Asset
 
   @impl FarmbotOS.Configurator.DataLayer
   def save_config(%{
