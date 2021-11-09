@@ -1,10 +1,40 @@
 defmodule FarmbotOS.Lua.InfoTest do
   use ExUnit.Case
   use Mimic
+  alias FarmbotOS.Celery.SysCallGlue
   setup :verify_on_exit!
 
   def lua(test_name, lua_code) do
     FarmbotOS.Lua.perform_lua(lua_code, [], test_name)
+  end
+
+  test "send_message() - no channel" do
+    code = """
+      send_message("info", "unit testing")
+    """
+
+    expect(SysCallGlue, :send_message, 1, fn kind, message, channels ->
+      assert kind == "info"
+      assert message == "unit testing"
+      assert channels == []
+      :ok
+    end)
+
+    assert {:ok, []} == lua("send_message()", code)
+  end
+
+  test "send_message() - with channel" do
+    code = """
+      send_message("info", "unit testing", "toast")
+    """
+
+    expect(SysCallGlue, :send_message, 1, fn kind, message, _ ->
+      assert kind == "info"
+      assert message == "unit testing"
+      :ok
+    end)
+
+    assert {:ok, []} == lua("send_message() - with channel", code)
   end
 
   test "auth_token()" do
