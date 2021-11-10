@@ -5,7 +5,7 @@ defmodule FarmbotOS.Lua.Result do
   def new({:error, error, info}), do: parse_error(error, info)
 
   def new(other) do
-    show(other, "7")
+    show(other)
     {:error, "Lua error"}
   end
 
@@ -32,12 +32,11 @@ defmodule FarmbotOS.Lua.Result do
   end
 
   def parse_error(error, _) do
-    show(error, "24")
+    show(error)
     {:error, "Lua failure"}
   end
 
-  def show(error, where) do
-    IO.puts(where)
+  def show(error) do
     FarmbotOS.Logger.error(1, String.slice(inspect(error), 0..160))
   end
 end
