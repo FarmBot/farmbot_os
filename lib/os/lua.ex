@@ -84,7 +84,7 @@ defmodule FarmbotOS.Lua do
   def safe(action, fun) when is_function(fun, 2) do
     fn args, lua ->
       if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
-        {[nil, "Can't #{action} when locked."], :luerl.init()}
+        {[nil, "Can't #{action} when locked."], disabled_sandbox()}
       else
         fun.(args, lua)
       end
@@ -155,5 +155,19 @@ defmodule FarmbotOS.Lua do
       wait: &Wait.wait/2,
       write_pin: safe("write pin", &Firmware.write_pin/2)
     }
+  end
+
+  # WHAT IS GOING ON HERE?:
+  # * We want to allow some Lua to execute when the bot
+  #   is estopped.
+  # * If the bot is estopped, we DO NOT want it to perform
+  #   unsafe actions like motor movement.
+  # * If execution reaches this point, you are estopped
+  #   and you get this far, it means you tried to move
+  #   the bot or perform an unsafe action.
+  # * For safety, we will revert the Lua VM to an empty
+  #   state.
+  def disabled_sandbox() do
+    :luerl.set_table([:estop], true, :luerl.init())
   end
 end

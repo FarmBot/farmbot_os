@@ -1,5 +1,10 @@
 # Changelog
 
+# 14.6.2
+
+ * Fix bug where Lua scripts would not stop sending GCode during estop
+ * Improved Lua error legibility.
+
 # 14.6.1
 
  * Remove need to download farmwares over the network (improves offline experience)

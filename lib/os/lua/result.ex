@@ -9,8 +9,17 @@ defmodule FarmbotOS.Lua.Result do
     {:error, "Lua error"}
   end
 
-  def parse_error({:lua_error, {:undefined_function, nil}}, _) do
-    {:error, "Tried to call a function/variable that doesn't exist."}
+  def parse_error({:lua_error, {:undefined_function, nil}, lua}, _) do
+    {estop, _} = :luerl.get_table(["estop"], lua)
+
+    # If the user tries to move the bot while EStopped,
+    # The Lua VM "hides" unsafe functions from the user.
+    # This branch condition will make a note of that.
+    if estop do
+      {:error, "Exiting Lua because device is estopped."}
+    else
+      {:error, "Tried to call a function/variable that doesn't exist."}
+    end
   end
 
   def parse_error({:lua_error, {:badarg, op, _}, _}, _) when is_atom(op) do
