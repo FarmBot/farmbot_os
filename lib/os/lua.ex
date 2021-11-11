@@ -52,15 +52,7 @@ defmodule FarmbotOS.Lua do
     lua_code = add_implicit_return(lua_code)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
-
-    case raw_eval(vm, lua_code) do
-      {:ok, value} ->
-        {:ok, value}
-
-      error ->
-        Logger.error("==== Lua error: " <> String.slice(inspect(error), 0..80))
-        {:error, "Lua error"}
-    end
+    FarmbotOS.Lua.Result.new(raw_eval(vm, lua_code))
   end
 
   def init do

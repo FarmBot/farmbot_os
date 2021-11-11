@@ -20,7 +20,7 @@ defmodule FarmbotOS.LuaTest do
     assert {:ok, [-1]} == val2
 
     val3 = Lua.perform_lua("(1/0)", [], "random error")
-    assert {:error, "Lua error"} == val3
+    assert {:error, "Lua failure"} == val3
   end
 
   test "assertion logs" do
