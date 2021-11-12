@@ -18,11 +18,6 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
     _ = APIFetcher.delete!(APIFetcher.client(), "/api/firmware_config")
     _ = APIFetcher.get!(APIFetcher.client(), "/api/firmware_config")
 
-    _ =
-      APIFetcher.put!(APIFetcher.client(), "/api/firmware_config", %{
-        api_migrated: true
-      })
-
     BotState.set_sync_status("maintenance")
     FarmbotOS.System.reboot("Arduino factory reset")
     :ok

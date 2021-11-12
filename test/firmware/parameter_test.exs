@@ -2,7 +2,7 @@ defmodule FarmbotOS.Firmware.ParameterTest do
   use ExUnit.Case
   alias FarmbotOS.Firmware.Parameter
 
-  @how_many_params_there_are 113
+  @how_many_params_there_are 118
 
   test "decoding" do
     assert 61 == Parameter.translate(:movement_min_spd_x)

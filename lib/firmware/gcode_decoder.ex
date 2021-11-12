@@ -25,6 +25,7 @@ defmodule FarmbotOS.Firmware.GCodeDecoder do
     "21" => :param_value_report,
     "23" => :report_updated_param_during_calibration,
     "41" => :pin_value_report,
+    "61" => :report_pin_monitor_analog_value,
     "71" => :x_axis_timeout,
     "72" => :y_axis_timeout,
     "73" => :z_axis_timeout,
