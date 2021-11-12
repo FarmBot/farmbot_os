@@ -68,7 +68,7 @@ defmodule FarmbotOS.Firmware.Command do
     {:ok, pos}
   end
 
-  def observe_pin(pin_number), do: schedule(:F22, P: 199, V: pin_number)
+  def watch_pin(pin_number), do: schedule(:F22, P: 199, V: pin_number)
 
   # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
   def set_pin_io_mode(pin, mode) do
