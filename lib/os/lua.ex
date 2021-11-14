@@ -3,9 +3,6 @@ defmodule FarmbotOS.Lua do
   Embedded scripting language for "formulas" in the MOVE block,
   assertion, and general scripting via LUA block.
   """
-
-  @type t() :: tuple()
-  @type table() :: [{any, any}]
   require FarmbotOS.Logger
   require Logger
 
@@ -13,7 +10,8 @@ defmodule FarmbotOS.Lua do
     DataManipulation,
     Firmware,
     Info,
-    Wait
+    Wait,
+    PinWatcher
   }
 
   # this function is used by SysCalls, but isn't a direct requirement.
@@ -153,6 +151,7 @@ defmodule FarmbotOS.Lua do
       update_fbos_config: &DataManipulation.update_fbos_config/2,
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       wait: &Wait.wait/2,
+      watch_pin: &PinWatcher.new/2,
       write_pin: safe("write pin", &Firmware.write_pin/2)
     }
   end
