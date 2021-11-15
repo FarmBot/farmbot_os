@@ -58,9 +58,6 @@ defmodule FarmbotOS.Firmware.Command do
   # F16 Find length of Z axis (measure length + find 0) *
   def find_length(:z), do: schedule(:F16, [])
 
-  # # F21(P) Read parameter
-  def read_param(param), do: schedule(:F21, P: param)
-
   # F82
   def report_current_position() do
     schedule(:F82, [])

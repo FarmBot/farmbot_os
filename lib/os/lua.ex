@@ -67,15 +67,15 @@ defmodule FarmbotOS.Lua do
     :luerl.eval(hook, lua)
   end
 
-  def unquote(:do)(lua, hook) when is_binary(hook) do
-    :luerl.do(hook, lua)
-  catch
-    :error, {:error, reason} ->
-      {{:error, reason}, lua}
+  # def unquote(:do)(lua, hook) when is_binary(hook) do
+  #   :luerl.do(hook, lua)
+  # catch
+  #   :error, {:error, reason} ->
+  #     {{:error, reason}, lua}
 
-    error, reason ->
-      {{:error, {error, reason}}, lua}
-  end
+  #   error, reason ->
+  #     {{:error, {error, reason}}, lua}
+  # end
 
   # Wrap a function so that it cannot be called when device
   # is locked.
