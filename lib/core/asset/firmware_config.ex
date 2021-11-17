@@ -45,6 +45,9 @@ defmodule FarmbotOS.Asset.FirmwareConfig do
     field(:movement_calibration_deadzone_x, :float)
     field(:movement_calibration_deadzone_y, :float)
     field(:movement_calibration_deadzone_z, :float)
+    field(:movement_calibration_retry_total_x, :float)
+    field(:movement_calibration_retry_total_y, :float)
+    field(:movement_calibration_retry_total_z, :float)
     field(:movement_calibration_retry_x, :float)
     field(:movement_calibration_retry_y, :float)
     field(:movement_calibration_retry_z, :float)
@@ -124,6 +127,8 @@ defmodule FarmbotOS.Asset.FirmwareConfig do
     field(:pin_guard_5_active_state, :float)
     field(:pin_guard_5_pin_nr, :float)
     field(:pin_guard_5_time_out, :float)
+    field(:pin_report_1_pin_nr, :float)
+    field(:pin_report_2_pin_nr, :float)
     timestamps()
   end
 
@@ -212,6 +217,12 @@ defmodule FarmbotOS.Asset.FirmwareConfig do
       movement_min_spd_y: firmware_config.movement_min_spd_y,
       movement_min_spd_z: firmware_config.movement_min_spd_z,
       movement_min_spd_z2: firmware_config.movement_min_spd_z2,
+      movement_calibration_retry_total_x:
+        firmware_config.movement_calibration_retry_total_x,
+      movement_calibration_retry_total_y:
+        firmware_config.movement_calibration_retry_total_y,
+      movement_calibration_retry_total_z:
+        firmware_config.movement_calibration_retry_total_z,
       movement_motor_current_x: firmware_config.movement_motor_current_x,
       movement_motor_current_y: firmware_config.movement_motor_current_y,
       movement_motor_current_z: firmware_config.movement_motor_current_z,
@@ -256,7 +267,9 @@ defmodule FarmbotOS.Asset.FirmwareConfig do
       pin_guard_4_time_out: firmware_config.pin_guard_4_time_out,
       pin_guard_5_active_state: firmware_config.pin_guard_5_active_state,
       pin_guard_5_pin_nr: firmware_config.pin_guard_5_pin_nr,
-      pin_guard_5_time_out: firmware_config.pin_guard_5_time_out
+      pin_guard_5_time_out: firmware_config.pin_guard_5_time_out,
+      pin_report_1_pin_nr: firmware_config.pin_report_1_pin_nr,
+      pin_report_2_pin_nr: firmware_config.pin_report_2_pin_nr
     }
   end
 
@@ -285,6 +298,11 @@ defmodule FarmbotOS.Asset.FirmwareConfig do
       :encoder_type_z,
       :encoder_use_for_pos_x,
       :encoder_use_for_pos_y,
+      :movement_calibration_retry_total_x,
+      :movement_calibration_retry_total_y,
+      :movement_calibration_retry_total_z,
+      :pin_report_1_pin_nr,
+      :pin_report_2_pin_nr,
       :encoder_use_for_pos_z,
       :movement_axis_nr_steps_x,
       :movement_axis_nr_steps_y,

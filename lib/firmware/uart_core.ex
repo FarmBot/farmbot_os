@@ -32,7 +32,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
             fw_type: nil,
             rx_count: 0,
             rx_buffer: RxBuffer.new(),
-            tx_buffer: TxBuffer.new()
+            tx_buffer: TxBuffer.new(),
+            pin_watcher: nil
 
   # The Firmware has a 120 second default timeout.
   # Queuing up 10 messages that take one minute each == 10 minutes.
@@ -50,6 +51,16 @@ defmodule FarmbotOS.Firmware.UARTCore do
   # ensure the farmduion is actually running.
   @bugfix_timeout 60_000
   # ===== END HISTORICAL CODE ==============================
+
+  def watch_pin(server \\ __MODULE__, pin_number) do
+    send(server, {:watch_pin, self()})
+    FarmbotOS.Firmware.Command.watch_pin(pin_number)
+  end
+
+  def unwatch_pin(server \\ __MODULE__) do
+    send(server, :unwatch_pin)
+    FarmbotOS.Firmware.Command.watch_pin(0)
+  end
 
   # This is a helper method that I use for inspecting GCode
   # over SSH. It is not used by production systems except for
@@ -95,6 +106,15 @@ defmodule FarmbotOS.Firmware.UARTCore do
     state = %State{uart_pid: uart_pid, uart_path: path, fw_type: fw_type}
     Process.send_after(self(), :best_effort_bug_fix, @bugfix_timeout)
     {:ok, state}
+  end
+
+  def handle_info({:watch_pin, watcher}, state) do
+    if state.pin_watcher, do: raise("Pin observer did not cleanly exit!")
+    {:noreply, Map.put(state, :pin_watcher, watcher)}
+  end
+
+  def handle_info(:unwatch_pin, state) do
+    {:noreply, Map.put(state, :pin_watcher, nil)}
   end
 
   def handle_info(:reset_state, %State{uart_path: old_path} = state1) do

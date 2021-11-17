@@ -14,6 +14,51 @@ defmodule FarmbotOS.Firmware.UARTCoreTest do
   setup :set_mimic_global
   setup :verify_on_exit!
 
+  test "watch_pin()" do
+    me = self()
+
+    expect(FarmbotOS.Firmware.Command, :watch_pin, fn pin_number ->
+      assert pin_number == 54
+    end)
+
+    spawn(UARTCore, :watch_pin, [me, 54])
+    assert_receive {:watch_pin, _}
+  end
+
+  test "unwatch_pin()" do
+    me = self()
+
+    expect(FarmbotOS.Firmware.Command, :watch_pin, fn pin_number ->
+      assert pin_number == 0
+    end)
+
+    spawn(UARTCore, :unwatch_pin, [me])
+    assert_receive :unwatch_pin
+  end
+
+  test "send_raw" do
+    UARTCore.send_raw(self(), "E")
+    assert_receive {:send_raw, "E"}
+  end
+
+  test "restart_firmware" do
+    me = self()
+    spawn(fn -> :ok = UARTCore.restart_firmware(me) end)
+    assert_receive :reset_state
+  end
+
+  test "handle_info({:watch_pin, watcher}, state) - OK" do
+    s1 = %{pin_watcher: nil}
+    {:noreply, s2} = UARTCore.handle_info({:watch_pin, self()}, s1)
+    assert s2.pin_watcher == self()
+  end
+
+  test "handle_info({:unwatch_pin, watcher}, state) - OK" do
+    s1 = %{pin_watcher: self()}
+    {:noreply, s2} = UARTCore.handle_info(:unwatch_pin, s1)
+    assert s2.pin_watcher == nil
+  end
+
   test ":best_effort_bug_fix - KO" do
     Helpers.expect_log("Rebooting inactive Farmduino.")
     state1 = %UARTCore{fw_type: nil}

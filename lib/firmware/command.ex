@@ -58,15 +58,14 @@ defmodule FarmbotOS.Firmware.Command do
   # F16 Find length of Z axis (measure length + find 0) *
   def find_length(:z), do: schedule(:F16, [])
 
-  # # F21(P) Read parameter
-  def read_param(param), do: schedule(:F21, P: param)
-
   # F82
   def report_current_position() do
     schedule(:F82, [])
     pos = %{x: _, y: _, z: _} = cached_position()
     {:ok, pos}
   end
+
+  def watch_pin(pin_number), do: schedule(:F22, P: 199, V: pin_number)
 
   # F43(P, M) Set the I/O mode M (input=0/output=1) of a pin P in arduino
   def set_pin_io_mode(pin, mode) do

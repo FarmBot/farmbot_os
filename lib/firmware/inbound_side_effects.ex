@@ -4,6 +4,7 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
   alias FarmbotOS.{
     Asset,
     BotState,
+    Firmware.GCode,
     Firmware.TxBuffer,
     Firmware.UARTCoreSupport,
     FirmwareEstopTimer,
@@ -218,6 +219,22 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
   defp reduce({:x_axis_timeout, _}, s), do: s
   defp reduce({:y_axis_timeout, _}, s), do: s
   defp reduce({:z_axis_timeout, _}, s), do: s
+
+  defp reduce(
+         {:report_pin_monitor_analog_value, %{pin_or_param: p, value1: v}},
+         s
+       ) do
+    watcher = s.pin_watcher
+
+    if watcher && Process.alive?(watcher) do
+      send(watcher, {:pin_data, p, v})
+      s
+    else
+      # Turn off pin watching if the watcher dies.
+      off = GCode.new(:F22, P: 199, V: 0)
+      TxBuffer.push(%{s | pin_watcher: nil}, nil, off)
+    end
+  end
 
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
