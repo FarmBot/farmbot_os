@@ -43,7 +43,7 @@ defmodule FarmbotOS.Firmware.TxBuffer do
     ]
   }
   """
-  def push(state, caller, %GCode{} = gcode) do
+  def push(state = %State{}, caller, %GCode{} = gcode) do
     if is_binary(gcode), do: raise("gcode is not a string any more.")
     id = generate_next_q(state.autoinc)
     job = %{id: id, caller: caller, gcode: gcode}

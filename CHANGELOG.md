@@ -2,10 +2,11 @@
 
 # 14.6.2
 
- * Fix bug where Lua scripts would not stop sending GCode during estop
- * Genesis and Express firmware updates.
- * Improved Lua error legibility.
+ * Fix bug where Lua scripts would not stop sending GCode during estop.
+ * Genesis and Express firmware updates
+ * Improved Lua error legibility
  * Lua E-Stop bug fix
+ * Lua pin monitoring capability
 
 # 14.6.1
 

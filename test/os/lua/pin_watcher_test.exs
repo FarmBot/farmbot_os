@@ -6,6 +6,7 @@ defmodule FarmbotOS.Lua.PinWatcherTest do
   setup :set_mimic_global
   setup :verify_on_exit!
 
+  @wait 1000
   test "lifecycle I" do
     expect(UARTCore, :watch_pin, 1, fn pin ->
       assert pin == 54
@@ -29,12 +30,12 @@ defmodule FarmbotOS.Lua.PinWatcherTest do
     {:ok, pid} = GenServer.start_link(PinWatcher, [54, test_fn, self()])
     send(pid, {:pin_data, 54, 45})
     Process.exit(pid, :normal)
-    Process.sleep(100)
+    Process.sleep(@wait)
   end
 
   test "parent PID no longer responding" do
     pid = spawn(fn -> :dead_pid end)
-    Process.sleep(100)
+    Process.sleep(@wait)
 
     state = %{
       parent: pid,
