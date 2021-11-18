@@ -101,6 +101,10 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
+      print: fn [msg], lua ->
+        Logger.info(inspect(msg))
+        {[], lua}
+      end,
       base64: [
         {:decode, &DataManipulation.b64_decode/2},
         {:encode, &DataManipulation.b64_encode/2}
