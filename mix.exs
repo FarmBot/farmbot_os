@@ -123,7 +123,7 @@ defmodule FarmbotOS.MixProject do
       {:mdns_lite, "~> 0.8", targets: @all_targets},
       {:mimic, "~> 1.5", only: :test},
       {:mix_unused, "~> 0.3.0", only: :dev},
-      {:muontrap, "~> 0.6"},
+      {:muontrap, "~> 1.0"},
       {:nerves_firmware_ssh, "~> 0.4.6", targets: @all_targets},
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
       {:nerves_time, "~> 0.4", targets: @all_targets},
