@@ -3,9 +3,6 @@ defmodule FarmbotOS.Lua do
   Embedded scripting language for "formulas" in the MOVE block,
   assertion, and general scripting via LUA block.
   """
-
-  @type t() :: tuple()
-  @type table() :: [{any, any}]
   require FarmbotOS.Logger
   require Logger
 
@@ -13,7 +10,8 @@ defmodule FarmbotOS.Lua do
     DataManipulation,
     Firmware,
     Info,
-    Wait
+    Wait,
+    PinWatcher
   }
 
   # this function is used by SysCalls, but isn't a direct requirement.
@@ -48,44 +46,11 @@ defmodule FarmbotOS.Lua do
   `extra_vm_args` is a set of extra args to place inside the
   Lua sandbox. The extra args are passed to set_table/3
   """
-  def perform_lua(lua_code, extra_vm_args, comment) do
-    comment = comment || "sequence"
+  def perform_lua(lua_code, extra_vm_args, _comment) do
     lua_code = add_implicit_return(lua_code)
     reducer = fn args, vm -> apply(__MODULE__, :set_table, [vm | args]) end
     vm = Enum.reduce(extra_vm_args, init(), reducer)
-
-    case raw_eval(vm, lua_code) do
-      {:ok, value} ->
-        {:ok, value}
-
-      {:error, {:lua_error, error, _lua}} ->
-        {:error, "lua runtime error evaluating expression: #{inspect(error)}"}
-
-      {:error, {:badmatch, {:error, [{line, :luerl_parse, parse_error}], _}}} ->
-        FarmbotOS.Logger.error(
-          1,
-          """
-          Failed to parse expression:
-          `#{comment}.lua:#{line}`
-
-          #{IO.iodata_to_binary(parse_error)}
-          """,
-          channels: [:toast]
-        )
-
-        {:error,
-         "failed to parse expression (line:#{line}): #{IO.iodata_to_binary(parse_error)}"}
-
-      {:error, error, backtrace} ->
-        IO.inspect(backtrace, label: "=== LUA ERROR TRACE")
-        {:error, error}
-
-      {:error, error} ->
-        {:error, error}
-
-      error ->
-        {:error, inspect(error)}
-    end
+    FarmbotOS.Lua.Result.new(raw_eval(vm, lua_code))
   end
 
   def init do
@@ -102,22 +67,22 @@ defmodule FarmbotOS.Lua do
     :luerl.eval(hook, lua)
   end
 
-  def unquote(:do)(lua, hook) when is_binary(hook) do
-    :luerl.do(hook, lua)
-  catch
-    :error, {:error, reason} ->
-      {{:error, reason}, lua}
+  # def unquote(:do)(lua, hook) when is_binary(hook) do
+  #   :luerl.do(hook, lua)
+  # catch
+  #   :error, {:error, reason} ->
+  #     {{:error, reason}, lua}
 
-    error, reason ->
-      {{:error, {error, reason}}, lua}
-  end
+  #   error, reason ->
+  #     {{:error, {error, reason}}, lua}
+  # end
 
   # Wrap a function so that it cannot be called when device
   # is locked.
   def safe(action, fun) when is_function(fun, 2) do
     fn args, lua ->
       if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
-        {[nil, "Can't #{action} when locked."], :luerl.stop(lua)}
+        {[nil, "Can't #{action} when locked."], disabled_sandbox()}
       else
         fun.(args, lua)
       end
@@ -186,7 +151,22 @@ defmodule FarmbotOS.Lua do
       update_fbos_config: &DataManipulation.update_fbos_config/2,
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       wait: &Wait.wait/2,
+      watch_pin: &PinWatcher.new/2,
       write_pin: safe("write pin", &Firmware.write_pin/2)
     }
+  end
+
+  # WHAT IS GOING ON HERE?:
+  # * We want to allow some Lua to execute when the bot
+  #   is estopped.
+  # * If the bot is estopped, we DO NOT want it to perform
+  #   unsafe actions like motor movement.
+  # * If execution reaches this point, you are estopped
+  #   and you get this far, it means you tried to move
+  #   the bot or perform an unsafe action.
+  # * For safety, we will revert the Lua VM to an empty
+  #   state.
+  def disabled_sandbox() do
+    :luerl.set_table([:estop], true, :luerl.init())
   end
 end

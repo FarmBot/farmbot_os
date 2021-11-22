@@ -1,5 +1,13 @@
 # Changelog
 
+# 14.6.2
+
+ * Fix bug where Lua scripts would not stop sending GCode during estop
+ * Genesis and Express firmware updates.
+ * Improved Lua error legibility.
+ * Technical preview of load sense API
+ * Routine dependency upgrades.
+
 # 14.6.1
 
  * Remove need to download farmwares over the network (improves offline experience)

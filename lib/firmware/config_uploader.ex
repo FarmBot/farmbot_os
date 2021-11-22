@@ -58,28 +58,16 @@ defmodule FarmbotOS.Firmware.ConfigUploader do
     state
   end
 
-  # Ignore :param_version
-  defp do_verify_param(_, {0, _}), do: nil
-  # Ignore :param_test
-  defp do_verify_param(_, {1, _}), do: nil
-  # Ignore :param_config_ok
-  defp do_verify_param(_, {2, _}), do: nil
-  # Ignore :param_use_eeprom
-  defp do_verify_param(_, {3, _}), do: nil
+  @ignored_params [0, 1, 2, 3]
 
-  defp do_verify_param(nil, _conf) do
-  end
+  defp do_verify_param(_, {p, _}) when p in @ignored_params, do: nil
+  defp do_verify_param(nil, _conf), do: nil
 
   defp do_verify_param(conf, {p, actual}) do
     key = Parameter.translate(p)
     expected = Map.fetch!(conf, key)
 
     unless actual == expected do
-      a = inspect(actual)
-      e = inspect(expected)
-      k = inspect(key)
-      Logger.warn("Expected #{k} to eq #{e}. Got: #{a}")
-    else
       :ok = BotState.set_firmware_config(key, actual)
     end
   end
