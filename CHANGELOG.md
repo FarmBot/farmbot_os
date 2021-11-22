@@ -5,7 +5,8 @@
  * Fix bug where Lua scripts would not stop sending GCode during estop
  * Genesis and Express firmware updates.
  * Improved Lua error legibility.
- * Lua E-Stop bug fix
+ * Technical preview of load sense API
+ * Routine dependency upgrades.
 
 # 14.6.1
 
