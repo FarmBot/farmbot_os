@@ -67,7 +67,7 @@ defmodule FarmbotOS.Firmware.ConfigUploader do
     key = Parameter.translate(p)
     expected = Map.fetch!(conf, key)
 
-    unless actual == expected do
+    if actual == expected do
       :ok = BotState.set_firmware_config(key, actual)
     end
   end

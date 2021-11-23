@@ -2,6 +2,10 @@
 
 # 14.6.2
 
+ * Fix bug where firmware parameters would appear to not be uploaded.
+
+# 14.6.2
+
  * Fix bug where Lua scripts would not stop sending GCode during estop
  * Genesis and Express firmware updates.
  * Improved Lua error legibility.
