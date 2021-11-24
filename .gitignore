@@ -15,7 +15,6 @@ _nerves-tmp
 *.db*
 *.ez
 *.img
-*.lua
 *.o
 *.pem
 *.priv

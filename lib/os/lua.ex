@@ -158,9 +158,9 @@ defmodule FarmbotOS.Lua do
   end
 
   def photo_grid(_, lua) do
-    lua_code = "#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua"
+    lua_code = File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
 
-    with {:ok, result} <- raw_eval(lua, File.read!(lua_code)) do
+    with {:ok, result} <- raw_eval(lua, lua_code) do
       {result, lua}
     else
       error ->
