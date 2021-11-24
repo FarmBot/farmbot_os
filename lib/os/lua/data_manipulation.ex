@@ -9,6 +9,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.HTTP
   alias FarmbotOS.Celery.SpecialValue
+  require FarmbotOS.Logger
 
   @methods %{
     "connect" => :connect,
@@ -40,14 +41,22 @@ defmodule FarmbotOS.Lua.DataManipulation do
     #      {"Content-Type", "application/json; charset=utf-8"},
     #    ], #Reference<0.3657984643.824705025.36946>}
     # }
-    {:ok, status, resp_headers, client_ref} =
-      hackney.request(method, url, headers, body, options)
+    with {:ok, status, resp_headers, client_ref} <-
+           hackney.request(method, url, headers, body, options),
+         # Example response body: {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
+         {:ok, resp_body} <- hackney.body(client_ref) do
+      result = %{
+        body: resp_body,
+        headers: Map.new(resp_headers),
+        status: status
+      }
 
-    # Example response body: {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
-    {:ok, resp_body} = hackney.body(client_ref)
-    result = %{body: resp_body, headers: Map.new(resp_headers), status: status}
-
-    {[Util.map_to_table(result)], lua}
+      {[Util.map_to_table(result)], lua}
+    else
+      error ->
+        FarmbotOS.Logger.error(3, inspect(error))
+        {[nil, "HTTP CLIENT ERROR - See log for details"], lua}
+    end
   end
 
   def env([key, value], lua) do

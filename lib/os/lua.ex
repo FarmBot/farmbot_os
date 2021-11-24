@@ -101,6 +101,7 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
+      photo_grid: &photo_grid/2,
       base64: [
         {:decode, &DataManipulation.b64_decode/2},
         {:encode, &DataManipulation.b64_encode/2}
@@ -154,6 +155,17 @@ defmodule FarmbotOS.Lua do
       watch_pin: &PinWatcher.new/2,
       write_pin: safe("write pin", &Firmware.write_pin/2)
     }
+  end
+
+  def photo_grid(_, lua) do
+    lua_code = "#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua"
+
+    with {:ok, result} <- raw_eval(lua, File.read!(lua_code)) do
+      {result, lua}
+    else
+      error ->
+        {[nil, "ERROR: #{inspect(error)}"], lua}
+    end
   end
 
   # WHAT IS GOING ON HERE?:
