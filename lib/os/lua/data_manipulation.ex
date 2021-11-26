@@ -6,6 +6,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   alias FarmbotOS.{Asset, JSON}
   alias FarmbotOS.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
+  alias FarmbotOS.Lua
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.HTTP
   alias FarmbotOS.Celery.SpecialValue
@@ -212,6 +213,17 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
       _ ->
         {[nil, data], lua}
+    end
+  end
+
+  def photo_grid(_, lua) do
+    lua_code = File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
+
+    with {:ok, result} <- Lua.raw_eval(lua, lua_code) do
+      {result, lua}
+    else
+      error ->
+        {[nil, "ERROR: #{inspect(error)}"], lua}
     end
   end
 end

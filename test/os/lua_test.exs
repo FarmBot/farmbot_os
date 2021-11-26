@@ -90,7 +90,6 @@ defmodule FarmbotOS.LuaTest do
       {[], lua}
     end)
 
-    # expect(Command, :move_abs, 1, fn _ -> {:ok, nil} end)
     expect(Command, :read_pin, 1, fn _, _ -> {:ok, 1} end)
 
     expect(Firmware, :move_absolute, 4, fn _vec_or_xyz, lua ->

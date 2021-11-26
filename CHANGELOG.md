@@ -3,6 +3,10 @@
 # 14.6.2
 
  * Fix bug where firmware parameters would appear to not be uploaded.
+ * Ability to handle `numeric` sequence variables from Lua
+ * Silence timeout error messages from user log stream
+ * Add `photo_grid()` technical preview to Lua VM.
+ * Better handling of timeout errors in lua `http()` function.
 
 # 14.6.2
 
