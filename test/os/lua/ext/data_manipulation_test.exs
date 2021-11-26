@@ -355,4 +355,28 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     results = DataManipulation.http([params], :fake_lua)
     assert results == expected
   end
+
+  @lua_code File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
+
+  test "photo_grid() - OK" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
+      assert lua_code == @lua_code
+      assert lua_state == :fake_lua
+      {:ok, :result}
+    end)
+
+    result = DataManipulation.photo_grid([], :fake_lua)
+    assert result == {:result, :fake_lua}
+  end
+
+  test "photo_grid() - KO" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
+      assert lua_code == @lua_code
+      assert lua_state == :fake_lua
+      {:error, :error_result}
+    end)
+
+    result = DataManipulation.photo_grid([], :fake_lua)
+    assert result == {[nil, "ERROR: {:error, :error_result}"], :fake_lua}
+  end
 end

@@ -4,6 +4,8 @@ defmodule FarmbotOS.DirtyWorkerTest do
   use ExUnit.Case
   use Mimic
 
+  import ExUnit.CaptureLog
+
   alias FarmbotOS.Asset.{
     FbosConfig,
     Point,
@@ -52,10 +54,13 @@ defmodule FarmbotOS.DirtyWorkerTest do
     Helpers.delete_all_points()
     Repo.delete_all(LocalMeta)
     Repo.delete_all(FbosConfig)
-    Helpers.expect_log("HTTP Error: {:error, :other}")
-
     p = Helpers.create_point(%{id: 2, pointer_type: "Weed"})
-    DirtyWorker.handle_http_response(p, Point, {:error, :other})
+
+    t = fn ->
+      DirtyWorker.handle_http_response(p, Point, {:error, :other})
+    end
+
+    assert capture_log(t) =~ "HTTP Error: {:error, :other}"
   end
 
   test "handle_http_response - 409 response" do

@@ -21,6 +21,10 @@ defmodule FarmbotOS.Celery.Compiler.VariableTransformer do
     [FarmbotOS.Celery.SysCallGlue.get_toolslot_for_tool(tool_id)]
   end
 
+  def run!(%{args: %{number: number}}) do
+    [number]
+  end
+
   def run!(nil) do
     error = "LUA ERROR: Sequence does not contain variable"
     [%{kind: :error, error: error, x: nil, y: nil, z: nil}, error]
