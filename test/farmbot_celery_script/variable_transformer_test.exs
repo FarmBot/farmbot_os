@@ -7,6 +7,12 @@ defmodule FarmbotOS.Celery.VariableTransformerTest do
 
   setup :verify_on_exit!
 
+  test "numeric types" do
+    num = %{kind: :numeric, args: %{number: 26}}
+    actual = VariableTransformer.run!(num)
+    assert actual == [26]
+  end
+
   test "always has an x/y/z value at root" do
     actual = VariableTransformer.run!(%{x: 1, y: 2, z: 3.4})
     expected = [%{x: 1, y: 2, z: 3.4}]

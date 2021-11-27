@@ -232,7 +232,8 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
     else
       # Turn off pin watching if the watcher dies.
       off = GCode.new(:F22, P: 199, V: 0)
-      TxBuffer.push(%{s | pin_watcher: nil}, nil, off)
+      next_tx_buffer = TxBuffer.push(s.tx_buffer, nil, off)
+      %{s | pin_watcher: nil, tx_buffer: next_tx_buffer}
     end
   end
 

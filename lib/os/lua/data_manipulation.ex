@@ -6,9 +6,11 @@ defmodule FarmbotOS.Lua.DataManipulation do
   alias FarmbotOS.{Asset, JSON}
   alias FarmbotOS.Asset.{Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
+  alias FarmbotOS.Lua
   alias FarmbotOS.SysCalls.ResourceUpdate
   alias FarmbotOS.HTTP
   alias FarmbotOS.Celery.SpecialValue
+  require FarmbotOS.Logger
 
   @methods %{
     "connect" => :connect,
@@ -40,14 +42,22 @@ defmodule FarmbotOS.Lua.DataManipulation do
     #      {"Content-Type", "application/json; charset=utf-8"},
     #    ], #Reference<0.3657984643.824705025.36946>}
     # }
-    {:ok, status, resp_headers, client_ref} =
-      hackney.request(method, url, headers, body, options)
+    with {:ok, status, resp_headers, client_ref} <-
+           hackney.request(method, url, headers, body, options),
+         # Example response body: {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
+         {:ok, resp_body} <- hackney.body(client_ref) do
+      result = %{
+        body: resp_body,
+        headers: Map.new(resp_headers),
+        status: status
+      }
 
-    # Example response body: {:ok, "{\"whatever\": \"foo_bar_baz\"}"}
-    {:ok, resp_body} = hackney.body(client_ref)
-    result = %{body: resp_body, headers: Map.new(resp_headers), status: status}
-
-    {[Util.map_to_table(result)], lua}
+      {[Util.map_to_table(result)], lua}
+    else
+      error ->
+        FarmbotOS.Logger.error(3, inspect(error))
+        {[nil, "HTTP CLIENT ERROR - See log for details"], lua}
+    end
   end
 
   def env([key, value], lua) do
@@ -203,6 +213,17 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
       _ ->
         {[nil, data], lua}
+    end
+  end
+
+  def photo_grid(_, lua) do
+    lua_code = File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
+
+    with {:ok, result} <- Lua.raw_eval(lua, lua_code) do
+      {result, lua}
+    else
+      error ->
+        {[nil, "ERROR: #{inspect(error)}"], lua}
     end
   end
 end

@@ -181,7 +181,7 @@ defmodule FarmbotOS.DirtyWorker do
     e = inspect(error)
     id = Repo.encode_local_id(dirty.local_id)
     msg = "[#{m} #{id} #{inspect(self())}] HTTP Error: #{e}"
-    FarmbotOS.Logger.error(2, msg)
+    Logger.error(msg)
     error
   end
 

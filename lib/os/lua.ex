@@ -101,6 +101,7 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
+      photo_grid: &DataManipulation.photo_grid/2,
       base64: [
         {:decode, &DataManipulation.b64_decode/2},
         {:encode, &DataManipulation.b64_encode/2}
