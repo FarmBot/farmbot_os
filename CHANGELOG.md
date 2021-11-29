@@ -2,6 +2,7 @@
 
 # 14.6.4
 
+ * Genesis and Express firmware updates.
  * Fix bug where firmware parameters would appear to not be uploaded.
  * Ability to handle `numeric` sequence variables from Lua
  * Silence timeout error messages from user log stream
@@ -12,6 +13,7 @@
 # 14.6.3
 
  * Recovery deploy / hotfix. Fix bug where not all firmware parameters would load.
+
 
 # 14.6.2
 
