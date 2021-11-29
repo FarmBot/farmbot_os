@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.6.4
+
+ * Genesis and Express firmware updates.
+
 # 14.6.2
 
  * Fix bug where firmware parameters would appear to not be uploaded.
