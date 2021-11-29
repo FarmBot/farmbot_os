@@ -14,7 +14,6 @@
 
  * Recovery deploy / hotfix. Fix bug where not all firmware parameters would load.
 
-
 # 14.6.2
 
  * Fix bug where Lua scripts would not stop sending GCode during estop
