@@ -170,6 +170,12 @@ defmodule FarmbotOS.Firmware.UARTCore do
     end
   end
 
+  def handle_info({:circuits_uart, "ttyACM0", {:partial, msg}}, state) do
+    FarmbotOS.Logger.debug(3, "Firmware timeout: #{inspect(msg)}")
+    Process.sleep(400)
+    {:noreply, state}
+  end
+
   def handle_info({:refresh_config, new_keys}, state) do
     {:noreply, FarmbotOS.Firmware.ConfigUploader.refresh(state, new_keys)}
   end
