@@ -61,16 +61,19 @@ local x_offset_mm = fwe("camera_offset_x")
 local y_offset_mm = fwe("camera_offset_y")
 
 local each = function(callback)
-    local y = 0
     local count = 0
     for x_grid_index = 0, x_grid_points do
-        for y_grid_points = 0, y_grid_points do
+        for y_grid_index = 0, y_grid_points do
+            local y = 0
             count = count + 1
             local y_temp1 = (y_spacing_mm * y_grid_points)
             if (x_grid_index % 2) == 0 then
-                y = (y_grid_size_mm + (y_temp1 - y_offset_mm))
+                y = (y_grid_start_mm + (y_spacing_mm * y_grid_index) -
+                        y_offset_mm)
             else
-                y = (y_grid_size_mm - (y_temp1 - y_offset_mm))
+                local reversed_index_y = y_grid_points - y_grid_index
+                y = (y_grid_start_mm + (y_spacing_mm * reversed_index_y) -
+                        y_offset_mm)
             end
             callback({
                 x = (x_grid_start_mm + (x_spacing_mm * x_grid_index) -
