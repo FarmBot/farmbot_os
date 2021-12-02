@@ -101,7 +101,6 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
-      photo_grid: &DataManipulation.photo_grid/2,
       base64: [
         {:decode, &DataManipulation.b64_decode/2},
         {:encode, &DataManipulation.b64_encode/2}
@@ -138,6 +137,11 @@ defmodule FarmbotOS.Lua do
       inspect: &DataManipulation.json_encode/2,
       move_absolute: safe("move device", &Firmware.move_absolute/2),
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
+      photo_grid: &DataManipulation.photo_grid/2,
+      soft_stop: fn _args, lua ->
+        FarmbotOS.Firmware.Command.abort()
+        {[], lua}
+      end,
       read_pin: &Firmware.read_pin/2,
       read_status: &Info.read_status/2,
       send_message: &Info.send_message/2,
