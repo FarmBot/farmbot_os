@@ -5,6 +5,7 @@
  * Add support for text variables
  * Possible fix for "blinking MQTT" bug where device stops seeing incoming MQTT packets.
  * Increase UART timeout / better handling of UART timeouts
+ * Genesis and Express firmware updates.
 
 # 14.6.4
 
