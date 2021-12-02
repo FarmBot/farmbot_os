@@ -32,7 +32,8 @@ defmodule FarmbotOS.MQTT.Supervisor do
     # mqtt client_id. Temporarly making client_id generation
     # deterministic. RC 1 DEC 21.
     # jitter = String.slice(UUID.uuid4(:hex), 0..7)
-    client_id = "#{token.bot}_#{Project.version()}" #_#{jitter}"
+    # _#{jitter}"
+    client_id = "#{token.bot}_#{Project.version()}"
 
     server =
       if String.starts_with?(token.mqtt_ws || "", @wss) do
