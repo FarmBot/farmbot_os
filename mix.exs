@@ -130,7 +130,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves, "~> 1.7.11", runtime: false},
       {:phoenix_html, "~> 3.1"},
       {:plug_cowboy, "~> 2.5.2"},
-      {:ring_logger, "~> 0.8.2"},
+      {:ring_logger, "~> 0.8.3"},
       {:rollbax, ">= 0.0.0"},
       {:shoehorn, "~> 0.8"},
       {:telemetry, "~> 1.0.0"},
