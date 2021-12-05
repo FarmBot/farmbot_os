@@ -23,6 +23,14 @@ defmodule FarmbotOS.LuaTest do
     assert {:error, "Lua failure"} == val3
   end
 
+  test "soft_stop" do
+    expect(FarmbotOS.Firmware.Command, :abort, 1, fn ->
+      :ok
+    end)
+
+    assert Lua.soft_stop([], :fake_lua) == {[], :fake_lua}
+  end
+
   test "assertion logs" do
     # Hmmm
     expect(FarmbotOS.LogExecutor, :execute, 1, fn log ->
