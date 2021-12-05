@@ -138,10 +138,7 @@ defmodule FarmbotOS.Lua do
       move_absolute: safe("move device", &Firmware.move_absolute/2),
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
       photo_grid: &DataManipulation.photo_grid/2,
-      soft_stop: fn _args, lua ->
-        FarmbotOS.Firmware.Command.abort()
-        {[], lua}
-      end,
+      soft_stop: &soft_stop/2,
       read_pin: &Firmware.read_pin/2,
       read_status: &Info.read_status/2,
       send_message: &Info.send_message/2,
@@ -159,6 +156,11 @@ defmodule FarmbotOS.Lua do
       watch_pin: &PinWatcher.new/2,
       write_pin: safe("write pin", &Firmware.write_pin/2)
     }
+  end
+
+  def soft_stop(_args, lua) do
+    FarmbotOS.Firmware.Command.abort()
+    {[], lua}
   end
 
   # WHAT IS GOING ON HERE?:

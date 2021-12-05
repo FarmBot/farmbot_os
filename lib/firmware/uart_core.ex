@@ -171,7 +171,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   # === SCENARIO: Serial sent us some chars to consume.
-  def handle_info({:circuits_uart, _, {:partial, msg}}, %State{} = state) do
+  def handle_info({:circuits_uart, _, {:partial, msg}}, state) do
     FarmbotOS.Logger.error(3, "UART timeout: #{inspect(msg)}")
     {:noreply, state}
   end

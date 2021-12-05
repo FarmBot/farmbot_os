@@ -7,6 +7,12 @@ defmodule FarmbotOS.Celery.VariableTransformerTest do
 
   setup :verify_on_exit!
 
+  test "text types" do
+    text = %{kind: :text, args: %{string: "Hello, world!"}}
+    actual = VariableTransformer.run!(text)
+    assert actual == ["Hello, world!"]
+  end
+
   test "numeric types" do
     num = %{kind: :numeric, args: %{number: 26}}
     actual = VariableTransformer.run!(num)
