@@ -8,7 +8,7 @@ defmodule FarmbotOS.Firmware.UARTCoreSupport do
     active: true,
     speed: 115_200,
     framing: {Circuits.UART.Framing.Line, separator: "\r\n"},
-    rx_framing_timeout: 200
+    rx_framing_timeout: 600
   ]
   @three_minutes 3 * 60 * 1000
 

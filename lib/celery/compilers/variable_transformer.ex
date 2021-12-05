@@ -25,6 +25,10 @@ defmodule FarmbotOS.Celery.Compiler.VariableTransformer do
     [number]
   end
 
+  def run!(%{args: %{string: string}}) do
+    [string]
+  end
+
   def run!(nil) do
     error = "LUA ERROR: Sequence does not contain variable"
     [%{kind: :error, error: error, x: nil, y: nil, z: nil}, error]

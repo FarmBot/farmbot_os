@@ -237,6 +237,11 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
     end
   end
 
+  defp reduce({:abort, _}, state) do
+    FarmbotOS.Logger.info(3, "Movement cancelled")
+    state
+  end
+
   defp reduce(unknown, state) do
     msg = "=== Unhandled inbound side effects: #{inspect(unknown)}"
     FarmbotOS.Logger.info(3, msg)

@@ -21,6 +21,16 @@ defmodule FarmbotOS.Firmware.CommandTest do
     assert t.() == true
   end
 
+  test "abort" do
+    expect(UARTCore, :send_raw, 1, fn
+      "@" -> :ok
+      "F09" -> raise "NO"
+      e -> raise "Unexpected: #{inspect(e)}"
+    end)
+
+    assert :ok == Command.abort()
+  end
+
   test "lock / unlock" do
     expect(UARTCore, :send_raw, 2, fn
       "E" -> :ok

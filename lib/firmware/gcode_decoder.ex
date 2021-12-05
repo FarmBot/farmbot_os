@@ -34,6 +34,7 @@ defmodule FarmbotOS.Firmware.GCodeDecoder do
     "83" => :software_version,
     "84" => :encoder_position_scaled,
     "85" => :encoder_position_raw,
+    "86" => :abort,
     "87" => :emergency_lock,
     "88" => :not_configured,
     "89" => :motor_load_report,

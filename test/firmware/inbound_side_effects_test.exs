@@ -127,6 +127,11 @@ defmodule FarmbotOS.Firmware.InboundSideEffectsTest do
     simple_case([{:pin_value_report, %{pin_or_param: 2.3, value1: 4.5}}])
   end
 
+  test ":abort" do
+    Helpers.expect_log("Movement cancelled")
+    simple_case([{:abort, %{}}])
+  end
+
   test ":software_version" do
     version = "v0.0.0-unit_test"
 
