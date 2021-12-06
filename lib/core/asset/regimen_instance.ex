@@ -2,7 +2,6 @@ defmodule FarmbotOS.Asset.RegimenInstance do
   use Ecto.Schema
   import Ecto.Changeset
   @primary_key {:local_id, :binary_id, autogenerate: true}
-  # _usec
   @timestamps_opts inserted_at: :created_at, type: :utc_datetime
 
   alias FarmbotOS.Asset.{FarmEvent, Regimen, RegimenInstance.Execution}
@@ -28,7 +27,6 @@ defmodule FarmbotOS.Asset.RegimenInstance do
     field(:epoch, :utc_datetime_usec)
     field(:started_at, :utc_datetime_usec)
     field(:next, :utc_datetime_usec)
-    # Can't use references here.
     field(:next_sequence_id, :id)
     field(:monitor, :boolean, default: true)
     timestamps()
@@ -68,7 +66,6 @@ defmodule FarmbotOS.Asset.RegimenInstance do
   def build_epoch(%DateTime{} = datetime) do
     case FarmbotOS.Asset.device().timezone do
       nil ->
-        IO.puts("===== WHY IS THIS NIL????")
         :error
 
       tz ->

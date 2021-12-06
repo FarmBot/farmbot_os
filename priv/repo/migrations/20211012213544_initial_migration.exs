@@ -181,18 +181,6 @@ defmodule FarmbotOS.Asset.Repo.Migrations.InitialMigration do
     )
 
     execute(
-      "CREATE UNIQUE INDEX \"persistent_regimens_epoch_index\" ON \"regimen_instances\" (\"epoch\");"
-    )
-
-    execute(
-      "CREATE UNIQUE INDEX \"persistent_regimens_local_id_regimen_id_farm_event_id_index\" ON \"regimen_instances\" (\"local_id\", \"regimen_id\", \"farm_event_id\");"
-    )
-
-    execute(
-      "CREATE UNIQUE INDEX \"persistent_regimens_started_at_index\" ON \"regimen_instances\" (\"started_at\");"
-    )
-
-    execute(
       "CREATE UNIQUE INDEX \"pin_bindings_id_index\" ON \"pin_bindings\" (\"id\");"
     )
 
@@ -204,10 +192,6 @@ defmodule FarmbotOS.Asset.Repo.Migrations.InitialMigration do
 
     execute(
       "CREATE UNIQUE INDEX \"public_keys_id_index\" ON \"public_keys\" (\"id\");"
-    )
-
-    execute(
-      "CREATE UNIQUE INDEX \"regimen_start_time\" ON \"persistent_regimens\" (\"regimen_id\", \"time\", \"farm_event_id\");"
     )
 
     execute(
