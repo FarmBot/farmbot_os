@@ -11,7 +11,6 @@ defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
     axis = "axis"
     channels = "channels"
     comment = "comment"
-    email = "email"
     env_name = "env_name"
     env_value = "env_value"
     expr = "expr"
@@ -31,8 +30,6 @@ defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
     pin_value = "pin_value"
     point_type = "point_type"
     resource_id = "resource_id"
-    secret = "secret"
-    server = "server"
     speed = "speed"
     sx = "sx"
     sy = "sy"
@@ -44,7 +41,6 @@ defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
     z = "z"
 
     Stubs.calibrate(axis)
-    Stubs.change_ownership(email, secret, server)
     Stubs.check_update()
     Stubs.coordinate(x, y, z)
     Stubs.emergency_lock()
