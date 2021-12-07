@@ -6,7 +6,7 @@
  * Possible fix for "blinking MQTT" bug where device stops seeing incoming MQTT packets.
  * Increase UART timeout / better handling of UART timeouts.
  * Genesis and Express firmware updates.
- * Fix bug where different regimens could not be scheduled to start on the same day.
+ * Fix bug where scheduling > 1 regimen per day would crash the scheduler.
 
 # 14.6.4
 
