@@ -18,9 +18,9 @@ defmodule FarmbotOS.Celery.CompilerTest do
       %{args: %{label: "server", value: server}}
     ]
 
-    expect(FarmbotOS.Celery.SysCallGlue, :change_ownership, 1, fn eml,
-                                                                  scrt,
-                                                                  srvr ->
+    expect(FarmbotOS.SysCalls.ChangeOwnership, :change_ownership, 1, fn eml,
+                                                                        scrt,
+                                                                        srvr ->
       assert eml == email
       assert scrt == "\xB2\xEA^\xAD۩z"
       assert srvr == server

@@ -234,7 +234,7 @@ defmodule FarmbotOS.Celery.Compiler do
     server = Map.get(pairs, "server")
 
     quote location: :keep do
-      FarmbotOS.Celery.SysCallGlue.change_ownership(
+      FarmbotOS.SysCalls.ChangeOwnership.change_ownership(
         unquote(celery_to_elixir(email, cs_scope)),
         unquote(celery_to_elixir(secret, cs_scope)),
         unquote(celery_to_elixir(server, cs_scope))
