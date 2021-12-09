@@ -7,6 +7,7 @@
  * Increase UART timeout / better handling of UART timeouts.
  * Genesis and Express firmware updates.
  * Fix bug where scheduling > 1 regimen per day would crash the scheduler.
+ * Farmware updates.
 
 # 14.6.4
 

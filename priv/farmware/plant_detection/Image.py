@@ -452,7 +452,7 @@ class Image(object):
         # Remove known plants and their safe zones from the mask
         for plant in self.plant_db.plants['known']:
             point = p2c.plant_dict_to_pixel_array(
-                plant, extend_radius=self.plant_db.weeder_destrut_r)
+                plant, extend_radius=self.plant_db.weeder_destruct_r)
             cv2.circle(self.images['morphed'], (int(point[0]), int(point[1])),
                        int(point[2]), (0, 0, 0), -1)
         # Detect the locations of the remaining plants in the mask
@@ -462,7 +462,7 @@ class Image(object):
             self.plant_db.plants['remove'] = []
         # The remaining plants (if any) should be weeds that can be
         # safely removed, but check again against known plants
-        self.plant_db.identify(second_pass=True)
+        self.plant_db.identify(self.params.parameters, second_pass=True)
 
     def coordinates(self, p2c, draw_contours=True):
         """Detect coordinates of objects in image.
@@ -511,7 +511,7 @@ class Image(object):
 
             # Mark weeder size for weeds
             if weeder_remove:
-                weeder_size = self.plant_db.weeder_destrut_r
+                weeder_size = self.plant_db.weeder_destruct_r
                 remove_circle = [[_['x'], _['y'], weeder_size] for _
                                  in self.plant_db.plants['remove']]
                 _circle(remove_circle, 'grey')
@@ -528,7 +528,7 @@ class Image(object):
 
             # Mark weeder size for safe-remove weeds
             if weeder_safe_remove:
-                weeder_size = self.plant_db.weeder_destrut_r
+                weeder_size = self.plant_db.weeder_destruct_r
                 safe_remove_circle = [[_['x'], _['y'], weeder_size] for _
                                       in self.plant_db.plants['safe_remove']]
                 _circle(safe_remove_circle, 'grey')

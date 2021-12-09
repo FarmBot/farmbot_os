@@ -32,7 +32,7 @@ class DB(object):
         self.dir = os.path.dirname(os.path.realpath(__file__)) + os.sep
         self.plants_file = "plant-detection_plants.json"
         self.tmp_dir = None
-        self.weeder_destrut_r = 50
+        self.weeder_destruct_r = 50
         self.test_coordinates = [600, 400, 0]
         self.coordinates = None
         self.app = False
@@ -234,7 +234,7 @@ class DB(object):
         """
         cxs, cys, crs = known[:, 0], known[:, 1], known[:, 2]
         if all((plant_x - cx)**2 + (plant_y - cy)**2
-               > (cr + self.weeder_destrut_r)**2
+               > (cr + self.weeder_destruct_r)**2
                for cx, cy, cr in zip(cxs, cys, crs)):
             # Plant is outside of known plant safe zone
             return 'remove'
@@ -245,7 +245,7 @@ class DB(object):
         else:  # Plant is within known plant area
             return 'save'
 
-    def identify(self, second_pass=False):
+    def identify(self, params, second_pass=False):
         """Compare detected plants to known to separate plants from weeds."""
         if not second_pass:
             self.plants['remove'] = []
@@ -259,6 +259,23 @@ class DB(object):
             plant_x = round(plant_coord[0], 2)
             plant_y = round(plant_coord[1], 2)
             plant_r = round(plant_coord[2], 2)
+            if params['min_radius'] and plant_r < params['min_radius']:
+                continue
+            if params['max_radius'] and plant_r > params['max_radius']:
+                continue
+            if params['use_bounds']:
+                if plant_x < 0 or plant_y < 0:
+                    continue
+            if params['use_bounds'] and USE_FARMWARE_TOOLS:
+                mcu_params = device.get_bot_state().get('mcu_params', {})
+                steps_x = mcu_params.get('movement_axis_nr_steps_x', 0)
+                steps_y = mcu_params.get('movement_axis_nr_steps_y', 0)
+                steps_per_mm_x = mcu_params.get('movement_step_per_mm_x', 5)
+                steps_per_mm_y = mcu_params.get('movement_step_per_mm_y', 5)
+                if steps_x and plant_x > (steps_x / steps_per_mm_x):
+                    continue
+                if steps_y and plant_y > (steps_y / steps_per_mm_y):
+                    continue
             plant_is = self.identify_plant(plant_x, plant_y, kplants)
             if plant_is == 'remove':
                 self.plants['remove'].append(
