@@ -268,10 +268,13 @@ class DB(object):
                     continue
             if params['use_bounds'] and USE_FARMWARE_TOOLS:
                 mcu_params = device.get_bot_state().get('mcu_params', {})
-                steps_x = mcu_params.get('movement_axis_nr_steps_x', 0)
-                steps_y = mcu_params.get('movement_axis_nr_steps_y', 0)
-                steps_per_mm_x = mcu_params.get('movement_step_per_mm_x', 5)
-                steps_per_mm_y = mcu_params.get('movement_step_per_mm_y', 5)
+
+                def _get_value(key, default):
+                    return float(mcu_params.get(key, default) or default)
+                steps_x = _get_value('movement_axis_nr_steps_x', 0)
+                steps_y = _get_value('movement_axis_nr_steps_y', 0)
+                steps_per_mm_x = _get_value('movement_step_per_mm_x', 5)
+                steps_per_mm_y = _get_value('movement_step_per_mm_y', 5)
                 if steps_x and plant_x > (steps_x / steps_per_mm_x):
                     continue
                 if steps_y and plant_y > (steps_y / steps_per_mm_y):
