@@ -20,12 +20,6 @@ defmodule FarmbotOS.Celery.SysCallGlue do
   @type resource_id :: integer()
 
   @callback calibrate(axis) :: ok_or_error
-  @callback change_ownership(
-              email :: String.t(),
-              secret :: binary(),
-              server :: String.t()
-            ) ::
-              ok_or_error
   @callback check_update() :: ok_or_error
   @callback coordinate(x :: number, y :: number, z :: number) ::
               %{x: number(), y: number(), z: number()} | error
@@ -154,10 +148,6 @@ defmodule FarmbotOS.Celery.SysCallGlue do
 
   def calibrate(sys_calls \\ @sys_calls, axis) when axis in ["x", "y", "z"] do
     ok_or_error(sys_calls, :calibrate, [axis])
-  end
-
-  def change_ownership(sys_calls \\ @sys_calls, email, secret, server) do
-    ok_or_error(sys_calls, :change_ownership, [email, secret, server])
   end
 
   def check_update(sys_calls \\ @sys_calls) do

@@ -1,4 +1,0 @@
-include README.md
-include plant_detection/*.jpg
-include quickscripts/*
-include requirements.txt

@@ -1,5 +1,14 @@
 # Changelog
 
+# 14.7.0
+
+ * Add support for text variables.
+ * Possible fix for "blinking MQTT" bug where device stops seeing incoming MQTT packets.
+ * Increase UART timeout / better handling of UART timeouts.
+ * Genesis and Express firmware updates.
+ * Fix bug where scheduling > 1 regimen per day would crash the scheduler.
+ * Farmware updates.
+
 # 14.6.4
 
  * Genesis and Express firmware updates.

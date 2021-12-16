@@ -102,6 +102,7 @@ class PlantDetection(object):
 
         # Default Parameter Inputs
         self.params = Parameters()
+        self.params.add_missing_params('detect')
 
         # Load keyword argument inputs
         self._data_inputs(kwargs)
@@ -269,7 +270,7 @@ class PlantDetection(object):
         if self.args['from_file']:
             # Requested to load detection parameters from file
             try:
-                self.params.load()
+                self.params.load('detect')
             except IOError:
                 print("Warning: Input parameter file load failed. "
                       "Using defaults.")
@@ -348,7 +349,7 @@ class PlantDetection(object):
         self.image.coordinates(self.p2c,
                                draw_contours=self.args['draw_contours'])
         # Organize objects into plants and weeds
-        self.plant_db.identify()
+        self.plant_db.identify(self.params.parameters)
         if self.plant_db.plants['safe_remove']:
             self.image.safe_remove(self.p2c)
 

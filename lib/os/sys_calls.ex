@@ -31,7 +31,6 @@ defmodule FarmbotOS.SysCalls do
   }
 
   alias FarmbotOS.SysCalls.{
-    ChangeOwnership,
     CheckUpdate,
     FactoryReset,
     Farmware,
@@ -53,9 +52,6 @@ defmodule FarmbotOS.SysCalls do
 
   @impl true
   defdelegate flash_firmware(package), to: UARTCore
-
-  @impl true
-  defdelegate change_ownership(email, secret, server), to: ChangeOwnership
 
   @impl true
   defdelegate check_update(), to: CheckUpdate

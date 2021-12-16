@@ -27,8 +27,13 @@ defmodule FarmbotOS.MQTT.Supervisor do
     token = JWT.decode!(raw_token)
     host = token.mqtt
     username = token.bot
-    jitter = String.slice(UUID.uuid4(:hex), 0..7)
-    client_id = "#{token.bot}_#{Project.version()}_#{jitter}"
+    # EXPERIMENT: Can't isolate cause of MQTT blinking.
+    # I am suspicious that it is caused by non-deterministic
+    # mqtt client_id. Temporarly making client_id generation
+    # deterministic. RC 1 DEC 21.
+    # jitter = String.slice(UUID.uuid4(:hex), 0..7)
+    # _#{jitter}"
+    client_id = "#{token.bot}_#{Project.version()}"
 
     server =
       if String.starts_with?(token.mqtt_ws || "", @wss) do

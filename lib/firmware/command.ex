@@ -19,7 +19,10 @@ defmodule FarmbotOS.Firmware.Command do
     schedule(:G00, opts)
   end
 
-  # E   Emergency stop
+  # @ - @bort movement
+  def abort(), do: UARTCore.send_raw("@")
+
+  # E - Emergency stop
   def lock(), do: UARTCore.send_raw("E")
 
   # F09 Reset emergency stop

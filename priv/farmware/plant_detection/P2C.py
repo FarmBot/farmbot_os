@@ -89,7 +89,7 @@ class Pixel2coord(object):
     def _load_inputs(self, get_inputs, error):
         # load only image processing input parameters
         try:
-            message = get_inputs()  # Parameters object
+            message = get_inputs('calibration')  # Parameters object
             if message != "":
                 raise error("Load Failed.")
         except error:

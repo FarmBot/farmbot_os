@@ -19,10 +19,6 @@ defmodule FarmbotOS.Celery.SysCallGlue.Stubs do
   def calibrate(axis), do: error(:calibrate, [axis])
 
   @impl true
-  def change_ownership(email, secret, server),
-    do: error(:change_ownership, [email, secret, server])
-
-  @impl true
   def check_update(), do: error(:check_update, [])
 
   @impl true

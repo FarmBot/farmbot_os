@@ -1,4 +1,0 @@
--r ../requirements.txt
-farmware-tools>=3.5.5
-paho-mqtt
-open3d

@@ -59,6 +59,16 @@ defmodule FarmbotOS.Firmware.UARTCoreTest do
     assert s2.pin_watcher == nil
   end
 
+  test "handle_info({:circuits_uart, _, {:partial, msg}}, state)" do
+    Helpers.expect_log("UART timeout: :foo")
+    s1 = %{}
+
+    {:noreply, s2} =
+      UARTCore.handle_info({:circuits_uart, nil, {:partial, :foo}}, s1)
+
+    assert s2 == s1
+  end
+
   test ":best_effort_bug_fix - KO" do
     Helpers.expect_log("Rebooting inactive Farmduino.")
     state1 = %UARTCore{fw_type: nil}

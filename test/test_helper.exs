@@ -351,6 +351,7 @@ ExUnit.configure(
   FarmbotOS.MQTT.TerminalHandlerSupport,
   FarmbotOS.MQTT.TopicSupervisor,
   FarmbotOS.SysCalls,
+  FarmbotOS.SysCalls.ChangeOwnership,
   FarmbotOS.SysCalls.ChangeOwnership.Support,
   FarmbotOS.SysCalls.Farmware,
   FarmbotOS.SysCalls.Movement,

@@ -19,7 +19,9 @@ class Parameters(object):
                            'H': [30, 90], 'S': [20, 255], 'V': [20, 255]}
         self.defaults = {'blur': 15, 'morph': 6, 'iterations': 4,
                          'H': [30, 90], 'S': [50, 255], 'V': [50, 255],
-                         'save_detected_plants': False}
+                         'save_detected_plants': False,
+                         'use_bounds': False, 'min_radius': 0, 'max_radius': 0,
+                         }
         self.cdefaults = {'blur': 5, 'morph': 5, 'iterations': 1,
                           'H': [160, 20], 'S': [100, 255], 'V': [100, 255],
                           'calibration_circles_xaxis': True,
@@ -128,13 +130,22 @@ class Parameters(object):
                     ENV.save(prefix + 'save_detected_plants', 'TRUE')
                 else:
                     ENV.save(prefix + 'save_detected_plants', 'FALSE')
+            elif 'use_bounds' in label:
+                if value:
+                    ENV.save(prefix + 'use_bounds', 'TRUE')
+                else:
+                    ENV.save(prefix + 'use_bounds', 'FALSE')
+            elif 'min_radius' in label:
+                ENV.save(prefix + 'min_radius', value)
+            elif 'max_radius' in label:
+                ENV.save(prefix + 'max_radius', value)
             elif 'camera_z' in label:
                 ENV.save(prefix + 'camera_z', value)
             elif 'center_pixel_location' in label:
                 ENV.save(prefix + 'center_pixel_location_x', value[0])
                 ENV.save(prefix + 'center_pixel_location_y', value[1])
 
-    def load(self):
+    def load(self, widget):
         """Load input parameters from file."""
         def _load(directory):
             input_filename = directory + self.input_parameters_file
@@ -145,7 +156,7 @@ class Parameters(object):
         except IOError:
             self.tmp_dir = "/tmp/"
             _load(self.tmp_dir)
-        self._add_missing()
+        self.add_missing_params(widget)
         return ""
 
     def env_var_converter(self, widget):
@@ -153,7 +164,9 @@ class Parameters(object):
         common_app_var_names = [
             'blur', 'morph', 'iteration',
             'H_HI', 'H_LO', 'S_HI', 'S_LO', 'V_HI', 'V_LO']
-        detection_opt_names = ['save_detected_plants']
+        detection_opt_names = [
+            'save_detected_plants', 'use_bounds', 'min_radius', 'max_radius',
+        ]
         calibration_names = [
             'total_rotation_angle', 'easy_calibration',
             'invert_hue_selection', 'image_bot_origin_location',
@@ -236,6 +249,13 @@ class Parameters(object):
                 elif 'save_detected_plants' in name:
                     input_template['save_detected_plants'] = bool(
                         'true' in loaded_value.lower())
+                elif 'use_bounds' in name:
+                    input_template['use_bounds'] = bool(
+                        'true' in loaded_value.lower())
+                elif 'min_radius' in name:
+                    input_template['min_radius'] = loaded_value
+                elif 'max_radius' in name:
+                    input_template['max_radius'] = loaded_value
                 else:
                     for cname in calibration_names + common_app_var_names:
                         if cname in name:
@@ -252,14 +272,12 @@ class Parameters(object):
         """Read input parameters from JSON in environment variable."""
         self.parameters = self.env_var_converter(widget)
 
-    def _add_missing(self):
-        for key, value in self.defaults.items():
+    def add_missing_params(self, widget):
+        """Load default input parameters for any missing parameters."""
+        defaults = self.cdefaults if 'calibration' in widget else self.defaults
+        for key, value in defaults.items():
             if key not in self.parameters:
                 self.parameters[key] = value
-
-    def load_defaults_for_env_var(self):
-        """Load default input parameters for environment variable."""
-        self.parameters = self.defaults
 
     def print_input(self):
         """Print input parameters."""

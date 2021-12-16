@@ -111,7 +111,7 @@ defmodule FarmbotOS.BotStateNG do
         description: "Detect and mark plants. Prerequisite: camera-calibration",
         farmware_manifest_version: "2.0.0",
         package: "plant-detection",
-        package_version: "0.0.18"
+        package_version: "0.0.20"
       },
       "take-photo": %{
         config: %{},
