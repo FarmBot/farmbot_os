@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.8.0
+
+ * Upgrade Elixir, Erlang and system deps.
+
 # 14.7.0
 
  * Add support for text variables.

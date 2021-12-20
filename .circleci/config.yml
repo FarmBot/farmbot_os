@@ -8,8 +8,8 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://repo.hex.pm/builds/elixir/v1.12.2-otp-24.zip
-      unzip -d /usr/local/elixir v1.12.2-otp-24.zip
+      wget https://repo.hex.pm/builds/elixir/v1.12.3-otp-24.zip
+      unzip -d /usr/local/elixir v1.12.3-otp-24.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives
@@ -148,17 +148,16 @@ predeploy_setup: &predeploy_setup
     - <<: *install_jq
 
 jobs:
-
-################################################################################
-#                                    TEST                                      #
-################################################################################
+  ################################################################################
+  #                                    TEST                                      #
+  ################################################################################
   test_farmbot_os:
     <<: *defaults
     environment:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
+      ELIXIR_VERSION: 1.12.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -188,9 +187,9 @@ jobs:
       - store_artifacts:
           path: cover
 
-################################################################################
-#                           Build the targets
-################################################################################
+  ################################################################################
+  #                           Build the targets
+  ################################################################################
 
   build_rpi_prod:
     <<: *defaults
@@ -220,9 +219,9 @@ jobs:
       MIX_ENV: prod
     <<: *steps_to_build_fresh_firmware
 
-################################################################################
-#                    Release Targets
-################################################################################
+  ################################################################################
+  #                    Release Targets
+  ################################################################################
 
   predeploy_rpi3:
     <<: *defaults
@@ -238,15 +237,15 @@ jobs:
       MIX_ENV: prod
     <<: *predeploy_setup
 
-################################################################################
-#               TARGET FIRMWARE NERVES GITHUB RELEASE main                   #
-################################################################################
+  ################################################################################
+  #               TARGET FIRMWARE NERVES GITHUB RELEASE main                   #
+  ################################################################################
 
   release_to_github:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.12.2
+      ELIXIR_VERSION: 1.12.3
     steps:
       - checkout
       - run:
