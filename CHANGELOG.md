@@ -3,6 +3,7 @@
 # 14.8.0
 
  * Upgrade Elixir, Erlang and system deps.
+ * Nerves System (Linux) upgrade.
 
 # 14.7.0
 
