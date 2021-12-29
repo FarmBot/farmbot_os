@@ -111,7 +111,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_system_rpi3, "~> 1.17", targets: :rpi3},
       {:farmbot_system_rpi4,
        git: "git@github.com:FarmBot/farmbot_system_rpi4.git",
-       tag: "v1.17.3-farmbot.2",
+       tag: "v1.17.3-farmbot.3",
        runtime: false,
        targets: :rpi4},
       {:hackney, "~> 1.18"},
