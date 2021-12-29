@@ -1,7 +1,7 @@
 defmodule FarmbotOS.MixProject do
   use Mix.Project
 
-  @all_targets [:rpi3, :rpi]
+  @all_targets [:rpi4, :rpi3, :rpi]
   @version Path.join([__DIR__, "VERSION"])
            |> File.read!()
            |> String.trim()
@@ -107,16 +107,13 @@ defmodule FarmbotOS.MixProject do
       {:ex_doc, "~> 0.25", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.14", only: [:test], targets: [:host]},
       {:extty, "~> 0.2.1"},
-      {:farmbot_system_rpi,
-       git: "https://github.com/FarmBot/farmbot_system_rpi.git",
-       ref: "v1.16.2-farmbot.1",
+      {:nerves_system_rpi, "~> 1.17", targets: :rpi},
+      {:nerves_system_rpi3, "~> 1.17", targets: :rpi3},
+      {:farmbot_system_rpi4,
+       git: "git@github.com:FarmBot/farmbot_system_rpi4.git",
+       tag: "v1.17.3-farmbot.2",
        runtime: false,
-       targets: :rpi},
-      {:farmbot_system_rpi3,
-       git: "https://github.com/FarmBot/farmbot_system_rpi3.git",
-       tag: "v1.16.2-farmbot.1",
-       runtime: false,
-       targets: :rpi3},
+       targets: :rpi4},
       {:hackney, "~> 1.18"},
       {:jason, "~> 1.2"},
       {:luerl, github: "rvirding/luerl", tag: "1.0"},
@@ -128,7 +125,7 @@ defmodule FarmbotOS.MixProject do
       {:nerves_runtime, "~> 0.11.6", targets: @all_targets},
       {:nerves_time, "~> 0.4", targets: @all_targets},
       {:nerves, "~> 1.7.11", runtime: false},
-      {:phoenix_html, "~> 3.1"},
+      {:phoenix_html, "~> 3.2"},
       {:plug_cowboy, "~> 2.5.2"},
       {:ring_logger, "~> 0.8.3"},
       {:rollbax, ">= 0.0.0"},

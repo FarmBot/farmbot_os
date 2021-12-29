@@ -1,7 +1,7 @@
 use Mix.Config
 is_test? = Mix.env() == :test
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
-
+config :mime, :types, %{}
 config :exqlite, :json_library, FarmbotOS.JSON
 config :farmbot, ecto_repos: [FarmbotOS.Asset.Repo]
 config :logger, backends: [:console]
