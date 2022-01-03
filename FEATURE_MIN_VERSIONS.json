@@ -33,6 +33,8 @@
   "safe_height_input": "12.1.0",
   "sensors": "6.3.0",
   "soil_height": "12.1.0",
+  "string_variables": "14.7.0",
+  "number_variables": "14.7.0",
   "update_resource": "10.0.0",
   "use_update_channel": "6.4.12",
   "variables": "8.0.0",
