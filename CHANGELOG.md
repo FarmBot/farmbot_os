@@ -4,6 +4,7 @@
 
  * Upgrade Elixir, Erlang and system deps.
  * Nerves System (Linux) upgrade.
+ * Add support for RPi4 target
 
 # 14.7.0
 
