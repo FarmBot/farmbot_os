@@ -4,7 +4,8 @@
 
  * Upgrade Elixir, Erlang and system deps.
  * Nerves System (Linux) upgrade.
- * Add support for RPi4 target
+ * Add support for RPi4 target.
+ * Bugfix: Prevent crashes from stopping a soft reset.
 
 # 14.7.0
 
