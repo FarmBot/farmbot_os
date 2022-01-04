@@ -32,9 +32,15 @@ defmodule FarmbotOS.System do
   def factory_reset(reason, _ \\ nil) do
     try_lock_fw()
     set_shutdown_reason(reason)
-    IO.puts("TODO: FarmbotOS.EctoMigrator.drop()")
-    reboot(reason)
+    destroy_db()
+    @system_tasks.reboot()
     :ok
+  end
+
+  def destroy_db do
+    conf = Application.get_env(:farmbot, FarmbotOS.Asset.Repo) || []
+    file = conf[:database]
+    File.exists?(file || "") && File.rm(file)
   end
 
   @doc "Reboot."
