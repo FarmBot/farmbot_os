@@ -124,8 +124,11 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "garden_size/0" do
-    expect(FarmbotOS.BotState, :fetch, 1, fn ->
+    expect(FarmbotOS.BotState, :fetch, 2, fn ->
       %{
+        informational_settings: %{
+          locked: false
+        },
         mcu_params: %{
           movement_axis_nr_steps_y: 2.3,
           movement_step_per_mm_y: 4.5,

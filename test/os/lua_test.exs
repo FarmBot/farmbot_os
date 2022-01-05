@@ -28,7 +28,7 @@ defmodule FarmbotOS.LuaTest do
       :ok
     end)
 
-    assert Lua.soft_stop([], :fake_lua) == {[], :fake_lua}
+    assert Firmware.soft_stop([], :fake_lua) == {[], :fake_lua}
   end
 
   test "assertion logs" do

@@ -37,6 +37,11 @@ defmodule FarmbotOS.Lua.Firmware do
     end
   end
 
+  def soft_stop(_args, lua) do
+    FarmbotOS.Firmware.Command.abort()
+    {[], lua}
+  end
+
   def find_home(["all"], lua),
     do: do_find_home(@axis, lua, &SysCallGlue.find_home/1)
 

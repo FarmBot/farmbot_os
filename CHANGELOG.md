@@ -6,6 +6,7 @@
  * Nerves System (Linux) upgrade.
  * Add support for RPi4 target.
  * Bugfix: Prevent crashes from stopping a soft reset.
+ * Change the way Lua handles e-stops (no operation during e-stop now that soft_stop() exists)
 
 # 14.7.0
 

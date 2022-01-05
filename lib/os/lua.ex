@@ -54,9 +54,24 @@ defmodule FarmbotOS.Lua do
   end
 
   def init do
-    # FarmbotOS.Lua.init()
     reducer = fn {k, v}, lua -> set_table(lua, [k], v) end
     Enum.reduce(builtins(), :luerl.init(), reducer)
+  end
+
+  def wrap(fun, _name) do
+    fn args, lua ->
+      if FarmbotOS.BotState.fetch().informational_settings.locked do
+        :the_device_is_estopped
+      else
+        # Every FarmBot related function triggers a GC sweep.
+        result = fun.(args, :luerl.gc(lua))
+        result
+      end
+    end
+  end
+
+  def set_table(lua, [name] = path, fun) when is_function(fun) do
+    :luerl.set_table(path, wrap(fun, name), lua)
   end
 
   def set_table(lua, path, value) do
@@ -65,28 +80,6 @@ defmodule FarmbotOS.Lua do
 
   def raw_eval(lua, hook) when is_binary(hook) do
     :luerl.eval(hook, lua)
-  end
-
-  # def unquote(:do)(lua, hook) when is_binary(hook) do
-  #   :luerl.do(hook, lua)
-  # catch
-  #   :error, {:error, reason} ->
-  #     {{:error, reason}, lua}
-
-  #   error, reason ->
-  #     {{:error, {error, reason}}, lua}
-  # end
-
-  # Wrap a function so that it cannot be called when device
-  # is locked.
-  def safe(action, fun) when is_function(fun, 2) do
-    fn args, lua ->
-      if FarmbotOS.Firmware.UARTCoreSupport.locked?() do
-        {[nil, "Can't #{action} when locked."], disabled_sandbox()}
-      else
-        fun.(args, lua)
-      end
-    end
   end
 
   def execute_script(name) do
@@ -122,23 +115,23 @@ defmodule FarmbotOS.Lua do
       current_second: &Info.current_second/2,
       emergency_lock: &Firmware.emergency_lock/2,
       emergency_unlock: &Firmware.emergency_unlock/2,
+      soft_stop: &Firmware.soft_stop/2,
       env: &DataManipulation.env/2,
       fbos_version: &Info.fbos_version/2,
       find_axis_length: &Firmware.calibrate/2,
-      find_home: safe("find home", &Firmware.find_home/2),
+      find_home: &Firmware.find_home/2,
       firmware_version: &Info.firmware_version/2,
       garden_size: &DataManipulation.garden_size/2,
       get_device: &DataManipulation.get_device/2,
       get_fbos_config: &DataManipulation.get_fbos_config/2,
       get_firmware_config: &DataManipulation.get_firmware_config/2,
       get_position: &Firmware.get_position/2,
-      go_to_home: safe("go to home", &Firmware.go_to_home/2),
+      go_to_home: &Firmware.go_to_home/2,
       http: &DataManipulation.http/2,
       inspect: &DataManipulation.json_encode/2,
-      move_absolute: safe("move device", &Firmware.move_absolute/2),
+      move_absolute: &Firmware.move_absolute/2,
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
       photo_grid: &DataManipulation.photo_grid/2,
-      soft_stop: &soft_stop/2,
       read_pin: &Firmware.read_pin/2,
       read_status: &Info.read_status/2,
       send_message: &Info.send_message/2,
@@ -154,26 +147,7 @@ defmodule FarmbotOS.Lua do
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
-      write_pin: safe("write pin", &Firmware.write_pin/2)
+      write_pin: &Firmware.write_pin/2
     }
-  end
-
-  def soft_stop(_args, lua) do
-    FarmbotOS.Firmware.Command.abort()
-    {[], lua}
-  end
-
-  # WHAT IS GOING ON HERE?:
-  # * We want to allow some Lua to execute when the bot
-  #   is estopped.
-  # * If the bot is estopped, we DO NOT want it to perform
-  #   unsafe actions like motor movement.
-  # * If execution reaches this point, you are estopped
-  #   and you get this far, it means you tried to move
-  #   the bot or perform an unsafe action.
-  # * For safety, we will revert the Lua VM to an empty
-  #   state.
-  def disabled_sandbox() do
-    :luerl.set_table([:estop], true, :luerl.init())
   end
 end

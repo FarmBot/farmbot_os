@@ -249,22 +249,6 @@ defmodule FarmbotOS.Celery.CompilerTest do
              """)
   end
 
-  # test "compiles write_pin" do
-  #   compiled =
-  #     compile(%AST{
-  #       kind: :write_pin,
-  #       args: %{pin_number: 17, pin_mode: 0, pin_value: 1}
-  #     })
-
-  #   expected =
-  #     "pin = 17\nmode = 0\nvalue = 1\n\nwith(:ok <- " <>
-  #       "FarmbotOS.Celery.SysCallGlue.write_pin(pin, mode, value))" <>
-  #       " do\n  me = FarmbotOS.Celery.Compiler.PinControl\n" <>
-  #       "  me.conclude(pin, mode, value)\nend"
-
-  #   assert compiled == expected
-  # end
-
   test "compiles read pin" do
     compiled =
       compile(%AST{

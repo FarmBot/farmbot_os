@@ -9,6 +9,10 @@ defmodule FarmbotOS.Lua.Result do
     {:error, "Lua error"}
   end
 
+  def parse_error({:badmatch, :the_device_is_estopped}, _) do
+    {:error, "The device is locked. Exiting Lua."}
+  end
+
   def parse_error({:lua_error, {:undefined_function, nil}, lua}, _) do
     {estop, _} = :luerl.get_table(["estop"], lua)
 
