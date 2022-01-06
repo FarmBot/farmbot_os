@@ -254,7 +254,14 @@ defmodule FarmbotOS.BotState do
   end
 
   def handle_call({:set_firmware_locked, bool}, _from, state) do
-    change = %{informational_settings: %{locked: bool}}
+    update =
+      if bool do
+        %{locked: bool, locked_at: :os.system_time(:seconds)}
+      else
+        %{locked: bool}
+      end
+
+    change = %{informational_settings: update}
 
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}

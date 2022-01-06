@@ -60,21 +60,10 @@ defmodule FarmbotOS.Lua do
 
   def wrap(fun, _name) do
     fn args, lua ->
-      # Step 1: Check if the device is locked right now.
-      #         If it is, set the flag to true forever.
-      lua =
-        if FarmbotOS.BotState.fetch().informational_settings.locked do
-          :luerl.set_table([:farmbot_was_locked], true, lua)
-        else
-          lua
-        end
+      {start_time, _lua} = :luerl.get_table([:__LUA_START_TIME], lua)
+      lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
 
-      # Step 2: Check if the flag was ever set to true at any point.
-      {locked?, _lua} = :luerl.get_table([:farmbot_was_locked], lua)
-
-      # Step 3: If there was ever an e-stop during the execution
-      #         lifetime, then crash the VM.
-      if locked? do
+      if lock_time > start_time do
         :the_device_is_estopped
       else
         # Every FarmBot related function triggers a GC sweep.
@@ -120,10 +109,10 @@ defmodule FarmbotOS.Lua do
         {:open, &FarmbotOS.Firmware.LuaUART.open/2},
         {:list, &FarmbotOS.Firmware.LuaUART.list/2}
       ],
-      # This flag tells us if the E-Stop button was ever pushed
-      # during execution. This prevents "runaway Lua" code after
-      # an unlock.
-      farmbot_was_locked: false,
+      # This flag can be compared agaist the last e-stop timestamp
+      # to abort script execution (if E-Stop was called at any
+      # point during Lua execution).
+      __LUA_START_TIME: :os.system_time(:seconds),
       auth_token: &Info.auth_token/2,
       check_position: &Firmware.check_position/2,
       coordinate: &Firmware.coordinate/2,

@@ -127,7 +127,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expect(FarmbotOS.BotState, :fetch, 2, fn ->
       %{
         informational_settings: %{
-          locked: false
+          locked: false,
+          locked_at: 0
         },
         mcu_params: %{
           movement_axis_nr_steps_y: 2.3,
