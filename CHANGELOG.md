@@ -7,6 +7,7 @@
  * Add support for RPi4 target.
  * Bugfix: Prevent crashes from stopping a soft reset.
  * Change the way Lua handles e-stops (no operation during e-stop now that soft_stop() exists)
+ * Add `movement_calibration_retry_total_*` fields to MCU params
 
 # 14.7.0
 
