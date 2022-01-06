@@ -112,7 +112,7 @@ defmodule FarmbotOS.Lua do
       # This flag can be compared agaist the last e-stop timestamp
       # to abort script execution (if E-Stop was called at any
       # point during Lua execution).
-      __LUA_START_TIME: :os.system_time(:seconds),
+      __LUA_START_TIME: FarmbotOS.Time.system_time_ms() / 1000,
       auth_token: &Info.auth_token/2,
       check_position: &Firmware.check_position/2,
       coordinate: &Firmware.coordinate/2,

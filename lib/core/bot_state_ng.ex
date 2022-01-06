@@ -198,7 +198,8 @@ defmodule FarmbotOS.BotStateNG do
   @doc "Sets a progress objecto on state.jobs"
   def set_job_progress(state, name, progress) do
     cs = changeset(state, %{})
-    progress2 = Map.put(progress, :updated_at, :os.system_time(:seconds))
+    t = FarmbotOS.Time.system_time_ms() / 1000
+    progress2 = Map.put(progress, :updated_at, t)
 
     new_jobs =
       cs
