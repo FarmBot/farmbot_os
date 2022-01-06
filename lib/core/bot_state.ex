@@ -256,7 +256,8 @@ defmodule FarmbotOS.BotState do
   def handle_call({:set_firmware_locked, bool}, _from, state) do
     update =
       if bool do
-        %{locked: bool, locked_at: FarmbotOS.Time.system_time_ms() / 1000}
+        t = round(FarmbotOS.Time.system_time_ms() / 1000)
+        %{locked: bool, locked_at: t}
       else
         %{locked: bool}
       end
@@ -406,7 +407,7 @@ defmodule FarmbotOS.BotState do
   # This prevents system crashes when users take extremely
   # large numbers of photos.
   defp remove_old_jobs(state) do
-    now = FarmbotOS.Time.system_time_ms() / 1000
+    now = round(FarmbotOS.Time.system_time_ms() / 1000)
     reject = fn {_name, job} -> now - job.updated_at > 120 end
     recombine = fn {name, job}, acc -> Map.put(acc, name, job) end
 

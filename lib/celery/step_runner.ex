@@ -14,10 +14,14 @@ defmodule FarmbotOS.Celery.StepRunner do
     state = %{
       listener: listener,
       tag: tag,
-      start_time: FarmbotOS.Time.system_time_ms()
+      start_time: round(FarmbotOS.Time.system_time_ms() / 1000)
     }
 
+    # if FarmbotOS.BotState.fetch().informational_settings.locked do
+    #   {:error, "Can't start commands when locked"}
+    # else
     do_step(state, Compiler.compile(ast, Scope.new()))
+    # end
   end
 
   def do_step(state, [fun | rest]) when is_function(fun, 0) do
@@ -44,18 +48,24 @@ defmodule FarmbotOS.Celery.StepRunner do
 
   defp execute(state, fun) do
     try do
-      fun.()
+      lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
+
+      if state.start_time > lock_time do
+        fun.()
+      else
+        err = {:error, "Canceled sequence due to emergency lock."}
+        not_ok(state, err)
+      end
     rescue
-      e -> not_ok(state, e, __STACKTRACE__)
+      e -> not_ok(state, e)
     catch
-      _kind, e -> not_ok(state, e, __STACKTRACE__)
+      _kind, e -> not_ok(state, e)
     end
   end
 
-  defp not_ok(state, original_error, trace \\ nil) do
-    Logger.warn(
-      "CeleryScript Exception: #{inspect(original_error)} / #{inspect(trace)}"
-    )
+  defp not_ok(state, original_error) do
+    msg = "CeleryScript Exception: #{inspect(original_error)}"
+    Logger.warn(msg)
 
     error = format_error(original_error)
     send(state.listener, {:csvm_done, state.tag, error})
