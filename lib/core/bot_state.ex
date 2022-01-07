@@ -256,7 +256,7 @@ defmodule FarmbotOS.BotState do
   def handle_call({:set_firmware_locked, bool}, _from, state) do
     update =
       if bool do
-        t = round(FarmbotOS.Time.system_time_ms() / 1000)
+        t = FarmbotOS.Time.system_time_ms()
         %{locked: bool, locked_at: t}
       else
         %{locked: bool}

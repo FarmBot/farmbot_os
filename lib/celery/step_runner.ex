@@ -11,7 +11,7 @@ defmodule FarmbotOS.Celery.StepRunner do
   Steps through an entire AST.
   """
   def begin(listener, tag, %AST{} = ast) do
-    time = round(FarmbotOS.Time.system_time_ms() / 1000)
+    time = FarmbotOS.Time.system_time_ms()
     lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
 
     Logger.debug(
