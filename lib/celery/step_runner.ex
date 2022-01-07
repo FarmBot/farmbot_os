@@ -11,11 +11,14 @@ defmodule FarmbotOS.Celery.StepRunner do
   Steps through an entire AST.
   """
   def begin(listener, tag, %AST{} = ast) do
-    state = %{
-      listener: listener,
-      tag: tag,
-      start_time: round(FarmbotOS.Time.system_time_ms() / 1000)
-    }
+    time = round(FarmbotOS.Time.system_time_ms() / 1000)
+    lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
+
+    Logger.debug(
+      "==== Begin job at #{inspect(time)}. Last lock: #{inspect(lock_time)}"
+    )
+
+    state = %{listener: listener, tag: tag, start_time: time}
 
     # if FarmbotOS.BotState.fetch().informational_settings.locked do
     #   {:error, "Can't start commands when locked"}
@@ -53,6 +56,14 @@ defmodule FarmbotOS.Celery.StepRunner do
       if state.start_time > lock_time do
         fun.()
       else
+        Logger.debug(
+          "==== " <>
+            inspect(%{
+              start_time: state.start_time,
+              lock_time: lock_time
+            })
+        )
+
         err = {:error, "Canceled sequence due to emergency lock."}
         not_ok(state, err)
       end
