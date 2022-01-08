@@ -154,7 +154,23 @@ defmodule FarmbotOS.Lua do
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
-      write_pin: &Firmware.write_pin/2
+      write_pin: &Firmware.write_pin/2,
+      get_job_progress: fn [name], lua ->
+        job = Map.get(FarmbotOS.BotState.fetch().jobs, name)
+        {[job], lua}
+      end,
+      set_job_progress: fn [name, args], lua ->
+        map = FarmbotOS.Lua.Util.lua_to_elixir(args)
+
+        job = %FarmbotOS.BotState.JobProgress.Percent{
+          type: Map.get(map, "type") || "unknown",
+          status: Map.get(map, "status") || "working",
+          percent: Map.get(map, "percent") || 0
+        }
+
+        FarmbotOS.BotState.set_job_progress(name, job)
+        {[], lua}
+      end
     }
   end
 end

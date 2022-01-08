@@ -10,7 +10,7 @@ defmodule FarmbotOS.Lua.Result do
   end
 
   def parse_error({:badmatch, :the_device_is_estopped}, _) do
-    {:error, "The device is locked. Exiting Lua."}
+    {:error, "Canceled sequence due to emergency lock."}
   end
 
   def parse_error({:lua_error, {:undefined_function, nil}, lua}, _) do
