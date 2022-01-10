@@ -39,7 +39,7 @@ defmodule FarmbotOS.Celery.StepRunner do
     :ok
   end
 
-  defp execute(state, fun) do
+  def execute(state, fun) do
     try do
       lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
 

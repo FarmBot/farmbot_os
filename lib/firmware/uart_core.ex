@@ -48,7 +48,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
   # the wrong GCode block. The end result is a firmware handler
   # that sits there and does nothing. To get around this,
   # we do a "health check" after a certain amount of time to
-  # ensure the farmduion is actually running.
+  # ensure the farmduino is actually running.
   @bugfix_timeout 60_000
   # ===== END HISTORICAL CODE ==============================
 
