@@ -4,7 +4,12 @@
 
  * Upgrade Elixir, Erlang and system deps.
  * Nerves System (Linux) upgrade.
- * Add support for RPi4 target
+ * Add support for RPi4 target.
+ * Bugfix: Prevent crashes from stopping a soft reset.
+ * Change the way Lua handles e-stops (no operation during e-stop now that soft_stop() exists)
+ * E-stop now prevents _all_ sequence operations, not just firmware commands.
+ * Add `movement_calibration_retry_total_*` fields to MCU params
+ * Lua technical preview for `set_job_progress` / `get_job_progress`
 
 # 14.7.0
 

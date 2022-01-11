@@ -37,6 +37,9 @@ defmodule FarmbotOS.BotStateNG.McuParams do
     field(:movement_calibration_deadzone_x, :float)
     field(:movement_calibration_deadzone_y, :float)
     field(:movement_calibration_deadzone_z, :float)
+    field(:movement_calibration_retry_total_x, :float)
+    field(:movement_calibration_retry_total_y, :float)
+    field(:movement_calibration_retry_total_z, :float)
     field(:movement_calibration_retry_x, :float)
     field(:movement_calibration_retry_y, :float)
     field(:movement_calibration_retry_z, :float)
@@ -160,6 +163,12 @@ defmodule FarmbotOS.BotStateNG.McuParams do
         mcu_params.movement_calibration_deadzone_y,
       movement_calibration_deadzone_z:
         mcu_params.movement_calibration_deadzone_z,
+      movement_calibration_retry_total_x:
+        mcu_params.movement_calibration_retry_total_x,
+      movement_calibration_retry_total_y:
+        mcu_params.movement_calibration_retry_total_y,
+      movement_calibration_retry_total_z:
+        mcu_params.movement_calibration_retry_total_z,
       movement_calibration_retry_x: mcu_params.movement_calibration_retry_x,
       movement_calibration_retry_y: mcu_params.movement_calibration_retry_y,
       movement_calibration_retry_z: mcu_params.movement_calibration_retry_z,
@@ -276,6 +285,9 @@ defmodule FarmbotOS.BotStateNG.McuParams do
       :movement_calibration_deadzone_x,
       :movement_calibration_deadzone_y,
       :movement_calibration_deadzone_z,
+      :movement_calibration_retry_total_x,
+      :movement_calibration_retry_total_y,
+      :movement_calibration_retry_total_z,
       :movement_calibration_retry_x,
       :movement_calibration_retry_y,
       :movement_calibration_retry_z,

@@ -11,50 +11,57 @@ defmodule FarmbotOS.Celery.StepRunner do
   Steps through an entire AST.
   """
   def begin(listener, tag, %AST{} = ast) do
-    # Maybe I should wrap this in a function that declares
-    # the `cs_scope` object?
-    do_step(listener, tag, Compiler.compile(ast, Scope.new()))
+    time = FarmbotOS.Time.system_time_ms()
+    state = %{listener: listener, tag: tag, start_time: time}
+
+    do_step(state, Compiler.compile(ast, Scope.new()))
   end
 
-  def do_step(listener, tag, [fun | rest]) when is_function(fun, 0) do
-    case execute(listener, tag, fun) do
+  def do_step(state, [fun | rest]) when is_function(fun, 0) do
+    case execute(state, fun) do
       # The step returned a list of compiled function.
       # We need to execute them next.
       # Use case: `_if` blocks, `execute` calls, etc..
-      [_next_ast_or_fun | _] = more -> do_step(listener, tag, more ++ rest)
+      [_next_ast_or_fun | _] = more -> do_step(state, more ++ rest)
       # The step failed for a specific reason.
-      {:error, _} = error -> not_ok(listener, tag, error)
-      _ -> do_step(listener, tag, rest)
+      {:error, _} = error -> not_ok(state, error)
+      _ -> do_step(state, rest)
     end
   end
 
-  def do_step(listener, tag, [{_, _, _} = elixir_ast | rest]) do
+  def do_step(state, [{_, _, _} = elixir_ast | rest]) do
     {more, _env} = Macro.to_string(elixir_ast) |> Code.eval_string()
-    do_step(listener, tag, [more] ++ rest)
+    do_step(state, [more] ++ rest)
   end
 
-  def do_step(listener, tag, []) do
-    send(listener, {:csvm_done, tag, :ok})
+  def do_step(state, []) do
+    send(state.listener, {:csvm_done, state.tag, :ok})
     :ok
   end
 
-  defp execute(listener, tag, fun) do
+  def execute(state, fun) do
     try do
-      fun.()
+      lock_time = FarmbotOS.BotState.fetch().informational_settings.locked_at
+
+      if state.start_time > lock_time do
+        fun.()
+      else
+        err = {:error, "Canceled sequence due to emergency lock."}
+        not_ok(state, err)
+      end
     rescue
-      e -> not_ok(listener, tag, e, __STACKTRACE__)
+      e -> not_ok(state, e)
     catch
-      _kind, e -> not_ok(listener, tag, e, __STACKTRACE__)
+      _kind, e -> not_ok(state, e)
     end
   end
 
-  defp not_ok(listener, tag, original_error, trace \\ nil) do
-    Logger.warn(
-      "CeleryScript Exception: #{inspect(original_error)} / #{inspect(trace)}"
-    )
+  defp not_ok(state, original_error) do
+    msg = "CeleryScript Exception: #{inspect(original_error)}"
+    Logger.warn(msg)
 
     error = format_error(original_error)
-    send(listener, {:csvm_done, tag, error})
+    send(state.listener, {:csvm_done, state.tag, error})
     error
   end
 

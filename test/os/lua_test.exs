@@ -11,6 +11,17 @@ defmodule FarmbotOS.LuaTest do
     DataManipulation
   }
 
+  test "job setters/getters" do
+    fns = Lua.builtins()
+    name = "foo"
+    args = [type: "bar", status: "baz", percent: 42.0]
+    lua = %{}
+    result = fns.set_job_progress.([name, args], lua)
+    assert result == {[], %{}}
+    {[result2], %{}} = fns.get_job_progress.([name], lua)
+    assert result2.unit == "percent"
+  end
+
   @tag :capture_log
   test "evaluates Lua" do
     val1 = Lua.perform_lua("true", [], "Returns 'true'")
@@ -28,7 +39,7 @@ defmodule FarmbotOS.LuaTest do
       :ok
     end)
 
-    assert Lua.soft_stop([], :fake_lua) == {[], :fake_lua}
+    assert Firmware.soft_stop([], :fake_lua) == {[], :fake_lua}
   end
 
   test "assertion logs" do

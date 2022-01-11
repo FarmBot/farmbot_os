@@ -9,17 +9,12 @@ defmodule FarmbotOS.Lua.Result do
     {:error, "Lua error"}
   end
 
-  def parse_error({:lua_error, {:undefined_function, nil}, lua}, _) do
-    {estop, _} = :luerl.get_table(["estop"], lua)
+  def parse_error({:badmatch, :the_device_is_estopped}, _) do
+    {:error, "Canceled sequence due to emergency lock."}
+  end
 
-    # If the user tries to move the bot while EStopped,
-    # The Lua VM "hides" unsafe functions from the user.
-    # This branch condition will make a note of that.
-    if estop do
-      {:error, "Exiting Lua because device is estopped."}
-    else
-      {:error, "Tried to call a function/variable that doesn't exist."}
-    end
+  def parse_error({:lua_error, {:undefined_function, nil}, _lua}, _) do
+    {:error, "Tried to call a function/variable that doesn't exist."}
   end
 
   def parse_error({:lua_error, {:badarg, op, _}, _}, _) when is_atom(op) do

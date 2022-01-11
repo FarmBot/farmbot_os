@@ -1,6 +1,8 @@
 defmodule FarmbotOS.BotStateTest do
   use ExUnit.Case
-  alias FarmbotOS.BotState
+  use Mimic
+
+  alias FarmbotOS.{BotState, BotStateNG}
   alias FarmbotOS.BotState.JobProgress.Percent
 
   describe "bot state pub/sub" do
@@ -59,5 +61,21 @@ defmodule FarmbotOS.BotStateTest do
       5000 ->
         refute "Timeout has elapsed"
     end
+  end
+
+  @empty_state %{
+    tree: BotStateNG.new(),
+    subscribers: []
+  }
+
+  test "set_firmware_locked - on" do
+    fake_time = 123
+    expect(FarmbotOS.Time, :system_time_ms, 1, fn -> fake_time end)
+
+    {:reply, :ok, state} =
+      BotState.handle_call({:set_firmware_locked, true}, nil, @empty_state)
+
+    assert state.tree.informational_settings.locked
+    assert state.tree.informational_settings.locked_at == 123
   end
 end
