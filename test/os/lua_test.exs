@@ -16,7 +16,6 @@ defmodule FarmbotOS.LuaTest do
     name = "foo"
     args = [type: "bar", status: "baz", percent: 42.0]
     lua = %{}
-    assert FarmbotOS.BotState.fetch().jobs == %{}
     result = fns.set_job_progress.([name, args], lua)
     assert result == {[], %{}}
     {[result2], %{}} = fns.get_job_progress.([name], lua)
