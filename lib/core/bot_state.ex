@@ -254,7 +254,15 @@ defmodule FarmbotOS.BotState do
   end
 
   def handle_call({:set_firmware_locked, bool}, _from, state) do
-    change = %{informational_settings: %{locked: bool}}
+    update =
+      if bool do
+        t = FarmbotOS.Time.system_time_ms()
+        %{locked: bool, locked_at: t}
+      else
+        %{locked: bool}
+      end
+
+    change = %{informational_settings: update}
 
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
@@ -395,12 +403,12 @@ defmodule FarmbotOS.BotState do
     dispatch_and_apply(BotStateNG.changeset(state.tree, change), state)
   end
 
-  # Remove jobs that haven't been updated in > 2 minutes.
+  # Remove jobs that haven't been updated in > 5 minutes.
   # This prevents system crashes when users take extremely
   # large numbers of photos.
   defp remove_old_jobs(state) do
-    now = :os.system_time(:seconds)
-    reject = fn {_name, job} -> now - job.updated_at > 120 end
+    now = round(FarmbotOS.Time.system_time_ms() / 1000)
+    reject = fn {_name, job} -> now - job.updated_at > 300 end
     recombine = fn {name, job}, acc -> Map.put(acc, name, job) end
 
     next_jobs =

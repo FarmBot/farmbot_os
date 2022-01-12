@@ -8,8 +8,8 @@ install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://repo.hex.pm/builds/elixir/v1.12.2-otp-24.zip
-      unzip -d /usr/local/elixir v1.12.2-otp-24.zip
+      wget https://repo.hex.pm/builds/elixir/v1.12.3-otp-24.zip
+      unzip -d /usr/local/elixir v1.12.3-otp-24.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives
@@ -148,17 +148,16 @@ predeploy_setup: &predeploy_setup
     - <<: *install_jq
 
 jobs:
-
-################################################################################
-#                                    TEST                                      #
-################################################################################
+  ################################################################################
+  #                                    TEST                                      #
+  ################################################################################
   test_farmbot_os:
     <<: *defaults
     environment:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.12.2
+      ELIXIR_VERSION: 1.12.3
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -188,14 +187,14 @@ jobs:
       - store_artifacts:
           path: cover
 
-################################################################################
-#                           Build the targets
-################################################################################
+  ################################################################################
+  #                           Build the targets
+  ################################################################################
 
-  build_rpi_prod:
+  build_rpi4_prod:
     <<: *defaults
     environment:
-      MIX_TARGET: rpi
+      MIX_TARGET: rpi4
       MIX_ENV: prod
     <<: *steps_to_build_cached_firmware
 
@@ -206,10 +205,17 @@ jobs:
       MIX_ENV: prod
     <<: *steps_to_build_cached_firmware
 
-  build_fresh_rpi:
+  build_rpi_prod:
     <<: *defaults
     environment:
       MIX_TARGET: rpi
+      MIX_ENV: prod
+    <<: *steps_to_build_cached_firmware
+
+  build_fresh_rpi4:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi4
       MIX_ENV: prod
     <<: *steps_to_build_fresh_firmware
 
@@ -220,9 +226,23 @@ jobs:
       MIX_ENV: prod
     <<: *steps_to_build_fresh_firmware
 
-################################################################################
-#                    Release Targets
-################################################################################
+  build_fresh_rpi:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi
+      MIX_ENV: prod
+    <<: *steps_to_build_fresh_firmware
+
+  ################################################################################
+  #                    Release Targets
+  ################################################################################
+
+  predeploy_rpi4:
+    <<: *defaults
+    environment:
+      MIX_TARGET: rpi4
+      MIX_ENV: prod
+    <<: *predeploy_setup
 
   predeploy_rpi3:
     <<: *defaults
@@ -238,23 +258,26 @@ jobs:
       MIX_ENV: prod
     <<: *predeploy_setup
 
-################################################################################
-#               TARGET FIRMWARE NERVES GITHUB RELEASE main                   #
-################################################################################
+  ################################################################################
+  #               TARGET FIRMWARE NERVES GITHUB RELEASE main                   #
+  ################################################################################
 
   release_to_github:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.12.2
+      ELIXIR_VERSION: 1.12.3
     steps:
       - checkout
       - run:
           name: Setup ENV
           command: |
+            echo rpi4 > MIX_TARGET_RPI4
             echo rpi3 > MIX_TARGET_RPI3
             echo rpi > MIX_TARGET_RPI
             echo $MIX_ENV > MIX_ENV
+      - restore_cache:
+          key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI4" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
           key: nerves/deploy/system-{{ checksum "MIX_TARGET_RPI3" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
       - restore_cache:
@@ -266,6 +289,13 @@ jobs:
           fingerprints:
             - "97:92:32:5d:d7:96:e1:fa:f3:6b:f3:bd:d6:aa:84:c6"
       - run: echo $FWUP_KEY_BASE64 | base64 --decode --ignore-garbage > $NERVES_FW_PRIV_KEY
+      - run:
+          name: Sign rpi4 Firmware and create image
+          command: |
+            mv /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).fw /tmp/farmbot-rpi4-$(cat VERSION).fw
+            fwup -S -s $NERVES_FW_PRIV_KEY -i /tmp/farmbot-rpi4-$(cat VERSION).fw -o /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).fw
+            fwup -a -t complete -i /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).fw -d /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).img
+            sha256sum /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi4-$(cat VERSION).sha256
       - run:
           name: Sign rpi3 Firmware and create image
           command: |
@@ -297,7 +327,7 @@ workflows:
   # main branch to my.farmbot.io
   create_github_release:
     jobs:
-      - build_fresh_rpi:
+      - build_fresh_rpi4:
           context: org-global
           filters:
             branches:
@@ -311,16 +341,28 @@ workflows:
               only:
                 - main
                 - /^qa\/.*/
-      - predeploy_rpi:
+      - build_fresh_rpi:
+          context: org-global
+          filters:
+            branches:
+              only:
+                - main
+                - /^qa\/.*/
+      - predeploy_rpi4:
           context: org-global
           requires:
-            - build_fresh_rpi
+            - build_fresh_rpi4
       - predeploy_rpi3:
           context: org-global
           requires:
             - build_fresh_rpi3
-      - release_to_github:
+      - predeploy_rpi:
           context: org-global
           requires:
             - build_fresh_rpi
+      - release_to_github:
+          context: org-global
+          requires:
+            - build_fresh_rpi4
             - build_fresh_rpi3
+            - build_fresh_rpi

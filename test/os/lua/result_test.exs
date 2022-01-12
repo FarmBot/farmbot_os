@@ -23,11 +23,4 @@ defmodule FarmbotOS.Lua.ResultTest do
     expected = "foo"
     assert msg == expected
   end
-
-  test "error parsing after estop" do
-    lua = FarmbotOS.Lua.disabled_sandbox()
-    err = {:lua_error, {:undefined_function, nil}, lua}
-    {:error, msg} = Result.parse_error(err, :_)
-    assert msg == "Exiting Lua because device is estopped."
-  end
 end

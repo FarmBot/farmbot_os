@@ -14,6 +14,12 @@ echo "######### Run Tests"
 mix coveralls.html
 rm -f *.coverdata
 
+echo "######### Build RPI4 FW"
+
+MIX_TARGET=rpi4 MIX_ENV=prod mix deps.get
+MIX_TARGET=rpi4 MIX_ENV=prod mix compile --force
+MIX_TARGET=rpi4 MIX_ENV=prod mix firmware
+
 echo "######### Build RPI3 FW"
 
 MIX_TARGET=rpi3 MIX_ENV=prod mix deps.get

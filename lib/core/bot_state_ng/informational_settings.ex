@@ -28,6 +28,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
     field(:scheduler_usage, :integer)
     field(:sync_status, :string, default: "sync_now")
     field(:locked, :boolean, default: false)
+    field(:locked_at, :integer, default: 0)
     field(:last_status, :string)
     field(:cache_bust, :integer)
     field(:busy, :boolean)
@@ -65,6 +66,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
       cpu_usage: informational_settings.scheduler_usage,
       sync_status: informational_settings.sync_status,
       locked: informational_settings.locked,
+      locked_at: informational_settings.locked_at,
       last_status: informational_settings.last_status,
       cache_bust: informational_settings.cache_bust,
       busy: informational_settings.busy,
@@ -95,6 +97,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
       :scheduler_usage,
       :sync_status,
       :locked,
+      :locked_at,
       :last_status,
       :cache_bust,
       :busy,
