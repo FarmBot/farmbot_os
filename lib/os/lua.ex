@@ -155,22 +155,9 @@ defmodule FarmbotOS.Lua do
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
       write_pin: &Firmware.write_pin/2,
-      get_job_progress: fn [name], lua ->
-        job = Map.get(FarmbotOS.BotState.fetch().jobs, name)
-        {[job], lua}
-      end,
-      set_job_progress: fn [name, args], lua ->
-        map = FarmbotOS.Lua.Util.lua_to_elixir(args)
-
-        job = %FarmbotOS.BotState.JobProgress.Percent{
-          type: Map.get(map, "type") || "unknown",
-          status: Map.get(map, "status") || "working",
-          percent: Map.get(map, "percent") || 0
-        }
-
-        FarmbotOS.BotState.set_job_progress(name, job)
-        {[], lua}
-      end
+      cs_eval: &FarmbotOS.Celery.execute_from_lua/2,
+      get_job_progress: &Info.get_job_progress/2,
+      set_job_progress: &Info.set_job_progress/2
     }
   end
 end

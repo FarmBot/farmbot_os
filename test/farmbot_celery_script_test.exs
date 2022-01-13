@@ -9,6 +9,36 @@ defmodule FarmbotOS.CeleryTest do
 
   setup :verify_on_exit!
 
+  @fake_lua_ast [
+    {"kind", "rpc_request"},
+    {"args", [{"label", "x"}, {"priority", 600}]},
+    {"body", [{1, [{"args", []}, {"kind", "nothing"}]}]}
+  ]
+
+  test "executiong of CS from Lua - OK" do
+    %Task{pid: pid} =
+      task =
+      Task.async(
+        FarmbotOS.Celery,
+        :execute_from_lua,
+        [[@fake_lua_ast], %{}]
+      )
+
+    send(pid, {:csvm_done, nil, :ok})
+    result = Task.await(task)
+    assert result == {[true, nil], %{}}
+  end
+
+  test "executiong of CS from Lua - error" do
+    %Task{pid: pid} =
+      task =
+      Task.async(FarmbotOS.Celery, :execute_from_lua, [[@fake_lua_ast], %{}])
+
+    send(pid, {:csvm_done, nil, {:error, "x"}})
+    result = Task.await(task)
+    assert result == {[false, "{:csvm_done, nil, {:error, \"x\"}}"], %{}}
+  end
+
   test "schedule/3" do
     at = DateTime.utc_now()
     ast = AST.decode(%{kind: :rpc_request, args: %{label: "X"}, body: []})

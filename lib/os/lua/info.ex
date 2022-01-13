@@ -93,6 +93,24 @@ defmodule FarmbotOS.Lua.Info do
     {[token], lua}
   end
 
+  def get_job_progress([name], lua) do
+    job = Map.get(FarmbotOS.BotState.fetch().jobs, name)
+    {[job], lua}
+  end
+
+  def set_job_progress([name, args], lua) do
+    map = FarmbotOS.Lua.Util.lua_to_elixir(args)
+
+    job = %FarmbotOS.BotState.JobProgress.Percent{
+      type: Map.get(map, "type") || "unknown",
+      status: Map.get(map, "status") || "working",
+      percent: Map.get(map, "percent") || 0
+    }
+
+    FarmbotOS.BotState.set_job_progress(name, job)
+    {[], lua}
+  end
+
   defp do_send_message(kind, message, channels, lua) do
     result = SysCallGlue.send_message(kind, "#{message}", channels)
 
