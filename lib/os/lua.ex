@@ -101,7 +101,10 @@ defmodule FarmbotOS.Lua do
       # to abort script execution (if E-Stop was called at any
       # point during Lua execution).
       __LUA_START_TIME: FarmbotOS.Time.system_time_ms(),
+      __SERVER_PATH:
+        FarmbotOS.Config.get_config_value(:string, "authorization", "server"),
       auth_token: &Info.auth_token/2,
+      api: &DataManipulation.api/2,
       base64: [
         {:decode, &DataManipulation.b64_decode/2},
         {:encode, &DataManipulation.b64_encode/2}

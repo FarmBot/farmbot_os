@@ -38,11 +38,14 @@ defmodule FarmbotOS.Lua.InfoTest do
   end
 
   test "auth_token()" do
-    expect(FarmbotOS.Config, :get_config_value, 1, fn t, k, v ->
-      assert t == :string
-      assert k == "authorization"
-      assert v == "token"
-      "fake_token"
+    expect(FarmbotOS.Config, :get_config_value, 2, fn
+      t, k, "token" ->
+        assert t == :string
+        assert k == "authorization"
+        "fake_token"
+
+      _, _, _ ->
+        "+++++"
     end)
 
     lua_code = "return auth_token()"
