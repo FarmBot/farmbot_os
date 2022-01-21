@@ -18,4 +18,20 @@ defmodule FarmbotOS.Celery do
       when k in @entrypoints do
     StepRunner.begin(caller, tag, ast)
   end
+
+  @doc "Lua VM calls CSVM"
+  def execute_from_lua([input_ast], lua) do
+    input_ast
+    |> FarmbotOS.Lua.Util.lua_to_elixir()
+    |> AST.decode()
+    |> execute(make_ref(), self())
+
+    receive do
+      {:csvm_done, _, :ok} ->
+        {[true, nil], lua}
+
+      other ->
+        {[false, inspect(other)], lua}
+    end
+  end
 end

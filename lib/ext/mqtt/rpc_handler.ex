@@ -47,8 +47,6 @@ defmodule FarmbotOS.MQTT.RPCHandler do
   end
 
   def handle_info({:csvm_done, ref, :ok}, state) do
-    Logger.info("CeleryScript OK")
-
     case state.rpc_requests[ref] do
       %{label: label, timer: timer} ->
         FarmbotOS.Time.cancel_timer(timer)

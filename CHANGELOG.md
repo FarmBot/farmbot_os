@@ -1,5 +1,11 @@
 # Changelog
 
+# 14.8.1
+
+ * Add `api()` helper to simplify API access in Lua.
+ * Remove legacy logs relating to device updates.
+ * Ability to execute raw CeleryScript from Lua.
+
 # 14.8.0
 
  * Upgrade Elixir, Erlang and system deps.
