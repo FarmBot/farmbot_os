@@ -366,11 +366,11 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
       assert lua_code == @lua_code
       assert lua_state == :fake_lua
-      {:ok, :result}
+      {:ok, [:result]}
     end)
 
     result = DataManipulation.photo_grid([], :fake_lua)
-    assert result == {:result, :fake_lua}
+    assert result == {[:result], :fake_lua}
   end
 
   test "photo_grid() - KO" do

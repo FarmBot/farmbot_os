@@ -97,32 +97,29 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
-      base64: [
-        {:decode, &DataManipulation.b64_decode/2},
-        {:encode, &DataManipulation.b64_encode/2}
-      ],
-      json: [
-        {:decode, &DataManipulation.json_decode/2},
-        {:encode, &DataManipulation.json_encode/2}
-      ],
-      uart: [
-        {:open, &FarmbotOS.Firmware.LuaUART.open/2},
-        {:list, &FarmbotOS.Firmware.LuaUART.list/2}
-      ],
       # This flag can be compared agaist the last e-stop timestamp
       # to abort script execution (if E-Stop was called at any
       # point during Lua execution).
       __LUA_START_TIME: FarmbotOS.Time.system_time_ms(),
+      __SERVER_PATH:
+        FarmbotOS.Config.get_config_value(:string, "authorization", "server"),
       auth_token: &Info.auth_token/2,
+      api: &DataManipulation.api/2,
+      base64: [
+        {:decode, &DataManipulation.b64_decode/2},
+        {:encode, &DataManipulation.b64_encode/2}
+      ],
+      calibrate_camera: execute_script("camera-calibration"),
       check_position: &Firmware.check_position/2,
       coordinate: &Firmware.coordinate/2,
+      cs_eval: &FarmbotOS.Celery.execute_from_lua/2,
       current_hour: &Info.current_hour/2,
       current_minute: &Info.current_minute/2,
       current_month: &Info.current_month/2,
       current_second: &Info.current_second/2,
+      detect_weeds: execute_script("plant-detection"),
       emergency_lock: &Firmware.emergency_lock/2,
       emergency_unlock: &Firmware.emergency_unlock/2,
-      soft_stop: &Firmware.soft_stop/2,
       env: &DataManipulation.env/2,
       fbos_version: &Info.fbos_version/2,
       find_axis_length: &Firmware.calibrate/2,
@@ -132,32 +129,38 @@ defmodule FarmbotOS.Lua do
       get_device: &DataManipulation.get_device/2,
       get_fbos_config: &DataManipulation.get_fbos_config/2,
       get_firmware_config: &DataManipulation.get_firmware_config/2,
+      get_job_progress: &Info.get_job_progress/2,
       get_position: &Firmware.get_position/2,
       go_to_home: &Firmware.go_to_home/2,
       http: &DataManipulation.http/2,
       inspect: &DataManipulation.json_encode/2,
+      json: [
+        {:decode, &DataManipulation.json_decode/2},
+        {:encode, &DataManipulation.json_encode/2}
+      ],
+      measure_soil_height: execute_script("Measure Soil Height"),
       move_absolute: &Firmware.move_absolute/2,
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
       photo_grid: &DataManipulation.photo_grid/2,
       read_pin: &Firmware.read_pin/2,
       read_status: &Info.read_status/2,
       send_message: &Info.send_message/2,
+      set_job_progress: &Info.set_job_progress/2,
       set_pin_io_mode: &Firmware.set_pin_io_mode/2,
+      soft_stop: &Firmware.soft_stop/2,
       soil_height: &DataManipulation.soil_height/2,
       take_photo_raw: &DataManipulation.take_photo_raw/2,
       take_photo: execute_script("take-photo"),
-      calibrate_camera: execute_script("camera-calibration"),
-      detect_weeds: execute_script("plant-detection"),
-      measure_soil_height: execute_script("Measure Soil Height"),
+      uart: [
+        {:open, &FarmbotOS.Firmware.LuaUART.open/2},
+        {:list, &FarmbotOS.Firmware.LuaUART.list/2}
+      ],
       update_device: &DataManipulation.update_device/2,
       update_fbos_config: &DataManipulation.update_fbos_config/2,
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
-      write_pin: &Firmware.write_pin/2,
-      cs_eval: &FarmbotOS.Celery.execute_from_lua/2,
-      get_job_progress: &Info.get_job_progress/2,
-      set_job_progress: &Info.set_job_progress/2
+      write_pin: &Firmware.write_pin/2
     }
   end
 end
