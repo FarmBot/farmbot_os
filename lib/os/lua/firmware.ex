@@ -99,8 +99,8 @@ defmodule FarmbotOS.Lua.Firmware do
     end
   end
 
-  def move_absolute([table], lua) when is_list(table) do
-    move_absolute([table, 100], lua)
+  def move_absolute([table] = args, lua) when is_list(table) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "safe_z")
   end
 
   def move_absolute([table, speed], lua)

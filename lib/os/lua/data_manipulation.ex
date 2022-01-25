@@ -219,7 +219,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def photo_grid(args, lua), do: lua_extension(args, lua, "photo_grid")
   def api(args, lua), do: lua_extension(args, lua, "api")
 
-  defp lua_extension(args, lua, filename) do
+  def lua_extension(args, lua, filename) do
     lua_code = File.read!("#{:code.priv_dir(:farmbot)}/lua/#{filename}.lua")
 
     with {:ok, [result]} <- Lua.raw_eval(lua, lua_code) do
