@@ -24,10 +24,10 @@ config :mdns_lite,
     %{id: :ssh, protocol: "ssh", transport: "tcp", port: 22}
   ]
 
-config :nerves_firmware_ssh, authorized_keys: local_key
+config :farmbot, authorized_keys: local_key
 
 config :shoehorn,
-  init: [:nerves_runtime, :vintage_net, :nerves_firmware_ssh],
+  init: [:nerves_runtime, :vintage_net],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
 
