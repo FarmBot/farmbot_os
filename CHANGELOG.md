@@ -1,5 +1,9 @@
 # Changelog
 
+# 14.9.0
+
+ * Ability to manage `resource` variables from Lua.
+
 # 14.8.1
 
  * Add `api()` helper to simplify API access in Lua.

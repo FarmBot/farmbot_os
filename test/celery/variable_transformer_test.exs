@@ -62,4 +62,24 @@ defmodule FarmbotOS.Celery.VariableTransformerTest do
     expected = [fake_stuff]
     assert actual == expected
   end
+
+  test "CS Resource" do
+    id = 999_999
+    sequence = FarmbotOS.Asset.new_sequence!(%{id: id})
+    params = %{args: %{resource_id: id, resource_type: "Sequence"}}
+    [result] = VariableTransformer.run!(params)
+    assert result == sequence
+  end
+
+  test "CS Resource - not known" do
+    unknown = %{args: %{resource_id: 111, resource_type: "Foo"}}
+    [result] = VariableTransformer.run!(unknown)
+    assert result == unknown
+  end
+
+  test "CS Resource - not found" do
+    not_found = %{args: %{resource_id: 111, resource_type: "Sequence"}}
+    [result] = VariableTransformer.run!(not_found)
+    refute result
+  end
 end
