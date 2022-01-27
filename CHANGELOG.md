@@ -3,6 +3,7 @@
 # 14.9.0
 
  * Ability to manage `resource` variables from Lua.
+ * Upgrade Nerves system, Erlang, Elixir.
 
 # 14.8.1
 
