@@ -229,14 +229,14 @@ defmodule FarmbotOS.Celery.CompilerTest do
 
     assert compiled ==
              strip_nl("""
-             with(
+             with
                locx when is_number(locx) <- 100.4,
                locy when is_number(locy) <- 90,
                locz when is_number(locz) <- 50,
                curx when is_number(curx) <- FarmbotOS.Celery.SysCallGlue.get_current_x(),
                cury when is_number(cury) <- FarmbotOS.Celery.SysCallGlue.get_current_y(),
                curz when is_number(curz) <- FarmbotOS.Celery.SysCallGlue.get_current_z()
-             ) do
+               do
                x = locx + curx
                y = locy + cury
                z = locz + curz
