@@ -45,7 +45,18 @@ defmodule FarmbotOS.Celery.Compiler.VariableTransformer do
       result = Repo.get_by(mod, id: id)
 
       if result do
-        [result]
+        [
+          result
+          |> Map.delete(:__meta__)
+          |> Map.delete(:__struct__)
+          |> Map.delete(:local_meta)
+          |> Map.delete(:local_id)
+          |> Map.delete(:monitor)
+          |> Map.delete(:created_at)
+          |> Map.delete(:updated_at)
+          |> FarmbotOS.Lua.Util.map_to_table()
+          |> List.wrap()
+        ]
       else
         msg = "Could not find #{t} #{id}. Did you delete it?"
         FarmbotOS.Logger.info(3, msg)
