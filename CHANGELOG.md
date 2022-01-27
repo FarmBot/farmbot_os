@@ -4,6 +4,7 @@
 
  * Ability to manage `resource` variables from Lua.
  * Upgrade Nerves system, Erlang, Elixir.
+ * Ability to specify `safe_z` from Lua `move_absolute()`.
 
 # 14.8.1
 
