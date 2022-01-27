@@ -1,4 +1,4 @@
-local safe_z = get_fbos_config("safe_z")
+local safe_z = get_fbos_config("safe_height")
 
 function overwrite(axis, num)
     return {
