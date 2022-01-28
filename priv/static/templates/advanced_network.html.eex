@@ -20,9 +20,6 @@
     <label for="regulatory_domain"> regulatory domain </label>
     <input type="text" id="regulatory_domain" name="regulatory_domain" value="US">
 
-    <label for="ssh_key"> id_rsa.pub </label>
-    <input type="text" id="ssh_key" name="ssh_key" value="">
-
     <label for="dns_name"> Domain for verifying DNS (eg: "my.farm.bot")</label>
     <input type="text" id="dns_name" name="dns_name" value="">
 

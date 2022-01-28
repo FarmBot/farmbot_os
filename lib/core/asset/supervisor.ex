@@ -10,7 +10,6 @@ defmodule FarmbotOS.Asset.Supervisor do
     FbosConfig,
     FirmwareConfig,
     PinBinding,
-    PublicKey,
     Peripheral,
     RegimenInstance
   }
@@ -32,7 +31,6 @@ defmodule FarmbotOS.Asset.Supervisor do
       {ChangeSupervisor, module: RegimenInstance},
       {ChangeSupervisor, module: FarmEvent},
       {ChangeSupervisor, module: PinBinding},
-      {ChangeSupervisor, module: PublicKey},
       {ChangeSupervisor, module: Peripheral},
       {ChangeSupervisor, module: FarmwareEnv},
       AssetMonitor

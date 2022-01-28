@@ -184,7 +184,6 @@ defmodule FarmbotOS.Configurator.Router do
     dns_name = conn.params["dns_name"] |> remove_empty_string()
     ntp1 = conn.params["ntp_server_1"] |> remove_empty_string()
     ntp2 = conn.params["ntp_server_2"] |> remove_empty_string()
-    ssh_key = conn.params["ssh_key"] |> remove_empty_string()
 
     # Network Interface configuration data
     ssid = conn.params["ssid"] |> remove_empty_string()
@@ -204,7 +203,6 @@ defmodule FarmbotOS.Configurator.Router do
     |> put_session("net_config_dns_name", dns_name)
     |> put_session("net_config_ntp1", ntp1)
     |> put_session("net_config_ntp2", ntp2)
-    |> put_session("net_config_ssh_key", ssh_key)
     |> put_session("net_config_ssid", ssid)
     |> put_session("net_config_security", security)
     |> put_session("net_config_psk", psk)
