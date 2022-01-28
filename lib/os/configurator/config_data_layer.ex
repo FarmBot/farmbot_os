@@ -8,7 +8,6 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
   require FarmbotOS.Logger
   alias FarmbotOS.Config
   alias FarmbotOS.FileSystem
-  alias FarmbotOS.Asset
 
   @impl FarmbotOS.Configurator.DataLayer
   def save_config(%{
@@ -17,7 +16,6 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
         "net_config_dns_name" => net_config_dns_name,
         "net_config_ntp1" => net_config_ntp1,
         "net_config_ntp2" => net_config_ntp2,
-        "net_config_ssh_key" => net_config_ssh_key,
         "net_config_ssid" => net_config_ssid,
         "net_config_security" => net_config_security,
         "net_config_psk" => net_config_psk,
@@ -78,13 +76,6 @@ defmodule FarmbotOS.Configurator.ConfigDataLayer do
         "default_dns_name",
         net_config_dns_name
       )
-
-    if net_config_ssh_key do
-      Asset.new_public_key!(%{
-        name: "authorized_ssh_key",
-        public_key: net_config_ssh_key
-      })
-    end
 
     # Farmbot specific auth data
     _ = Config.update_config_value(:string, "authorization", "secret", nil)

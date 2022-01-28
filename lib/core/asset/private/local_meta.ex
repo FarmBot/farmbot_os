@@ -16,7 +16,6 @@ defmodule FarmbotOS.Asset.Private.LocalMeta do
     Peripheral,
     PinBinding,
     Point,
-    PublicKey,
     Regimen,
     SensorReading,
     Sensor,
@@ -80,13 +79,6 @@ defmodule FarmbotOS.Asset.Private.LocalMeta do
     )
 
     belongs_to(:point, Point,
-      foreign_key: :asset_local_id,
-      type: :binary_id,
-      references: :local_id,
-      define_field: false
-    )
-
-    belongs_to(:public_key, PublicKey,
       foreign_key: :asset_local_id,
       type: :binary_id,
       references: :local_id,

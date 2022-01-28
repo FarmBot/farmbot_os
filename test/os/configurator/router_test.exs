@@ -256,7 +256,6 @@ defmodule FarmbotOS.Configurator.RouterTest do
       "dns_name" => "super custom",
       "ntp_server_1" => "pool0.ntpd.org",
       "ntp_server_2" => "pool1.ntpd.org",
-      "ssh_key" => "very long ssh key",
       "ssid" => "Test Network",
       "security" => "WPA-PSK",
       "psk" => "ABCDEF",
@@ -279,7 +278,6 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert get_session(conn, "net_config_dns_name") == "super custom"
     assert get_session(conn, "net_config_ntp1") == "pool0.ntpd.org"
     assert get_session(conn, "net_config_ntp2") == "pool1.ntpd.org"
-    assert get_session(conn, "net_config_ssh_key") == "very long ssh key"
     assert get_session(conn, "net_config_ssid") == "Test Network"
     assert get_session(conn, "net_config_security") == "WPA-PSK"
     assert get_session(conn, "net_config_psk") == "ABCDEF"

@@ -25,7 +25,6 @@ defmodule FarmbotOS.Configurator.ConfigDataLayerTest do
     "net_config_psk" => nil,
     "net_config_reg_domain" => "US",
     "net_config_security" => nil,
-    "net_config_ssh_key" => nil,
     "net_config_ssid" => nil
   }
 

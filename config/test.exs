@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 data_path = Path.join(["/", "tmp", "farmbot"])
 File.mkdir_p(data_path)

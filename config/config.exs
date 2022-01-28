@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 is_test? = Mix.env() == :test
 rollbar_token = System.get_env("ROLLBAR_TOKEN")
 config :mime, :types, %{}
@@ -9,9 +9,6 @@ config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 config :tesla, adapter: Tesla.Adapter.Hackney
 
 %{
-  Elixir.FarmbotOS.AssetWorker.FarmbotOS.Asset.PublicKey => [
-    ssh_handler: FarmbotOS.PublicKeyHandler.StubSSHHandler
-  ],
   FarmbotOS.Asset.Repo => [
     database: "database.#{Mix.env()}.db",
     log: false
