@@ -126,6 +126,7 @@ defmodule FarmbotOS.Lua do
       find_home: &Firmware.find_home/2,
       firmware_version: &Info.firmware_version/2,
       garden_size: &DataManipulation.garden_size/2,
+      gcode: &do_gcode/2,
       get_device: &DataManipulation.get_device/2,
       get_fbos_config: &DataManipulation.get_fbos_config/2,
       get_firmware_config: &DataManipulation.get_firmware_config/2,
@@ -162,5 +163,25 @@ defmodule FarmbotOS.Lua do
       watch_pin: &PinWatcher.new/2,
       write_pin: &Firmware.write_pin/2
     }
+  end
+
+  def do_gcode([command, raw_params], lua) do
+    params =
+      raw_params
+      |> Enum.map(fn
+        {k, v} ->
+          k2 = k |> String.capitalize() |> String.to_atom()
+          {k2, v}
+
+        _ ->
+          nil
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    command
+    |> FarmbotOS.Firmware.GCode.new(params)
+    |> FarmbotOS.Firmware.UARTCore.start_job()
+
+    {[], lua}
   end
 end
