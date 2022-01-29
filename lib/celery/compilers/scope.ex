@@ -9,7 +9,8 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
     # objects that are easier to `inspect()`.
     parent: nil,
     # Map<string, %AST{}>
-    declarations: %{}
+    declarations: %{},
+    valid: true
   ]
 
   def new(), do: new(nil, [])
@@ -43,8 +44,29 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
 
   def has_key?(scope, label), do: Map.has_key?(scope.declarations, label)
 
+  @nothing %AST{kind: :nothing, args: %{}, body: []}
+  @not_allowed [
+    :location_placeholder,
+    :number_placeholder,
+    :resource_placeholder,
+    :text_placeholder
+  ]
   def set(scope, key, value) do
-    %{scope | declarations: Map.put(scope.declarations, key, value)}
+    # If there is a `*_placeholder` node in the scope,
+    # it means the user did not supply a value for a
+    # parameter. We must exit the CSVM as soon as possible.
+    if is_map(value) && Map.get(value, :kind) in @not_allowed do
+      FarmbotOS.Celery.SysCallGlue.send_message(
+        "error",
+        "No value provided for " <> key,
+        "toast"
+      )
+
+      declr = Map.put(scope.declarations, key, @nothing)
+      %{scope | declarations: declr, valid: false}
+    else
+      %{scope | declarations: Map.put(scope.declarations, key, value)}
+    end
   end
 
   # GIVEN A scope object and a label
