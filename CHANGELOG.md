@@ -4,6 +4,7 @@
 
  * Ability to manage `resource` variables from Lua.
  * Ability to execute GCode raw from Lua.
+ * Runtime validation of missing sequence parameters.
  * Upgrade Nerves system, Erlang, Elixir.
  * Ability to specify `safe_z` from Lua `move_absolute()`.
  * Remove SSH subsystem. It is no longer maintained.
