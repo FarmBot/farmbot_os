@@ -43,8 +43,28 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
 
   def has_key?(scope, label), do: Map.has_key?(scope.declarations, label)
 
+  @nothing %AST{kind: :nothing, args: %{}, body: []}
+  @not_allowed [
+    :location_placeholder,
+    :number_placeholder,
+    :resource_placeholder,
+    :text_placeholder
+  ]
   def set(scope, key, value) do
-    %{scope | declarations: Map.put(scope.declarations, key, value)}
+    declr =
+      if is_map(value) && Map.get(value, :kind) in @not_allowed do
+        FarmbotOS.Celery.SysCallGlue.send_message(
+          "error",
+          "No value provided for " <> key,
+          "toast"
+        )
+
+        Map.put(scope.declarations, key, @nothing)
+      else
+        Map.put(scope.declarations, key, value)
+      end
+
+    %{scope | declarations: declr}
   end
 
   # GIVEN A scope object and a label
