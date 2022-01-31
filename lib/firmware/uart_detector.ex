@@ -8,6 +8,7 @@ defmodule FarmbotOS.Firmware.UARTDetector do
   @third_guess %{
     "arduino" => "ttyACM0",
     "express_k10" => "ttyAMA0",
+    "express_k11" => "ttyUSB0",
     "farmduino_k14" => "ttyACM0",
     "farmduino_k15" => "ttyACM0",
     "farmduino_k16" => "ttyACM0",
