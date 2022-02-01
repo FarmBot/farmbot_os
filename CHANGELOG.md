@@ -1,5 +1,16 @@
 # Changelog
 
+# 14.9.0
+
+ * Ability to manage `resource` variables from Lua.
+ * Ability to execute GCode raw from Lua.
+ * Runtime validation of missing sequence parameters.
+ * Upgrade Nerves system, Erlang, Elixir.
+ * Ability to specify `safe_z` from Lua `move_absolute()`.
+ * Remove SSH subsystem. It is no longer maintained.
+ * Nerves system upgrades
+ * Genesis and Express firmware updates.
+
 # 14.8.1
 
  * Add `api()` helper to simplify API access in Lua.

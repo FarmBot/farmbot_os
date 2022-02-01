@@ -12,7 +12,6 @@ defmodule FarmbotOS.Asset.Command do
     FarmwareEnv,
     FbosConfig,
     FirmwareConfig,
-    PublicKey,
     Regimen,
     Sensor,
     PointGroup,
@@ -78,12 +77,6 @@ defmodule FarmbotOS.Asset.Command do
     :ok
   end
 
-  def update(PublicKey, id, nil) do
-    public_key = Asset.get_public_key(id)
-    public_key && Asset.delete_public_key!(public_key)
-    :ok
-  end
-
   def update(Regimen, id, nil) do
     regimen = Asset.get_regimen(id)
     regimen && Asset.delete_regimen!(regimen)
@@ -107,16 +100,6 @@ defmodule FarmbotOS.Asset.Command do
     if old,
       do: Asset.update_farm_event!(old, params),
       else: Asset.new_farm_event!(params)
-
-    :ok
-  end
-
-  def update(PublicKey, id, params) do
-    old = Asset.get_public_key(id)
-
-    if old,
-      do: Asset.update_public_key!(old, params),
-      else: Asset.new_public_key!(params)
 
     :ok
   end

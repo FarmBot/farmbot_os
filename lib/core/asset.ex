@@ -15,7 +15,6 @@ defmodule FarmbotOS.Asset do
     Peripheral,
     Point,
     PointGroup,
-    PublicKey,
     Regimen,
     RegimenInstance,
     Repo,
@@ -463,30 +462,6 @@ defmodule FarmbotOS.Asset do
   end
 
   ## End PointGroup
-
-  ## Begin PublicKey
-
-  def get_public_key(id) do
-    Repo.get_by(PublicKey, id: id)
-  end
-
-  def new_public_key!(params) do
-    %PublicKey{}
-    |> PublicKey.changeset(params)
-    |> Repo.insert!()
-  end
-
-  def update_public_key!(public_key, params) do
-    public_key
-    |> PublicKey.changeset(params)
-    |> Repo.update!()
-  end
-
-  def delete_public_key!(public_key) do
-    Repo.delete!(public_key)
-  end
-
-  ## End PublicKey
 
   ## Begin Regimen
 

@@ -10,6 +10,7 @@ defmodule FarmbotOS.Firmware.FlashUtilsTest do
       "farmduino_k15" => "/priv/firmware/farmduino_k15.hex",
       "farmduino_k16" => "/priv/firmware/farmduino_k16.hex",
       "express_k10" => "/priv/firmware/express_k10.hex",
+      "express_k11" => "/priv/firmware/express_k11.hex",
       "none" => "/priv/firmware/eeprom_clear.ino.hex"
     }
     |> Enum.map(fn {fw, expected} ->

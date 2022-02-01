@@ -52,9 +52,13 @@ defmodule FarmbotOS.Celery.Compiler do
   # common logic involved in the compilation of both, therefore,
   # we need a common entrypoint for both.
   def compile(%AST{} = ast, cs_scope) do
-    ast
-    |> celery_to_elixir(cs_scope)
-    |> print_compiled_code()
+    if cs_scope.valid do
+      ast
+      |> celery_to_elixir(cs_scope)
+      |> print_compiled_code()
+    else
+      {:error, "Exiting command because of errors."}
+    end
   end
 
   defdelegate assertion(ast, cs_scope), to: Compiler.Assertion

@@ -16,8 +16,7 @@ defmodule FarmbotOS.AssetMonitor do
     FarmwareEnv,
     Peripheral,
     RegimenInstance,
-    PinBinding,
-    PublicKey
+    PinBinding
   }
 
   alias FarmbotOS.{ChangeSupervisor, AssetWorker}
@@ -110,7 +109,6 @@ defmodule FarmbotOS.AssetMonitor do
       Peripheral,
       RegimenInstance,
       PinBinding,
-      PublicKey,
       FarmwareEnv
     ]
 end

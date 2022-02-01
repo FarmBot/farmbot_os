@@ -2,6 +2,9 @@
 # an x/y/z property at the root of the object.
 defmodule FarmbotOS.Celery.Compiler.VariableTransformer do
   alias FarmbotOS.Celery.SysCallGlue
+  alias FarmbotOS.Asset.Repo
+
+  require FarmbotOS.Logger
 
   def run!(%{resource_id: id, resource_type: t}) do
     [SysCallGlue.point(t, id)]
@@ -32,6 +35,38 @@ defmodule FarmbotOS.Celery.Compiler.VariableTransformer do
   def run!(nil) do
     error = "LUA ERROR: Sequence does not contain variable"
     [%{kind: :error, error: error, x: nil, y: nil, z: nil}, error]
+  end
+
+  def run!(%{args: %{resource_id: id, resource_type: t}} = misc) do
+    mod = Module.concat(FarmbotOS.Asset, t)
+    is_known_resource? = Kernel.function_exported?(mod, :render, 1)
+
+    if is_known_resource? do
+      result = Repo.get_by(mod, id: id)
+
+      if result do
+        [
+          result
+          |> Map.delete(:__meta__)
+          |> Map.delete(:__struct__)
+          |> Map.delete(:local_meta)
+          |> Map.delete(:local_id)
+          |> Map.delete(:monitor)
+          |> Map.delete(:created_at)
+          |> Map.delete(:updated_at)
+          |> FarmbotOS.Lua.Util.map_to_table()
+          |> List.wrap()
+        ]
+      else
+        msg = "Could not find #{t} #{id}. Did you delete it?"
+        FarmbotOS.Logger.info(3, msg)
+        [nil]
+      end
+    else
+      # There was a typo, or the sequence is handling a resource
+      # that FarmBot OS does not know about.
+      [misc]
+    end
   end
 
   def run!(other) do

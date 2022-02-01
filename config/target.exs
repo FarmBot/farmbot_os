@@ -1,7 +1,5 @@
-use Mix.Config
+import Config
 data_path = Path.join("/", "root")
-local_file = Path.join(System.user_home!(), ".ssh/id_rsa.pub")
-local_key = if File.exists?(local_file), do: [File.read!(local_file)], else: []
 
 # TODO: If folks want reproducible builds, we will need to
 # eventually fix this.
@@ -20,14 +18,12 @@ config :logger, RingLogger, max_size: 1024, color: [enabled: true]
 config :mdns_lite,
   mdns_config: %{host: :hostname, ttl: 120},
   services: [
-    %{id: :configurator, protocol: "http", transport: "tcp", port: 80},
-    %{id: :ssh, protocol: "ssh", transport: "tcp", port: 22}
+    %{id: :configurator, protocol: "http", transport: "tcp", port: 80}
+    # %{id: :s sh, protocol: "s s h", transport: "tcp", port: 22}
   ]
 
-config :nerves_firmware_ssh, authorized_keys: local_key
-
 config :shoehorn,
-  init: [:nerves_runtime, :vintage_net, :nerves_firmware_ssh],
+  init: [:nerves_runtime, :vintage_net],
   handler: FarmbotOS.Platform.Target.ShoehornHandler,
   app: :farmbot
 
@@ -45,9 +41,6 @@ config :vintage_net,
   FarmbotOS.AssetWorker.FarmbotOS.Asset.PinBinding => [
     gpio_handler: FarmbotOS.Platform.Target.PinBindingWorker.CircuitsGPIOHandler
   ],
-  FarmbotOS.AssetWorker.FarmbotOS.Asset.PublicKey => [
-    ssh_handler: FarmbotOS.Platform.Target.SSHConsole
-  ],
   FarmbotOS.Leds => [
     gpio_handler: FarmbotOS.Platform.Target.Leds.CircuitsHandler
   ],
@@ -61,7 +54,6 @@ config :vintage_net,
   FarmbotOS.Platform.Supervisor => [
     platform_children: [
       FarmbotOS.Platform.Target.Network.Supervisor,
-      FarmbotOS.Platform.Target.SSHConsole,
       FarmbotOS.Platform.Target.InfoWorker.Supervisor
     ]
   ],

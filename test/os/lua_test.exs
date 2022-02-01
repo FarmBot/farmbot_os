@@ -11,6 +11,19 @@ defmodule FarmbotOS.LuaTest do
     DataManipulation
   }
 
+  test "do_gcode" do
+    expect(FarmbotOS.Firmware.UARTCore, :start_job, 1, fn gcode ->
+      assert gcode.command == "G00"
+      assert gcode.echo == nil
+      assert gcode.params == [X: 10, Y: 20, Z: 30]
+      assert gcode.string == "G00 X10.00 Y20.00 Z30.00"
+      {:ok, nil}
+    end)
+
+    result = Lua.do_gcode(["G00", [{"x", 10}, {"y", 20}, {"z", 30}]], %{})
+    assert {[], %{}} = result
+  end
+
   test "job setters/getters" do
     fns = Lua.builtins()
     name = "foo"
