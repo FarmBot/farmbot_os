@@ -9,6 +9,7 @@
  * Ability to specify `safe_z` from Lua `move_absolute()`.
  * Remove SSH subsystem. It is no longer maintained.
  * Nerves system upgrades
+ * Genesis and Express firmware updates.
 
 # 14.8.1
 
