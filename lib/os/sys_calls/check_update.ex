@@ -48,4 +48,13 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
     UpdateProgress.set(progress_pid, 100)
     {:error, error}
   end
+
+  def uptime_hotfix(uptime_seconds) do
+    days = uptime_seconds / 86400
+
+    if days > 31 do
+      FarmbotOS.Logger.debug(3, "Rebooting after #{days} days of uptime.")
+      FarmbotOS.SysCalls.reboot()
+    end
+  end
 end
