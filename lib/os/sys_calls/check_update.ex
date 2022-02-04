@@ -56,6 +56,7 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
 
     if days > max_uptime() do
       {tz, ota_hour} = FarmbotOS.UpdateSupport.get_hotfix_info()
+
       if tz && ota_hour do
         if Timex.now(tz).hour == ota_hour do
           FarmbotOS.UpdateSupport.do_hotfix()

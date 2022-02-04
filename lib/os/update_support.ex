@@ -130,7 +130,7 @@ defmodule FarmbotOS.UpdateSupport do
   end
 
   def do_hotfix() do
-    uptime = FarmbotOS.SysCalls.CheckUpdate.max_uptime
+    uptime = FarmbotOS.SysCalls.CheckUpdate.max_uptime()
     FarmbotOS.Logger.debug(3, "Rebooting after #{uptime} days of uptime.")
     FarmbotOS.SysCalls.reboot()
   end

@@ -3,6 +3,22 @@ defmodule FarmbotOS.UpdateSupportTest do
   use Mimic
   setup :verify_on_exit!
   alias FarmbotOS.UpdateSupport
+  require Helpers
+
+  test "get_hotfix_info()" do
+    expect(FarmbotOS.Asset, :device, 1, fn ->
+      %{timezone: "America/Chicago", ota_hour: 12}
+    end)
+
+    result = UpdateSupport.get_hotfix_info()
+    assert result == {"America/Chicago", 12}
+  end
+
+  test "do_hotfix()" do
+    expect(FarmbotOS.SysCalls, :reboot, 1, fn -> :ok end)
+    Helpers.expect_log("Rebooting after 31 days of uptime.")
+    UpdateSupport.do_hotfix()
+  end
 
   test "handle_http_response - 422 error" do
     body = %{1 => "A", 2 => "B"}
