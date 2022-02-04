@@ -92,4 +92,28 @@ defmodule FarmbotOS.SysCalls.CheckUpdateTest do
 
     CheckUpdate.check_update()
   end
+
+  test "hotfix for OTA issue - timezone / OTA hour set" do
+    expect(FarmbotOS.UpdateSupport, :get_hotfix_info, 1, fn ->
+      {"America/Chicago", 15}
+    end)
+    expect(FarmbotOS.UpdateSupport, :do_hotfix, 1, fn -> :ok end)
+    expect(Timex, :now, 1, fn _tz -> %{hour: 15} end)
+    uptime_seconds = 864_000_000
+    CheckUpdate.uptime_hotfix(uptime_seconds)
+  end
+
+  test "hotfix for OTA issue - no timezone / OTA hour" do
+    expect(FarmbotOS.UpdateSupport, :get_hotfix_info, 1, fn ->
+      [
+        {"America/Chicago", 15},
+        {"America/Chicago", nil},
+        {nil, 15},
+        {nil, nil}
+      ] |> Enum.random()
+    end)
+    expect(FarmbotOS.UpdateSupport, :do_hotfix, 1, fn -> :ok end)
+    uptime_seconds = 864_000_000
+    CheckUpdate.uptime_hotfix(uptime_seconds)
+  end
 end

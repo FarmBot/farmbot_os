@@ -49,30 +49,20 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
     {:error, error}
   end
 
-  @max_uptime 31
+  def max_uptime, do: 31
   # Rebooting allows the bot to refresh its API token.
   def uptime_hotfix(uptime_seconds) do
     days = uptime_seconds / 86400
 
-    if days > @max_uptime do
-      device = FarmbotOS.Asset.device()
-      tz = device.timezone
-      ota_hour = device.ota_hour
-
-      if ota_hour && tz do
-        current_hour = Timex.now(tz).hour
-
-        if current_hour == ota_hour do
-          do_hotfix()
+    if days > max_uptime() do
+      {tz, ota_hour} = FarmbotOS.UpdateSupport.get_hotfix_info()
+      if tz && ota_hour do
+        if Timex.now(tz).hour == ota_hour do
+          FarmbotOS.UpdateSupport.do_hotfix()
         end
       else
-        do_hotfix()
+        FarmbotOS.UpdateSupport.do_hotfix()
       end
     end
-  end
-
-  def do_hotfix() do
-    FarmbotOS.Logger.debug(3, "Rebooting after #{@max_uptime} days of uptime.")
-    FarmbotOS.SysCalls.reboot()
   end
 end
