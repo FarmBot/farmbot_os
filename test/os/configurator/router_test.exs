@@ -118,16 +118,16 @@ defmodule FarmbotOS.Configurator.RouterTest do
 
   @tag :capture_log
   test "select network sets session data" do
-    conn = conn(:post, "select_interface")
+    conn = conn(:post, "/select_interface")
     conn = Router.call(conn, @opts)
     assert redirected_to(conn) == "/network"
 
-    conn = conn(:post, "select_interface", %{"interface" => "eth0"})
+    conn = conn(:post, "/select_interface", %{"interface" => "eth0"})
     conn = Router.call(conn, @opts)
     assert redirected_to(conn) == "/config_wired"
     assert get_session(conn, "ifname") == "eth0"
 
-    conn = conn(:post, "select_interface", %{"interface" => "wlan0"})
+    conn = conn(:post, "/select_interface", %{"interface" => "wlan0"})
     conn = Router.call(conn, @opts)
     assert redirected_to(conn) == "/config_wireless"
     assert get_session(conn, "ifname") == "wlan0"
