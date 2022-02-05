@@ -31,6 +31,7 @@
   "api_ota_releases": "11.1.0",
   "ota_update_hour": "8.2.3",
   "quiet_motors": "14.0.0",
+  "resource_variables": "14.9.0",
   "rpi_led_control": "6.4.4",
   "safe_height_input": "12.1.0",
   "sensors": "6.3.0",
