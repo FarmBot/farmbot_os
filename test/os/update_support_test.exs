@@ -16,7 +16,7 @@ defmodule FarmbotOS.UpdateSupportTest do
 
   test "do_hotfix()" do
     expect(FarmbotOS.SysCalls, :reboot, 1, fn -> :ok end)
-    Helpers.expect_log("Rebooting after 31 days of uptime.")
+    Helpers.expect_log("Rebooting after 31 minutes of uptime.")
     UpdateSupport.do_hotfix()
   end
 
