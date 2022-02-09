@@ -1,4 +1,10 @@
 return function(sequence_id, params)
+    if not params then
+        return rpc({
+            kind = "execute",
+            args = {sequence_id = sequence_id}
+        })
+    end
     local body = {}
     local i = 0
     for key, data_value in pairs(params) do
@@ -14,4 +20,3 @@ return function(sequence_id, params)
         body = body
     })
 end
-
