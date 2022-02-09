@@ -121,4 +121,17 @@ defmodule FarmbotOS.UpdateSupport do
     string = "#{server}/api/releases?platform=#{target}"
     to_charlist(string)
   end
+
+  def get_hotfix_info() do
+    device = FarmbotOS.Asset.device()
+    tz = device.timezone
+    ota_hour = device.ota_hour
+    {tz, ota_hour}
+  end
+
+  def do_hotfix() do
+    uptime = FarmbotOS.SysCalls.CheckUpdate.max_uptime()
+    FarmbotOS.Logger.debug(3, "Rebooting after #{uptime} days of uptime.")
+    FarmbotOS.SysCalls.reboot()
+  end
 end

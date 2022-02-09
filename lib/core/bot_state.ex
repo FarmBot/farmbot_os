@@ -353,6 +353,7 @@ defmodule FarmbotOS.BotState do
   end
 
   def handle_call({:report_uptime, seconds}, _form, state) do
+    FarmbotOS.SysCalls.CheckUpdate.uptime_hotfix(seconds)
     change = %{informational_settings: %{uptime: seconds}}
 
     {reply, state} = get_reply_from_change(state, change)

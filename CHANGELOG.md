@@ -1,5 +1,12 @@
 # Changelog
 
+# 15.0.0
+
+ * hotfix for uptime bug
+ * rpc() Lua helper
+ * sequence() Lua helper
+ * Dependency upgrades (including wifi scan edge case bugfix)
+
 # 14.9.0
 
  * Ability to manage `resource` variables from Lua.

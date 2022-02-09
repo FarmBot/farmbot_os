@@ -78,4 +78,11 @@ defmodule FarmbotOS.BotStateTest do
     assert state.tree.informational_settings.locked
     assert state.tree.informational_settings.locked_at == 123
   end
+
+  test "handle_call({:report_uptime, seconds}, _form, state)" do
+    {:reply, :ok, next_state} =
+      FarmbotOS.BotState.handle_call({:report_uptime, 123}, nil, @empty_state)
+
+    assert next_state.tree.informational_settings.uptime == 123
+  end
 end

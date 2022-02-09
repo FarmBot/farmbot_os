@@ -48,4 +48,22 @@ defmodule FarmbotOS.SysCalls.CheckUpdate do
     UpdateProgress.set(progress_pid, 100)
     {:error, error}
   end
+
+  def max_uptime, do: 31
+  # Rebooting allows the bot to refresh its API token.
+  def uptime_hotfix(uptime_seconds) do
+    days = uptime_seconds / 86400
+
+    if days > max_uptime() do
+      {tz, ota_hour} = FarmbotOS.UpdateSupport.get_hotfix_info()
+
+      if tz && ota_hour do
+        if Timex.now(tz).hour == ota_hour do
+          FarmbotOS.UpdateSupport.do_hotfix()
+        end
+      else
+        FarmbotOS.UpdateSupport.do_hotfix()
+      end
+    end
+  end
 end

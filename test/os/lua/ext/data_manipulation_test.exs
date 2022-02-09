@@ -360,11 +360,29 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert results == expected
   end
 
-  @lua_code File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
+  @photo_grid_code File.read!("#{:code.priv_dir(:farmbot)}/lua/photo_grid.lua")
+
+  test "api(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.api([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "rpc(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.rpc([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "sequence(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.sequence([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
 
   test "photo_grid() - OK" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
-      assert lua_code == @lua_code
+      assert lua_code == @photo_grid_code
       assert lua_state == :fake_lua
       {:ok, [:result]}
     end)
@@ -375,7 +393,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
 
   test "photo_grid() - KO" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
-      assert lua_code == @lua_code
+      assert lua_code == @photo_grid_code
       assert lua_state == :fake_lua
       {:error, :error_result}
     end)

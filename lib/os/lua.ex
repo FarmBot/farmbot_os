@@ -145,6 +145,8 @@ defmodule FarmbotOS.Lua do
       photo_grid: &DataManipulation.photo_grid/2,
       read_pin: &Firmware.read_pin/2,
       read_status: &Info.read_status/2,
+      rpc: &DataManipulation.rpc/2,
+      sequence: &DataManipulation.sequence/2,
       send_message: &Info.send_message/2,
       set_job_progress: &Info.set_job_progress/2,
       set_pin_io_mode: &Firmware.set_pin_io_mode/2,
