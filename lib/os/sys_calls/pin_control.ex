@@ -84,6 +84,7 @@ defmodule FarmbotOS.SysCalls.PinControl do
         error
 
       value ->
+        now = DateTime.utc_now()
         position = FarmbotOS.SysCalls.get_position()
 
         params = %{
@@ -92,7 +93,8 @@ defmodule FarmbotOS.SysCalls.PinControl do
           value: value,
           x: position[:x],
           y: position[:y],
-          z: position[:z]
+          z: position[:z],
+          read_at: now
         }
 
         _ = Asset.new_sensor_reading!(params)

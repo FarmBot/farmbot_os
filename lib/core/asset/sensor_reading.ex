@@ -21,6 +21,7 @@ defmodule FarmbotOS.Asset.SensorReading do
     field(:y, :float)
     field(:z, :float)
     field(:monitor, :boolean, default: true)
+    field(:read_at, :utc_datetime)
     timestamps()
   end
 
@@ -33,6 +34,7 @@ defmodule FarmbotOS.Asset.SensorReading do
       x: sensor_reading.x,
       y: sensor_reading.y,
       z: sensor_reading.z,
+      read_at: sensor_reading.read_at,
       created_at: sensor_reading.created_at
     }
   end
@@ -48,6 +50,7 @@ defmodule FarmbotOS.Asset.SensorReading do
       :y,
       :z,
       :monitor,
+      :read_at,
       :created_at,
       :updated_at
     ])
