@@ -39,7 +39,7 @@ defmodule FarmbotOS.Asset.Repo.Migrations.InitialMigration do
     )
 
     execute(
-      "CREATE TABLE IF NOT EXISTS \"fbos_configs\" (\"local_id\" BINARY_ID PRIMARY KEY, \"id\" ID, \"arduino_debug_messages\" BOOLEAN, \"auto_sync\" BOOLEAN, \"beta_opt_in\" BOOLEAN, \"disable_factory_reset\" BOOLEAN, \"firmware_hardware\" TEXT, \"firmware_path\" TEXT, \"firmware_input_log\" BOOLEAN, \"firmware_output_log\" BOOLEAN, \"firmware_debug_log\" BOOLEAN, \"network_not_found_timer\" INTEGER, \"os_auto_update\" BOOLEAN, \"sequence_body_log\" BOOLEAN, \"sequence_complete_log\" BOOLEAN, \"sequence_init_log\" BOOLEAN, \"monitor\" BOOLEAN DEFAULT 1, \"created_at\" UTC_DATETIME NOT NULL, \"updated_at\" UTC_DATETIME NOT NULL, \"update_channel\" TEXT, \"safe_height\" FLOAT, \"soil_height\" FLOAT, \"boot_sequence_id\" ID);"
+      "CREATE TABLE IF NOT EXISTS \"fbos_configs\" (\"local_id\" BINARY_ID PRIMARY KEY, \"id\" ID, \"arduino_debug_messages\" BOOLEAN, \"auto_sync\" BOOLEAN, \"beta_opt_in\" BOOLEAN, \"disable_factory_reset\" BOOLEAN, \"firmware_hardware\" TEXT, \"firmware_path\" TEXT, \"firmware_input_log\" BOOLEAN, \"firmware_output_log\" BOOLEAN, \"firmware_debug_log\" BOOLEAN, \"network_not_found_timer\" INTEGER, \"os_auto_update\" BOOLEAN, \"sequence_body_log\" BOOLEAN, \"sequence_complete_log\" BOOLEAN, \"sequence_init_log\" BOOLEAN, \"monitor\" BOOLEAN DEFAULT 1, \"created_at\" UTC_DATETIME NOT NULL, \"updated_at\" UTC_DATETIME NOT NULL, \"update_channel\" TEXT, \"safe_height\" FLOAT, \"soil_height\" FLOAT);"
     )
 
     execute(
@@ -111,7 +111,7 @@ defmodule FarmbotOS.Asset.Repo.Migrations.InitialMigration do
     )
 
     execute(
-      "CREATE TABLE IF NOT EXISTS \"sensor_readings\" (\"local_id\" BINARY_ID PRIMARY KEY, \"id\" ID, \"mode\" INTEGER, \"pin\" INTEGER, \"value\" INTEGER, \"x\" FLOAT, \"y\" FLOAT, \"z\" FLOAT, \"read_at\" UTC_DATETIME NOT NULL, \"monitor\" BOOLEAN DEFAULT 1, \"created_at\" UTC_DATETIME NOT NULL, \"updated_at\" UTC_DATETIME NOT NULL);"
+      "CREATE TABLE IF NOT EXISTS \"sensor_readings\" (\"local_id\" BINARY_ID PRIMARY KEY, \"id\" ID, \"mode\" INTEGER, \"pin\" INTEGER, \"value\" INTEGER, \"x\" FLOAT, \"y\" FLOAT, \"z\" FLOAT, \"monitor\" BOOLEAN DEFAULT 1, \"created_at\" UTC_DATETIME NOT NULL, \"updated_at\" UTC_DATETIME NOT NULL);"
     )
 
     execute(

@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.1.0
+
+ * add `read_at` to `sensor_readings`
+ * add `boot_sequence_id` to `fbos_configs`
+
 # 15.0.0
 
  * hotfix for uptime bug

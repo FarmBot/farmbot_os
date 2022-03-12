@@ -14,7 +14,7 @@ defmodule FarmbotOS.Asset.FbosConfig do
       foreign_key: :asset_local_id
     )
 
-    field(:boot_sequence_id, :id)
+    field(:boot_sequence_id, :integer)
 
     # No longer supported
     field(:firmware_hardware, :string)
