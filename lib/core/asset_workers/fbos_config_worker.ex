@@ -47,7 +47,8 @@ defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FbosConfig do
       :os_auto_update,
       :sequence_body_log,
       :sequence_complete_log,
-      :sequence_init_log
+      :sequence_init_log,
+      :boot_sequence_id
     ]
 
     new_interesting_fbos_config =
@@ -63,6 +64,21 @@ defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FbosConfig do
       )
 
     Enum.each(difference, fn
+      {:boot_sequence_id, bsid} ->
+        if not is_nil(bsid) do
+          %{sequence_name: name} =
+            (FarmbotOS.Celery.SysCallGlue.get_sequence bsid).meta
+          FarmbotOS.Logger.success(
+            1,
+            "Set boot sequence to #{name}"
+          )
+        else
+          FarmbotOS.Logger.success(
+            1,
+            "Set boot sequence to None"
+          )
+        end
+
       {:os_auto_update, bool} ->
         FarmbotOS.Logger.success(1, "Set OS auto update to #{bool}")
 

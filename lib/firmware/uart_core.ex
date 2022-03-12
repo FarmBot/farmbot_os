@@ -92,6 +92,13 @@ defmodule FarmbotOS.Firmware.UARTCore do
     :ok
   end
 
+  defp initiate_sequence_on_boot() do
+    Task.Supervisor.start_child(FarmbotOS.Task.Supervisor,
+      FarmbotOS.SequenceOnBoot,
+      :schedule_boot_sequence,
+      [])
+  end
+
   # ================= BEGIN GENSERVER CODE =================
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -159,7 +166,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
     # Then, format GCode strings into Elixir-readable tuples.
     gcodes = GCodeDecoder.run(txt_lines)
     # Lastly, trigger any relevant side effect(s).
-    # Example: send userl logs when firmware is locked.
+    # Example: send user logs when firmware is locked.
     state3 = InboundSideEffects.process(state2, gcodes)
 
     if state3.needs_config && state3.rx_buffer.ready do
@@ -200,6 +207,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
       spawn(__MODULE__, :flash_firmware, [self(), package])
     else
       FarmbotOS.Logger.debug(3, "Farmduino OK")
+      initiate_sequence_on_boot()
     end
 
     {:noreply, state}

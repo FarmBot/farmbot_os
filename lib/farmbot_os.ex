@@ -23,7 +23,8 @@ defmodule FarmbotOS do
       FarmbotOS.FirmwareEstopTimer,
       {FarmbotOS.Platform.Supervisor, []},
       FarmbotOS.Asset.Supervisor,
-      FarmbotOS.Firmware.UARTObserver
+      FarmbotOS.Firmware.UARTObserver,
+      {Task.Supervisor, name: FarmbotOS.Task.Supervisor}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)

@@ -14,6 +14,8 @@ defmodule FarmbotOS.Asset.FbosConfig do
       foreign_key: :asset_local_id
     )
 
+    field(:boot_sequence_id, :id)
+
     # No longer supported
     field(:firmware_hardware, :string)
 
@@ -41,6 +43,7 @@ defmodule FarmbotOS.Asset.FbosConfig do
     %{
       id: fbos_config.id,
       updated_at: fbos_config.updated_at,
+      boot_sequence_id: fbos_config.boot_sequence_id,
       firmware_hardware: fbos_config.firmware_hardware,
       firmware_path: fbos_config.firmware_path,
       network_not_found_timer: fbos_config.network_not_found_timer,
@@ -60,6 +63,7 @@ defmodule FarmbotOS.Asset.FbosConfig do
       :created_at,
       :updated_at,
       :monitor,
+      :boot_sequence_id,
       :firmware_hardware,
       :firmware_path,
       :network_not_found_timer,
