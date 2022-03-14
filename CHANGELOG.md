@@ -2,8 +2,10 @@
 
 # 15.1.0
 
- * add `read_at` to `sensor_readings`
- * add `boot_sequence_id` to `fbos_configs`
+ * Implement boot sequence feature
+ * Add boot job progress
+ * Add `read_at` to `sensor_readings`
+ * Add `boot_sequence_id` to `fbos_configs`
 
 # 15.0.0
 

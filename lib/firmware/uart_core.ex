@@ -22,6 +22,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
     InboundSideEffects
   }
 
+  alias FarmbotOS.BotState.JobProgress.Percent
+
   require Logger
   require FarmbotOS.Logger
 
@@ -207,6 +209,13 @@ defmodule FarmbotOS.Firmware.UARTCore do
       spawn(__MODULE__, :flash_firmware, [self(), package])
     else
       FarmbotOS.Logger.debug(3, "Farmduino OK")
+      set_boot_progress(%Percent{status: "complete", percent: 100})
+
+      FarmbotOS.Logger.success(
+        1,
+        "FarmBot is booted. Executing boot sequence..."
+      )
+
       initiate_sequence_on_boot()
     end
 
@@ -249,6 +258,10 @@ defmodule FarmbotOS.Firmware.UARTCore do
   def terminate(_, _) do
     Logger.debug("Firmware terminated.")
     BotState.firmware_offline()
+  end
+
+  defp set_boot_progress(percent) do
+    BotState.set_job_progress("Booting", percent)
   end
 
   defp process_incoming_text(rx_buffer, text) do
