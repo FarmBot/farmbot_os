@@ -221,6 +221,9 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def rpc(args, lua), do: lua_extension(args, lua, "rpc")
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
 
+  def get_seed_tray_cell(args, lua),
+    do: lua_extension(args, lua, "get_seed_tray_cell")
+
   def lua_extension(args, lua, filename) do
     lua_code = File.read!("#{:code.priv_dir(:farmbot)}/lua/#{filename}.lua")
 
