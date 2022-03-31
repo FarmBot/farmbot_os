@@ -162,6 +162,7 @@ defmodule FarmbotOS.Lua do
       update_device: &DataManipulation.update_device/2,
       update_fbos_config: &DataManipulation.update_fbos_config/2,
       update_firmware_config: &DataManipulation.update_firmware_config/2,
+      verify_tool: &DataManipulation.verify_tool/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
       write_pin: &Firmware.write_pin/2

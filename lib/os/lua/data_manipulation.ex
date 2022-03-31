@@ -220,6 +220,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def api(args, lua), do: lua_extension(args, lua, "api")
   def rpc(args, lua), do: lua_extension(args, lua, "rpc")
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
+  def verify_tool(args, lua), do: lua_extension(args, lua, "verify_tool")
 
   def get_seed_tray_cell(args, lua),
     do: lua_extension(args, lua, "get_seed_tray_cell")

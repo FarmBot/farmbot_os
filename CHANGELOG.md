@@ -6,7 +6,7 @@
  * Add boot job progress
  * Add `read_at` to `sensor_readings`
  * Add `boot_sequence_id` to `fbos_configs`
- * Add `get_seed_tray_cell()` lua helper
+ * Add `get_seed_tray_cell()` and `verify_tool()` lua helpers
 
 # 15.0.0
 
