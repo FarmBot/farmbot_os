@@ -132,6 +132,7 @@ defmodule FarmbotOS.Lua do
       get_firmware_config: &DataManipulation.get_firmware_config/2,
       get_job_progress: &Info.get_job_progress/2,
       get_position: &Firmware.get_position/2,
+      get_seed_tray_cell: &DataManipulation.get_seed_tray_cell/2,
       go_to_home: &Firmware.go_to_home/2,
       http: &DataManipulation.http/2,
       inspect: &DataManipulation.json_encode/2,
@@ -161,6 +162,7 @@ defmodule FarmbotOS.Lua do
       update_device: &DataManipulation.update_device/2,
       update_fbos_config: &DataManipulation.update_fbos_config/2,
       update_firmware_config: &DataManipulation.update_firmware_config/2,
+      verify_tool: &DataManipulation.verify_tool/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
       write_pin: &Firmware.write_pin/2

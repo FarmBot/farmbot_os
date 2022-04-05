@@ -1,5 +1,13 @@
 # Changelog
 
+# 15.1.0
+
+ * Implement boot sequence feature
+ * Add boot job progress
+ * Add `read_at` to `sensor_readings`
+ * Add `boot_sequence_id` to `fbos_configs`
+ * Add `get_seed_tray_cell()` and `verify_tool()` lua helpers
+
 # 15.0.0
 
  * hotfix for uptime bug

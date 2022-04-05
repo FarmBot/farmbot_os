@@ -380,6 +380,18 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert result == {[:result], :fake_lua}
   end
 
+  test "verify_tool(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.verify_tool([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "get_seed_tray_cell(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.get_seed_tray_cell([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
   test "photo_grid() - OK" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn lua_state, lua_code ->
       assert lua_code == @photo_grid_code

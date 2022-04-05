@@ -22,6 +22,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
     InboundSideEffects
   }
 
+  alias FarmbotOS.BotState.JobProgress.Percent
+
   require Logger
   require FarmbotOS.Logger
 
@@ -92,6 +94,15 @@ defmodule FarmbotOS.Firmware.UARTCore do
     :ok
   end
 
+  defp initiate_sequence_on_boot() do
+    Task.Supervisor.start_child(
+      FarmbotOS.Task.Supervisor,
+      FarmbotOS.SequenceOnBoot,
+      :schedule_boot_sequence,
+      []
+    )
+  end
+
   # ================= BEGIN GENSERVER CODE =================
 
   def start_link(args, opts \\ [name: __MODULE__]) do
@@ -159,7 +170,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
     # Then, format GCode strings into Elixir-readable tuples.
     gcodes = GCodeDecoder.run(txt_lines)
     # Lastly, trigger any relevant side effect(s).
-    # Example: send userl logs when firmware is locked.
+    # Example: send user logs when firmware is locked.
     state3 = InboundSideEffects.process(state2, gcodes)
 
     if state3.needs_config && state3.rx_buffer.ready do
@@ -200,6 +211,14 @@ defmodule FarmbotOS.Firmware.UARTCore do
       spawn(__MODULE__, :flash_firmware, [self(), package])
     else
       FarmbotOS.Logger.debug(3, "Farmduino OK")
+      set_boot_progress(%Percent{status: "complete", percent: 100})
+
+      FarmbotOS.Logger.success(
+        1,
+        "FarmBot is booted. Executing boot sequence..."
+      )
+
+      initiate_sequence_on_boot()
     end
 
     {:noreply, state}
@@ -241,6 +260,10 @@ defmodule FarmbotOS.Firmware.UARTCore do
   def terminate(_, _) do
     Logger.debug("Firmware terminated.")
     BotState.firmware_offline()
+  end
+
+  defp set_boot_progress(percent) do
+    BotState.set_job_progress("Booting", percent)
   end
 
   defp process_incoming_text(rx_buffer, text) do

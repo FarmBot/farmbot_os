@@ -4,6 +4,7 @@
   "api_pin_bindings": "6.4.4",
   "assertion_block": "8.0.0",
   "backscheduled_regimens": "6.4.0",
+  "boot_sequence": "15.1.0",
   "calibration_retries": "14.0.0",
   "calibration_total_retries": "14.6.2",
   "change_ownership": "6.3.0",
