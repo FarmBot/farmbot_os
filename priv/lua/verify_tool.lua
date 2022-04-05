@@ -15,6 +15,6 @@ return function()
       method = "get",
       url = "/api/tools/" .. mounted_tool_id
   })
-  send_message("success", "The " .. mounted_tool.name .. " is mounted on the UTM", "toast")
+  send_message("success", "The " .. mounted_tool.name .. " is mounted on the UTM")
   return true
 end
