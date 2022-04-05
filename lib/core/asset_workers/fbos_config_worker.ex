@@ -1,6 +1,6 @@
 defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FbosConfig do
   @moduledoc """
-  This asset worker does not get restarted. It inistead responds to GenServer
+  This asset worker does not get restarted. It instead responds to GenServer
   calls.
   """
 
