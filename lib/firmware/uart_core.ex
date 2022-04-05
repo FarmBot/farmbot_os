@@ -95,10 +95,12 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   defp initiate_sequence_on_boot() do
-    Task.Supervisor.start_child(FarmbotOS.Task.Supervisor,
+    Task.Supervisor.start_child(
+      FarmbotOS.Task.Supervisor,
       FarmbotOS.SequenceOnBoot,
       :schedule_boot_sequence,
-      [])
+      []
+    )
   end
 
   # ================= BEGIN GENSERVER CODE =================

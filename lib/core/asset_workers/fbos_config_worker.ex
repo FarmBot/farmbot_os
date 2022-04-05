@@ -67,7 +67,8 @@ defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.FbosConfig do
       {:boot_sequence_id, bsid} ->
         if not is_nil(bsid) do
           %{sequence_name: name} =
-            (FarmbotOS.Celery.SysCallGlue.get_sequence bsid).meta
+            FarmbotOS.Celery.SysCallGlue.get_sequence(bsid).meta
+
           FarmbotOS.Logger.success(
             1,
             "Set boot sequence to #{name}"

@@ -115,7 +115,7 @@ defmodule FarmbotOS.Celery.Scheduler do
 
   @impl true
   def handle_info({:DOWN, ref, :process, pid, reason}, state) do
-    Logger.info("Scheduler crash: #{inspect pid} #{inspect(reason)}")
+    Logger.info("Scheduler crash: #{inspect(pid)} #{inspect(reason)}")
 
     state =
       state
