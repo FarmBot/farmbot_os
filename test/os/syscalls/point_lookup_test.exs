@@ -16,7 +16,7 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
   setup :verify_on_exit!
 
-  test "catch malfored return values" do
+  test "catch malformed return values" do
     expect(FarmbotOS.Asset, :get_point, 1, fn _ ->
       :example_error_for_unit_tests
     end)

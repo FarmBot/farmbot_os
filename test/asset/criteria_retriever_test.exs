@@ -66,7 +66,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
       %Point{z: 6.0}
     ]
 
-    incusion = [
+    inclusion = [
       # INCLUSION POINTS
       %Point{created_at: ~U[2222-12-04 02:22:22.222222Z]},
       %Point{openfarm_slug: "five"},
@@ -75,7 +75,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
       %Point{z: 8.0}
     ]
 
-    points = ok ++ exclusion ++ incusion
+    points = ok ++ exclusion ++ inclusion
     Enum.map(points, fn p -> Repo.insert!(p) end)
     pg = %PointGroup{@fake_point_group | point_ids: [1, 2, 3]}
     Repo.insert!(pg)

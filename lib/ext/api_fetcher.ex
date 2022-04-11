@@ -90,7 +90,7 @@ defmodule FarmbotOS.APIFetcher do
   end
 
   def upload_image(image_filename, meta \\ %{}) do
-    # I don't like that APIFetcher calls API- refactr out?
+    # I don't like that APIFetcher calls API- refactor out?
     {:ok, changeset} = FarmbotOS.API.get_changeset(StorageAuth)
 
     storage_auth =

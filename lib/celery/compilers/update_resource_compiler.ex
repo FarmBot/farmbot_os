@@ -27,7 +27,7 @@ defmodule FarmbotOS.Celery.Compiler.UpdateResource do
           me.do_update(variable.args(), update)
 
         res ->
-          raise "Resource error. Please notfiy support: #{inspect(res)}"
+          raise "Resource error. Please notify support: #{inspect(res)}"
       end
     end
   end

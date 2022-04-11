@@ -29,7 +29,7 @@ defmodule FarmbotOS.MQTT.Supervisor do
     username = token.bot
     # EXPERIMENT: Can't isolate cause of MQTT blinking.
     # I am suspicious that it is caused by non-deterministic
-    # mqtt client_id. Temporarly making client_id generation
+    # mqtt client_id. Temporarily making client_id generation
     # deterministic. RC 1 DEC 21.
     # jitter = String.slice(UUID.uuid4(:hex), 0..7)
     # _#{jitter}"

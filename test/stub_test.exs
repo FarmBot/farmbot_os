@@ -6,7 +6,7 @@ defmodule FarmbotOS.Celery.SysCallGlue.StubsTest do
     # This test is to:
     #  * Catch early problems caused by a downstream stub
     #  * Keep coverage consistent
-    #  * Detect unusued stubs over time.
+    #  * Detect unused stubs over time.
     args = "args"
     axis = "axis"
     channels = "channels"

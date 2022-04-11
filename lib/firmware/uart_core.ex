@@ -138,7 +138,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   # === SCENARIO: EMERGENCY LOCK - this one gets special
-  # treatment. It skips all queing mechanisms and dumps
+  # treatment. It skips all queueing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, %State{} = state) do
     Support.uart_send(state.uart_pid, "E")

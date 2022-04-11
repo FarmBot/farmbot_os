@@ -44,7 +44,7 @@ defmodule FarmbotOS.Bootstrap.Authorization do
     end
   end
 
-  @doc "Helper fucntion that returns the secret after a successful request"
+  @doc "Helper function that returns the secret after a successful request"
   def authorize_with_password_v2(email, password, server) do
     with {:ok, {:RSAPublicKey, _, _} = rsa_key} <- fetch_rsa_key(server),
          secret <- build_secret(email, password, rsa_key),

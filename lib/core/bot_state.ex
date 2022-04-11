@@ -130,8 +130,8 @@ defmodule FarmbotOS.BotState do
     GenServer.call(bot_state_server, {:report_scheduler_usage, percent})
   end
 
-  def report_soc_temp(bot_state_server \\ __MODULE__, temp_celcius) do
-    GenServer.call(bot_state_server, {:report_soc_temp, temp_celcius})
+  def report_soc_temp(bot_state_server \\ __MODULE__, temp_celsius) do
+    GenServer.call(bot_state_server, {:report_soc_temp, temp_celsius})
   end
 
   def report_throttled(bot_state_server \\ __MODULE__, throttled_str) do
@@ -237,7 +237,7 @@ defmodule FarmbotOS.BotState do
   end
 
   def handle_call({:set_pin_value, pin, val, mode}, _from, state1) do
-    # Under some circumstanes, `m` (mode) will be nil.
+    # Under some circumstances, `m` (mode) will be nil.
     # We must guess
     {reply, state2} =
       BotStateNG.add_or_update_pin(state1.tree, pin, mode || -1, val)

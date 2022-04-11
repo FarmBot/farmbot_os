@@ -15,7 +15,7 @@ defmodule FarmbotOS.CeleryTest do
     {"body", [{1, [{"args", []}, {"kind", "nothing"}]}]}
   ]
 
-  test "executiong of CS from Lua - OK" do
+  test "executing of CS from Lua - OK" do
     %Task{pid: pid} =
       task =
       Task.async(
@@ -29,7 +29,7 @@ defmodule FarmbotOS.CeleryTest do
     assert result == {[true, nil], %{}}
   end
 
-  test "executiong of CS from Lua - error" do
+  test "executing of CS from Lua - error" do
     %Task{pid: pid} =
       task =
       Task.async(FarmbotOS.Celery, :execute_from_lua, [[@fake_lua_ast], %{}])

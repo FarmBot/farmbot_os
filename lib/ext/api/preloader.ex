@@ -13,7 +13,7 @@ defmodule FarmbotOS.API.Preloader do
   alias FarmbotOS.Asset.Sync
 
   @doc """
-  Syncronous call to sync or preload assets.
+  Synchronous call to sync or preload assets.
   Starts with `group_0`, syncs all resources.
   """
   def preload_all() do

@@ -9,7 +9,7 @@ defmodule FarmbotOS.UpdateSupport do
   @double_flash_error "A software update is already in progress. Please wait."
 
   # Determines if there is an OTA update in progress.
-  # Running two OTAs at the same time can have disasterous
+  # Running two OTAs at the same time can have disastrous
   # side effects. We use @dl_path as a lock file to prevent
   # this. No lock file == no OTA in progress.
   def in_progress?(path \\ to_string(@dl_path)) do
@@ -24,7 +24,7 @@ defmodule FarmbotOS.UpdateSupport do
     end
   end
 
-  # Flash the SD card parititon with the new *.fw file using
+  # Flash the SD card partition with the new *.fw file using
   # FWUP.
   def do_flash_firmware() do
     path_string = to_string(@dl_path)

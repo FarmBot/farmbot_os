@@ -64,20 +64,20 @@ defmodule FarmbotOS.Lua.InfoTest do
     hour = DateTime.utc_now().hour
     lua_code = "return current_hour()"
     {:ok, [actual]} = lua(lua_code, lua_code)
-    assert_in_delta(actual, hour, 1, "hour value not corrrect")
+    assert_in_delta(actual, hour, 1, "hour value not correct")
   end
 
   test "current_minute()" do
     minute = DateTime.utc_now().minute
     lua_code = "return current_minute()"
     {:ok, [actual]} = lua(lua_code, lua_code)
-    assert_in_delta(actual, minute, 1, "minute value not corrrect")
+    assert_in_delta(actual, minute, 1, "minute value not correct")
   end
 
   test "current_second()" do
     second = DateTime.utc_now().second
     lua_code = "return current_second()"
     {:ok, [actual]} = lua(lua_code, lua_code)
-    assert_in_delta(actual, second, 6, "second value not corrrect")
+    assert_in_delta(actual, second, 6, "second value not correct")
   end
 end

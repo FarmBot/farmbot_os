@@ -17,7 +17,7 @@ defmodule FarmbotOS.API.Reconciler do
   import FarmbotOS.TimeUtils, only: [compare_datetimes: 2]
 
   @doc """
-  Reconcile remote updates. The following steps are wrapped in a tranaction
+  Reconcile remote updates. The following steps are wrapped in a transaction
   that is treated as an `all or nothing` sync.
 
   * get sync object from API

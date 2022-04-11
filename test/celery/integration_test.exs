@@ -14,7 +14,7 @@ defmodule FarmbotOS.Celery.IntegrationTest do
     "fixtures/inner_sequence.json",
     "fixtures/every_sequence.json",
     "fixtures/outer_sequence.json",
-    "fixtures/paramater_sequence.json",
+    "fixtures/parameter_sequence.json",
     "fixtures/point_group_sequence.json",
     "test/fixtures/mark_variable_meta.json",
     "test/fixtures/mark_variable_removed.json",
