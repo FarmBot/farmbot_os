@@ -263,7 +263,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   defp set_boot_progress(percent) do
-    BotState.set_job_progress("Booting", percent)
+    percent2 = Map.put(percent, :type, "boot")
+    BotState.set_job_progress("Booting", percent2)
   end
 
   defp process_incoming_text(rx_buffer, text) do

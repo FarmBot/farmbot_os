@@ -54,7 +54,7 @@ defmodule FarmbotOS.BotStateTest do
         assert prog1.percent == 50
         assert prog1.status == "working"
         assert prog1.time == nil
-        assert prog1.type == "ota"
+        assert prog1.type == ""
         assert prog1.unit == "percent"
         assert is_number(prog2.updated_at)
     after

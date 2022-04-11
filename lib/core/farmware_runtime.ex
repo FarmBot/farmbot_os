@@ -8,8 +8,8 @@ defmodule FarmbotOS.FarmwareRuntime do
 
   alias FarmbotOS.{Asset, JSON, Project, FarmwareLogger}
   alias FarmbotOS.Celery.AST
-  alias FarmbotOS.FarmwareRuntime.PipeWorker
-  alias FarmbotOS.BotState.FileSystem
+  alias FarmbotOS.FarmwareRuntime.{PipeWorker, RunCommand}
+  alias FarmbotOS.BotState.{FileSystem, JobProgress.Percent}
   alias __MODULE__, as: State
   @packet_header_token 0xFBFB
   @packet_header_byte_size 10
@@ -47,6 +47,8 @@ defmodule FarmbotOS.FarmwareRuntime do
     :context,
     :rpc,
     :scheduler_ref,
+    :package,
+    :start_time,
     :request_pipe,
     :request_pipe_handle,
     :response_pipe,
@@ -62,6 +64,8 @@ defmodule FarmbotOS.FarmwareRuntime do
           response_pipe: Path.t(),
           response_pipe_handle: pipe_handle,
           scheduler_ref: reference() | nil,
+          package: String.t(),
+          start_time: DateTime.t(),
           cmd: pid(),
           mon: pid() | nil,
           rpc: map(),
@@ -112,7 +116,7 @@ defmodule FarmbotOS.FarmwareRuntime do
 
     cmd_args = ["sh", ["-c", "#{python} #{script}"], opts]
     Logger.info(inspect(cmd_args))
-    {cmd, _} = spawn_monitor(MuonTrap, :cmd, cmd_args)
+    {cmd, _} = RunCommand.run(cmd_args)
 
     state = %State{
       caller: caller,
@@ -121,12 +125,16 @@ defmodule FarmbotOS.FarmwareRuntime do
       context: :get_header,
       rpc: nil,
       scheduler_ref: nil,
+      package: package,
+      start_time: DateTime.utc_now(),
       request_pipe: request_pipe,
       request_pipe_handle: req,
       response_pipe: response_pipe,
       response_pipe_handle: resp
     }
 
+    prog = %Percent{status: "working", percent: 0, time: state.start_time}
+    set_progress(state.package, prog)
     send(self(), :timeout)
     {:ok, state}
   end
@@ -189,6 +197,8 @@ defmodule FarmbotOS.FarmwareRuntime do
         %{cmd: _cmd_pid} = state
       ) do
     Logger.debug("Farmware exit")
+    prog = %Percent{status: "complete", percent: 100, time: state.start_time}
+    set_progress(state.package, prog)
     send(state.caller, {:error, :farmware_exit})
     {:noreply, %{state | context: :error}}
   end
@@ -249,7 +259,7 @@ defmodule FarmbotOS.FarmwareRuntime do
     %{state | mon: mon}
   end
 
-  # When a packet arives, buffer it until
+  # When a packet arrives, buffer it until
   # the controlling process (the CSVM) picks it up.
   # there is a timeout for how long a packet will wait to be collected,
   # but no time limit to how long it will take to
@@ -331,4 +341,17 @@ defmodule FarmbotOS.FarmwareRuntime do
   def dir("noop"), do: dir()
   def dir("plant-detection"), do: dir("quickscripts")
   def dir(dir_name), do: Path.join(dir(), dir_name)
+
+  defp set_progress(name, percent) do
+    percent2 = Map.put(percent, :type, "package")
+    FarmbotOS.BotState.set_job_progress(job_name(name), percent2)
+  end
+
+  def job_name("camera-calibration"), do: "Calibrating camera"
+  def job_name("historical-camera-calibration"), do: "Calibrating camera"
+  def job_name("historical-plant-detection"), do: "Running weed detector"
+  def job_name("plant-detection"), do: "Running weed detector"
+  def job_name("take-photo"), do: "Taking photo"
+  def job_name("Measure Soil Height"), do: "Measuring soil height"
+  def job_name(package), do: "Executing #{package}"
 end

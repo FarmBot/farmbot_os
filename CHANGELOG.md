@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.2.0
+
+ * Add job progress tracking to farmware
+
 # 15.1.0
 
  * Implement boot sequence feature

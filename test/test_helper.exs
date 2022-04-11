@@ -325,6 +325,7 @@ ExUnit.configure(
   FarmbotOS.Configurator.FakeNetworkLayer,
   FarmbotOS.EagerLoader.Supervisor,
   FarmbotOS.FarmwareRuntime,
+  FarmbotOS.FarmwareRuntime.RunCommand,
   FarmbotOS.Firmware.Avrdude,
   FarmbotOS.Firmware.Command,
   FarmbotOS.Firmware.ConfigUploader,
