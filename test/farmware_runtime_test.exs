@@ -24,7 +24,7 @@ defmodule FarmbotOS.FarmwareRuntimeTest do
 
       expect(FarmbotOS.BotState, :set_job_progress, 1, fn name, progress ->
         assert name == expected_name
-        assert progress.percent == 0
+        assert progress.percent == 50
       end)
 
       t = fn ->

@@ -104,7 +104,8 @@ defmodule FarmbotOS.Lua.Info do
     job = %FarmbotOS.BotState.JobProgress.Percent{
       type: Map.get(map, "type") || "unknown",
       status: Map.get(map, "status") || "working",
-      percent: Map.get(map, "percent") || 0
+      percent: Map.get(map, "percent") || 0,
+      time: Map.get(map, "time") || nil
     }
 
     FarmbotOS.BotState.set_job_progress(name, job)

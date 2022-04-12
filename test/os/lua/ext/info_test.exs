@@ -37,6 +37,18 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert {:ok, []} == lua("send_message() - with channel", code)
   end
 
+  test "fbos_version()" do
+    lua_code = "return fbos_version()"
+    {:ok, [actual, nil]} = lua(lua_code, lua_code)
+    assert actual == FarmbotOS.Project.version()
+  end
+
+  test "firmware_version()" do
+    lua_code = "return firmware_version()"
+    {:ok, [actual, nil]} = lua(lua_code, lua_code)
+    assert actual == nil
+  end
+
   test "auth_token()" do
     expect(FarmbotOS.Config, :get_config_value, 2, fn
       t, k, "token" ->

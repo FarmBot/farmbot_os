@@ -133,7 +133,7 @@ defmodule FarmbotOS.FarmwareRuntime do
       response_pipe_handle: resp
     }
 
-    prog = %Percent{status: "working", percent: 0, time: state.start_time}
+    prog = %Percent{status: "working", percent: 50, time: state.start_time}
     set_progress(state.package, prog)
     send(self(), :timeout)
     {:ok, state}

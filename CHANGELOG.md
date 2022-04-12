@@ -3,6 +3,7 @@
 # 15.2.0
 
  * Add job progress tracking to farmware
+ * Add `time` to lua `set_job_progress()` helper
 
 # 15.1.0
 
