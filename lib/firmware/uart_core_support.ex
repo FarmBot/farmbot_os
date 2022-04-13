@@ -38,7 +38,7 @@ defmodule FarmbotOS.Firmware.UARTCoreSupport do
 
   # Returns the uart path of the device that was disconnected
   def disconnect(%{uart_path: tty} = state, reason) do
-    # Genserer.reply to everyone with {:error, reason}
+    # Genserver.reply to everyone with {:error, reason}
     FarmbotOS.Firmware.TxBuffer.error_all(state.tx_buffer, reason)
     uart = state.uart_pid
 

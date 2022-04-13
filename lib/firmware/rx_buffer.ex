@@ -16,7 +16,7 @@ defmodule FarmbotOS.Firmware.RxBuffer do
    * When parsing an incoming stream of new data, discard all
      data prior to the first @new_line. Data before the first
      @new_line is never complete and is potentially garbage.
-   * Normalize tokens by removing carraige returns, extra
+   * Normalize tokens by removing carriage returns, extra
      spaces, etc..
    * Ensure that buffer consumers only get complete lines of
      data and never a half finished line.

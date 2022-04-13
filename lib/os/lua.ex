@@ -27,7 +27,7 @@ defmodule FarmbotOS.Lua do
   #       even in the formula input seen in the MOVE block.
   def add_implicit_return(str) do
     # Don't add implicit return if:
-    #   * Contains carraige return ("\n")
+    #   * Contains carriage return ("\n")
     #   * Contains assignment char ("=")
     #   * Contains `return` keyword
     has_return? = String.contains?(str, "return")
@@ -97,7 +97,7 @@ defmodule FarmbotOS.Lua do
 
   def builtins() do
     %{
-      # This flag can be compared agaist the last e-stop timestamp
+      # This flag can be compared against the last e-stop timestamp
       # to abort script execution (if E-Stop was called at any
       # point during Lua execution).
       __LUA_START_TIME: FarmbotOS.Time.system_time_ms(),

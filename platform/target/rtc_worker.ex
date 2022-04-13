@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Platform.Target.RTCWorker do
   @moduledoc """
-  Handler for syncronizing time with an RTC and ntpd
+  Handler for synchronizing time with an RTC and ntpd
   """
 
   use GenServer

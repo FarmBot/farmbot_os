@@ -65,6 +65,7 @@ defmodule FarmbotOS.Firmware.Flash do
   end
 
   defp set_boot_progress(percent) do
-    FarmbotOS.BotState.set_job_progress("Booting", percent)
+    percent2 = Map.put(percent, :type, "boot")
+    FarmbotOS.BotState.set_job_progress("Booting", percent2)
   end
 end

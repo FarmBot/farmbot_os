@@ -9,7 +9,7 @@ defmodule FarmbotOS.Celery.Compiler do
 
   @doc "Returns current debug mode value"
   def debug_mode?() do
-    # Set this to `true` when debuging.
+    # Set this to `true` when debugging.
     false
   end
 

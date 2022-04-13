@@ -92,7 +92,7 @@ defmodule FarmbotOS.Asset.Private do
     ## NOTE(Connor): 19/11/13
     # the try/catch here seems unneeded here, but because of how sqlite/ecto works, it is 100% needed.
     # Because sqlite can't test unique constraints before a transaction, if this function gets called for
-    # the same asset more than once asyncronously, the asset can be marked dirty twice at the same time
+    # the same asset more than once asynchronously, the asset can be marked dirty twice at the same time
     # causing the `unique constraint` error to happen in either `ecto` OR `sqlite`. I've
     # caught both errors here as they are both essentially the same thing, and can be safely
     # discarded. Doing an `insert_or_update/1` (without the bang) can still result in the sqlite

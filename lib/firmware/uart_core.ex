@@ -138,7 +138,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   # === SCENARIO: EMERGENCY LOCK - this one gets special
-  # treatment. It skips all queing mechanisms and dumps
+  # treatment. It skips all queueing mechanisms and dumps
   # any tasks that were already queued.
   def handle_info({:send_raw, "E"}, %State{} = state) do
     Support.uart_send(state.uart_pid, "E")
@@ -263,7 +263,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   defp set_boot_progress(percent) do
-    BotState.set_job_progress("Booting", percent)
+    percent2 = Map.put(percent, :type, "boot")
+    BotState.set_job_progress("Booting", percent2)
   end
 
   defp process_incoming_text(rx_buffer, text) do

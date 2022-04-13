@@ -14,7 +14,7 @@ defmodule FarmbotOS.BotState.JobProgress do
     defstruct status: "working",
               percent: 0,
               unit: "percent",
-              type: "ota",
+              type: "",
               time: nil,
               file_type: nil
 

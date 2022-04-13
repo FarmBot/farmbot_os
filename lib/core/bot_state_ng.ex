@@ -1,6 +1,6 @@
 defmodule FarmbotOS.BotStateNG do
   @moduledoc """
-  The data strucutre behind the bot state tree (not the living process).
+  The data structure behind the bot state tree (not the living process).
   Also has some helpers for batching changes.
   """
 
@@ -195,7 +195,7 @@ defmodule FarmbotOS.BotStateNG do
     put_change(cs, :user_env, new_user_env)
   end
 
-  @doc "Sets a progress objecto on state.jobs"
+  @doc "Sets a progress object on state.jobs"
   def set_job_progress(state, name, progress) do
     cs = changeset(state, %{})
     t = round(FarmbotOS.Time.system_time_ms() / 1000)

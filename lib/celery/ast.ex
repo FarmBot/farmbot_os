@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Celery.AST do
   @moduledoc """
-  Handy functions for turning various data types into Farbot Celery Script
+  Handy functions for turning various data types into Farmbot Celery Script
   Ast nodes.
   """
   alias FarmbotOS.Celery.AST

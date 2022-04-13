@@ -1,7 +1,7 @@
 defmodule FarmbotOS.FarmwareLogger do
   require Logger
 
-  defstruct name: "UNKNOWN FARMARE?"
+  defstruct name: "UNKNOWN FARMWARE?"
   def new(name), do: %__MODULE__{name: name}
 
   defimpl Collectable do

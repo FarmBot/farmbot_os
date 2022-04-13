@@ -199,7 +199,7 @@ defmodule FarmbotOS.Celery.Compiler.AxisControl do
   defp cs_to_xyz(%{kind: :identifier} = ast, cs_scope) do
     label = ast.args.label
     {:ok, variable} = FarmbotOS.Celery.Compiler.Scope.fetch!(cs_scope, label)
-    # Prevent circular refernces.
+    # Prevent circular references.
     # I doubt end users would intentionally do this, so treat
     # it like an error.
     if variable.kind == :identifier, do: raise("Refusing to perform recursion")

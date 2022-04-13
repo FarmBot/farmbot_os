@@ -18,7 +18,7 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     kind: :special_value,
     args: %{label: "current_location"}
   }
-  @fake_movment_needs %{
+  @fake_movement_needs %{
     safe_z: false,
     speed_x: 99,
     speed_y: 98,
@@ -98,7 +98,7 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
       :ok
     end)
 
-    needs = Map.merge(@fake_movment_needs, %{safe_z: true})
+    needs = Map.merge(@fake_movement_needs, %{safe_z: true})
     Move.do_perform_movement(needs)
   end
 
@@ -107,7 +107,7 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
       :ok
     end)
 
-    Move.do_perform_movement(@fake_movment_needs)
+    Move.do_perform_movement(@fake_movement_needs)
   end
 
   test "retract_z" do
@@ -119,14 +119,14 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
       assert real_x == x
       assert real_y == y
       assert real_z == 0
-      assert @fake_movment_needs[:speed_x] == sx
-      assert @fake_movment_needs[:speed_y] == sy
-      assert @fake_movment_needs[:speed_z] == sz
+      assert @fake_movement_needs[:speed_x] == sx
+      assert @fake_movement_needs[:speed_y] == sy
+      assert @fake_movement_needs[:speed_z] == sz
       :ok
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.retract_z(@fake_movment_needs)
+    Move.retract_z(@fake_movement_needs)
   end
 
   test "move_xy" do
@@ -137,17 +137,17 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     _ = Stubs.get_current_y()
 
     mock = fn real_x, real_y, real_z, sx, sy, sz ->
-      assert real_x == @fake_movment_needs[:x]
-      assert real_y == @fake_movment_needs[:y]
+      assert real_x == @fake_movement_needs[:x]
+      assert real_y == @fake_movement_needs[:y]
       assert real_z == z
-      assert @fake_movment_needs[:speed_x] == sx
-      assert @fake_movment_needs[:speed_y] == sy
-      assert @fake_movment_needs[:speed_z] == sz
+      assert @fake_movement_needs[:speed_x] == sx
+      assert @fake_movement_needs[:speed_y] == sy
+      assert @fake_movement_needs[:speed_z] == sz
       :ok
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.move_xy(@fake_movment_needs)
+    Move.move_xy(@fake_movement_needs)
   end
 
   test "extend_z" do
@@ -158,15 +158,15 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     mock = fn real_x, real_y, real_z, sx, sy, sz ->
       assert real_x == x
       assert real_y == y
-      assert real_z == @fake_movment_needs[:z]
-      assert @fake_movment_needs[:speed_x] == sx
-      assert @fake_movment_needs[:speed_y] == sy
-      assert @fake_movment_needs[:speed_z] == sz
+      assert real_z == @fake_movement_needs[:z]
+      assert @fake_movement_needs[:speed_x] == sx
+      assert @fake_movement_needs[:speed_y] == sy
+      assert @fake_movement_needs[:speed_z] == sz
       :ok
     end
 
     expect(Stubs, :move_absolute, mock)
-    Move.extend_z(@fake_movment_needs)
+    Move.extend_z(@fake_movement_needs)
   end
 
   test "calculate_movement_needs" do

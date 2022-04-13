@@ -125,7 +125,7 @@ defmodule FarmbotOS.Celery.Compiler.If do
       # examples:
       # "current x position is 100"
       # "pin 13 > 1"
-      # "peripheral 10 is unknon"
+      # "peripheral 10 is unknown"
       result_str =
         case unquote(op) do
           "is" -> "#{prefix_string} is #{unquote(rhs)}"

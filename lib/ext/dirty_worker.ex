@@ -79,12 +79,12 @@ defmodule FarmbotOS.DirtyWorker do
     APIFetcher.patch(APIFetcher.client(), path, data)
   end
 
-  # This is a fix for a race condtion. The root cause is unknown
+  # This is a fix for a race condition. The root cause is unknown
   # as of 18 May 2020. The problem is that records are marked
   # dirty _before_ the dirty data is saved. That means that FBOS
   # knows a record has changed, but for a brief moment, it only
   # has the old copy of the record (not the changes).
-  # Because of this race condtion,
+  # Because of this race condition,
   # The race condition:
   #
   # * Is nondeterministic

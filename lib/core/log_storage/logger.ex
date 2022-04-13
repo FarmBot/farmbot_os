@@ -1,6 +1,6 @@
 defmodule FarmbotOS.Logger do
   @moduledoc """
-  Log messages to Farmot endpoints.
+  Log messages to Farmbot endpoints.
   """
 
   require Logger

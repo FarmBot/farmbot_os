@@ -23,7 +23,7 @@ defmodule FarmbotOS.Firmware.TxBuffer do
   end
 
   @doc ~S"""
-  Append a GCode line to the TxBufer.
+  Append a GCode line to the TxBuffer.
 
   iex> push(new(), nil, FarmbotOS.Firmware.GCode.new("E", []))
   %FarmbotOS.Firmware.TxBuffer{
@@ -111,7 +111,7 @@ defmodule FarmbotOS.Firmware.TxBuffer do
   end
 
   # EDGE CASE: Locking the device causes a state reset. Lots
-  #            of jobs will be undetecable during the time
+  #            of jobs will be undetectable during the time
   #            between Lock => Unlock. Just ignore them.
   defp do_process_echo(%{current: nil} = s, e) do
     Logger.debug("Ignoring untracked echo: #{inspect(e)}")

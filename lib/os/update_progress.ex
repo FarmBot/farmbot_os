@@ -55,7 +55,8 @@ defmodule FarmbotOS.UpdateProgress do
 
   def set_progress(percent) do
     if Process.whereis(BotState) do
-      BotState.set_job_progress("FBOS_OTA", percent)
+      percent2 = Map.put(percent, :type, "OTA")
+      BotState.set_job_progress("FBOS_OTA", percent2)
     end
   end
 end

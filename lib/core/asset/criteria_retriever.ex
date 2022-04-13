@@ -166,7 +166,7 @@ defmodule FarmbotOS.Asset.CriteriaRetriever do
     Map.merge(results, %{"#{lhs} #{op}" => rhs})
   end
 
-  # Interpolatinng data turned out to be hard.
+  # Interpolating data turned out to be hard.
   # Pretty sure there is an easier way to do this.
   # NOT OK: Repo.query("SELECT foo WHERE bar IN $0", [[1, 2, 3]])
   # OK:     Repo.query("SELECT foo WHERE bar IN ($0, $1, $2)", [1, 2, 3])

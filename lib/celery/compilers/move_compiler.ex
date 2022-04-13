@@ -19,7 +19,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
   end
 
   # If the user provides Lua, we need to evaluate the Lua and
-  # tranform it to a `numeric` node type.
+  # transform it to a `numeric` node type.
   def preprocess_lua(body, cs_scope) do
     Enum.map(body, fn
       %{args: %{speed_setting: %{args: %{lua: lua}}}} = p ->

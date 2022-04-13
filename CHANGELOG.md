@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.2.0
+
+ * Add job progress tracking to farmware
+ * Add `time` to lua `set_job_progress()` helper
+
 # 15.1.0
 
  * Implement boot sequence feature
@@ -88,7 +93,7 @@
 # 14.5.0
 
  * SSL/HTTPS configuration updates.
- * Upgrade numerouse deps, such as Lua runtime and Certifi.
+ * Upgrade numerous deps, such as Lua runtime and Certifi.
  * Fix issue where FarmEvents would fail to execute near boot time on Express models.
  * Performance updates to firmware handler.
 
@@ -159,7 +164,7 @@
 # 14.1.3
 
  * Box LED fixes.
- * Impoved internal diagnostic tools for diagnosing camera problems.
+ * Improved internal diagnostic tools for diagnosing camera problems.
  * Routine dependency updates.
 
 # 14.1.2
@@ -202,7 +207,7 @@
  * Ability to use `custom.hex` firmware file in user data partition instead of default firmware.
  * Ability to detect missing boot loader.
  * Bug fix for devices that became throttled after long disconnects.
- * Alpha support for 3rd paty UART devices in Lua sandbox.
+ * Alpha support for 3rd party UART devices in Lua sandbox.
 
 # 13.2.0
 
@@ -370,7 +375,7 @@ Bug fixes:
  * Improve firmware debug messages.
  * Remove confusing firmware debug messages, such as "Error OK".
  * Improved camera support on FarmBot express.
- * Bug fix to prevents OTA updates occuring when one is already in progress.
+ * Bug fix to prevents OTA updates occurring when one is already in progress.
 
 # 9.2.0
 
@@ -429,7 +434,7 @@ Bug fixes:
     * fix Farmware causing sequences to exit
     * fix `arduino_debug_messages` fbos_config field being ignored
     * fix `espeak` not working
-    * add `name` paramater back to image uploads
+    * add `name` parameter back to image uploads
 * Enhancements
     * `resource_update` command can now update:
         * device.mounted_tool_id
@@ -451,7 +456,7 @@ Bug fixes:
     * Add timer to reset `firmware_input_log` and `firmware_output_log` after 5 minutes
     * Add a back off timer for flashing firmware
 * Bug fixes
-    * Fix issue where opencv would error. Most notibly in take-photo
+    * Fix issue where opencv would error. Most notably in take-photo
 
 # 8.2.0
 * Features
@@ -504,7 +509,7 @@ Bug fixes:
 * Reorganize project structure
 * Split original single application into multiple OTP applications:
     * `farmbot_celery_script` - CeleryScript compiler and friends
-    * `farmbot_firmware` - Interaction with the motor controler
+    * `farmbot_firmware` - Interaction with the motor controller
     * `farmbot_core` - Main database access and other workers
     * `farmbot_ext` - Extra, mostly networked functionality
     * `farmbot_os` - `Nerves` Framework
@@ -525,7 +530,7 @@ Bug fixes:
 * Update Configurator UI
 * Update Farmbot-Arduino-Firmware to 6.4.2
 * Fix bug in decoding of CeleryScript
-* Fix bug causing the stubbed Firmware implemenation to crash
+* Fix bug causing the stubbed Firmware implementation to crash
 
 # 7.0.0
 * Initial support for WPA-EAP networks.
@@ -559,7 +564,7 @@ Bug fixes:
 * Skipped due to release failure.
 
 # 6.4.9
-* Add feature to save logs to sdcard for debugging.
+* Add feature to save logs to sd card for debugging.
 * Fix bug causing long running Farmwares to fail.
 * Make sure to clear eeprom before flashing Arduino firmware.
 * Update Linux system layer.
@@ -702,7 +707,7 @@ Bug fixes:
 
 # 5.0.8
 * Update underlying Linux System deps.
-* Preperation for 6.x releases.
+* Preparation for 6.x releases.
 
 # 5.0.6
 * Fix images double uploading.
