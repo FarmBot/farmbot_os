@@ -36,6 +36,11 @@ defmodule FarmbotOS.SequenceOnBoot do
     boot_sequence_id = FarmbotOS.Asset.fbos_config(:boot_sequence_id)
 
     if not is_nil(boot_sequence_id) do
+      FarmbotOS.Logger.success(
+        1,
+        "FarmBot is booted. Executing boot sequence..."
+      )
+
       boot_sequence_ast =
         FarmbotOS.Celery.SysCallGlue.get_sequence(boot_sequence_id)
 
@@ -43,6 +48,8 @@ defmodule FarmbotOS.SequenceOnBoot do
 
       Process.whereis(FarmbotOS.Celery.Scheduler)
       |> FarmbotOS.Celery.Scheduler.schedule(boot_sequence_ast, now, %{})
+    else
+      FarmbotOS.Logger.success(1, "FarmBot is booted.")
     end
   end
 end
