@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.2.1
+
+ * Fix boot sequence edge case bug.
+
 # 15.2.0
 
  * Add job progress tracking to farmware

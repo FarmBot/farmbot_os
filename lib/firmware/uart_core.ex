@@ -212,12 +212,6 @@ defmodule FarmbotOS.Firmware.UARTCore do
     else
       FarmbotOS.Logger.debug(3, "Farmduino OK")
       set_boot_progress(%Percent{status: "complete", percent: 100})
-
-      FarmbotOS.Logger.success(
-        1,
-        "FarmBot is booted. Executing boot sequence..."
-      )
-
       initiate_sequence_on_boot()
     end
 
