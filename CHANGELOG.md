@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.2.2
+
+ * Add support for peripherals to `toggle_pin`.
+
 # 15.2.1
 
  * Fix boot sequence edge case bug.

@@ -52,9 +52,10 @@ defmodule FarmbotOS.Celery.Compiler.PinControl do
     end
   end
 
-  def toggle_pin(%{args: %{pin_number: pin_number}}, _cs_scope) do
+  def toggle_pin(%{args: %{pin_number: pin_number}}, cs_scope) do
     quote location: :keep do
-      FarmbotOS.Celery.SysCallGlue.toggle_pin(unquote(pin_number))
+      pin = unquote(Compiler.celery_to_elixir(pin_number, cs_scope))
+      FarmbotOS.Celery.SysCallGlue.toggle_pin(pin)
     end
   end
 

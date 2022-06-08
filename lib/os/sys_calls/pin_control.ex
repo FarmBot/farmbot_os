@@ -35,6 +35,23 @@ defmodule FarmbotOS.SysCalls.PinControl do
     end
   end
 
+  def toggle_pin(%Peripheral{pin: pin_number} = peripheral) do
+    with {:ok, _} <- Command.set_pin_io_mode(pin_number, :output) do
+      case Command.read_pin(pin_number, :digital) do
+        {:ok, 1} -> do_toggle_pin(peripheral || pin_number, 0)
+        {:ok, 0} -> do_toggle_pin(peripheral || pin_number, 1)
+        reason -> FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
+      end
+    else
+      {:error, reason} ->
+        FarmbotOS.SysCalls.give_firmware_reason("toggle_pin", reason)
+    end
+  end
+
+  def toggle_pin(%BoxLed{}) do
+    {:error, "Cannot toggle box LEDs."}
+  end
+
   def toggle_pin(pin_number) do
     {:error, "Unknown pin data: #{inspect(pin_number)}"}
   end
