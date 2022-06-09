@@ -89,4 +89,16 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     assert {[true], ^lua} = Firmware.go_to_home(["x", 100], lua)
     assert {[nil, ^msg], ^lua} = Firmware.go_to_home(["y", 100], lua)
   end
+
+  test "toggle_pin" do
+    expect(SysCallGlue, :toggle_pin, 1, fn
+      13 -> :ok
+      12 -> {:error, "error"}
+    end)
+
+    lua = "return"
+    msg = "CeleryScript syscall stubbed: toggle_pin\n"
+    assert {[], ^lua} = Firmware.toggle_pin([13], lua)
+    assert {[nil, ^msg], ^lua} = Firmware.toggle_pin([12], lua)
+  end
 end

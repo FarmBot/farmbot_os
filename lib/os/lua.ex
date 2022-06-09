@@ -155,6 +155,7 @@ defmodule FarmbotOS.Lua do
       soil_height: &DataManipulation.soil_height/2,
       take_photo_raw: &DataManipulation.take_photo_raw/2,
       take_photo: execute_script("take-photo"),
+      toggle_pin: &Firmware.toggle_pin/2,
       uart: [
         {:open, &FarmbotOS.Firmware.LuaUART.open/2},
         {:list, &FarmbotOS.Firmware.LuaUART.list/2}

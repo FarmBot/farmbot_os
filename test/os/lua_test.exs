@@ -94,6 +94,7 @@ defmodule FarmbotOS.LuaTest do
     "send_message(\"info\", \"Time zone is: \" .. get_device().timezone)",
     "send_message(\"info\", 23, {\"toast\"})",
     "status = read_status()",
+    "toggle_pin(13)",
     "update_device({name = \"Test Farmbot\"})",
     "update_fbos_config({os_auto_update = false})",
     "update_firmware_config({encoder_enabled_z = 1.0})",
@@ -110,6 +111,7 @@ defmodule FarmbotOS.LuaTest do
     expect(Firmware, :emergency_unlock, 1, fn [], lua -> {[], lua} end)
     expect(Firmware, :find_home, 3, fn [_axis], lua -> {[true], lua} end)
     expect(Firmware, :read_pin, 1, fn _, lua -> {[55.22], lua} end)
+    expect(Firmware, :toggle_pin, 1, fn _, lua -> {[], lua} end)
     expect(Firmware, :write_pin, 1, fn _, lua -> {[], lua} end)
     expect(Firmware, :go_to_home, 4, fn [_axis], lua -> {[true], lua} end)
     expect(Info, :fbos_version, 1, fn _args, lua -> {["12.3.4"], lua} end)

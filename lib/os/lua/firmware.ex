@@ -207,6 +207,13 @@ defmodule FarmbotOS.Lua.Firmware do
 
   def read_pin([pin], lua), do: read_pin([pin, "digital"], lua)
 
+  def toggle_pin([pin], lua) do
+    case SysCallGlue.toggle_pin(pin) do
+      :ok -> {[], lua}
+      {:error, reason} -> {[nil, reason], lua}
+    end
+  end
+
   @options ["input", "input_pullup", "output"]
 
   def set_pin_io_mode([pin, mode], lua) when mode in @options do

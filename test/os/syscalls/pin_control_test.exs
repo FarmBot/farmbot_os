@@ -235,7 +235,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     end)
 
     error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(13)
+    assert error == FarmbotOS.SysCalls.toggle_pin(13)
   end
 
   @tag :capture_log
@@ -250,8 +250,8 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       {:error, nil}
     end)
 
-    error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(13)
+    error = {:error, "Firmware error @ \"toggle_pin\": nil"}
+    assert error == FarmbotOS.SysCalls.toggle_pin(13)
   end
 
   @tag :capture_log
@@ -274,8 +274,8 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
       {:ok, nil}
     end)
 
-    error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(13)
+    error = {:error, "Firmware error @ \"do_toggle_pin:int\": nil"}
+    assert error == FarmbotOS.SysCalls.toggle_pin(13)
   end
 
   @tag :capture_log
@@ -344,7 +344,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
 
     peripheral = %Peripheral{pin: 13, label: "xyz"}
     error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(peripheral)
+    assert error == FarmbotOS.SysCalls.toggle_pin(peripheral)
   end
 
   @tag :capture_log
@@ -360,8 +360,8 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     end)
 
     peripheral = %Peripheral{pin: 13, label: "xyz"}
-    error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(peripheral)
+    error = {:error, "Firmware error @ \"toggle_pin\": nil"}
+    assert error == FarmbotOS.SysCalls.toggle_pin(peripheral)
   end
 
   @tag :capture_log
@@ -385,8 +385,11 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
     end)
 
     peripheral = %Peripheral{pin: 13, label: "xyz"}
-    error = {:error, "Firmware error @ \"toggle_pin\": {:error, nil}"}
-    assert error = FarmbotOS.SysCalls.toggle_pin(peripheral)
+
+    error =
+      {:error, "Firmware error @ \"do_toggle_pin:Peripheral\": {:error, nil}"}
+
+    assert error == FarmbotOS.SysCalls.toggle_pin(peripheral)
   end
 
   test "toggle_pin, box LED" do

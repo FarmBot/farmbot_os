@@ -3,6 +3,7 @@
 # 15.2.2
 
  * Add support for peripherals to `toggle_pin`.
+ * Add `toggle_pin` lua helper.
 
 # 15.2.1
 
