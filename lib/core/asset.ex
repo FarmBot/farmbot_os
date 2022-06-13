@@ -275,6 +275,81 @@ defmodule FarmbotOS.Asset do
     |> sort_points("random")
   end
 
+  def nn(ordered, available, from) do
+    next_with_distance =
+      available
+      |> Enum.map(fn p ->
+        x = :math.pow(p.x - from.x, 2)
+        y = :math.pow(p.y - from.y, 2)
+        %{point: p, distance: :math.pow(x + y, 0.5)}
+      end)
+      |> Enum.sort_by(fn k -> k.distance end)
+      |> Enum.at(0)
+
+    next = next_with_distance.point
+    new_from = %{x: next.x, y: next.y}
+    new_ordered = Enum.concat(ordered, [next])
+
+    new_available =
+      available
+      |> Enum.filter(fn p -> p.id != next.id end)
+
+    if Enum.count(new_available) == 0 do
+      [new_ordered, new_available, new_from]
+    else
+      nn(new_ordered, new_available, new_from)
+    end
+  end
+
+  def sort_points(points, "nn") do
+    if Enum.count(points) > 0 do
+      [ordered, _available, _from] = nn([], points, %{x: 0, y: 0})
+      ordered
+    else
+      points
+    end
+  end
+
+  def sort_points(points, "xy_alternating") do
+    points
+    |> Enum.map(fn p -> p.x end)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.with_index(fn x, i ->
+      row =
+        points
+        |> Enum.filter(fn p -> p.x == x end)
+        |> Enum.sort_by(fn p -> p.y end)
+
+      if rem(i, 2) == 0 do
+        row
+      else
+        Enum.reverse(row)
+      end
+    end)
+    |> List.flatten()
+  end
+
+  def sort_points(points, "yx_alternating") do
+    points
+    |> Enum.map(fn p -> p.y end)
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.with_index(fn y, i ->
+      row =
+        points
+        |> Enum.filter(fn p -> p.y == y end)
+        |> Enum.sort_by(fn p -> p.x end)
+
+      if rem(i, 2) == 0 do
+        row
+      else
+        Enum.reverse(row)
+      end
+    end)
+    |> List.flatten()
+  end
+
   def sort_points(points, order_by) do
     points
     |> Enum.group_by(&group_points_by(&1, order_by))

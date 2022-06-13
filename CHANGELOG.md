@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.3.0
+
+ * Add new optimized and alternating sort methods.
+
 # 15.2.2
 
  * Add support for peripherals to `toggle_pin`.
