@@ -168,6 +168,29 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[true], lua}
   end
 
+  def group([group_id], lua) do
+    point_group = Asset.find_points_via_group(group_id)
+
+    if point_group do
+      points = point_group.point_ids
+      {[points], lua}
+    else
+      {[[]], lua}
+    end
+  end
+
+  def sort([point_ids, sort_method], lua) do
+    points =
+      point_ids
+      |> Enum.map(fn {_, id} -> Asset.get_point(id: id) end)
+
+    ordered =
+      Asset.sort_points(points, sort_method)
+      |> Enum.map(fn p -> p.id end)
+
+    {[ordered], lua}
+  end
+
   def soil_height([x, y], lua),
     do: {[SpecialValue.soil_height(%{x: x, y: y})], lua}
 

@@ -244,6 +244,22 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [true]} == lua("new_sensor_reading/1", lua_code)
   end
 
+  test "group" do
+    assert {[[]], :lua} == DataManipulation.group([1], :lua)
+  end
+
+  test "group - no group" do
+    assert {[[]], :lua} == DataManipulation.group([1], :lua)
+  end
+
+  test "sort" do
+    expect(FarmbotOS.Asset, :get_point, fn _ ->
+      %FarmbotOS.Asset.Point{id: 1}
+    end)
+
+    assert {[[1]], :lua} == DataManipulation.sort([[{1, 1}], "random"], :lua)
+  end
+
   test "take_photo - OK" do
     mock = fn "take-photo", %{} -> :ok end
     expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)

@@ -134,6 +134,7 @@ defmodule FarmbotOS.Lua do
       get_position: &Firmware.get_position/2,
       get_seed_tray_cell: &DataManipulation.get_seed_tray_cell/2,
       go_to_home: &Firmware.go_to_home/2,
+      group: &DataManipulation.group/2,
       http: &DataManipulation.http/2,
       inspect: &DataManipulation.json_encode/2,
       json: [
@@ -153,6 +154,7 @@ defmodule FarmbotOS.Lua do
       set_pin_io_mode: &Firmware.set_pin_io_mode/2,
       soft_stop: &Firmware.soft_stop/2,
       soil_height: &DataManipulation.soil_height/2,
+      sort: &DataManipulation.sort/2,
       take_photo_raw: &DataManipulation.take_photo_raw/2,
       take_photo: execute_script("take-photo"),
       toggle_pin: &Firmware.toggle_pin/2,

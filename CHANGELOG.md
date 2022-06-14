@@ -3,6 +3,7 @@
 # 15.3.0
 
  * Add new optimized and alternating sort methods.
+ * Add `sort` and `group` lua helpers.
 
 # 15.2.2
 
