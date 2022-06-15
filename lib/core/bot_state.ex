@@ -150,6 +150,10 @@ defmodule FarmbotOS.BotState do
     GenServer.call(bot_state_server, {:report_wifi_level_percent, percent})
   end
 
+  def report_video_devices(bot_state_server \\ __MODULE__, video_devices) do
+    GenServer.call(bot_state_server, {:report_video_devices, video_devices})
+  end
+
   @doc false
   def start_link(args, opts \\ [name: __MODULE__]) do
     GenServer.start_link(__MODULE__, args, opts)
@@ -369,6 +373,13 @@ defmodule FarmbotOS.BotState do
 
   def handle_call({:report_wifi_level_percent, percent}, _form, state) do
     change = %{informational_settings: %{wifi_level_percent: percent}}
+
+    {reply, state} = get_reply_from_change(state, change)
+    {:reply, reply, state}
+  end
+
+  def handle_call({:report_video_devices, video_devices}, _form, state) do
+    change = %{informational_settings: %{video_devices: video_devices}}
 
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
