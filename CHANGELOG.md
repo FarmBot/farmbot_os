@@ -4,9 +4,7 @@
 
  * Add new optimized and alternating sort methods.
  * Add `sort` and `group` lua helpers.
-
-# 15.2.2
-
+ * Add camera device info to informational settings.
  * Add support for peripherals to `toggle_pin`.
  * Add `toggle_pin` lua helper.
 
