@@ -22,6 +22,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
     field(:throttled, :string)
     field(:wifi_level, :integer)
     field(:wifi_level_percent, :integer)
+    field(:video_devices, :string)
     field(:uptime, :integer)
     field(:memory_usage, :integer)
     field(:disk_usage, :integer)
@@ -59,6 +60,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
       throttled: informational_settings.throttled,
       wifi_level: informational_settings.wifi_level,
       wifi_level_percent: informational_settings.wifi_level_percent,
+      video_devices: informational_settings.video_devices,
       uptime: informational_settings.uptime,
       memory_usage: informational_settings.memory_usage,
       disk_usage: informational_settings.disk_usage,
@@ -91,6 +93,7 @@ defmodule FarmbotOS.BotStateNG.InformationalSettings do
       :throttled,
       :wifi_level,
       :wifi_level_percent,
+      :video_devices,
       :uptime,
       :memory_usage,
       :disk_usage,

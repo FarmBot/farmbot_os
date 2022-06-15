@@ -35,6 +35,83 @@ defmodule FarmbotOS.BotStateTest do
     end
   end
 
+  describe "updates bot state" do
+    test "updates informational_settings" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_firmware_unlocked(bot_state_pid)
+      :ok = BotState.set_firmware_version(bot_state_pid, "0.0.0")
+      :ok = BotState.set_firmware_hardware(bot_state_pid, "arduino")
+      :ok = BotState.set_sync_status(bot_state_pid, "synced")
+      :ok = BotState.set_node_name(bot_state_pid, "0000")
+      :ok = BotState.set_private_ip(bot_state_pid, "0.0.0.0")
+      :ok = BotState.report_memory_usage(bot_state_pid, 250)
+      :ok = BotState.report_soc_temp(bot_state_pid, 40)
+      :ok = BotState.report_throttled(bot_state_pid, "0x0")
+      :ok = BotState.report_uptime(bot_state_pid, 1000)
+      :ok = BotState.report_wifi_level(bot_state_pid, -50)
+      :ok = BotState.report_wifi_level_percent(bot_state_pid, 100)
+      :ok = BotState.report_video_devices(bot_state_pid, "1,0")
+
+      assert %{
+               informational_settings: %{
+                 locked: false,
+                 firmware_version: "0.0.0",
+                 sync_status: "synced",
+                 node_name: "0000",
+                 private_ip: "0.0.0.0",
+                 memory_usage: 250,
+                 soc_temp: 40,
+                 throttled: "0x0",
+                 uptime: 1000,
+                 wifi_level: -50,
+                 wifi_level_percent: 100,
+                 video_devices: "1,0"
+               }
+             } = BotState.fetch(bot_state_pid)
+    end
+
+    test "sets locked" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_firmware_locked(bot_state_pid)
+
+      assert %{informational_settings: %{locked: true}} =
+               BotState.fetch(bot_state_pid)
+    end
+
+    test "updates configuration" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_firmware_hardware(bot_state_pid, "arduino")
+
+      assert %{configuration: %{firmware_hardware: "arduino"}} =
+               BotState.fetch(bot_state_pid)
+    end
+
+    test "updates mcu_params" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_firmware_config(bot_state_pid, "encoder_invert_x", 1)
+
+      assert %{mcu_params: %{encoder_invert_x: 1.0}} =
+               BotState.fetch(bot_state_pid)
+    end
+
+    test "updates location_data" do
+      {:ok, bot_state_pid} = BotState.start_link([], [])
+      :ok = BotState.set_position(bot_state_pid, 1, 2, 3)
+      :ok = BotState.set_load(bot_state_pid, 100, 100, 100)
+      :ok = BotState.set_encoders_scaled(bot_state_pid, 1, 2, 3)
+      :ok = BotState.set_encoders_raw(bot_state_pid, 10, 20, 30)
+
+      assert %{
+               location_data: %{
+                 position: %{x: 1.0, y: 2.0, z: 3.0},
+                 load: %{x: 100.0, y: 100.0, z: 100.0},
+                 scaled_encoders: %{x: 1.0, y: 2.0, z: 3.0},
+                 raw_encoders: %{x: 10.0, y: 20.0, z: 30.0}
+               }
+             } = BotState.fetch(bot_state_pid)
+    end
+  end
+
   test "set_job_progress" do
     {:ok, bot_state_pid} = BotState.start_link([], [])
     _old_state = BotState.subscribe(bot_state_pid)
