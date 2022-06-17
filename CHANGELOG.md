@@ -1,5 +1,13 @@
 # Changelog
 
+# 15.3.0
+
+ * Add new optimized and alternating sort methods.
+ * Add `sort` and `group` lua helpers.
+ * Add camera device info to informational settings.
+ * Add support for peripherals to `toggle_pin`.
+ * Add `toggle_pin` lua helper.
+
 # 15.2.1
 
  * Fix boot sequence edge case bug.

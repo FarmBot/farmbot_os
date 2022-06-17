@@ -290,8 +290,8 @@ defmodule FarmbotOS.Celery.SysCallGlue do
     number_or_nil_or_error(sys_calls, :read_cached_pin, [pin_num])
   end
 
-  def toggle_pin(sys_calls \\ @sys_calls, pun_num) do
-    ok_or_error(sys_calls, :toggle_pin, [pun_num])
+  def toggle_pin(sys_calls \\ @sys_calls, pin_num) do
+    ok_or_error(sys_calls, :toggle_pin, [pin_num])
   end
 
   def read_status(sys_calls \\ @sys_calls) do
