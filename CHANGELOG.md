@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.3.1
+
+ * Improve system performance while using the red LED.
+
 # 15.3.0
 
  * Add new optimized and alternating sort methods.

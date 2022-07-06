@@ -200,7 +200,8 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
     do: maxed(s, :z, v)
 
   defp reduce(
-         {:report_updated_param_during_calibration, %{pin_or_param: p, value1: v}},
+         {:report_updated_param_during_calibration,
+          %{pin_or_param: p, value1: v}},
          state
        ) do
     k = FarmbotOS.Firmware.Parameter.translate(trunc(p))
