@@ -17,7 +17,14 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
   def process(state, gcode_list) do
     # Spawn() so that LED problems don't cause FW Handler to
     # hang or crash
-    unless UARTCoreSupport.locked?(), do: spawn(Leds, :red, [:solid])
+    red_led_pid =
+      unless UARTCoreSupport.locked?() do
+        unless is_pid(state.red_led_pid) do
+          spawn(Leds, :red, [:solid])
+        else
+          state.red_led_pid
+        end
+      end
 
     if state.logs_enabled do
       reject = [
@@ -37,7 +44,7 @@ defmodule FarmbotOS.Firmware.InboundSideEffects do
     end
 
     state = Enum.reduce(gcode_list, state, &reduce/2)
-    %{state | rx_count: state.rx_count + 1}
+    %{state | rx_count: state.rx_count + 1, red_led_pid: red_led_pid}
   end
 
   defp reduce({:debug_message, string}, state) do

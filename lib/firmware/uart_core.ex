@@ -35,7 +35,8 @@ defmodule FarmbotOS.Firmware.UARTCore do
             rx_count: 0,
             rx_buffer: RxBuffer.new(),
             tx_buffer: TxBuffer.new(),
-            pin_watcher: nil
+            pin_watcher: nil,
+            red_led_pid: nil
 
   # The Firmware has a 120 second default timeout.
   # Queuing up 10 messages that take one minute each == 10 minutes.
