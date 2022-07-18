@@ -26,6 +26,21 @@ defmodule FarmbotOS.Firmware.InboundSideEffectsTest do
     assert l == r
   end
 
+  test "red LED already spawned" do
+    fake_pid = spawn(fn -> 2 + 2 end)
+    state = %{@fake_state | red_led_pid: fake_pid}
+    results = InboundSideEffects.process(state, [])
+    assert results.red_led_pid == fake_pid
+  end
+
+  test "no red LED when locked" do
+    expect(FarmbotOS.Firmware.UARTCoreSupport, :locked?, 1, fn -> true end)
+
+    state = %{@fake_state | red_led_pid: nil}
+    results = InboundSideEffects.process(state, [])
+    assert results.red_led_pid == nil
+  end
+
   test "(x|y|z)_axis_timeout" do
     mapper = fn {gcode, _axis} -> simple_case([{gcode, %{}}]) end
 
