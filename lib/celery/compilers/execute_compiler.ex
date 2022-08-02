@@ -19,7 +19,7 @@ defmodule FarmbotOS.Celery.Compiler.Execute do
       %AST{kind: :sequence} = sequence_ast ->
         quote location: :keep do
           # execute_compiler.ex
-          sequence = unquote(sequence_ast)
+          sequence = unquote(Macro.escape(sequence_ast))
           cs_scope = unquote(Scope.new(previous_scope, execute_ast.body))
           FarmbotOS.Celery.Compiler.Sequence.sequence(sequence, cs_scope)
         end
