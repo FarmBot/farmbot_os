@@ -100,10 +100,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
       networks: [
         %{
           key_mgmt: :none,
-          ssid: ssid
+          ssid: ssid,
+          scan_ssid: 1
         }
       ],
-      scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
     }
@@ -120,10 +120,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
         %{
           ssid: ssid,
           psk: psk,
-          key_mgmt: :wpa_psk
+          key_mgmt: :wpa_psk,
+          scan_ssid: 1
         }
       ],
-      scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
     }
@@ -140,10 +140,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
         %{
           ssid: ssid,
           key_mgmt: :wpa_psk,
-          psk: psk
+          psk: psk,
+          scan_ssid: 1
         }
       ],
-      scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
     }
@@ -167,10 +167,10 @@ defmodule FarmbotOS.Platform.Target.Configurator.Validator do
           phase1: "peapver=auto",
           phase2: "MSCHAPV2",
           identity: id,
-          password: pw
+          password: pw,
+          scan_ssid: 1
         }
       ],
-      scan_ssid: 1,
       bgscan: :simple,
       regulatory_domain: reg_domain
     }
