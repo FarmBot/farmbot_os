@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.3.2
+
+ * Fix bug running sequences with large numbers of steps.
+ * Allow configuration to hidden SSIDs.
+
 # 15.3.1
 
  * Improve system performance while using the red LED.
