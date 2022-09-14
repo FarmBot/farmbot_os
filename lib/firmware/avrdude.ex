@@ -1,5 +1,5 @@
 defmodule FarmbotOS.Firmware.Avrdude do
-  @uart_speed 9_600
+  @uart_speed 57_600
   @max_attempts 10
   require FarmbotOS.Logger
   require Logger
