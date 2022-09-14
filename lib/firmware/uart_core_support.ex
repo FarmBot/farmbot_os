@@ -6,7 +6,7 @@ defmodule FarmbotOS.Firmware.UARTCoreSupport do
 
   @default_opts [
     active: true,
-    speed: 115_200,
+    speed: 9_600,
     framing: {Circuits.UART.Framing.Line, separator: "\r\n"},
     rx_framing_timeout: 600
   ]
