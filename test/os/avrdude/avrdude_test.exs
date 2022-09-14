@@ -28,7 +28,7 @@ defmodule FarmbotOs.AvrdudeTest do
                "-patmega2560",
                "-cwiring",
                "-P/dev/null",
-               "-b57600,
+               "-b57600",
                "-D",
                "-V",
                "-v",
