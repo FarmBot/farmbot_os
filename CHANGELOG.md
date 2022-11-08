@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.3.3
+
+ * Genesis and Express firmware updates.
+
 # 15.3.2
 
  * Fix bug running sequences with large numbers of steps.
