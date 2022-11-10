@@ -117,6 +117,10 @@ defmodule FarmbotOS.Lua.Firmware do
     move_absolute([x, y, z, speed], lua)
   end
 
+  def move(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move")
+  end
+
   @doc """
   Returns a table containing position data
 
@@ -239,6 +243,9 @@ defmodule FarmbotOS.Lua.Firmware do
       {:error, error} -> {[inspect(error)], lua}
     end
   end
+
+  def on([pin], lua), do: write_pin([pin, "digital", 1], lua)
+  def off([pin], lua), do: write_pin([pin, "digital", 0], lua)
 
   defp do_find_home(axes, lua, callback) do
     axes

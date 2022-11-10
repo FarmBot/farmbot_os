@@ -2,6 +2,7 @@
 
 # 15.3.3
 
+ * Add new lua helpers.
  * Genesis and Express firmware updates.
 
 # 15.3.2
