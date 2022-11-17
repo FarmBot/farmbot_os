@@ -143,6 +143,7 @@ defmodule FarmbotOS.Lua do
       ],
       measure_soil_height: execute_script("Measure Soil Height"),
       move_absolute: &Firmware.move_absolute/2,
+      move: &Firmware.move/2,
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
       photo_grid: &DataManipulation.photo_grid/2,
       read_pin: &Firmware.read_pin/2,
@@ -150,6 +151,8 @@ defmodule FarmbotOS.Lua do
       rpc: &DataManipulation.rpc/2,
       sequence: &DataManipulation.sequence/2,
       send_message: &Info.send_message/2,
+      debug: &Info.debug/2,
+      toast: &Info.toast/2,
       set_job_progress: &Info.set_job_progress/2,
       set_pin_io_mode: &Firmware.set_pin_io_mode/2,
       soft_stop: &Firmware.soft_stop/2,
@@ -168,6 +171,8 @@ defmodule FarmbotOS.Lua do
       verify_tool: &DataManipulation.verify_tool/2,
       wait: &Wait.wait/2,
       watch_pin: &PinWatcher.new/2,
+      on: &Firmware.on/2,
+      off: &Firmware.off/2,
       write_pin: &Firmware.write_pin/2
     }
   end

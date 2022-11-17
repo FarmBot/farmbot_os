@@ -20,7 +20,7 @@ class Parameters(object):
         self.defaults = {'blur': 15, 'morph': 6, 'iterations': 4,
                          'H': [30, 90], 'S': [50, 255], 'V': [50, 255],
                          'save_detected_plants': False,
-                         'use_bounds': False, 'min_radius': 0, 'max_radius': 0,
+                         'use_bounds': True, 'min_radius': 1.5, 'max_radius': 50,
                          }
         self.cdefaults = {'blur': 5, 'morph': 5, 'iterations': 1,
                           'H': [160, 20], 'S': [100, 255], 'V': [100, 255],

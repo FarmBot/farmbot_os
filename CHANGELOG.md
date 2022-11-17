@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.3.3
+
+ * Add new `on`, `off`, `debug`, `toast`, and `move` lua helpers.
+ * Fix abort command in Genesis and Express firmware.
+
 # 15.3.2
 
  * Fix bug running sequences with large numbers of steps.

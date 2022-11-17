@@ -36,6 +36,12 @@ defmodule FarmbotOS.Lua.Info do
     do_send_message(kind, message, channels, lua)
   end
 
+  def debug([message], lua), do: send_message(["debug", message], lua)
+  def toast([message], lua), do: send_message(["info", message, "toast"], lua)
+
+  def toast([message, type], lua),
+    do: send_message([type, message, "toast"], lua)
+
   @doc "Returns data about the bot's state"
   def read_status([], lua) do
     bot_state = FarmbotOS.BotState.fetch() |> FarmbotOS.BotStateNG.view()
