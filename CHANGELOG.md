@@ -2,8 +2,8 @@
 
 # 15.3.3
 
- * Add new lua helpers.
- * Genesis and Express firmware updates.
+ * Add new `on`, `off`, `debug`, `toast`, and `move` lua helpers.
+ * Fix abort command in Genesis and Express firmware.
 
 # 15.3.2
 
