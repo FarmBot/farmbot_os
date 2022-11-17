@@ -121,7 +121,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
   end
 
   def handle_info({:watch_pin, watcher}, state) do
-    if state.pin_watcher, do: raise("Pin observer did not cleanly exit!")
+    # if state.pin_watcher, do: raise("Pin observer did not cleanly exit!")
     {:noreply, Map.put(state, :pin_watcher, watcher)}
   end
 
