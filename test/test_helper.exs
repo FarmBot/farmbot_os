@@ -312,6 +312,7 @@ ExUnit.configure(
   FarmbotOS.Bootstrap.Authorization,
   FarmbotOS.Bootstrap.DropPasswordSupport,
   FarmbotOS.BotState,
+  FarmbotOS.BotStateNG,
   FarmbotOS.Celery,
   FarmbotOS.Celery.AST.Factory,
   FarmbotOS.Celery.Compiler.Lua,
