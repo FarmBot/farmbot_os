@@ -82,6 +82,17 @@ defmodule FarmbotOS.Lua.InfoTest do
              Info.read_status(["location_data", "position", "x"], lua)
   end
 
+  test "get_xyz()" do
+    lua = "return"
+    expect(FarmbotOS.BotState, :fetch, 1, fn -> :ok end)
+
+    expect(FarmbotOS.BotStateNG, :view, 1, fn _ ->
+      %{location_data: %{position: %{x: 0, y: 0, z: 0}}}
+    end)
+
+    assert {[[{"x", 0}, {"y", 0}, {"z", 0}]], lua} == Info.get_xyz([], lua)
+  end
+
   test "fbos_version()" do
     lua_code = "return fbos_version()"
     {:ok, [actual, nil]} = lua(lua_code, lua_code)

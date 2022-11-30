@@ -3,6 +3,7 @@
 # 15.3.4
 
  * Fix `move_absolute` and `check_position` lua helper bugs.
+ * Add new `get_xyz`, `mount_tool`, and `dismount_tool` lua helpers.
 
 # 15.3.3
 

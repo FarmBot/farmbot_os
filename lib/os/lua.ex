@@ -133,6 +133,7 @@ defmodule FarmbotOS.Lua do
       get_job_progress: &Info.get_job_progress/2,
       get_position: &Firmware.get_position/2,
       get_seed_tray_cell: &DataManipulation.get_seed_tray_cell/2,
+      get_xyz: &Info.get_xyz/2,
       go_to_home: &Firmware.go_to_home/2,
       group: &DataManipulation.group/2,
       http: &DataManipulation.http/2,
@@ -142,6 +143,8 @@ defmodule FarmbotOS.Lua do
         {:encode, &DataManipulation.json_encode/2}
       ],
       measure_soil_height: execute_script("Measure Soil Height"),
+      mount_tool: &Firmware.mount_tool/2,
+      dismount_tool: &Firmware.dismount_tool/2,
       move_absolute: &Firmware.move_absolute/2,
       move: &Firmware.move/2,
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,

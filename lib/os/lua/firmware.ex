@@ -100,7 +100,7 @@ defmodule FarmbotOS.Lua.Firmware do
   end
 
   def move_absolute([table] = args, lua) when is_list(table) do
-    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "safe_z")
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move")
   end
 
   def move_absolute([table, speed], lua)
@@ -112,7 +112,7 @@ defmodule FarmbotOS.Lua.Firmware do
   end
 
   def move(args, lua) do
-    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move")
+    move_absolute(args, lua)
   end
 
   @doc """
@@ -234,6 +234,14 @@ defmodule FarmbotOS.Lua.Firmware do
 
   def on([pin], lua), do: write_pin([pin, "digital", 1], lua)
   def off([pin], lua), do: write_pin([pin, "digital", 0], lua)
+
+  def mount_tool(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "mount_tool")
+  end
+
+  def dismount_tool(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "dismount_tool")
+  end
 
   defp do_find_home(axes, lua, callback) do
     axes

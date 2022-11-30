@@ -23,10 +23,10 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     msg = "expected stub error"
     lua = "return"
 
-    expect(SysCallGlue, :get_current_y, 1, fn -> 2.0 end)
-    expect(SysCallGlue, :get_current_z, 1, fn -> 3.0 end)
+    expect(SysCallGlue, :get_current_y, 2, fn -> 2.0 end)
+    expect(SysCallGlue, :get_current_z, 2, fn -> 3.0 end)
 
-    expect(SysCallGlue, :move_absolute, 5, fn
+    expect(SysCallGlue, :move_absolute, 6, fn
       1, _, _, _ -> :ok
       _, _, _, _ -> {:error, msg}
     end)
@@ -39,11 +39,14 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     assert {[nil, ^msg], ^lua} = Firmware.move_absolute([5, 6, 7], lua)
     assert {[:result], ^lua} = Firmware.move_absolute([[{"x", 1}]], lua)
     assert {[true], ^lua} = Firmware.move_absolute([[{"x", 1}], 100], lua)
+
+    assert {[true], ^lua} =
+             Firmware.move_absolute([[{"x", 1}, {"nope", 2}], 100], lua)
   end
 
   test "move" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
-    result = Firmware.move([], :fake_lua)
+    result = Firmware.move([[]], :fake_lua)
     assert result == {[:result], :fake_lua}
   end
 
@@ -203,5 +206,17 @@ defmodule FarmbotOS.Lua.FirmwareTest do
     assert {[], ^lua} = Firmware.on([13], lua)
     assert {[], ^lua} = Firmware.off([13], lua)
     assert {["\"expected stub error\""], ^lua} = Firmware.on([12], lua)
+  end
+
+  test "mount_tool(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = Firmware.mount_tool([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "dismount_tool(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = Firmware.dismount_tool([], :fake_lua)
+    assert result == {[:result], :fake_lua}
   end
 end
