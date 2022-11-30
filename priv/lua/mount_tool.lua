@@ -1,6 +1,5 @@
 return function(slot)
     local slot_dir = slot.pullout_direction
-    local current_pos = read_status().location_data.position
     start_time = os.time() * 1000
 
     -- Checks
@@ -27,7 +26,7 @@ return function(slot)
     })
 
     if not tool then
-        toast("API error", error)
+        toast("API error", "error")
         return
     end
 
@@ -41,13 +40,13 @@ return function(slot)
 
     -- Safe Z move to above the tool
     job(20, "Retracting Z")
-    move_absolute(current_pos.x, current_pos.y, 0)
+    move{z=0}
     job(40, "Moving above tool")
-    move_absolute(slot.x, slot.y, 0)
+    move{x=slot.x, y=slot.y}
 
     -- Mount the tool
     job(60, "Mounting tool")
-    move_absolute(slot.x, slot.y, slot.z)
+    move{z=slot.z}
 
     -- Pull the tool out of the slot at 50% speed
     job(80, "Pulling tool out")
