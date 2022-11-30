@@ -1,6 +1,5 @@
 return function()
     local tool_id = get_device("mounted_tool_id")
-    local current_pos = read_status().location_data.position
     start_time = os.time() * 1000
 
     -- Checks
@@ -11,16 +10,16 @@ return function()
     -- Get all points
     points = api({ url = "/api/points/" })
     if not points then
-        toast("API error")
+        toast("API error", "error")
         return
     end
 
     -- Pluck the tool slot point where the currently mounted tool belongs
     for key, point in pairs(points) do
-    if point.tool_id == tool_id then
-        slot = point
-        slot_dir = slot.pullout_direction
-    end
+        if point.tool_id == tool_id then
+            slot = point
+            slot_dir = slot.pullout_direction
+        end
     end
 
     -- Get tool name
@@ -54,20 +53,19 @@ return function()
     job(20, "Retracting Z")
     move{z = 0}
 
-    job(50, "Moving to front of slot")
+    job(40, "Moving to front of slot")
     if slot_dir == 1 then
         move{x = slot.x + 100, y = slot.y}
-        move{z = slot.z}
     elseif slot_dir == 2 then
         move{x = slot.x - 100, y = slot.y}
-        move{z = slot.z}
     elseif slot_dir == 3 then
         move{x = slot.x, y = slot.y + 100}
-        move{z = slot.z}
     elseif slot_dir == 4 then
         move{x = slot.x, y = slot.y - 100}
-        move{z = slot.z}
     end
+
+    job(60, "Lowering Z")
+    move{z = slot.z}
 
     -- Put the tool in the slot
     job(80, "Putting tool in slot")
