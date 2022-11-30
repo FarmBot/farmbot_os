@@ -191,6 +191,13 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [true]} == lua("get_fbos_config/1", lua_code)
   end
 
+  test "safe_z/0" do
+    fake_config = %{safe_height: 100}
+    expect(FarmbotOS.Asset, :fbos_config, 1, fn -> fake_config end)
+    expect(FarmbotOS.Asset.FbosConfig, :render, 1, fn params -> params end)
+    assert {[100], :lua} == DataManipulation.safe_z([], :lua)
+  end
+
   test "get_firmware_config/1" do
     fake_config = %{id: 47}
     expect(FarmbotOS.Asset, :firmware_config, 1, fn -> fake_config end)

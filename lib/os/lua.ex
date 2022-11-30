@@ -156,6 +156,7 @@ defmodule FarmbotOS.Lua do
       send_message: &Info.send_message/2,
       debug: &Info.debug/2,
       toast: &Info.toast/2,
+      safe_z: &DataManipulation.safe_z/2,
       set_job_progress: &Info.set_job_progress/2,
       set_pin_io_mode: &Firmware.set_pin_io_mode/2,
       soft_stop: &Firmware.soft_stop/2,
