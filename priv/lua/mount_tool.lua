@@ -40,7 +40,7 @@ return function(slot)
 
     -- Safe Z move to above the tool
     job(20, "Retracting Z")
-    move{z=0}
+    move{z=safe_z()}
     job(40, "Moving above tool")
     move{x=slot.x, y=slot.y}
 
