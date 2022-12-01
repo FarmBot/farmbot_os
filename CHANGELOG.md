@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.3.4
+
+ * Fix `move_absolute` and `check_position` lua helper bugs.
+ * Add new `get_xyz`, `safe_z`, `mount_tool`, and `dismount_tool` lua helpers.
+
 # 15.3.3
 
  * Add new `on`, `off`, `debug`, `toast`, and `move` lua helpers.

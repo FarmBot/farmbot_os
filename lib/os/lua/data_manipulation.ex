@@ -136,6 +136,10 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[conf], lua}
   end
 
+  def safe_z(_args, lua) do
+    get_fbos_config(["safe_height"], lua)
+  end
+
   def update_firmware_config([table], lua) do
     Map.new(table)
     |> Asset.update_firmware_config!()

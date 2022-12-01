@@ -1,4 +1,5 @@
 defmodule FarmbotOS.Lua.InfoTest do
+  alias FarmbotOS.Lua.Info
   use ExUnit.Case
   use Mimic
   alias FarmbotOS.Celery.SysCallGlue
@@ -35,6 +36,61 @@ defmodule FarmbotOS.Lua.InfoTest do
     end)
 
     assert {:ok, []} == lua("send_message() - with channel", code)
+  end
+
+  test "debug()" do
+    lua = "return"
+    msg = "message"
+
+    expect(SysCallGlue, :send_message, 1, fn
+      "debug", "message", [] -> :ok
+    end)
+
+    assert {[true, nil], lua} == Info.debug([msg], lua)
+  end
+
+  test "toast()" do
+    lua = "return"
+    msg = "message"
+
+    expect(SysCallGlue, :send_message, 3, fn
+      "info", "message", [:toast] -> :ok
+      "fun", "message", [:toast] -> :ok
+      "error", "message", [:toast] -> {:error, "error"}
+    end)
+
+    assert {[true, nil], lua} == Info.toast([msg], lua)
+    assert {[true, nil], lua} == Info.toast([msg, "fun"], lua)
+    assert {[nil, "error"], lua} == Info.toast([msg, "error"], lua)
+  end
+
+  test "read_status()" do
+    lua = "return"
+    expect(FarmbotOS.BotState, :fetch, 3, fn -> :ok end)
+
+    expect(FarmbotOS.BotStateNG, :view, 3, fn _ ->
+      %{location_data: %{position: %{x: 0}}}
+    end)
+
+    assert {[[{"location_data", [{"position", [{"x", 0}]}]}]], lua} ==
+             Info.read_status([], lua)
+
+    assert {[[{"x", 0}]], lua} ==
+             Info.read_status(["location_data", "position"], lua)
+
+    assert {[0], lua} ==
+             Info.read_status(["location_data", "position", "x"], lua)
+  end
+
+  test "get_xyz()" do
+    lua = "return"
+    expect(FarmbotOS.BotState, :fetch, 1, fn -> :ok end)
+
+    expect(FarmbotOS.BotStateNG, :view, 1, fn _ ->
+      %{location_data: %{position: %{x: 0, y: 0, z: 0}}}
+    end)
+
+    assert {[[{"x", 0}, {"y", 0}, {"z", 0}]], lua} == Info.get_xyz([], lua)
   end
 
   test "fbos_version()" do

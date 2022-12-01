@@ -62,6 +62,10 @@ defmodule FarmbotOS.Lua.Info do
     end
   end
 
+  def get_xyz(_args, lua) do
+    read_status(["location_data", "position"], lua)
+  end
+
   @doc "Returns the current version of farmbot."
   def fbos_version(_args, lua) do
     {[FarmbotOS.Project.version(), nil], lua}

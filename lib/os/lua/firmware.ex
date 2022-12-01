@@ -100,25 +100,19 @@ defmodule FarmbotOS.Lua.Firmware do
   end
 
   def move_absolute([table] = args, lua) when is_list(table) do
-    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "safe_z")
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move")
   end
 
   def move_absolute([table, speed], lua)
       when is_list(table) and is_number(speed) do
-    axis_finder = fn
-      axis, {axis, nil} -> apply(SysCallGlue, :"get_current_#{axis}", [])
-      axis, {axis, value} -> value
-      _, {_axis, _value} -> false
-    end
-
-    x = Enum.find_value(table, &axis_finder.("x", &1))
-    y = Enum.find_value(table, &axis_finder.("y", &1))
-    z = Enum.find_value(table, &axis_finder.("z", &1))
+    x = Enum.find_value(table, &axis_finder("x", &1))
+    y = Enum.find_value(table, &axis_finder("y", &1))
+    z = Enum.find_value(table, &axis_finder("z", &1))
     move_absolute([x, y, z, speed], lua)
   end
 
   def move(args, lua) do
-    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move")
+    move_absolute(args, lua)
   end
 
   @doc """
@@ -173,15 +167,9 @@ defmodule FarmbotOS.Lua.Firmware do
   end
 
   def check_position([vec3, tolerance], lua) do
-    axis_finder = fn
-      axis, {axis, nil} -> apply(SysCallGlue, :"get_current_#{axis}", [])
-      axis, {axis, value} -> value
-      _, {_axis, _value} -> false
-    end
-
-    x = Enum.find_value(vec3, &axis_finder.("x", &1))
-    y = Enum.find_value(vec3, &axis_finder.("y", &1))
-    z = Enum.find_value(vec3, &axis_finder.("z", &1))
+    x = Enum.find_value(vec3, &axis_finder("x", &1))
+    y = Enum.find_value(vec3, &axis_finder("y", &1))
+    z = Enum.find_value(vec3, &axis_finder("z", &1))
 
     with current_x when is_number(x) <- SysCallGlue.get_current_x(),
          current_y when is_number(y) <- SysCallGlue.get_current_y(),
@@ -247,6 +235,14 @@ defmodule FarmbotOS.Lua.Firmware do
   def on([pin], lua), do: write_pin([pin, "digital", 1], lua)
   def off([pin], lua), do: write_pin([pin, "digital", 0], lua)
 
+  def mount_tool(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "mount_tool")
+  end
+
+  def dismount_tool(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "dismount_tool")
+  end
+
   defp do_find_home(axes, lua, callback) do
     axes
     |> Enum.map(callback)
@@ -263,6 +259,9 @@ defmodule FarmbotOS.Lua.Firmware do
       reasons -> {[nil, Enum.join(reasons, " ")], lua}
     end
   end
+
+  defp axis_finder(axis, {axis, value}), do: value
+  defp axis_finder(axis, _), do: apply(SysCallGlue, :"get_current_#{axis}", [])
 
   defp parse_mode_string("analog"), do: 1
   defp parse_mode_string(_), do: 0
