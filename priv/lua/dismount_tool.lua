@@ -51,7 +51,7 @@ return function()
 
     -- Safe Z move to the front of the slot
     job(20, "Retracting Z")
-    move{z = 0}
+    move{z = safe_z()}
 
     job(40, "Moving to front of slot")
     if slot_dir == 1 then
