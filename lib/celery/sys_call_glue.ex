@@ -4,7 +4,7 @@ defmodule FarmbotOS.Celery.SysCallGlue do
   """
   alias FarmbotOS.Celery.{AST, RuntimeError}
 
-  @sys_calls Application.get_env(:farmbot, __MODULE__)[:sys_calls]
+  @sys_calls Application.compile_env(:farmbot, __MODULE__)[:sys_calls]
   @sys_calls ||
     Mix.raise("""
     config :farmbot, FarmbotOS.Celery.SysCallGlue, [
