@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.3.5
+
+ * Upgrade Nerves system, Erlang, Elixir, and other dependencies.
+
 # 15.3.4
 
  * Fix `move_absolute` and `check_position` lua helper bugs.

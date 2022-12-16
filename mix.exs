@@ -136,7 +136,7 @@ defmodule FarmbotOS.MixProject do
       {:plug_cowboy, "~> 2.6"},
       {:ring_logger, "~> 0.8"},
       {:rollbax, "~> 0.11"},
-      {:shoehorn, "~> 0.9"},
+      {:shoehorn, "~> 0.8"},
       {:telemetry, "~> 1.1"},
       {:tesla, "~> 1.5"},
       {:timex, "~> 3.7"},
