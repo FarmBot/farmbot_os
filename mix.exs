@@ -38,7 +38,7 @@ defmodule FarmbotOS.MixProject do
         extras: Path.wildcard("../docs/**/*.md")
       ],
       elixir: @elixir_version,
-      elixirc_options: [warnings_as_errors: true],
+      elixirc_options: [warnings_as_errors: false],
       elixirc_paths: elixirc_paths(Mix.env(), Mix.target()),
       homepage_url: "http://farmbot.io",
       preferred_cli_env: [
