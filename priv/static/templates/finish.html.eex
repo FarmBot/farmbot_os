@@ -8,15 +8,16 @@
 
   <body>
     <h1>Configuration Complete</h1>
+    <h2><%= subtitle %></h2>
+
     <div class="widget">
-    <div class="widget-header">
-      <h5>You're almost done!</h5>
-    </div>
-    <div class="widget-content">
+    <div class="widget-content bare">
       FarmBot will now reboot to apply the configuration.
       <p>
-        If any configuration settings are incorrect, FarmBot will reset
-        in about 2-5 minutes allowing you to enter the settings again.
+        If FarmBot is unable to connect to the Internet or if any
+        configuration settings are incorrect, FarmBot will reset in
+        <%= if String.ends_with?(to_string(target), "rpi"), do: "4-5", else: "2-3" %>
+        minutes, allowing you to enter the settings again.
       </p>
     </div>
   </div>

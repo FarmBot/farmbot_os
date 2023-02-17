@@ -4,8 +4,8 @@ defmodule FarmbotOS.SysCalls.FactoryReset do
   alias FarmbotOS.{Asset, BotState}
   alias FarmbotOS.APIFetcher
 
-  def factory_reset("farmbot_os") do
-    FarmbotOS.System.factory_reset("Soft resetting...", true)
+  def factory_reset("farmbot_os", reason) do
+    FarmbotOS.System.factory_reset(reason, true)
     :ok
   end
 

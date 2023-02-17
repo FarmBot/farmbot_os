@@ -218,7 +218,8 @@ defmodule FarmbotOS.Celery.Compiler do
   def factory_reset(%{args: %{package: package}}, cs_scope) do
     quote location: :keep do
       FarmbotOS.Celery.SysCallGlue.factory_reset(
-        unquote(celery_to_elixir(package, cs_scope))
+        unquote(celery_to_elixir(package, cs_scope)),
+        "Soft resetting..."
       )
     end
   end

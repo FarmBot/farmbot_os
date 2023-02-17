@@ -47,7 +47,9 @@
   </head>
 
   <body>
-    <h1>Configure FarmBot <%= version %> </h1>
+    <h1>Configure FarmBot</h1>
+    <h2><%= subtitle %></h2>
+
     <div class="widget">
       <div class="widget-header">
         <h5>Configure Wireless</h5>

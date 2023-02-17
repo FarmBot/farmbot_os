@@ -11,12 +11,12 @@ defmodule FarmbotOS.SysCalls.FactoryResetTest do
 
   test "factory reset - FarmBot OS" do
     expect(FarmbotOS.System, :factory_reset, 1, fn reason, flag ->
-      assert reason == "Soft resetting..."
+      assert reason == "reason"
       assert flag
       :ok
     end)
 
-    assert :ok == FactoryReset.factory_reset("farmbot_os")
+    assert :ok == FactoryReset.factory_reset("farmbot_os", "reason")
   end
 
   test "factory reset - Arduino" do

@@ -41,10 +41,10 @@ defmodule FarmbotOS.Configurator.RouterTest do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> "whoops!" end)
 
-    conn = conn(:get, "/")
+    conn = conn(:get, "/network")
     conn = Router.call(conn, @opts)
     assert conn.resp_body =~ "Configure"
-    assert conn.resp_body =~ "<div class=\"last-shutdown-reason\">"
+    assert conn.resp_body =~ "<div class=\"warning\">"
     assert conn.resp_body =~ "whoops!"
   end
 
@@ -73,11 +73,11 @@ defmodule FarmbotOS.Configurator.RouterTest do
   @tag :capture_log
   test "celeryscript requests don't get listed as last reset reason" do
     FarmbotOS.Configurator.ConfigDataLayer
-    |> expect(:load_last_reset_reason, fn -> "Factory reset requested" end)
+    |> expect(:load_last_reset_reason, fn -> "Soft resetting..." end)
 
-    conn = conn(:get, "/")
+    conn = conn(:get, "/network")
     conn = Router.call(conn, @opts)
-    refute conn.resp_body =~ "Factory reset requested"
+    refute conn.resp_body =~ "Soft resetting..."
   end
 
   @tag :capture_log
@@ -85,9 +85,9 @@ defmodule FarmbotOS.Configurator.RouterTest do
     FarmbotOS.Configurator.ConfigDataLayer
     |> expect(:load_last_reset_reason, fn -> nil end)
 
-    conn = conn(:get, "/")
+    conn = conn(:get, "/network")
     conn = Router.call(conn, @opts)
-    refute conn.resp_body =~ "<div class=\"last-shutdown-reason\">"
+    refute conn.resp_body =~ "<div class=\"warning\">"
   end
 
   @tag :capture_log
@@ -438,7 +438,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
 
     assert String.contains?(
              kon.resp_body,
-             "If any configuration settings are incorrect, FarmBot will reset"
+             "configuration settings are incorrect, FarmBot will reset"
            )
   end
 end
