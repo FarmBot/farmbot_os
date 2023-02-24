@@ -281,13 +281,13 @@ defmodule FarmbotOS.Platform.Target.Network do
     first_connect? = is_first_connect?()
 
     if first_connect? do
-      FarmbotOS.System.set_shutdown_reason("""
+      FarmbotOS.System.factory_reset("""
       FarmBot could not connect to the network. Please double check cable
       connectivity using another device and try again. Are you sure it is
       spelled correctly, in range, and has Good or Okay signal strength?
       If your signal is too weak, consider using a WiFi repeater or an
-      Ethernet connection. Please try again and use the eye icon to double
-      check you have typed the password correctly. FarmBot requires ports 80,
+      Ethernet connection. Please try again and make sure you have typed
+      the password correctly. FarmBot requires ports 80,
       443, 3002, and 8883 to communicate with the web app servers.
       Please contact your network administrator to ensure all of these ports
       are open for the FarmBot.

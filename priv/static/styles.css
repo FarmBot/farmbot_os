@@ -226,7 +226,14 @@ input[type="radio"]:checked:after {
 .connection-type {
   display: inline-block;
   padding: 0.5rem;
+}
+
+.connection-type>.connection-type-info {
   cursor: pointer;
+}
+
+.connection-type>label {
+  margin: 0;
 }
 
 .connection-type-box {
@@ -236,6 +243,11 @@ input[type="radio"]:checked:after {
   width: 9rem;
   height: 9rem;
   text-align: center;
+  cursor: pointer;
+}
+
+.connection-type-box>label {
+  cursor: pointer;
 }
 
 .connection-type-box>img {
@@ -275,6 +287,10 @@ input[type="radio"]:checked:after {
   margin: 0;
   font-size: 0.6rem;
   transition: all 0.5s ease;
+}
+
+.visible {
+  opacity: 1;
 }
 
 .connection-type-info-content p {

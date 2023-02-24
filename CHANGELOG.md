@@ -2,7 +2,7 @@
 
 # 15.3.6
 
- * Add new warning element to configurator.
+ * Add new warning element to configurator. Misc UI changes.
 
 # 15.3.4
 

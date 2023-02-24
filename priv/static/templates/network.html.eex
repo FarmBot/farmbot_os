@@ -16,6 +16,12 @@
         }
       }
     }
+    function toggle_mac(id) {
+      var content = document.getElementById(id);
+      content.classList.contains("visible")
+        ? content.classList.remove("visible")
+        : content.classList.add("visible");
+    }
     </script>
 
   </head>
@@ -38,10 +44,9 @@
         <div id="warning-content">
           <script>
             var all = "<%= javascript_escape(last_reset_reason) %>";
-            var reason = all.replace("\n", " ");
+            var reason = all.replace(/\n/g, " ");
             document.write(reason)
           </script>
-          <a href="/logger">View Live Device Logs</a>
         </div>
       </div>
     <% end %>
@@ -55,20 +60,20 @@
           <% # Main form stuff %>
           <%= for {ifname, settings} <- interfaces do %>
 
-            <label class="connection-type no-pad" for='<%= ifname %>'>
+            <div class="connection-type no-pad">
               <input type="radio" id='<%= ifname %>' name="interfaceRadio" onclick="select_interface()"/>
 
-              <div class="connection-type-box">
+              <label class="connection-type-box" for='<%= ifname %>'>
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
                 <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%></span>
-              </div>
+              </label>
 
-              <div class="connection-type-info">i</div>
+              <div class="connection-type-info" onclick='toggle_mac("mac-<%= ifname %>")'>i</div>
 
-              <div class="connection-type-info-content">
+              <div class="connection-type-info-content" id='mac-<%= ifname %>'>
                 <h4> <%= ifname %> mac address: </h4> <p><%= settings.mac_address %></p>
               </div>
-            </label>
+            </div>
 
           <% end %>
         </form>
