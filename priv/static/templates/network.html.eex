@@ -44,7 +44,7 @@
         <div id="warning-content">
           <script>
             var all = "<%= javascript_escape(last_reset_reason) %>";
-            var reason = all.replace(/\n/g, " ");
+            var reason = all.replace(/\n/g, " ").replace(/       /g, " ");
             document.write(reason)
           </script>
         </div>

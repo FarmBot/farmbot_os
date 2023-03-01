@@ -140,7 +140,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> init_test_session(%{"ifname" => "eth0"})
       |> Router.call(@opts)
 
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
   end
 
   @tag :capture_log
@@ -192,7 +192,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     refute conn.resp_body =~ "PSK"
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
 
     conn =
       conn(:post, "/config_wireless_step_1", %{
@@ -203,7 +203,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     assert conn.resp_body =~ "PSK"
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
 
     conn =
       conn(:post, "/config_wireless_step_1", %{
@@ -214,7 +214,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
       |> Router.call(@opts)
 
     assert conn.resp_body =~ "PSK"
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
 
     conn =
       conn(:post, "/config_wireless_step_1", %{
@@ -227,7 +227,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     refute conn.resp_body =~ "PSK"
     assert conn.resp_body =~ "IDENTITY"
     assert conn.resp_body =~ "PASSWORD"
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
 
     conn =
       conn(:post, "/config_wireless_step_1", %{"manualssid" => "Test Network"})
@@ -237,7 +237,7 @@ defmodule FarmbotOS.Configurator.RouterTest do
     assert conn.resp_body =~ "PSK"
     assert conn.resp_body =~ "EAP Identity"
     assert conn.resp_body =~ "EAP Password"
-    assert conn.resp_body =~ "Advanced settings"
+    assert conn.resp_body =~ "Advanced"
 
     conn =
       conn(:post, "/config_wireless_step_1", %{

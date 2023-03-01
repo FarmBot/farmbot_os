@@ -77,8 +77,12 @@ input[type=submit] {
 
 a:hover,
 input[type=submit]:hover {
-  border-bottom-width: 1px !important;
   background-color: #61a241;
+}
+
+a:active,
+input[type=submit]:active {
+  border-bottom-width: 1px !important;
 }
 
 .rescan {
@@ -106,6 +110,7 @@ input[type=submit]:hover {
 .bare {
   border-radius: 5px;
   font-weight: bold;
+  line-height: 1.3rem;
 }
 
 .bare p {
@@ -520,6 +525,7 @@ td {
   padding-top: 0;
   padding-left: 0;
   color: #434343;
+  line-height: 1.3rem;
 }
 
 #warning-content a {

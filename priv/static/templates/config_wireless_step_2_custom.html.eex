@@ -62,7 +62,7 @@
             <div id="pskdiv">
               <label for=psk> PSK </label>
               <div class="psk-input-group">
-                <input type="password" name="psk" id="psk">
+                <input type="text" name="psk" id="psk">
                 <img class="eye-icon" src="icon_eye.svg"
                   onclick="showPassword('psk')" title="Show password">
               </div>
@@ -76,7 +76,7 @@
             <div id="eappassworddiv" hidden>
               <label for=password> EAP Password </label>
               <div class="psk-input-group">
-                <input type="password" name="password" id="password">
+                <input type="text" name="password" id="password">
                 <img class="eye-icon" src="icon_eye.svg"
                   onclick="showPassword('password')" title="Show password">
               </div>
@@ -88,6 +88,18 @@
 
           <div class="button"> <input type=submit value="next"> </div>
         </form>
+      </div>
+    </div>
+
+    <div class="warning">
+      <div class="warning-header">
+        <img src="icon_warning.svg" />
+        <h5>Double check your WiFi name and password</h5>
+      </div>
+      <div id="warning-content">
+        Entering an incorrect password at this step will result in a
+        CODE 24 error, the FarmBot will not come online, and
+        you will need to redo configuration.
       </div>
     </div>
   </body>

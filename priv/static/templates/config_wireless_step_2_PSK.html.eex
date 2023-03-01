@@ -28,7 +28,7 @@
             <input name="security" hidden=true value="<%= security %>">
             <input name="ifname",  hidden=true value="<%= ifname %>">
 
-            <label for="psk"> PSK </label>
+            <label for="psk"> PASSWORD </label>
             <div class="psk-input-group">
               <input type="text" name="psk" id="psk">
               <img class="eye-icon" src="icon_eye.svg"
@@ -46,7 +46,7 @@
     <div class="warning">
       <div class="warning-header">
         <img src="icon_warning.svg" />
-        <h5>Double check your email and password</h5>
+        <h5>Double check your WiFi password</h5>
       </div>
       <div id="warning-content">
         Entering an incorrect password at this step will result in a
