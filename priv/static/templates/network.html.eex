@@ -1,3 +1,4 @@
+<% import Phoenix.HTML %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -15,12 +16,41 @@
         }
       }
     }
+    function toggle_mac(id) {
+      var content = document.getElementById(id);
+      content.classList.contains("visible")
+        ? content.classList.remove("visible")
+        : content.classList.add("visible");
+    }
     </script>
 
   </head>
 
   <body>
-    <h1>Configure FarmBot <%= version %> </h1>
+    <h1>Configure FarmBot</h1>
+    <h2><%= subtitle %></h2>
+
+    <%= if last_reset_reason
+      && not String.contains?(last_reset_reason, "Soft resetting...")
+      && not String.contains?(last_reset_reason, "Rebooting...")
+      && not String.contains?(last_reset_reason, "Arduino factory reset")
+      && not String.contains?(last_reset_reason, "Shutting down...")
+      && not String.contains?(last_reset_reason, "Upgrading database...") do %>
+      <div class="warning">
+        <div class="warning-header">
+          <img src="icon_warning.svg" />
+          <h5>Configuration failed</h5>
+        </div>
+        <div id="warning-content">
+          <script>
+            var all = "<%= javascript_escape(last_reset_reason) %>";
+            var reason = all.replace(/\n/g, " ").replace(/       /g, " ");
+            document.write(reason)
+          </script>
+        </div>
+      </div>
+    <% end %>
+
     <div class="widget">
       <div class="widget-header"> <h5>Network</h5> </div>
       <div class="widget-content">
@@ -30,20 +60,20 @@
           <% # Main form stuff %>
           <%= for {ifname, settings} <- interfaces do %>
 
-            <label class="connection-type no-pad" for='<%= ifname %>'>
+            <div class="connection-type no-pad">
               <input type="radio" id='<%= ifname %>' name="interfaceRadio" onclick="select_interface()"/>
-              
-              <div class="connection-type-box">
+
+              <label class="connection-type-box" for='<%= ifname %>'>
                 <img src='<%= if String.contains?(to_string(ifname), "w"), do: "icon_wifi.svg", else: "icon_ethernet.svg"%>'/>
                 <span><%= if String.contains?(to_string(ifname), "w"), do: "WiFi", else: "Ethernet"%></span>
-              </div>
+              </label>
 
-              <div class="connection-type-info">i</div>
-              
-              <div class="connection-type-info-content">
+              <div class="connection-type-info" onclick='toggle_mac("mac-<%= ifname %>")'>i</div>
+
+              <div class="connection-type-info-content" id='mac-<%= ifname %>'>
                 <h4> <%= ifname %> mac address: </h4> <p><%= settings.mac_address %></p>
               </div>
-            </label>
+            </div>
 
           <% end %>
         </form>

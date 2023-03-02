@@ -50,20 +50,7 @@ defmodule FarmbotOS.Configurator.Router do
   get "/" do
     FarmbotTelemetry.event(:configurator, :configuration_start)
 
-    case load_last_reset_reason() do
-      reason when is_binary(reason) ->
-        if String.contains?(reason, "Factory reset requested") do
-          redir(conn, "/network")
-        else
-          render_page(conn, "index",
-            version: version(),
-            last_reset_reason: reason
-          )
-        end
-
-      nil ->
-        redir(conn, "/network")
-    end
+    redir(conn, "/network")
   end
 
   get("/setup", do: redir(conn, "/"))
@@ -88,7 +75,9 @@ defmodule FarmbotOS.Configurator.Router do
       _ ->
         render_page(conn, "network",
           interfaces: interfaces,
-          post_action: "select_interface"
+          post_action: "select_interface",
+          subtitle: subtitle(),
+          last_reset_reason: load_last_reset_reason()
         )
     end
   end
@@ -120,7 +109,8 @@ defmodule FarmbotOS.Configurator.Router do
 
     render_page(conn, "config_wired",
       ifname: ifname,
-      advanced_network: advanced_network()
+      advanced_network: advanced_network(),
+      subtitle: subtitle()
     )
   end
 
@@ -130,7 +120,8 @@ defmodule FarmbotOS.Configurator.Router do
     render_page(conn, "/config_wireless_step_1",
       ifname: ifname,
       ssids: scan(ifname),
-      post_action: "config_wireless_step_1"
+      post_action: "config_wireless_step_1",
+      subtitle: subtitle()
     )
   end
 
@@ -145,7 +136,8 @@ defmodule FarmbotOS.Configurator.Router do
       ifname: ifname,
       security: security,
       advanced_network: advanced_network(),
-      post_action: "config_network"
+      post_action: "config_network",
+      subtitle: subtitle()
     ]
 
     cond do
@@ -228,7 +220,8 @@ defmodule FarmbotOS.Configurator.Router do
     render_page(conn, "credentials",
       server: server,
       email: email,
-      password: pass
+      password: pass,
+      subtitle: subtitle()
     )
   end
 
@@ -278,7 +271,11 @@ defmodule FarmbotOS.Configurator.Router do
       } ->
         FarmbotOS.Logger.debug(1, "Configuration success!")
         save_config(get_session(conn))
-        render_page(conn, "finish")
+
+        render_page(conn, "finish",
+          subtitle: subtitle(),
+          target: target()
+        )
 
       _ ->
         FarmbotOS.Logger.debug(1, "Configuration FAIL")
@@ -390,4 +387,17 @@ defmodule FarmbotOS.Configurator.Router do
   end
 
   defp version, do: FarmbotOS.Project.version()
+  defp target, do: FarmbotOS.Project.target()
+
+  defp subtitle() do
+    device =
+      %{
+        host: "Computer",
+        rpi4: "Raspberry Pi 4",
+        rpi3: "Raspberry Pi 3 and Zero 2 W",
+        rpi: "Raspberry Pi Zero W"
+      }[target()]
+
+    "v#{version()} for #{device}"
+  end
 end

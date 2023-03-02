@@ -62,7 +62,18 @@ defmodule FarmbotOS.System do
   def set_shutdown_reason(reason) do
     FarmbotOS.Logger.busy(1, reason)
     file = FarmbotOS.FileSystem.shutdown_reason_path()
-    if reason, do: File.write!(file, inspect(reason)), else: File.rm_rf(file)
+
+    if reason do
+      clean_reason =
+        reason
+        |> String.replace(~r/\s+/, " ")
+        |> String.trim_leading(" ")
+        |> String.trim_trailing(" ")
+
+      File.write!(file, inspect(clean_reason))
+    else
+      File.rm_rf(file)
+    end
   end
 
   def try_lock_fw() do

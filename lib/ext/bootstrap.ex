@@ -65,7 +65,16 @@ defmodule FarmbotOS.Bootstrap do
         msg = "Password auth failed! Check again and reconfigurate."
         Logger.error(msg)
         FarmbotOS.Logger.debug(3, msg)
-        FarmbotOS.Celery.SysCallGlue.factory_reset("farmbot_os")
+
+        FarmbotOS.System.factory_reset("""
+        FarmBot successfully connected to the web app
+        servers at #{server} but was not able to login to
+        the #{email} account. If you have registered an account with this
+        email, please try again and use the
+        eye icon to double check you have typed the
+        password correctly.
+        """)
+
         FarmbotOS.Time.no_reply(nil, 5000)
 
       er ->

@@ -1,0 +1,10 @@
+<svg
+  viewBox="0 0 20 20"
+  xmlns="http://www.w3.org/2000/svg"
+  stroke="#434343"
+  stroke-width="3px"
+  stroke-linecap="round"
+  fill="#434343">
+  <path d="M2 18, 10 2, 18 18z" />
+  <text x="7.5" y="16" fill="#fd6" stroke="none" font-weight="bold" font-size="12">!</text>
+</svg>

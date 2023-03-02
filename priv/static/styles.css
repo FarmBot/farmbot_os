@@ -16,15 +16,26 @@ body {
 h1,
 h2 {
   text-shadow: 0 0 25px rgba(0, 0, 0, 0.1), 0 0 25px rgba(0, 0, 0, 0.1);
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   font-weight: 100;
   text-align: center;
   color: #fff;
+  font-weight: 700;
+}
+
+h1 {
+  font-family: Inknut Antiqua;
+  margin-bottom: 0;
+}
+
+h2 {
+  margin-top: 0.5rem;
+  font-size: 1.3rem;
 }
 
 .button {
   text-align: center;
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .no-pad {
@@ -66,8 +77,12 @@ input[type=submit] {
 
 a:hover,
 input[type=submit]:hover {
-  border-bottom-width: 1px !important;
   background-color: #61a241;
+}
+
+a:active,
+input[type=submit]:active {
+  border-bottom-width: 1px !important;
 }
 
 .rescan {
@@ -87,14 +102,30 @@ input[type=submit]:hover {
   margin-bottom: 3rem;
   position: relative;
   margin: auto;
+  margin-bottom: 1.5rem;
   max-width: 500px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.bare {
+  border-radius: 5px;
+  font-weight: bold;
+  line-height: 1.3rem;
+}
+
+.bare p {
+  margin-top: 0.25rem;
+  font-weight: normal;
+  font-style: normal;
+  margin-bottom: 0;
 }
 
 .widget-header {
   background: #434343;
   letter-spacing: .05rem;
   padding: .75rem 1rem;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
 h5 {
@@ -117,6 +148,8 @@ p {
   border-color: #ddd;
   color: #434343 !important;
   padding: 1rem;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .widget-content:label {
@@ -198,7 +231,14 @@ input[type="radio"]:checked:after {
 .connection-type {
   display: inline-block;
   padding: 0.5rem;
+}
+
+.connection-type>.connection-type-info {
   cursor: pointer;
+}
+
+.connection-type>label {
+  margin: 0;
 }
 
 .connection-type-box {
@@ -208,6 +248,11 @@ input[type="radio"]:checked:after {
   width: 9rem;
   height: 9rem;
   text-align: center;
+  cursor: pointer;
+}
+
+.connection-type-box>label {
+  cursor: pointer;
 }
 
 .connection-type-box>img {
@@ -247,6 +292,10 @@ input[type="radio"]:checked:after {
   margin: 0;
   font-size: 0.6rem;
   transition: all 0.5s ease;
+}
+
+.visible {
+  opacity: 1;
 }
 
 .connection-type-info-content p {
@@ -440,34 +489,53 @@ td {
   background-color: #999999;
 }
 
-.last-shutdown-reason {
-  background-color: #ccc;
-  padding: 10px;
+.warning {
+  background-color: #FFDD66;
+  max-width: 500px;
+  margin: auto;
   margin-bottom: 30px;
   overflow-wrap: break-word;
+  border-radius: 5px;
 }
 
-.last-shutdown-reason-header {
-  text-align: center;
+.warning-header {
+  position: relative;
+  padding: 1rem;
+  padding-left: 3rem;
+  padding-bottom: 0.25rem;
+  text-align: left;
 }
 
-.last-shutdown-reason-header h5 {
+.warning-header img {
+  position: absolute;
+  left: 0.75rem;
+  width: 20px;
+  height: 20px;
+}
+
+.warning-header h5 {
   color: #434343;
-}
-
-.last-shutdown-reason i {
-  font-weight: bold;
-}
-
-.last-shutdown-reason label {
+  margin: 0;
   text-transform: none;
 }
 
-.last-shutdown-reason hr {
-  border: 0.4px solid grey;
-  margin-top: 1.5rem;
+#warning-content {
+  margin-left: 3rem;
+  padding: 1rem;
+  padding-top: 0;
+  padding-left: 0;
+  color: #434343;
+  line-height: 1.3rem;
 }
 
-.last-shutdown-reason .env-details {
-  padding-left: 1rem;
+#warning-content a {
+  font-size: 0.75rem;
+  padding: 0.25rem;
+  margin-top: 1rem;
+  display: block;
+  width: fit-content;
+  text-align: center;
+  background: darkgray;
+  border-color: gray;
+  color: #434343;
 }

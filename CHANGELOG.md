@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.3.6
+
+ * Add new warning element to configurator. Misc UI changes.
+
 # 15.3.4
 
  * Fix `move_absolute` and `check_position` lua helper bugs.

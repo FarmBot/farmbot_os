@@ -14,7 +14,7 @@
 
 <div>
   <label id="advancedSettingsTitle" class="expandable" for="advancedSettings"
-    onclick="toggleAdvancedSettings()">Advanced settings</label>
+    onclick="toggleAdvancedSettings()">Advanced</label>
   <fieldset id="advancedSettings" hidden>
 
     <label for="regulatory_domain"> regulatory domain </label>

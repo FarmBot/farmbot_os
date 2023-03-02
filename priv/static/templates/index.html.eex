@@ -6,47 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Configure Farmbot Version <%= version %> </title>
     <link rel="stylesheet" href="/styles.css">
-
-    <script>
-    let count = 0;
-    function secret(event) {
-      count++;
-      if(count >= 10) {
-        document.getElementById("hidden-logs").hidden = false;
-      }
-    }
-
-    function copyLSR() {
-      var tmp = document.createElement("div");
-      <%= if last_reset_reason do %>
-        tmp.innerHTML = "<%= javascript_escape(last_reset_reason) %>";
-      <% end %>
-      var textArea = document.createElement("textarea");
-      textArea.value += "```\n";
-      textArea.value += tmp.innerText;
-      textArea.value += "```";
-      var content = document.getElementById("last-shutdown-reason-content");
-      content.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      var copyStatus = document.execCommand("copy");
-      var copiedText = window.getSelection().toString();
-      console.log(copyStatus ? "copied:" : "did not copy: ", copiedText);
-      content.removeChild(textArea);
-      document.getElementById("copy-lsr-button").innerHTML = copyStatus ? "copy ✓" : "copy";
-    }
-
-    function toggleErrorDetails() {
-      var details = document.getElementById("envDetails");
-      details.hidden = !details.hidden;
-      document.getElementById("addDetails").className =
-        details.hidden ? "expandable" : "expanded"
-    }
-    </script>
   </head>
 
   <body>
-    <h1 onclick="secret()"> Configure your FarmBot Version <%= version %></h1>
+    <h1>Configure FarmBot</h1>
+    <h2><%= subtitle %></h2>
 
     <div class="widget">
       <div class="widget-header">
@@ -54,48 +18,6 @@
       </div>
 
       <div class="widget-content">
-
-        <p> <a hidden id='hidden-logs' href="/logger">View Live Device Logs</a> </p>
-
-        <%= if last_reset_reason do %>
-          <div class="last-shutdown-reason">
-            <div class="last-shutdown-reason-header">
-              <h5> Farmbot unexpectedly shut down </h5> <p></p>
-            </div>
-            <div id="last-shutdown-reason-content">
-              <i> Last shutdown reason: </i>
-              <script>
-                var all = "<%= javascript_escape(last_reset_reason) %>";
-                var reason = all.split("<hr>")[0];
-                document.write(reason)
-              </script>
-              <hr />
-              <label id="addDetails" class="expandable"
-                onclick="toggleErrorDetails()" for="envDetails">
-                Additional details
-              </label>
-              <div id="envDetails" class="env-details" hidden>
-                <script>
-                  var all = "<%= javascript_escape(last_reset_reason) %>";
-                  var envDetails = all.split("<hr>")[1] || "No additional details.";
-                  document.write(envDetails)
-                </script>
-              </div>
-            </div>
-            <div class="copy-button">
-              <button id="copy-lsr-button" onClick='copyLSR()'>copy</button>
-            </div>
-          </div>
-          <p>
-            <b>Common reasons configuration fails:</b>
-            <ul>
-              <li>Wrong account email or password</li>
-              <li>Wrong WiFi credentials</li>
-              <li>Security software or policies are preventing FarmBot from connecting to the public internet.</li>
-            </ul>
-          </p>
-        <% end %>
-
         <p>Get ready to configure your FarmBot!</p>
         <ul>
           <li>Network</li>
