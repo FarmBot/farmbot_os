@@ -127,6 +127,7 @@ defmodule FarmbotOS.Lua do
       firmware_version: &Info.firmware_version/2,
       garden_size: &DataManipulation.garden_size/2,
       gcode: &do_gcode/2,
+      get_curve: &DataManipulation.get_curve/2,
       get_device: &DataManipulation.get_device/2,
       get_fbos_config: &DataManipulation.get_fbos_config/2,
       get_firmware_config: &DataManipulation.get_firmware_config/2,

@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.0
+
+ * Add new `get_curve` lua helper.
+
 # 15.3.6
 
  * Add new warning element to configurator. Misc UI changes.
