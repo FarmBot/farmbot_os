@@ -3,6 +3,7 @@
 # 15.4.0
 
  * Add new `get_curve` lua helper.
+ * Add/expose new plant fields: `depth`, `water_curve_id`, `spread_curve_id`, `height_curve_id`, `age`.
 
 # 15.3.6
 

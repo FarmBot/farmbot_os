@@ -14,6 +14,10 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     :name,
     :openfarm_slug,
     :plant_stage,
+    :depth,
+    :water_curve_id,
+    :spread_curve_id,
+    :height_curve_id,
     :pointer_type,
     :pullout_direction,
     :resource_id,
@@ -35,6 +39,17 @@ defmodule FarmbotOS.SysCalls.PointLookup do
         %{resource_type: type, resource_id: id}
         |> Map.merge(s)
         |> Map.take(@relevant_keys)
+        |> Map.put(
+          :age,
+          div(
+            DateTime.diff(
+              DateTime.utc_now(),
+              s.planted_at || DateTime.utc_now(),
+              :second
+            ),
+            86400
+          )
+        )
 
       other ->
         Logger.debug("Point error: Please notify support #{inspect(other)}")

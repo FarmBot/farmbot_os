@@ -1,11 +1,12 @@
 return function(curve_id)
   api_curve_data = api({ url = "/api/curves/" .. curve_id })
   if not api_curve_data then
-      toast("API error", "error")
+      toast("API error. Is your curve ID correct?", "error")
       return
   end
 
   function get_day_value(day)
+    day = tonumber(day)
     day_string = tostring(day)
     value = api_curve_data.data[day_string]
     if value ~= nil then
