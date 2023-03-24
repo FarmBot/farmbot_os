@@ -147,6 +147,25 @@ predeploy_setup: &predeploy_setup
     - <<: *install_hex_archives
     - <<: *install_jq
 
+install_lua_test_env: &install_lua_test_env
+  run:
+    name: Install Lua test env
+    command: |
+      apt-get update
+      apt-get install luarocks -y
+      luarocks install inspect
+      luarocks install luacov
+      luarocks install busted
+
+run_lua_tests: &run_lua_tests
+  run:
+    name: Test Lua code
+    command: |
+      cd priv/lua
+      busted --coverage
+      luacov
+      cat luacov.report.out
+
 jobs:
   ################################################################################
   #                                    TEST                                      #
@@ -166,6 +185,7 @@ jobs:
             - v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
+      - <<: *install_lua_test_env
       - run:
           name: Test Farmbot OS
           working_directory: /nerves/build
@@ -175,6 +195,7 @@ jobs:
             mix format --check-formatted
             mix coveralls.json
             bash <(curl -s https://codecov.io/bash)
+      - <<: *run_lua_tests
       - save_cache:
           key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:

@@ -23,10 +23,10 @@ return function(tray, tray_cell)
 
   -- Checks
   if tray.pointer_type ~= "ToolSlot" then
-      send_message("error", "Seed Tray variable must be a seed tray in a slot", "toast")
+      toast("Seed Tray variable must be a seed tray in a slot", "error")
       return
   elseif not cells[cell] then
-      send_message("error", "Seed Tray Cell must be one of **A1** through **D4**", "toast")
+      toast("Seed Tray Cell must be one of **A1** through **D4**", "error")
       return
   end
 

@@ -1,10 +1,9 @@
 function merge(t1, t2)
-    for k, v in ipairs(t2) do table.insert(t1, v) end
-    return t1
+    for k, v in pairs(t2) do t1[k] = v end
 end
 
 return function(input)
-    params = {
+    local params = {
         headers = {
             Authorization = ("bearer " .. auth_token()),
             Accept = "application/json"

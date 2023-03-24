@@ -1,6 +1,6 @@
 return function()
     local tool_id = get_device("mounted_tool_id")
-    start_time = os.time() * 1000
+    local start_time = os.time() * 1000
 
     -- Checks
     if not verify_tool() then
@@ -8,13 +8,15 @@ return function()
     end
 
     -- Get all points
-    points = api({ url = "/api/points/" })
+    local points = api({ url = "/api/points/" })
     if not points then
         toast("API error", "error")
         return
     end
 
     -- Pluck the tool slot point where the currently mounted tool belongs
+    local slot
+    local slot_dir
     for key, point in pairs(points) do
         if point.tool_id == tool_id then
             slot = point
@@ -23,7 +25,7 @@ return function()
     end
 
     -- Get tool name
-    tool = api({ url = "/api/tools/" .. tool_id })
+    local tool = api({ url = "/api/tools/" .. tool_id })
     if not tool then
         toast("API error", "error")
         return
