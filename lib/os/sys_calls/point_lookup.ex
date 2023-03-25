@@ -41,13 +41,12 @@ defmodule FarmbotOS.SysCalls.PointLookup do
         |> Map.take(@relevant_keys)
         |> Map.put(
           :age,
-          div(
+          round(
             DateTime.diff(
               DateTime.utc_now(),
               s.planted_at || DateTime.utc_now(),
               :second
-            ),
-            86400
+            ) / 86400
           )
         )
 
