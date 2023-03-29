@@ -20,7 +20,11 @@ defmodule FarmbotOS.Asset.Point do
     field(:name, :string)
     field(:openfarm_slug, :string)
     field(:plant_stage, :string)
+    field(:depth, :integer)
     field(:planted_at, :utc_datetime_usec)
+    field(:water_curve_id, :integer)
+    field(:spread_curve_id, :integer)
+    field(:height_curve_id, :integer)
     field(:pointer_type, :string)
     field(:pullout_direction, :integer)
     field(:radius, :float)
@@ -37,9 +41,13 @@ defmodule FarmbotOS.Asset.Point do
       meta: point.meta,
       name: point.name,
       plant_stage: point.plant_stage,
+      depth: point.depth,
       created_at: point.created_at,
       updated_at: point.updated_at,
       planted_at: point.planted_at,
+      water_curve_id: point.water_curve_id,
+      spread_curve_id: point.spread_curve_id,
+      height_curve_id: point.height_curve_id,
       pointer_type: point.pointer_type,
       radius: point.radius,
       tool_id: point.tool_id,
@@ -64,7 +72,11 @@ defmodule FarmbotOS.Asset.Point do
       :monitor,
       :name,
       :plant_stage,
+      :depth,
       :planted_at,
+      :water_curve_id,
+      :spread_curve_id,
+      :height_curve_id,
       :pointer_type,
       :pullout_direction,
       :openfarm_slug,

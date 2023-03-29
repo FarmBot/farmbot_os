@@ -61,6 +61,36 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     assert expected == actual
   end
 
+  test "PointLookup.point/2 (plant with age)" do
+    Helpers.delete_all_points()
+
+    expected = %{
+      name: "plant",
+      x: 1.2,
+      y: 3.4,
+      z: 5.6,
+      age: 1,
+      resource_id: 555,
+      resource_type: "Plant"
+    }
+
+    p =
+      point(
+        expected
+        |> Map.put(:pointer_type, "Plant")
+        |> Map.put(
+          :planted_at,
+          DateTime.utc_now() |> DateTime.add(-7200, :second)
+        )
+      )
+
+    actual =
+      PointLookup.point("Plant", p.id)
+      |> Map.take([:name, :x, :y, :z, :age, :resource_id, :resource_type])
+
+    assert expected == actual
+  end
+
   test "PointLookup.get_toolslot_for_tool/1 (gantry mounted tool)" do
     Helpers.delete_all_points()
     Repo.delete_all(Tool)

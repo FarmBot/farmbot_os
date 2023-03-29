@@ -1,6 +1,6 @@
 return function(slot)
     local slot_dir = slot.pullout_direction
-    start_time = os.time() * 1000
+    local start_time = os.time() * 1000
 
     -- Checks
     if read_pin(63) == 0 then
@@ -21,7 +21,7 @@ return function(slot)
     end
 
     -- Get tool name
-    tool = api({
+    local tool = api({
         url = "/api/tools/" .. slot.tool_id
     })
 

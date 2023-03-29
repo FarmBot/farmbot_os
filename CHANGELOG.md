@@ -1,5 +1,11 @@
 # Changelog
 
+# 15.4.0
+
+ * Add new `get_curve` lua helper.
+ * Add/expose new plant fields: `depth`, `water_curve_id`, `spread_curve_id`, `height_curve_id`, `age`.
+ * Fix `photo_grid` and `api` lua helper bugs.
+
 # 15.3.6
 
  * Add new warning element to configurator. Misc UI changes.

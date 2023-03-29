@@ -140,12 +140,30 @@ defmodule FarmbotOS.Configurator.Router do
       subtitle: subtitle()
     ]
 
+    opts_with_warning =
+      Keyword.merge(
+        [
+          double_check_warning:
+            double_check_warning("WiFi password", "an incorrect password")
+        ],
+        opts
+      )
+
     cond do
       manualssid != nil ->
         render_page(
           conn,
           "/config_wireless_step_2_custom",
-          Keyword.put(opts, :ssid, manualssid)
+          Keyword.merge(
+            [
+              double_check_warning:
+                double_check_warning(
+                  "WiFi name and password",
+                  "an incorrect password"
+                )
+            ],
+            Keyword.put(opts, :ssid, manualssid)
+          )
         )
 
       ssid == nil ->
@@ -155,13 +173,13 @@ defmodule FarmbotOS.Configurator.Router do
         redir(conn, "/config_wireless")
 
       security == "WPA-PSK" ->
-        render_page(conn, "/config_wireless_step_2_PSK", opts)
+        render_page(conn, "/config_wireless_step_2_PSK", opts_with_warning)
 
       security == "WPA2-PSK" ->
-        render_page(conn, "/config_wireless_step_2_PSK", opts)
+        render_page(conn, "/config_wireless_step_2_PSK", opts_with_warning)
 
       security == "WPA-EAP" ->
-        render_page(conn, "/config_wireless_step_2_EAP", opts)
+        render_page(conn, "/config_wireless_step_2_EAP", opts_with_warning)
 
       security == "NONE" ->
         render_page(conn, "/config_wireless_step_2_NONE", opts)
@@ -221,7 +239,9 @@ defmodule FarmbotOS.Configurator.Router do
       server: server,
       email: email,
       password: pass,
-      subtitle: subtitle()
+      subtitle: subtitle(),
+      double_check_warning:
+        double_check_warning("email and password", "incorrect information")
     )
   end
 
@@ -335,6 +355,12 @@ defmodule FarmbotOS.Configurator.Router do
   defp advanced_network do
     template_file("advanced_network")
     |> EEx.eval_file([])
+    |> raw()
+  end
+
+  defp double_check_warning(item_title, item_content) do
+    template_file("double_check_warning")
+    |> EEx.eval_file(item_title: item_title, item_content: item_content)
     |> raw()
   end
 
