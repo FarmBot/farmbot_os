@@ -1,0 +1,11 @@
+<div class="warning">
+  <div class="warning-header">
+    <img src="icon_warning.svg" />
+    <h5>Double check your <%= item_title %></h5>
+  </div>
+  <div id="warning-content">
+    Entering <%= item_content %> at this step will result in a
+    CODE 24 error, the FarmBot will not come online, and
+    you will need to redo configuration.
+  </div>
+</div>
