@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.1
+
+ * Add new `dispense` and `water` lua helpers.
+
 # 15.4.0
 
  * Add new `get_curve` lua helper.

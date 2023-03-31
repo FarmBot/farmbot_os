@@ -415,6 +415,18 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert result == {[:result], :fake_lua}
   end
 
+  test "dispense(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.dispense([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "water(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.water([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
   test "get_seed_tray_cell(args, lua)" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
     result = DataManipulation.get_seed_tray_cell([], :fake_lua)

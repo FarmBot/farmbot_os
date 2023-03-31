@@ -249,6 +249,8 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
   def verify_tool(args, lua), do: lua_extension(args, lua, "verify_tool")
   def get_curve(args, lua), do: lua_extension(args, lua, "get_curve")
+  def dispense(args, lua), do: lua_extension(args, lua, "dispense")
+  def water(args, lua), do: lua_extension(args, lua, "water")
 
   def get_seed_tray_cell(args, lua),
     do: lua_extension(args, lua, "get_seed_tray_cell")
