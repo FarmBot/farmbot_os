@@ -35,34 +35,16 @@ return function(ml, params)
     end
 
     local seconds = math.floor(ml / flow_rate * 10) / 10
-    local start_time = os.time() * 1000
     local status = "Dispensing"
     local job_message = status .. " " .. ml .. "mL"
     local log_message = job_message .. " over " .. seconds .. " seconds"
-    function wait_with_progress(seconds)
-        if seconds < 1 then
-            set_job_progress(job_message, { percent = 0, status = status, time = start_time })
-            wait(seconds * 1000)
-            return
-        end
-        for i = 1, math.floor(seconds) do
-            set_job_progress(job_message, {
-                percent = math.floor((i - 1) / seconds * 100),
-                status = status,
-                time = start_time,
-            })
-            wait(1000)
-        end
-        local remainder = seconds - math.floor(seconds)
-        if remainder > 0 then
-            wait(math.ceil(remainder * 1000))
-        end
-    end
 
     -- Action
     send_message("info", log_message)
     on(pin_number)
-    wait_with_progress(seconds)
+    wait_with_progress(seconds * 1000, {
+        job = job_message,
+        status = status,
+    })
     off(pin_number)
-    set_job_progress(job_message, { percent = 100, status = "Complete", time = start_time })
 end

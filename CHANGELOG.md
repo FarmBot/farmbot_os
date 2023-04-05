@@ -2,7 +2,9 @@
 
 # 15.4.1
 
- * Add new `dispense` and `water` lua helpers.
+ * Add new `dispense`, `water`, `grid`, `movement_grid`, and `wait_with_progress` lua helpers.
+ * Restrict `photo_grid` helper grid to garden bed size.
+ * Add `z` to `garden_size` and add `0` fallback values.
 
 # 15.4.0
 

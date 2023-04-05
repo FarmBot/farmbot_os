@@ -131,6 +131,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
           locked_at: 0
         },
         mcu_params: %{
+          movement_axis_nr_steps_z: 1.1,
+          movement_step_per_mm_z: 1.1,
           movement_axis_nr_steps_y: 2.3,
           movement_step_per_mm_y: 4.5,
           movement_axis_nr_steps_x: 6.7,
@@ -139,7 +141,10 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       }
     end)
 
-    expected = [[{"x", 0.7528089887640449}, {"y", 0.5111111111111111}]]
+    expected = [
+      [{"x", 0.7528089887640449}, {"y", 0.5111111111111111}, {"z", 1.0}]
+    ]
+
     assert {:ok, expected} == lua("get garden size", "return garden_size()")
   end
 
@@ -424,6 +429,24 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   test "water(args, lua)" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
     result = DataManipulation.water([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "grid(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.grid([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "movement_grid(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.movement_grid([], :fake_lua)
+    assert result == {[:result], :fake_lua}
+  end
+
+  test "wait_with_progress(args, lua)" do
+    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
+    result = DataManipulation.wait_with_progress([], :fake_lua)
     assert result == {[:result], :fake_lua}
   end
 
