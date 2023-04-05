@@ -42,7 +42,7 @@ return function(ml, params)
     -- Action
     send_message("info", log_message)
     on(pin_number)
-    wait_with_progress(seconds * 1000, {
+    wait(seconds * 1000, {
         job = job_message,
         status = status,
     })

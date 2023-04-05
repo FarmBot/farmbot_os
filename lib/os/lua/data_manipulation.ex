@@ -254,9 +254,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def water(args, lua), do: lua_extension(args, lua, "water")
   def grid(args, lua), do: lua_extension(args, lua, "grid")
   def movement_grid(args, lua), do: lua_extension(args, lua, "movement_grid")
-
-  def wait_with_progress(args, lua),
-    do: lua_extension(args, lua, "wait_with_progress")
+  def wait(args, lua), do: lua_extension(args, lua, "wait")
 
   def get_seed_tray_cell(args, lua),
     do: lua_extension(args, lua, "get_seed_tray_cell")

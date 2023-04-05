@@ -444,9 +444,9 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert result == {[:result], :fake_lua}
   end
 
-  test "wait_with_progress(args, lua)" do
+  test "wait(args, lua)" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
-    result = DataManipulation.wait_with_progress([], :fake_lua)
+    result = DataManipulation.wait([], :fake_lua)
     assert result == {[:result], :fake_lua}
   end
 

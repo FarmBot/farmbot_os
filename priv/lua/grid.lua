@@ -41,7 +41,7 @@ return function(params)
   if x_point_count <= 0 or y_point_count <= 0 or z_point_count <= 0 then
       toast("Number of points must be greater than 0 for all three axes", "error")
       return
-  elseif #size_exceeded > 0 then
+  elseif not params.ignore_bounds and #size_exceeded > 0 then
       toast("Grid must not exceed the **AXIS LENGTH** for any axes: " .. size_exceeded, "error")
       return
   end

@@ -6,12 +6,7 @@ return function(milliseconds, params)
   local start_time = os.time() * 1000
 
   if milliseconds < 1000 then
-    set_job_progress(job, {
-      percent = 0,
-      status = status,
-      time = start_time,
-    })
-    wait(milliseconds)
+    wait_ms(milliseconds)
   else
     for i = 1, seconds do
       set_job_progress(job, {
@@ -19,14 +14,13 @@ return function(milliseconds, params)
         status = status,
         time = start_time,
       })
-      wait(1000)
+      wait_ms(1000)
     end
-    wait(milliseconds % 1000)
+    wait_ms(milliseconds % 1000)
+    set_job_progress(job, {
+      percent = 100,
+      status = "Complete",
+      time = start_time,
+    })
   end
-
-  set_job_progress(job, {
-    percent = 100,
-    status = "Complete",
-    time = start_time,
-  })
 end

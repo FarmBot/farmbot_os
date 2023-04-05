@@ -2,7 +2,7 @@ local dispense = require("dispense")
 
 _G.toast = spy.new(function() end)
 _G.send_message = spy.new(function() end)
-_G.wait_with_progress = spy.new(function() end)
+_G.wait = spy.new(function() end)
 _G.on = spy.new(function() end)
 _G.off = spy.new(function() end)
 _G.os = { time = function() return 1000 end }
@@ -11,7 +11,7 @@ describe("dispense()", function()
   before_each(function()
     _G.toast:clear()
     _G.send_message:clear()
-    _G.wait_with_progress:clear()
+    _G.wait:clear()
     _G.on:clear()
     _G.off:clear()
   end)
@@ -106,7 +106,7 @@ describe("dispense()", function()
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was.called_with("info", "Dispensing 100mL over 10 seconds")
     assert.spy(on).was.called_with(8)
-    assert.spy(wait_with_progress).was.called_with(10000, {
+    assert.spy(wait).was.called_with(10000, {
       job = "Dispensing 100mL",
       status = "Dispensing",
     })
@@ -136,7 +136,7 @@ describe("dispense()", function()
       assert.spy(send_message).was.called_with("info",
         "Dispensing " .. test.ml .. "mL over " .. test.seconds .. " seconds")
       assert.spy(on).was.called_with(test.pin)
-      assert.spy(wait_with_progress).was.called_with(test.seconds * 1000, {
+      assert.spy(wait).was.called_with(test.seconds * 1000, {
         job = job_message,
         status = "Dispensing",
       })

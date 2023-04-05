@@ -53,8 +53,8 @@ return function()
   end
   local x_grid_size_mm = garden_size().x - x_spacing_mm
   local y_grid_size_mm = garden_size().y - y_spacing_mm
-  local x_grid_points = math.floor(x_grid_size_mm / x_spacing_mm) + 1
-  local y_grid_points = math.floor(y_grid_size_mm / y_spacing_mm) + 1
+  local x_grid_points = math.ceil(x_grid_size_mm / x_spacing_mm) + 1
+  local y_grid_points = math.ceil(y_grid_size_mm / y_spacing_mm) + 1
   local x_grid_start_mm = (x_spacing_mm / 2)
   local y_grid_start_mm = (y_spacing_mm / 2)
   local x_offset_mm = fwe("camera_offset_x")
@@ -81,6 +81,7 @@ return function()
       y = y_offset_mm,
       z = 0,
     },
+    ignore_bounds = true,
   }
 
   if not full_grid then
