@@ -150,7 +150,6 @@ defmodule FarmbotOS.Lua do
       dismount_tool: &Firmware.dismount_tool/2,
       move_absolute: &Firmware.move_absolute/2,
       move: &Firmware.move/2,
-      movement_grid: &DataManipulation.movement_grid/2,
       new_sensor_reading: &DataManipulation.new_sensor_reading/2,
       photo_grid: &DataManipulation.photo_grid/2,
       read_pin: &Firmware.read_pin/2,

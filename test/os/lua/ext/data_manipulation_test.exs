@@ -438,12 +438,6 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert result == {[:result], :fake_lua}
   end
 
-  test "movement_grid(args, lua)" do
-    expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
-    result = DataManipulation.movement_grid([], :fake_lua)
-    assert result == {[:result], :fake_lua}
-  end
-
   test "wait(args, lua)" do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
     result = DataManipulation.wait([], :fake_lua)
