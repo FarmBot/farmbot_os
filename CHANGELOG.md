@@ -5,6 +5,7 @@
  * Add new `dispense`, `water`, and `grid` lua helpers.
  * Add job progress tracking to `wait` lua helper.
  * Add `z` to `garden_size` and add `0` fallback values.
+ * Fix `photo_grid` lua helper calculation bug.
 
 # 15.4.0
 

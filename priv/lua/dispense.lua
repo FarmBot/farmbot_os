@@ -1,5 +1,5 @@
 return function(ml, params)
-    if not params then params = {} end
+    params = params or {}
     local tool_name = params.tool_name or "Watering Nozzle"
     local pin_number = params.pin or 8
 

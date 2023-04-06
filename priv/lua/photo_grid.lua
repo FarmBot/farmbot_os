@@ -37,13 +37,12 @@ return function()
   local cam_rotation = fwe("total_rotation_angle")
   local scale = fwe("coord_scale")
   local z = fwe("camera_z")
-  local raw_img_size_x_px = fwe("center_pixel_location_x") * 2
-  local raw_img_size_y_px = fwe("center_pixel_location_y") * 2
-  local raw_img_size_x_mm = raw_img_size_x_px * scale
-  local raw_img_size_y_mm = raw_img_size_y_px * scale
-  local margin_mm = cropAmount(raw_img_size_x_px, raw_img_size_y_px, cam_rotation)
+  local raw_img_size_x_mm = fwe("center_pixel_location_x") * 2 * scale
+  local raw_img_size_y_mm = fwe("center_pixel_location_y") * 2 * scale
+  local margin_mm = cropAmount(raw_img_size_x_mm, raw_img_size_y_mm, cam_rotation)
   local cropped_img_size_x_mm = raw_img_size_x_mm - margin_mm
   local cropped_img_size_y_mm = raw_img_size_y_mm - margin_mm
+  local x_spacing_mm, y_spacing_mm
   if math.abs(cam_rotation) < 45 then
       x_spacing_mm = cropped_img_size_x_mm
       y_spacing_mm = cropped_img_size_y_mm

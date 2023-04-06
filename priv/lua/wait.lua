@@ -1,5 +1,5 @@
 return function(milliseconds, params)
-  if not params then params = {} end
+  params = params or {}
   local seconds = milliseconds / 1000
   local job = params.job or "Waiting " .. seconds .. "s"
   local status = params.status or "Waiting"
