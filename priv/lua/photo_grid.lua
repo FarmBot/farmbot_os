@@ -40,8 +40,8 @@ return function()
   local raw_img_size_x_mm = fwe("center_pixel_location_x") * 2 * scale
   local raw_img_size_y_mm = fwe("center_pixel_location_y") * 2 * scale
   local margin_mm = cropAmount(raw_img_size_x_mm, raw_img_size_y_mm, cam_rotation)
-  local cropped_img_size_x_mm = raw_img_size_x_mm - margin_mm
-  local cropped_img_size_y_mm = raw_img_size_y_mm - margin_mm
+  local cropped_img_size_x_mm = raw_img_size_x_mm - margin_mm - 5
+  local cropped_img_size_y_mm = raw_img_size_y_mm - margin_mm - 5
   local x_spacing_mm, y_spacing_mm
   if math.abs(cam_rotation) < 45 then
       x_spacing_mm = cropped_img_size_x_mm
@@ -50,6 +50,8 @@ return function()
       x_spacing_mm = cropped_img_size_y_mm
       y_spacing_mm = cropped_img_size_x_mm
   end
+  x_spacing_mm = math.max(10, x_spacing_mm)
+  y_spacing_mm = math.max(10, y_spacing_mm)
   local x_grid_size_mm = garden_size().x - x_spacing_mm
   local y_grid_size_mm = garden_size().y - y_spacing_mm
   local x_grid_points = math.ceil(x_grid_size_mm / x_spacing_mm) + 1
