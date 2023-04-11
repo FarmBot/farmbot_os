@@ -165,6 +165,7 @@ run_lua_tests: &run_lua_tests
       busted --coverage
       luacov
       cat luacov.report.out
+    when: always
 
 jobs:
   ################################################################################

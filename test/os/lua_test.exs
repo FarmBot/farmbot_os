@@ -25,12 +25,30 @@ defmodule FarmbotOS.LuaTest do
   end
 
   test "job setters/getters" do
+    expect(FarmbotOS.BotState, :set_job_progress, 4, fn
+      "foo", _ -> {:ok, []}
+    end)
+
+    expect(FarmbotOS.BotState, :fetch, 2, fn -> %{:jobs => %{"foo" => %{}}} end)
+
+    expect(FarmbotOS.BotState, :fetch, 3, fn ->
+      %{:jobs => %{"foo" => %{:unit => "percent", :status => "Complete"}}}
+    end)
+
     fns = Lua.builtins()
     name = "foo"
     args = [type: "bar", status: "baz", percent: 42.0]
     lua = %{}
     result = fns.set_job_progress.([name, args], lua)
     assert result == {[], %{}}
+    result = fns.set_job.([name], lua)
+    assert result == {[], %{}}
+    result = fns.complete_job.([name], lua)
+    assert result == {[], %{}}
+    result = fns.set_job.([name, args], lua)
+    assert result == {[], %{}}
+    {[result], %{}} = fns.get_job.([name], lua)
+    assert result.unit == "percent"
     {[result2], %{}} = fns.get_job_progress.([name], lua)
     assert result2.unit == "percent"
   end

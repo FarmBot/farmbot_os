@@ -108,18 +108,60 @@ defmodule FarmbotOS.Lua.Info do
     {[job], lua}
   end
 
+  def get_job([name], lua) do
+    get_job_progress([name], lua)
+  end
+
   def set_job_progress([name, args], lua) do
     map = FarmbotOS.Lua.Util.lua_to_elixir(args)
 
     job = %FarmbotOS.BotState.JobProgress.Percent{
       type: Map.get(map, "type") || "unknown",
-      status: Map.get(map, "status") || "working",
+      status: Map.get(map, "status") || "Working",
       percent: Map.get(map, "percent") || 0,
       time: Map.get(map, "time") || nil
     }
 
     FarmbotOS.BotState.set_job_progress(name, job)
     {[], lua}
+  end
+
+  def set_job([name], lua) do
+    set_job([name, []], lua)
+  end
+
+  def set_job([name, args], lua) do
+    map = FarmbotOS.Lua.Util.lua_to_elixir(args)
+    {[existing_job], _} = get_job_progress([name], lua)
+    existing = FarmbotOS.Lua.Util.lua_to_elixir(existing_job) || %{}
+
+    existing_map =
+      if Map.get(existing, :status) == "Complete" do
+        %{}
+      else
+        existing
+      end
+
+    now = DateTime.to_unix(DateTime.utc_now()) * 1000
+    time = Map.get(map, "time") || Map.get(existing_map, :time) || now
+
+    job = %{
+      type: Map.get(map, "type") || Map.get(existing_map, :type),
+      status: Map.get(map, "status") || Map.get(existing_map, :status),
+      percent: Map.get(map, "percent") || Map.get(existing_map, :percent),
+      time: time
+    }
+
+    set_job_progress([name, FarmbotOS.Lua.Util.map_to_table(job)], lua)
+  end
+
+  def complete_job([name], lua) do
+    job = %{
+      status: "Complete",
+      percent: 100
+    }
+
+    set_job([name, FarmbotOS.Lua.Util.map_to_table(job)], lua)
   end
 
   defp do_send_message(kind, message, channels, lua) do

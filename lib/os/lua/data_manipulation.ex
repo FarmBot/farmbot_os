@@ -211,8 +211,9 @@ defmodule FarmbotOS.Lua.DataManipulation do
     p = FarmbotOS.BotState.fetch().mcu_params
 
     result = %{
-      y: p.movement_axis_nr_steps_y / p.movement_step_per_mm_y,
-      x: p.movement_axis_nr_steps_x / p.movement_step_per_mm_x
+      z: (p.movement_axis_nr_steps_z || 0) / (p.movement_step_per_mm_z || 1),
+      y: (p.movement_axis_nr_steps_y || 0) / (p.movement_step_per_mm_y || 1),
+      x: (p.movement_axis_nr_steps_x || 0) / (p.movement_step_per_mm_x || 1)
     }
 
     {[Util.map_to_table(result)], lua}
@@ -249,6 +250,10 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
   def verify_tool(args, lua), do: lua_extension(args, lua, "verify_tool")
   def get_curve(args, lua), do: lua_extension(args, lua, "get_curve")
+  def dispense(args, lua), do: lua_extension(args, lua, "dispense")
+  def water(args, lua), do: lua_extension(args, lua, "water")
+  def grid(args, lua), do: lua_extension(args, lua, "grid")
+  def wait(args, lua), do: lua_extension(args, lua, "wait")
 
   def get_seed_tray_cell(args, lua),
     do: lua_extension(args, lua, "get_seed_tray_cell")
