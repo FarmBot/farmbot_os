@@ -1,4 +1,42 @@
-return function(slot)
+return function(input)
+    local slot
+    if type(input) == "string" then
+      local prelim_tool
+      local tool_name = input
+      local tools = api({ url = "/api/tools/" })
+      if not tools then
+          toast("API error", "error")
+          return
+      end
+      for key, tool in pairs(tools) do
+        if tool.name == tool_name then
+          prelim_tool = tool
+        end
+      end
+      if not prelim_tool then
+          toast("'" .. tool_name .. "' tool not found", "error")
+          return
+      end
+
+      local points = api({ url = "/api/points/" })
+      if not points then
+          toast("API error", "error")
+          return
+      end
+      for key, point in pairs(points) do
+        if point.tool_id == prelim_tool.id then
+          slot = point
+        end
+      end
+    else
+      slot = input
+    end
+
+    if not slot then
+      toast("Tool slot not found", "error")
+      return
+    end
+
     local slot_dir = slot.pullout_direction
     local start_time = os.time() * 1000
 

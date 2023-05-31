@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.2
+
+ * Added tool name input option to `mount_tool` lua helper.
+
 # 15.4.1
 
  * Add new `dispense`, `water`, `grid`, `set_job`, `complete_job`, and `get_job` lua helpers.
