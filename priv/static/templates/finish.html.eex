@@ -15,8 +15,7 @@
       FarmBot will now reboot to apply the configuration.
       <p>
         If FarmBot is unable to connect to the Internet or if any
-        configuration settings are incorrect, FarmBot will reset in
-        <%= if String.ends_with?(to_string(target), "rpi"), do: "4-5", else: "2-3" %>
+        configuration settings are incorrect, FarmBot will reset in 5
         minutes, allowing you to enter the settings again. You may now close
         this window and connect to your normal WiFi network.
       </p>
