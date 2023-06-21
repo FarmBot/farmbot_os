@@ -2,7 +2,8 @@
 
 # 15.4.2
 
- * Added tool name input option to `mount_tool` lua helper.
+ * Add tool name input option to `mount_tool` lua helper.
+ * Adjust configurator timeout text.
 
 # 15.4.1
 
