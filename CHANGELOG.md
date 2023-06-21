@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.4.2
+
+ * Add tool name input option to `mount_tool` lua helper.
+ * Adjust configurator timeout text.
+
 # 15.4.1
 
  * Add new `dispense`, `water`, `grid`, `set_job`, `complete_job`, and `get_job` lua helpers.
