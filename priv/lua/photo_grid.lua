@@ -28,8 +28,7 @@ function fwe(key)
     if e then
         return tonumber(e)
     else
-        toast("You must first run camera calibration", "error")
-        os.exit()
+        return nil
     end
 end
 
@@ -37,57 +36,67 @@ return function()
   local cam_rotation = fwe("total_rotation_angle")
   local scale = fwe("coord_scale")
   local z = fwe("camera_z")
-  local raw_img_size_x_mm = fwe("center_pixel_location_x") * 2 * scale
-  local raw_img_size_y_mm = fwe("center_pixel_location_y") * 2 * scale
-  local margin_mm = cropAmount(raw_img_size_x_mm, raw_img_size_y_mm, cam_rotation)
-  local cropped_img_size_x_mm = raw_img_size_x_mm - margin_mm - 5
-  local cropped_img_size_y_mm = raw_img_size_y_mm - margin_mm - 5
-  local x_spacing_mm, y_spacing_mm
-  if math.abs(cam_rotation) < 45 then
-      x_spacing_mm = cropped_img_size_x_mm
-      y_spacing_mm = cropped_img_size_y_mm
-  else
-      x_spacing_mm = cropped_img_size_y_mm
-      y_spacing_mm = cropped_img_size_x_mm
-  end
-  x_spacing_mm = math.max(10, x_spacing_mm)
-  y_spacing_mm = math.max(10, y_spacing_mm)
-  local x_grid_size_mm = garden_size().x - x_spacing_mm
-  local y_grid_size_mm = garden_size().y - y_spacing_mm
-  local x_grid_points = math.ceil(x_grid_size_mm / x_spacing_mm) + 1
-  local y_grid_points = math.ceil(y_grid_size_mm / y_spacing_mm) + 1
-  local x_grid_start_mm = (x_spacing_mm / 2)
-  local y_grid_start_mm = (y_spacing_mm / 2)
   local x_offset_mm = fwe("camera_offset_x")
   local y_offset_mm = fwe("camera_offset_y")
+  local center_pixel_location_x = fwe("center_pixel_location_x")
+  local center_pixel_location_y = fwe("center_pixel_location_y")
+  local full_grid, x_spacing_mm, y_spacing_mm, x_grid_start_mm, y_grid_start_mm
+  local x_grid_size_mm, y_grid_size_mm, x_grid_points, y_grid_points
+  if cam_rotation and scale and z and x_offset_mm and
+     y_offset_mm and center_pixel_location_x and center_pixel_location_y then
+    local raw_img_size_x_mm = center_pixel_location_x * 2 * scale
+    local raw_img_size_y_mm = center_pixel_location_y * 2 * scale
+    local margin_mm = cropAmount(raw_img_size_x_mm, raw_img_size_y_mm, cam_rotation)
+    local cropped_img_size_x_mm = raw_img_size_x_mm - margin_mm - 5
+    local cropped_img_size_y_mm = raw_img_size_y_mm - margin_mm - 5
+    if math.abs(cam_rotation) < 45 then
+        x_spacing_mm = cropped_img_size_x_mm
+        y_spacing_mm = cropped_img_size_y_mm
+    else
+        x_spacing_mm = cropped_img_size_y_mm
+        y_spacing_mm = cropped_img_size_x_mm
+    end
+    x_spacing_mm = math.max(10, x_spacing_mm)
+    y_spacing_mm = math.max(10, y_spacing_mm)
+    x_grid_size_mm = garden_size().x - x_spacing_mm
+    y_grid_size_mm = garden_size().y - y_spacing_mm
+    x_grid_points = math.ceil(x_grid_size_mm / x_spacing_mm) + 1
+    y_grid_points = math.ceil(y_grid_size_mm / y_spacing_mm) + 1
+    x_grid_start_mm = (x_spacing_mm / 2)
+    y_grid_start_mm = (y_spacing_mm / 2)
 
-  local full_grid = grid{
-    grid_points = {
-      x = x_grid_points,
-      y = y_grid_points,
-      z = 1,
-    },
-    start = {
-      x = x_grid_start_mm,
-      y = y_grid_start_mm,
-      z = z,
-    },
-    spacing = {
-      x = x_spacing_mm,
-      y = y_spacing_mm,
-      z = 0,
-    },
-    offset = {
-      x = x_offset_mm,
-      y = y_offset_mm,
-      z = 0,
-    },
-    ignore_bounds = true,
-  }
-
-  if not full_grid then
-    os.exit()
+    full_grid = grid{
+      grid_points = {
+        x = x_grid_points,
+        y = y_grid_points,
+        z = 1,
+      },
+      start = {
+        x = x_grid_start_mm,
+        y = y_grid_start_mm,
+        z = z,
+      },
+      spacing = {
+        x = x_spacing_mm,
+        y = y_spacing_mm,
+        z = 0,
+      },
+      offset = {
+        x = x_offset_mm,
+        y = y_offset_mm,
+        z = 0,
+      },
+      ignore_bounds = true,
+    }
+  else
+    toast("You must first run camera calibration", "error")
   end
+
+  full_grid = full_grid or grid{
+    grid_points = { x = 0, y = 0, z = 0 },
+    spacing = { x = 0, y = 0, z = 0 },
+    ignore_empty = true,
+  }
 
   local each = function(callback)
     full_grid.each(function(cell)

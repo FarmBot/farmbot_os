@@ -38,7 +38,7 @@ return function(params)
     size_exceeded = size_exceeded .. math.floor(grid_max_z) .. "mm exceeds " .. z_max .. "mm z-axis length. "
   end
 
-  if x_point_count <= 0 or y_point_count <= 0 or z_point_count <= 0 then
+  if not params.ignore_empty and (x_point_count <= 0 or y_point_count <= 0 or z_point_count <= 0) then
       toast("Number of points must be greater than 0 for all three axes", "error")
       return
   elseif not params.ignore_bounds and #size_exceeded > 0 then
