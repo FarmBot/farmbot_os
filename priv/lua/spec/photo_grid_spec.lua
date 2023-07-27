@@ -1,7 +1,6 @@
 local photo_grid = require("photo_grid")
 
 _G.toast = spy.new(function() end)
-_G.os = { exit = spy.new(function() error("exit") end) }
 _G.garden_size = spy.new(function() return { x = 2000, y = 1000, z = 3000 } end)
 
 describe("photo_grid()", function()
@@ -11,14 +10,12 @@ describe("photo_grid()", function()
 
   it("handles missing values", function()
     _G.env = spy.new(function() end)
-    _G.grid = spy.new(function() end)
+    _G.grid = spy.new(function() return {each = function() end, total = 0} end)
 
-    assert.has_error(function()
-      local grid = photo_grid()
+    local grid = photo_grid()
 
-      assert.is_falsy(grid)
-      assert.spy(toast).was.called_with("You must first run camera calibration", "error")
-    end, "exit")
+    assert.equal(grid.total, 0)
+    assert.spy(toast).was.called_with("You must first run camera calibration", "error")
   end)
 
   it("handles grid error", function()
@@ -34,14 +31,12 @@ describe("photo_grid()", function()
       }
       return envs[key]
     end)
-    _G.grid = spy.new(function() end)
+    _G.grid = spy.new(function() return {each = function() end, total = 0} end)
 
-    assert.has_error(function()
-      local grid = photo_grid()
+    local grid = photo_grid()
 
-      assert.is_falsy(grid)
-      assert.spy(toast).was_not_called()
-    end, "exit")
+    assert.equal(grid.total, 0)
+    assert.spy(toast).was_not_called()
   end)
 
   it("returns grid", function()

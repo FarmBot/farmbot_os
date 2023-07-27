@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.3
+
+ * Rework `photo_grid` lua helper exit upon missing configs.
+
 # 15.4.2
 
  * Add tool name input option to `mount_tool` lua helper.
