@@ -27,7 +27,7 @@ defmodule FarmbotOS.Asset.Private do
         select: lm.asset_local_id
       )
 
-    Repo.all(from(data in module, join: lm in subquery(q)))
+    Repo.all(from(data in module, join: lm in subquery(q), on: true))
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
