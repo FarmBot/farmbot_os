@@ -7,7 +7,7 @@ defmodule FarmbotOS.BotState.FileSystem do
   use GenServer
   alias FarmbotOS.BotState
 
-  @root_dir Application.get_env(:farmbot, __MODULE__)[:root_dir]
+  @root_dir Application.compile_env(:farmbot, __MODULE__)[:root_dir]
   @sleep_time 8_000
 
   @type path_and_data :: {Path.t(), binary()}

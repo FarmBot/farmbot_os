@@ -153,7 +153,7 @@ defmodule FarmbotOS.FarmwareRuntime do
   end
 
   def handle_info(msg, %{context: :error} = state) do
-    Logger.warn("unhandled message in error state: #{inspect(msg)}")
+    Logger.warning("unhandled message in error state: #{inspect(msg)}")
     {:noreply, state}
   end
 

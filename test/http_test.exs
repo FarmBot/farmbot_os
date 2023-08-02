@@ -21,7 +21,7 @@ defmodule FarmbotOS.HTTPTest do
   end
 
   test "request/4" do
-    params = {'http://typo.farm.bot', []}
-    assert {:error, _error} = HTTP.request(:head, params, [], [])
+    params = {~c"http://typo.farm.bot", []}
+    assert {:ok, _error} = HTTP.request(:head, params, [], [])
   end
 end

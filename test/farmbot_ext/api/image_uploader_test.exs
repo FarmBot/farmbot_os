@@ -30,7 +30,7 @@ defmodule FarmbotOS.API.ImageUploaderTest do
 
     err_msg =
       "Upload Error (/tmp/images/d.gif): " <>
-        "{:error, %{body: %{}, status: 401}}"
+        "{:error, %{status: 401, body: %{}}}"
 
     Helpers.expect_log("Uploaded image: /tmp/images/a.jpg")
     Helpers.expect_log("Uploaded image: /tmp/images/b.jpeg")

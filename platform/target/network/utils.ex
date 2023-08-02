@@ -6,7 +6,7 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
     {:ok, hostname} = :inet.gethostname()
 
     if String.starts_with?(to_string(hostname), "farmbot-") do
-      to_string('farmbot-' ++ Enum.take(hostname, -4))
+      to_string(~c"farmbot-" ++ Enum.take(hostname, -4))
     else
       to_string(hostname)
     end
@@ -61,7 +61,7 @@ defmodule FarmbotOS.Platform.Target.Network.Utils do
   def init_net_kernel do
     {:ok, hostname} = :inet.gethostname()
     name = :"farmbot@#{hostname}.local"
-    _ = :os.cmd('epmd -daemon')
+    _ = :os.cmd(~c"epmd -daemon")
     _ = :net_kernel.stop()
     FarmbotOS.BotState.set_node_name(to_string(name))
     :net_kernel.start([name])

@@ -206,7 +206,7 @@ defmodule FarmbotOS.Platform.Target.Network do
          _meta},
         state
       ) do
-    Logger.warn(
+    Logger.warning(
       "Interface #{ifname} disconnected from the internet: #{ifstate}"
     )
 
@@ -273,7 +273,7 @@ defmodule FarmbotOS.Platform.Target.Network do
   end
 
   def handle_info({:network_not_found_timer, minutes}, state) do
-    Logger.warn("""
+    Logger.warning("""
     Farmbot has been disconnected from the network for
     #{minutes} minutes.
     """)
