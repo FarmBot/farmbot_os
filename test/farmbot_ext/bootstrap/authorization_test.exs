@@ -42,14 +42,14 @@ defmodule FarmbotOS.Bootstrap.AuthorizationTest do
   end
 
   test "do_request/2" do
-    url = 'https://geocities.com'
+    url = ~c"https://geocities.com"
     headers = [{"Content-Type", "application/json"}]
     request = {:get, url, "", headers}
     state = %{backoff: 5000, log_dispatch_flag: false}
 
     expect(FarmbotOS.HTTP, :request, 1, fn method, req, opt1, opt2 ->
       assert method == :get
-      assert req == {url, [{'Content-Type', 'application/json'}]}
+      assert req == {url, [{~c"Content-Type", ~c"application/json"}]}
       assert opt1 == []
       assert opt2 == [body_format: :binary]
       {:ok, {{{}, 200, {}}, {}, "body123"}}

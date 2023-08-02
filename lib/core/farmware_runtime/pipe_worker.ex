@@ -59,7 +59,7 @@ defmodule FarmbotOS.FarmwareRuntime.PipeWorker do
   end
 
   def terminate(_, state) do
-    Logger.warn("PipeWorker #{state.direction} #{state.pipe_name} exit")
+    Logger.warning("PipeWorker #{state.direction} #{state.pipe_name} exit")
     # :erlang.port_close(state.pipe)
     state.pipe && :gen_tcp.close(state.pipe)
     File.rm!(state.pipe_name)
@@ -71,7 +71,7 @@ defmodule FarmbotOS.FarmwareRuntime.PipeWorker do
     if state.pipe do
       :ok = :gen_tcp.send(state.pipe, packet)
     else
-      Logger.warn("no pipe")
+      Logger.warning("no pipe")
     end
 
     # reply = :erlang.port_command(state.pipe, packet)
@@ -114,7 +114,7 @@ defmodule FarmbotOS.FarmwareRuntime.PipeWorker do
   end
 
   def handle_info({:timeout, _size, _caller}, state) do
-    Logger.warn("stray timeout")
+    Logger.warning("stray timeout")
     {:noreply, state}
   end
 

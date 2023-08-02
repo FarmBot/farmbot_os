@@ -115,7 +115,7 @@ defmodule FarmbotOS.Platform.Target.RTCWorker do
   def format_date_time(%NaiveDateTime{} = dt) do
     str =
       :io_lib.format(
-        '~4..0B-~2..0B-~2..0B ~2..0B:~2..0B:~2..0B',
+        ~c"~4..0B-~2..0B-~2..0B ~2..0B:~2..0B:~2..0B",
         [dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second]
       )
 

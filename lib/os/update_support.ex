@@ -5,7 +5,7 @@ defmodule FarmbotOS.UpdateSupport do
   alias FarmbotOS.Config
 
   @skip %{"image_url" => nil}
-  @dl_path '/root/upgrade.fw'
+  @dl_path ~c"/root/upgrade.fw"
   @double_flash_error "A software update is already in progress. Please wait."
 
   # Determines if there is an OTA update in progress.
@@ -97,7 +97,7 @@ defmodule FarmbotOS.UpdateSupport do
   def download_meta_data(target) do
     url = calculate_url(target)
     t = FarmbotOS.Config.get_config_value(:string, "authorization", "token")
-    params = {to_charlist(url), [{'Authorization', to_charlist(t)}]}
+    params = {to_charlist(url), [{~c"Authorization", to_charlist(t)}]}
     http_resp = FarmbotOS.HTTP.request(:get, params, [], [])
     handle_http_response(http_resp)
   end

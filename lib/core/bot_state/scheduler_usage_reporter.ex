@@ -13,7 +13,7 @@ defmodule FarmbotOS.BotState.SchedulerUsageReporter do
 
   def init(_args) do
     _ = :msacc.stop()
-    {:ok, load_ave} = File.open('/proc/loadavg', [:read])
+    {:ok, load_ave} = File.open(~c"/proc/loadavg", [:read])
     start_abs = System.monotonic_time(:millisecond)
 
     _ =
