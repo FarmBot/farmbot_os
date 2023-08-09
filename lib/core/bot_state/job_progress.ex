@@ -11,7 +11,7 @@ defmodule FarmbotOS.BotState.JobProgress do
 
   defmodule Percent do
     @moduledoc "Percent job."
-    defstruct status: "working",
+    defstruct status: "Working",
               percent: 0,
               unit: "percent",
               type: "",
