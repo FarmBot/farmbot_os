@@ -1,7 +1,7 @@
 defmodule FarmbotOS.FileSystem do
   @moduledoc "Helper module for accessing the RW data partition"
 
-  @data_path Application.get_env(:farmbot, __MODULE__)[:data_path]
+  @data_path Application.compile_env(:farmbot, __MODULE__)[:data_path]
   @data_path ||
     Mix.raise("""
       config :farmbot, FarmbotOS.Filesystem,

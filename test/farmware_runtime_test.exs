@@ -71,7 +71,7 @@ defmodule FarmbotOS.FarmwareRuntimeTest do
 
       assert progress == %FarmbotOS.BotState.JobProgress.Percent{
                percent: 100,
-               status: "complete",
+               status: "Complete",
                time: state.start_time,
                type: "package"
              }

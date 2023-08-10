@@ -101,7 +101,7 @@ defmodule FarmbotOS.APIFetcher do
     {:ok, pid} = Agent.start_link(fn -> 0 end)
 
     prog = %Percent{
-      status: "working",
+      status: "Working",
       percent: 0,
       file_type: Path.extname(image_filename),
       type: :image,
@@ -148,7 +148,7 @@ defmodule FarmbotOS.APIFetcher do
            post(client, "/api/images", body) do
       BotState.set_job_progress(image_filename, %{
         prog
-        | status: "complete",
+        | status: "Complete",
           percent: 100
       })
 
@@ -163,7 +163,7 @@ defmodule FarmbotOS.APIFetcher do
         BotState.set_job_progress(image_filename, %{
           prog
           | percent: -1,
-            status: "error"
+            status: "Error"
         })
 
         {:error, body}
@@ -174,7 +174,7 @@ defmodule FarmbotOS.APIFetcher do
         BotState.set_job_progress(image_filename, %{
           prog
           | percent: -1,
-            status: "error"
+            status: "Error"
         })
 
         er
@@ -192,7 +192,7 @@ defmodule FarmbotOS.APIFetcher do
       "\r|#{String.duplicate("=", completed)}#{String.duplicate(" ", unfilled)}| #{percent}% (#{bytes_to_mb(size)} / #{bytes_to_mb(max)}) MB"
     )
 
-    status = if percent == 100, do: "complete", else: "working"
+    status = if percent == 100, do: "Complete", else: "Working"
 
     %Percent{
       prog

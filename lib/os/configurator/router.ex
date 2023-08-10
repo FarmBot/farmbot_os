@@ -24,7 +24,7 @@ defmodule FarmbotOS.Configurator.Router do
   plug(:match)
   plug(:dispatch)
 
-  @network_layer Application.get_env(:farmbot, FarmbotOS.Configurator)[
+  @network_layer Application.compile_env(:farmbot, FarmbotOS.Configurator)[
                    :network_layer
                  ]
   @telemetry_layer FarmbotOS.Configurator.DetsTelemetryLayer

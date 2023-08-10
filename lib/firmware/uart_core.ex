@@ -212,7 +212,7 @@ defmodule FarmbotOS.Firmware.UARTCore do
       spawn(__MODULE__, :flash_firmware, [self(), package])
     else
       FarmbotOS.Logger.debug(3, "Farmduino OK")
-      set_boot_progress(%Percent{status: "complete", percent: 100})
+      set_boot_progress(%Percent{status: "Complete", percent: 100})
       initiate_sequence_on_boot()
     end
 

@@ -6,7 +6,7 @@ defmodule FarmbotOS.Lua.UtilTest do
 
   test "map_to_table/1" do
     map = %{foo: 0, bar: %{baz: %{quux: 0}}}
-    expected = [{"bar", [{"baz", [{"quux", 0}]}]}, {"foo", 0}]
+    expected = [{"foo", 0}, {"bar", [{"baz", [{"quux", 0}]}]}]
     actual = Util.map_to_table(map)
     assert expected == actual
   end

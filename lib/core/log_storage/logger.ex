@@ -155,7 +155,7 @@ defmodule FarmbotOS.Logger do
       |> String.slice(1..400)
       |> inspect()
 
-    :os.cmd('espeak #{speech} --stdout | aplay')
+    :os.cmd(~c"espeak #{speech} --stdout | aplay")
   end
 
   @doc "Helper function for deciding if a message should be logged or not."

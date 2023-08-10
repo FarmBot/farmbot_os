@@ -117,7 +117,7 @@ defmodule FarmbotOS.BotStateTest do
     _old_state = BotState.subscribe(bot_state_pid)
 
     prog = %Percent{
-      status: "working",
+      status: "Working",
       percent: 50
     }
 
@@ -129,7 +129,7 @@ defmodule FarmbotOS.BotStateTest do
         prog2 = Map.fetch!(cs.changes.jobs, "test123")
         assert prog1.file_type == nil
         assert prog1.percent == 50
-        assert prog1.status == "working"
+        assert prog1.status == "Working"
         assert prog1.time == nil
         assert prog1.type == ""
         assert prog1.unit == "percent"

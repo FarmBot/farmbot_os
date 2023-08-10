@@ -26,7 +26,7 @@ defmodule FarmbotOS.Firmware.Flash do
   # reference to UARTCore.
   def raw_flash(package, tty) do
     FarmbotOS.BotState.set_firmware_hardware(package)
-    set_boot_progress(%Percent{status: "working", percent: 50})
+    set_boot_progress(%Percent{status: "Working", percent: 50})
     {:ok, hex_file} = FarmbotOS.Firmware.FlashUtils.find_hex_file(package)
     {:ok, fun} = Resetter.find_reset_fun(package)
     result = Avrdude.flash(hex_file, tty, fun)
@@ -35,7 +35,7 @@ defmodule FarmbotOS.Firmware.Flash do
 
   def finish_flashing({_, 0}, hex_file) do
     FarmbotOS.Logger.success(1, @flash_ok <> get_hash(hex_file))
-    set_boot_progress(%Percent{status: "working", percent: 75})
+    set_boot_progress(%Percent{status: "Working", percent: 75})
   end
 
   def finish_flashing({string, _}, _) when is_binary(string) do

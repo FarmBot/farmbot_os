@@ -39,7 +39,7 @@ defmodule FarmbotOS.Celery.Compiler do
   fn() -> wait(200) end
   ```
   """
-  @type compiled :: (Keyword.t() -> [(() -> any())]) | (() -> any())
+  @type compiled :: (Keyword.t() -> [(-> any())]) | (-> any())
 
   @doc """
   Recursive function that will emit Elixir AST from CeleryScript AST.

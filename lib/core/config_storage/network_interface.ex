@@ -5,8 +5,8 @@ defmodule FarmbotOS.Config.NetworkInterface do
   import Ecto.Changeset
 
   schema "network_interfaces" do
-    field(:name, :string, null: false)
-    field(:type, :string, null: false)
+    field(:name, :string)
+    field(:type, :string)
 
     ## For wireless interfaces
     field(:ssid, :string)

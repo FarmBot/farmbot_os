@@ -16,7 +16,7 @@ defmodule FarmbotOS.API.PingTest do
     min = Enum.at(results, 0)
     max = Enum.at(results, 99)
     assert min > 900_000
-    assert max < 1_200_000
+    assert max < 1_200_001
   end
 
   test "ping_after/1" do

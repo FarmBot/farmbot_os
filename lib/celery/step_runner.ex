@@ -58,7 +58,7 @@ defmodule FarmbotOS.Celery.StepRunner do
 
   defp not_ok(state, original_error) do
     msg = "CeleryScript Exception: #{inspect(original_error)}"
-    Logger.warn(msg)
+    Logger.warning(msg)
 
     error = format_error(original_error)
     send(state.listener, {:csvm_done, state.tag, error})

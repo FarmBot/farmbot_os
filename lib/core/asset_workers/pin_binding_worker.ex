@@ -23,7 +23,7 @@ defimpl FarmbotOS.AssetWorker, for: FarmbotOS.Asset.PinBinding do
 
   @error_retry_time_ms 5000
 
-  @gpio_handler Application.get_env(:farmbot, __MODULE__)[:gpio_handler]
+  @gpio_handler Application.compile_env(:farmbot, __MODULE__)[:gpio_handler]
   @gpio_handler ||
     Mix.raise("""
       config :farmbot, #{__MODULE__}, gpio_handler: MyModule

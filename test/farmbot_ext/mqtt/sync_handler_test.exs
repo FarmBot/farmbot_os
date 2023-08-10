@@ -17,7 +17,7 @@ defmodule FarmbotOS.SyncHandlerTest do
       username: "test_username"
     }
 
-    expect(SyncHandlerSupport, :preload_all, 2, fn s -> {:noreply, s} end)
+    expect(SyncHandlerSupport, :preload_all, 1, fn s -> {:noreply, s} end)
     expect(SyncHandlerSupport, :drop_all_cache, 1, fn -> :ok end)
 
     args = [client_id: expect1.client_id, username: expect1.username]

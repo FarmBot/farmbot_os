@@ -90,7 +90,11 @@ defmodule FarmbotOS.Lua.InfoTest do
       %{location_data: %{position: %{x: 0, y: 0, z: 0}}}
     end)
 
-    assert {[[{"x", 0}, {"y", 0}, {"z", 0}]], lua} == Info.get_xyz([], lua)
+    {[coord], _lua} = Info.get_xyz([], lua)
+    coordinate = FarmbotOS.Lua.Util.lua_to_elixir(coord)
+    assert coordinate["x"] == 0
+    assert coordinate["y"] == 0
+    assert coordinate["z"] == 0
   end
 
   test "fbos_version()" do

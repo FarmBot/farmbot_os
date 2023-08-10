@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.4
+
+ * Dependency updates.
+
 # 15.4.3
 
  * Rework `photo_grid` lua helper exit upon missing configs.

@@ -47,7 +47,7 @@ defmodule FarmbotOS.UpdateProgress do
       Process.send_after(pid, :timeout, @timer_creep_ms)
       set_progress(%Percent{percent: Float.round(next_percent, 2)})
     else
-      set_progress(%Percent{percent: 100, status: "complete"})
+      set_progress(%Percent{percent: 100, status: "Complete"})
     end
 
     %{percent: next_percent}

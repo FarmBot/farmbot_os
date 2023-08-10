@@ -27,7 +27,7 @@ defmodule FarmbotOS.Asset.Private do
         select: lm.asset_local_id
       )
 
-    Repo.all(from(data in module, join: lm in subquery(q)))
+    Repo.all(from(data in module, join: lm in subquery(q), on: true))
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
@@ -111,7 +111,7 @@ defmodule FarmbotOS.Asset.Private do
         message:
           "UNIQUE constraint failed: local_metas.table, local_metas.asset_local_id"
       } ->
-        Logger.warn("""
+        Logger.warning("""
         Caught race condition marking data as dirty (sqlite)
         table: #{inspect(table)}
         id: #{inspect(asset.local_id)}
@@ -133,7 +133,7 @@ defmodule FarmbotOS.Asset.Private do
           ]
         }
       } ->
-        Logger.warn("""
+        Logger.warning("""
         Caught race condition marking data as dirty (ecto)
         table: #{inspect(table)}
         id: #{inspect(asset.local_id)}

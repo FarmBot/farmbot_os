@@ -98,7 +98,7 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
             {key, rendered}
 
           _ ->
-            Logger.warn(
+            Logger.warning(
               "failed to render #{key} => #{value} for update_resource"
             )
 

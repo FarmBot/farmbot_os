@@ -111,7 +111,7 @@ defmodule FarmbotOS.FarmEventWorker.RegimenEventTest do
     test "removes regimen instance" do
       FarmbotOS.Asset.update_device!(%{timezone: "America/Chicago"})
       regimen = AssetFixtures.regimen(%{})
-      farm_event = AssetFixtures.regimen_event(regimen, %{})
+      farm_event = AssetFixtures.regimen_event(regimen, %{id: 123})
       args = %{}
 
       RegimenEvent.init([farm_event, args])

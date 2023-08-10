@@ -371,14 +371,14 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expected = {
       [
         [
+          {"status", 200},
           {"body", "{\"whatever\": \"foo_bar_baz\"}"},
           {"headers",
            [
              {"Access-Control-Allow-Origin", "*"},
              {"Content-Length", "33"},
              {"Content-Type", "application/json; charset=utf-8"}
-           ]},
-          {"status", 200}
+           ]}
         ]
       ],
       :fake_lua

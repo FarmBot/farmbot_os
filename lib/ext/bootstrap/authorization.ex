@@ -130,7 +130,7 @@ defmodule FarmbotOS.Bootstrap.Authorization do
     request =
       if method == :get,
         do: {to_charlist(url), headers},
-        else: {to_charlist(url), headers, 'Application/JSON', payload}
+        else: {to_charlist(url), headers, ~c"Application/JSON", payload}
 
     resp = FarmbotOS.HTTP.request(method, request, [], opts)
 

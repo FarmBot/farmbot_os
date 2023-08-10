@@ -2,14 +2,14 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: nervesproject/nerves_system_br:1.18.3
+    - image: ghcr.io/nerves-project/nerves_system_br:1.23.2
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://repo.hex.pm/builds/elixir/v1.13.2-otp-24.zip
-      unzip -d /usr/local/elixir v1.13.2-otp-24.zip
+      wget https://repo.hex.pm/builds/elixir/v1.15.4-otp-26.zip
+      unzip -d /usr/local/elixir v1.15.4-otp-26.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives
@@ -19,7 +19,7 @@ install_hex_archives: &install_hex_archives
       cd /tmp
       mix local.hex --force
       mix local.rebar --force
-      mix archive.install hex nerves_bootstrap "~> 1.10" --force
+      mix archive.install hex nerves_bootstrap "~> 1.11" --force
 
 install_ghr: &install_ghr
   run:
@@ -177,7 +177,7 @@ jobs:
       MIX_ENV: test
       MIX_TARGET: host
       NERVES_LOG_DISABLE_PROGRESS_BAR: "yes"
-      ELIXIR_VERSION: 1.13.2
+      ELIXIR_VERSION: 1.15.4
     steps:
       - checkout
       - run: git submodule update --init --recursive
@@ -288,7 +288,7 @@ jobs:
     <<: *defaults
     environment:
       MIX_ENV: prod
-      ELIXIR_VERSION: 1.13.2
+      ELIXIR_VERSION: 1.15.4
     steps:
       - checkout
       - run:

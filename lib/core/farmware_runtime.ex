@@ -133,7 +133,7 @@ defmodule FarmbotOS.FarmwareRuntime do
       response_pipe_handle: resp
     }
 
-    prog = %Percent{status: "working", percent: 50, time: state.start_time}
+    prog = %Percent{status: "Working", percent: 50, time: state.start_time}
     set_progress(state.package, prog)
     send(self(), :timeout)
     {:ok, state}
@@ -153,7 +153,7 @@ defmodule FarmbotOS.FarmwareRuntime do
   end
 
   def handle_info(msg, %{context: :error} = state) do
-    Logger.warn("unhandled message in error state: #{inspect(msg)}")
+    Logger.warning("unhandled message in error state: #{inspect(msg)}")
     {:noreply, state}
   end
 
@@ -197,7 +197,7 @@ defmodule FarmbotOS.FarmwareRuntime do
         %{cmd: _cmd_pid} = state
       ) do
     Logger.debug("Farmware exit")
-    prog = %Percent{status: "complete", percent: 100, time: state.start_time}
+    prog = %Percent{status: "Complete", percent: 100, time: state.start_time}
     set_progress(state.package, prog)
     send(state.caller, {:error, :farmware_exit})
     {:noreply, %{state | context: :error}}
