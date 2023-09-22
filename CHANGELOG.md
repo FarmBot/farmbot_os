@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.5
+
+ * Genesis firmware updates.
+
 # 15.4.4
 
  * Dependency updates.
