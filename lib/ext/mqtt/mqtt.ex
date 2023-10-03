@@ -1,7 +1,7 @@
 defmodule FarmbotOS.MQTT do
   require Logger
 
-  use Tortoise.Handler
+  use Tortoise311.Handler
 
   defstruct client_id: "NOT_SET", connection_status: :down, supervisor: nil
 
@@ -20,7 +20,7 @@ defmodule FarmbotOS.MQTT do
 
   def publish(client_id, topic, payload, opts \\ [qos: 0]) do
     # Returns `:ok` or an `{:error, :tuple}`
-    Tortoise.publish(client_id, topic, payload, opts)
+    Tortoise311.publish(client_id, topic, payload, opts)
   end
 
   def init(args) do

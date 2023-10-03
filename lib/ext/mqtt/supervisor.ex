@@ -37,13 +37,13 @@ defmodule FarmbotOS.MQTT.Supervisor do
 
     server =
       if String.starts_with?(token.mqtt_ws || "", @wss) do
-        {Tortoise.Transport.SSL,
+        {Tortoise311.Transport.SSL,
          server_name_indication: :disable,
          cacertfile: :certifi.cacertfile(),
          host: host,
          port: 8883}
       else
-        {Tortoise.Transport.Tcp, host: host, port: 1883}
+        {Tortoise311.Transport.Tcp, host: host, port: 1883}
       end
 
     opts = [
@@ -62,6 +62,6 @@ defmodule FarmbotOS.MQTT.Supervisor do
       ]
     ]
 
-    {Tortoise.Connection, opts}
+    {Tortoise311.Connection, opts}
   end
 end

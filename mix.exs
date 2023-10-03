@@ -141,7 +141,7 @@ defmodule FarmbotOS.MixProject do
       {:tesla, "~> 1.7"},
       {:timex, "~> 3.7"},
       {:toolshed, "~> 0.3", targets: @all_targets},
-      {:tortoise, "~> 0.10"},
+      {:tortoise311, "~> 0.11"},
       {:uuid, "~> 1.1"},
       {:vintage_net_ethernet, "~> 0.11", targets: @all_targets},
       {:vintage_net_wifi, "~> 0.11", targets: @all_targets},

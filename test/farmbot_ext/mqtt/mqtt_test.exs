@@ -44,7 +44,7 @@ defmodule FarmbotOS.MQTTTest do
     payload = "{}"
     opts = [qos: 3]
 
-    expect(Tortoise, :publish, 1, fn a, b, c, d ->
+    expect(Tortoise311, :publish, 1, fn a, b, c, d ->
       assert a == client_id
       assert b == topic
       assert c == payload
