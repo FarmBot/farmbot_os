@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.4.5
+
+ * Change MQTT client.
+ * Genesis firmware updates.
+
 # 15.4.4
 
  * Dependency updates.

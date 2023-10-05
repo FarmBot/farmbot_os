@@ -366,7 +366,7 @@ ExUnit.configure(
   MuonTrap,
   System,
   Timex,
-  Tortoise
+  Tortoise311
 ]
 |> Enum.map(&Mimic.copy/1)
 
