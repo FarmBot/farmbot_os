@@ -2,7 +2,7 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: ghcr.io/nerves-project/nerves_system_br:1.23.2
+    - image: ghcr.io/nerves-project/nerves_system_br:1.24.1
 
 install_elixir: &install_elixir
   run:
@@ -19,21 +19,21 @@ install_hex_archives: &install_hex_archives
       cd /tmp
       mix local.hex --force
       mix local.rebar --force
-      mix archive.install hex nerves_bootstrap "~> 1.11" --force
+      mix archive.install hex nerves_bootstrap "~> 1.12" --force
 
 install_ghr: &install_ghr
   run:
     name: Install ghr (Github Releases)
     command: |
-      wget https://github.com/tcnksm/ghr/releases/download/v0.9.0/ghr_v0.9.0_linux_amd64.tar.gz
-      tar xf ghr_v0.9.0_linux_amd64.tar.gz
-      ln -sf ghr_v0.9.0_linux_amd64/ghr .
+      wget https://github.com/tcnksm/ghr/releases/download/v0.16.2/ghr_v0.16.2_linux_amd64.tar.gz
+      tar xf ghr_v0.16.2_linux_amd64.tar.gz
+      ln -sf ghr_v0.16.2_linux_amd64/ghr .
 
 install_jq: &install_jq
   run:
     name: Install jq
     command: |
-      wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+      wget https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux64
       chmod +x ./jq-linux64
       mv ./jq-linux64 /usr/bin/jq
 
@@ -62,9 +62,9 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
+        key: v15-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
-        key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
+        key: v15-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
     - <<: *install_elixir
     - <<: *install_hex_archives
     - <<: *install_libnl
@@ -83,7 +83,7 @@ steps_to_build_cached_firmware: &steps_to_build_cached_firmware
         command: |
           cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
+        key: v15-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
           - /nerves/build/_build/
           - /nerves/build/deps/
@@ -120,7 +120,7 @@ steps_to_build_fresh_firmware: &steps_to_build_fresh_firmware
         command: |
           cp /nerves/build/_build/${MIX_TARGET}/${MIX_TARGET}_${MIX_ENV}/nerves/images/farmbot.fw /nerves/deploy/system/artifacts/farmbot-${MIX_TARGET}-$(cat VERSION).fw
     - save_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
+        key: v15-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
         paths:
           - /nerves/build/_build/
           - /nerves/build/deps/
@@ -140,7 +140,7 @@ predeploy_setup: &predeploy_setup
           echo "$MIX_TARGET" > MIX_TARGET
           echo "$MIX_ENV" > MIX_ENV
     - restore_cache:
-        key: v14-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
+        key: v15-fbos-{{ checksum "MIX_TARGET" }}-{{ checksum "MIX_ENV" }}-dependency-cache-{{ checksum "mix.lock" }}
     - restore_cache:
         key: nerves/deploy/system-{{ checksum "MIX_TARGET" }}-{{ .Branch }}-{{ .Revision }}-{{ .Environment.CIRCLE_TAG }}
     - <<: *install_elixir
@@ -183,7 +183,7 @@ jobs:
       - run: git submodule update --init --recursive
       - restore_cache:
           keys:
-            - v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
+            - v15-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
       - <<: *install_elixir
       - <<: *install_hex_archives
       - <<: *install_lua_test_env
@@ -198,12 +198,12 @@ jobs:
             bash <(curl -s https://codecov.io/bash)
       - <<: *run_lua_tests
       - save_cache:
-          key: v14-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
+          key: v15-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:
             - farmbot_os/_build/host
             - farmbot_os/deps/host
       - save_cache:
-          key: v14-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
+          key: v15-fbos-coverage-cache-{{ .Branch }}-{{ .Revision }}
           paths:
             - cover
       - store_artifacts:
@@ -334,7 +334,7 @@ jobs:
             sha256sum /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).img > /nerves/deploy/system/artifacts/farmbot-rpi-$(cat VERSION).sha256
       - run:
           name: Publish Github Release
-          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(cat RELEASE_NOTES)" -c $(git rev-parse --verify HEAD) "v$(cat VERSION)" /nerves/deploy/system/artifacts
+          command: ./ghr -t $GITHUB_TOKEN -u farmbot -r farmbot_os -recreate -prerelease -draft -delete -b "$(git rev-parse --verify --abbrev-ref HEAD)" -c $(git rev-parse --verify HEAD) -n "v$(cat VERSION)" "v$(cat VERSION)" /nerves/deploy/system/artifacts
 
 workflows:
   version: 2

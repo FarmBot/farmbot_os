@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.6
+
+ * Dependency updates.
+
 # 15.4.5
 
  * Change MQTT client.
