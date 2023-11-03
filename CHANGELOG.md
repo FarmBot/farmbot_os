@@ -3,7 +3,7 @@
 # 15.4.6
 
  * Dependency updates.
- * Add Genesis v1.7 firmware.
+ * Add Genesis v1.7 and Express v1.2 firmwares.
 
 # 15.4.5
 
