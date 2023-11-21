@@ -17,6 +17,7 @@ defmodule FarmbotOS.MQTT.TerminalHandlerSupport do
       ]
 
       {:ok, iex_pid} = ExTTY.start_link(opts)
+      ExTTY.window_change(iex_pid, 84, 24)
       %{state | iex_pid: iex_pid}
     end
   end
