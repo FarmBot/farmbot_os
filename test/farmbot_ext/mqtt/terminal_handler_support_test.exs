@@ -47,6 +47,13 @@ defmodule FarmbotOS.TerminalHandlerSupportTest do
       {:ok, self()}
     end)
 
+    expect(ExTTY, :window_change, 1, fn pid, width, _height ->
+      assert pid == self()
+      assert width > 83
+
+      {:ok, self()}
+    end)
+
     state = %T{}
     result = S.start_iex(state)
     assert result == %T{iex_pid: self()}

@@ -1,5 +1,10 @@
 # Changelog
 
+# 15.4.6
+
+ * Dependency updates (includes `RingLogger.viewer`).
+ * Add Genesis v1.7 and Express v1.2 firmwares.
+
 # 15.4.5
 
  * Change MQTT client.
@@ -7,7 +12,7 @@
 
 # 15.4.4
 
- * Dependency updates.
+ * Dependency updates (includes system updates).
 
 # 15.4.3
 
