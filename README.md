@@ -17,7 +17,7 @@ Old versions of FarmBot OS can be found [here](https://github.com/FarmBot/farmbo
 
 ## Installing FBOS on a Device
 
-[END USERS: See the official documentation](https://software.farm.bot/v14/FarmBot-OS/farmbot-os.html)
+[END USERS: See the official documentation](https://software.farm.bot/docs/farmbot-os)
 
 ## Problems?
 
