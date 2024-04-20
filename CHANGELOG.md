@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.7
+
+ * Firmware update to fix calibration deadzone settings.
+
 # 15.4.6
 
  * Dependency updates (includes `RingLogger.viewer`).
