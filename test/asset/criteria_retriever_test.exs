@@ -526,7 +526,11 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     days_ago2 = Timex.shift(@now, days: -2)
     expect(Timex, :now, fn -> @now end)
 
-    Helpers.create_point(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
+    Helpers.create_point(%{
+      id: 1,
+      pointer_type: "Plant",
+      created_at: days_ago4
+    })
 
     p2 =
       Helpers.create_point(%{
@@ -534,6 +538,21 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
         pointer_type: "Plant",
         created_at: days_ago2
       })
+
+    p3 =
+      Helpers.create_point(%{
+        id: 3,
+        pointer_type: "Plant",
+        created_at: days_ago4,
+        planted_at: days_ago2
+      })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "Plant",
+      created_at: days_ago2,
+      planted_at: days_ago4
+    })
 
     pg1 = %PointGroup{
       id: 212,
@@ -552,8 +571,9 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     }
 
     ids = CriteriaRetriever.run(pg1) |> Enum.map(fn p -> p.id end)
-    assert Enum.count(ids) == 1
+    assert Enum.count(ids) == 2
     assert Enum.member?(ids, p2.id)
+    assert Enum.member?(ids, p3.id)
   end
 
   test "edge case: Filter by slot direction" do

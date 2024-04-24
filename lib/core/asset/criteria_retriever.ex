@@ -152,7 +152,17 @@ defmodule FarmbotOS.Asset.CriteriaRetriever do
           ">"
         end
 
-      {pg, accum ++ [{"created_at", inverted_op, time}]}
+      field =
+        "CASE
+           WHEN pointer_type = 'Plant' THEN
+             CASE
+               WHEN planted_at IS NULL THEN created_at
+               ELSE planted_at
+             END
+           ELSE created_at
+         END"
+
+      {pg, accum ++ [{field, inverted_op, time}]}
     end
   end
 
