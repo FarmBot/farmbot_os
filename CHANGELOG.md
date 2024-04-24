@@ -3,6 +3,9 @@
 # 15.4.7
 
  * Firmware update to fix calibration deadzone settings.
+ * Add optional arguments to `take_photo_raw` lua helper.
+ * Add plant group `planted_at`/`created_at` conditional.
+ * Add `current_day` and `current_year` lua helpers.
 
 # 15.4.6
 
