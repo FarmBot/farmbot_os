@@ -78,9 +78,19 @@ defmodule FarmbotOS.Lua.Info do
     {[v, nil], lua}
   end
 
+  @doc "Returns the current year"
+  def current_year(_args, lua) do
+    {[DateTime.utc_now().year], lua}
+  end
+
   @doc "Returns the current month"
   def current_month(_args, lua) do
     {[DateTime.utc_now().month], lua}
+  end
+
+  @doc "Returns the current day"
+  def current_day(_args, lua) do
+    {[DateTime.utc_now().day], lua}
   end
 
   @doc "Returns the current hour"
