@@ -38,6 +38,88 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert error == nil
   end
 
+  test "take_photo_raw() - size" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-r",
+               "100x100",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw(100, 100)"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
+  test "take_photo_raw() - args" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-s",
+               "brightness=100%",
+               "-r",
+               "800x800",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw({\"-s\", \"brightness=100%\"})"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
+  test "take_photo_raw() - size and args" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-s",
+               "brightness=100%",
+               "-r",
+               "100x100",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw(100, 100, {\"-s\", \"brightness=100%\"})"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
   test "take_photo_raw() - non 0 return code" do
     expect(System, :cmd, 1, fn cmd, args ->
       assert cmd == "fswebcam"

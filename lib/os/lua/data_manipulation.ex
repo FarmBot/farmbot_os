@@ -219,21 +219,36 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[Util.map_to_table(result)], lua}
   end
 
+  def take_photo_raw([], lua), do: take_photo_raw_p(lua, 800, 800, [])
+
+  def take_photo_raw([args], lua),
+    do: take_photo_raw_p(lua, 800, 800, Util.lua_to_elixir(args))
+
+  def take_photo_raw([width, height], lua),
+    do: take_photo_raw_p(lua, width, height, [])
+
+  def take_photo_raw([width, height, args], lua),
+    do: take_photo_raw_p(lua, width, height, Util.lua_to_elixir(args))
+
   # Output is jpg encoded string.
   # Optionally emits an error.
-  def take_photo_raw(_, lua) do
+  defp take_photo_raw_p(lua, width, height, args) do
     {data, resp} =
-      System.cmd("fswebcam", [
-        "-r",
-        "800x800",
-        "-S",
-        "10",
-        "--no-banner",
-        "--log",
-        "/dev/null",
-        "--save",
-        "-"
-      ])
+      System.cmd(
+        "fswebcam",
+        args ++
+          [
+            "-r",
+            "#{width}x#{height}",
+            "-S",
+            "10",
+            "--no-banner",
+            "--log",
+            "/dev/null",
+            "--save",
+            "-"
+          ]
+      )
 
     case resp do
       0 ->
