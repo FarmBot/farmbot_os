@@ -102,6 +102,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     Helpers.create_point(%{
       id: 888,
       created_at: @five_days_ago,
+      planted_at: @five_days_ago,
       openfarm_slug: "five",
       meta: %{"created_by" => "not-plant-detection"},
       radius: 10.0,
@@ -113,6 +114,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
       Helpers.create_point(%{
         id: 999,
         created_at: @five_days_ago,
+        planted_at: @five_days_ago,
         openfarm_slug: "five",
         meta: %{"created_by" => "plant-detection"},
         radius: 10.0,
@@ -571,8 +573,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     }
 
     ids = CriteriaRetriever.run(pg1) |> Enum.map(fn p -> p.id end)
-    assert Enum.count(ids) == 2
-    assert Enum.member?(ids, p2.id)
+    assert Enum.count(ids) == 1
     assert Enum.member?(ids, p3.id)
   end
 

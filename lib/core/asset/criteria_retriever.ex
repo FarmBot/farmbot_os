@@ -154,11 +154,7 @@ defmodule FarmbotOS.Asset.CriteriaRetriever do
 
       field =
         "CASE
-           WHEN pointer_type = 'Plant' THEN
-             CASE
-               WHEN planted_at IS NULL THEN created_at
-               ELSE planted_at
-             END
+           WHEN pointer_type = 'Plant' THEN planted_at
            ELSE created_at
          END"
 
