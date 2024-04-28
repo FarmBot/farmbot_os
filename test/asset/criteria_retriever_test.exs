@@ -534,12 +534,11 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
       created_at: days_ago4
     })
 
-    p2 =
-      Helpers.create_point(%{
-        id: 2,
-        pointer_type: "Plant",
-        created_at: days_ago2
-      })
+    Helpers.create_point(%{
+      id: 2,
+      pointer_type: "Plant",
+      created_at: days_ago2
+    })
 
     p3 =
       Helpers.create_point(%{

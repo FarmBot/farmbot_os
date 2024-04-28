@@ -71,7 +71,7 @@ defmodule FarmbotOS.Asset.CriteriaRetriever do
       String.starts_with?(k, meta)
     end)
     |> Enum.map(fn {k, value} ->
-      clean_key = String.slice(k, meta_len..-1)
+      clean_key = String.slice(k, meta_len..-1//1)
       {clean_key, value}
     end)
     |> Enum.reduce(%{}, fn {key, value}, all ->
