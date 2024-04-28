@@ -10,10 +10,12 @@ import os
 import sys
 from time import time, sleep
 import subprocess
+import json
 
 
 WIDTH = os.getenv('take_photo_width', '640')
 HEIGHT = os.getenv('take_photo_height', '480')
+ARGS_JSON_STRING = os.getenv('take_photo_args', "[]")
 CAMERA_DISABLED_MSG = 'No camera selected. Choose a camera on the device page.'
 
 
@@ -70,8 +72,10 @@ def get_video_port_list():
 
 def usb_camera_call(savepath):
     'Call fswebcam.'
+    args = ['fswebcam']
+    args += json.loads(ARGS_JSON_STRING)
     size = '{}x{}'.format(WIDTH, HEIGHT)
-    args = ['fswebcam', '-r', size, '-S', '10', '--no-banner', savepath]
+    args += ['-r', size, '-S', '10', '--no-banner', savepath]
     std_print('Calling `{}`...'.format(' '.join(args)))
     try:
         return subprocess.call(args)

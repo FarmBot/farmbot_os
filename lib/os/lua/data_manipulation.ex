@@ -219,6 +219,49 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[Util.map_to_table(result)], lua}
   end
 
+  def take_photo([], lua), do: take_photo_p(lua, %{})
+
+  def take_photo([args], lua) do
+    {:ok, json_args_string} = JSON.encode(Util.lua_to_elixir(args))
+
+    env = %{
+      take_photo_args: json_args_string
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  def take_photo([width, height], lua) do
+    env = %{
+      take_photo_width: width,
+      take_photo_height: height
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  def take_photo([width, height, args], lua) do
+    {:ok, json_args_string} = JSON.encode(Util.lua_to_elixir(args))
+
+    env = %{
+      take_photo_width: width,
+      take_photo_height: height,
+      take_photo_args: json_args_string
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  defp take_photo_p(lua, env) do
+    env = Map.new(env, fn {k, v} -> {to_string(k), to_string(v)} end)
+
+    case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", env) do
+      {:error, reason} -> {[reason], lua}
+      :ok -> {[], lua}
+      other -> {[inspect(other)], lua}
+    end
+  end
+
   def take_photo_raw([], lua), do: take_photo_raw_p(lua, 800, 800, [])
 
   def take_photo_raw([args], lua),
