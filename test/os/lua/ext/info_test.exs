@@ -125,6 +125,103 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert actual == "fake_token"
   end
 
+  test "utc()" do
+    utc = DateTime.utc_now()
+    now = String.slice(DateTime.to_string(utc), 0..15)
+    lua_code = "return utc()"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert String.starts_with?(actual, now)
+  end
+
+  test "utc(\"year\")" do
+    year = DateTime.utc_now().year
+    lua_code = "return utc(\"year\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == year
+  end
+
+  test "utc(\"month\")" do
+    month = DateTime.utc_now().month
+    lua_code = "return utc(\"month\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == month
+  end
+
+  test "utc(\"day\")" do
+    day = DateTime.utc_now().day
+    lua_code = "return utc(\"day\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == day
+  end
+
+  test "utc(\"minute\")" do
+    minute = DateTime.utc_now().minute
+    lua_code = "return utc(\"minute\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == minute
+  end
+
+  test "utc(\"second\")" do
+    second = DateTime.utc_now().second
+    lua_code = "return utc(\"second\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == second
+  end
+
+  test "local_time()" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    now = String.slice(DateTime.to_string(local), 0..15)
+    lua_code = "return local_time()"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert String.starts_with?(actual, now)
+  end
+
+  test "local_time(\"year\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    year = local.year
+    lua_code = "return local_time(\"year\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == year
+  end
+
+  test "local_time(\"month\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    month = local.month
+    lua_code = "return local_time(\"month\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == month
+  end
+
+  test "local_time(\"day\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    day = local.day
+    lua_code = "return local_time(\"day\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == day
+  end
+
+  test "local_time(\"minute\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    minute = local.minute
+    lua_code = "return local_time(\"minute\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == minute
+  end
+
+  test "local_time(\"second\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    second = local.second
+    lua_code = "return local_time(\"second\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == second
+  end
+
   test "current_year()" do
     year = DateTime.utc_now().year
     lua_code = "return current_year()"
