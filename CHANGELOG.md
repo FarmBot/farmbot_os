@@ -5,7 +5,7 @@
  * Firmware update to fix calibration deadzone settings.
  * Add optional arguments to `take_photo` and `take_photo_raw` lua helpers.
  * Add point group `planted_at`/`created_at` conditional.
- * Add `utc`, `local_time`, `current_day`, and `current_year` lua helpers.
+ * Add `utc` and `local_time` lua helpers.
  * Dependency updates (includes system updates).
 
 # 15.4.6

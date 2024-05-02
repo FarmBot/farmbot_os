@@ -222,25 +222,11 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert actual == second
   end
 
-  test "current_year()" do
-    year = DateTime.utc_now().year
-    lua_code = "return current_year()"
-    {:ok, [actual]} = lua(lua_code, lua_code)
-    assert actual == year
-  end
-
   test "current_month()" do
     month = DateTime.utc_now().month
     lua_code = "return current_month()"
     {:ok, [actual]} = lua(lua_code, lua_code)
     assert actual == month
-  end
-
-  test "current_day()" do
-    day = DateTime.utc_now().day
-    lua_code = "return current_day()"
-    {:ok, [actual]} = lua(lua_code, lua_code)
-    assert actual == day
   end
 
   test "current_hour()" do
