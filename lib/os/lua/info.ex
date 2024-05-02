@@ -84,7 +84,7 @@ defmodule FarmbotOS.Lua.Info do
   def utc(["hour"], lua), do: {[utc_p().hour], lua}
   def utc(["minute"], lua), do: {[utc_p().minute], lua}
   def utc(["second"], lua), do: {[utc_p().second], lua}
-  def utc(_, lua), do: {[DateTime.to_string(utc_p())], lua}
+  def utc(_, lua), do: {[DateTime.to_iso8601(utc_p())], lua}
 
   def local_time(["year"], lua), do: {[local_time_p().year], lua}
   def local_time(["month"], lua), do: {[local_time_p().month], lua}
@@ -92,7 +92,7 @@ defmodule FarmbotOS.Lua.Info do
   def local_time(["hour"], lua), do: {[local_time_p().hour], lua}
   def local_time(["minute"], lua), do: {[local_time_p().minute], lua}
   def local_time(["second"], lua), do: {[local_time_p().second], lua}
-  def local_time(_, lua), do: {[DateTime.to_string(local_time_p())], lua}
+  def local_time(_, lua), do: {[DateTime.to_iso8601(local_time_p())], lua}
 
   defp utc_p() do
     DateTime.utc_now()

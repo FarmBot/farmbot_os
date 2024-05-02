@@ -127,7 +127,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "utc()" do
     utc = DateTime.utc_now()
-    now = String.slice(DateTime.to_string(utc), 0..15)
+    now = String.slice(DateTime.to_iso8601(utc), 0..15)
     lua_code = "return utc()"
     {:ok, [actual]} = lua(lua_code, lua_code)
     assert String.starts_with?(actual, now)
@@ -171,7 +171,7 @@ defmodule FarmbotOS.Lua.InfoTest do
   test "local_time()" do
     tz = "America/Chicago"
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
-    now = String.slice(DateTime.to_string(local), 0..15)
+    now = String.slice(DateTime.to_iso8601(local), 0..15)
     lua_code = "return local_time()"
     {:ok, [actual]} = lua(lua_code, lua_code)
     assert String.starts_with?(actual, now)
