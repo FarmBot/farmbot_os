@@ -2,7 +2,7 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: ghcr.io/nerves-project/nerves_system_br:1.27.2
+    - image: ghcr.io/nerves-project/nerves_system_br:1.23.2
 
 install_elixir: &install_elixir
   run:

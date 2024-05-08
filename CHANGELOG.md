@@ -6,7 +6,7 @@
  * Add optional arguments to `take_photo` and `take_photo_raw` lua helpers.
  * Add point group `planted_at`/`created_at` conditional.
  * Add `utc` and `local_time` lua helpers.
- * Dependency updates (includes system updates).
+ * Dependency updates.
 
 # 15.4.6
 
