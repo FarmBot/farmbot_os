@@ -38,6 +38,88 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert error == nil
   end
 
+  test "take_photo_raw() - size" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-r",
+               "100x100",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw(100, 100)"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
+  test "take_photo_raw() - args" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-s",
+               "brightness=100%",
+               "-r",
+               "800x800",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw({\"-s\", \"brightness=100%\"})"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
+  test "take_photo_raw() - size and args" do
+    expect(System, :cmd, 1, fn cmd, args ->
+      assert cmd == "fswebcam"
+
+      assert args == [
+               "-s",
+               "brightness=100%",
+               "-r",
+               "100x100",
+               "-S",
+               "10",
+               "--no-banner",
+               "--log",
+               "/dev/null",
+               "--save",
+               "-"
+             ]
+
+      {"fake photo data", 0}
+    end)
+
+    name = "take_photo_raw() OK"
+    code = "return take_photo_raw(100, 100, {\"-s\", \"brightness=100%\"})"
+    {:ok, [result, error]} = lua(name, code)
+    assert result == "fake photo data"
+    assert error == nil
+  end
+
   test "take_photo_raw() - non 0 return code" do
     expect(System, :cmd, 1, fn cmd, args ->
       assert cmd == "fswebcam"
@@ -273,27 +355,90 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "take_photo - OK" do
-    mock = fn "take-photo", %{} -> :ok end
-    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    fun = FarmbotOS.Lua.execute_script("take-photo")
-    actual = fun.(:none, :lua)
-    assert {[], :lua} == actual
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, fn "take-photo", env ->
+      assert env == %{}
+      :ok
+    end)
+
+    name = "take_photo() OK"
+    code = "return take_photo()"
+    assert {:ok, []} == lua(name, code)
   end
 
   test "take_photo - 'normal' errors" do
-    mock = fn "take-photo", %{} -> {:error, "whatever"} end
-    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    fun = FarmbotOS.Lua.execute_script("take-photo")
-    actual = fun.(:none, :lua)
-    assert {["whatever"], :lua} == actual
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, fn "take-photo", env ->
+      assert env == %{}
+      {:error, "whatever"}
+    end)
+
+    name = "take_photo() OK"
+    code = "return take_photo()"
+    assert {:ok, ["whatever"]} == lua(name, code)
   end
 
   test "take_photo - malformed errors" do
-    mock = fn "take-photo", %{} -> {:something_else, "whoops"} end
-    expect(FarmbotOS.SysCalls.Farmware, :execute_script, mock)
-    fun = FarmbotOS.Lua.execute_script("take-photo")
-    actual = fun.(:none, :lua)
-    assert {[inspect({:something_else, "whoops"})], :lua} == actual
+    expect(FarmbotOS.SysCalls.Farmware, :execute_script, fn "take-photo", env ->
+      assert env == %{}
+      {:something_else, "whoops"}
+    end)
+
+    name = "take_photo() OK"
+    code = "return take_photo()"
+    assert {:ok, [inspect({:something_else, "whoops"})]} == lua(name, code)
+  end
+
+  test "take_photo() - size" do
+    expect(
+      FarmbotOS.SysCalls.Farmware,
+      :execute_script,
+      fn "take-photo",
+         %{
+           "take_photo_width" => "100",
+           "take_photo_height" => "100"
+         } ->
+        :ok
+      end
+    )
+
+    name = "take_photo() OK"
+    code = "return take_photo(100, 100)"
+    assert {:ok, []} == lua(name, code)
+  end
+
+  test "take_photo() - args" do
+    expect(
+      FarmbotOS.SysCalls.Farmware,
+      :execute_script,
+      fn "take-photo",
+         %{
+           "take_photo_args" => "[\"-s\",\"brightness=100%\"]"
+         } ->
+        :ok
+      end
+    )
+
+    name = "take_photo() OK"
+    code = "return take_photo({\"-s\", \"brightness=100%\"})"
+    assert {:ok, []} == lua(name, code)
+  end
+
+  test "take_photo() - size and args" do
+    expect(
+      FarmbotOS.SysCalls.Farmware,
+      :execute_script,
+      fn "take-photo",
+         %{
+           "take_photo_width" => "100",
+           "take_photo_height" => "100",
+           "take_photo_args" => "[\"-s\",\"brightness=100%\"]"
+         } ->
+        :ok
+      end
+    )
+
+    name = "take_photo() OK"
+    code = "return take_photo(100, 100, {\"-s\", \"brightness=100%\"})"
+    assert {:ok, []} == lua(name, code)
   end
 
   test "json_decode - OK" do

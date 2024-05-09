@@ -6,6 +6,7 @@ defmodule FarmbotOS.Configurator.Router do
   require FarmbotTelemetry
 
   import Phoenix.HTML
+  use PhoenixHTMLHelpers
   use Plug.Router
   use Plug.Debugger, otp_app: :farmbot
   alias FarmbotOS.Configurator.ConfigDataLayer

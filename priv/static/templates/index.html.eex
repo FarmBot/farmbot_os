@@ -1,4 +1,6 @@
 <% import Phoenix.HTML %>
+<% import Phoenix.HTML.Form %>
+<% use PhoenixHTMLHelpers %>
 <!DOCTYPE html>
 <html lang="en">
   <head>

@@ -2,14 +2,14 @@ version: 2.0
 defaults: &defaults
   working_directory: /nerves/build
   docker:
-    - image: ghcr.io/nerves-project/nerves_system_br:1.24.1
+    - image: ghcr.io/nerves-project/nerves_system_br:1.23.2
 
 install_elixir: &install_elixir
   run:
     name: Install Elixir
     command: |
-      wget https://repo.hex.pm/builds/elixir/v1.15.4-otp-26.zip
-      unzip -d /usr/local/elixir v1.15.4-otp-26.zip
+      wget https://repo.hex.pm/builds/elixir/v1.16.2-otp-26.zip
+      unzip -d /usr/local/elixir v1.16.2-otp-26.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
 install_hex_archives: &install_hex_archives

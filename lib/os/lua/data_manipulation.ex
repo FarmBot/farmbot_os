@@ -219,21 +219,79 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[Util.map_to_table(result)], lua}
   end
 
+  def take_photo([], lua), do: take_photo_p(lua, %{})
+
+  def take_photo([args], lua) do
+    {:ok, json_args_string} = JSON.encode(Util.lua_to_elixir(args))
+
+    env = %{
+      take_photo_args: json_args_string
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  def take_photo([width, height], lua) do
+    env = %{
+      take_photo_width: width,
+      take_photo_height: height
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  def take_photo([width, height, args], lua) do
+    {:ok, json_args_string} = JSON.encode(Util.lua_to_elixir(args))
+
+    env = %{
+      take_photo_width: width,
+      take_photo_height: height,
+      take_photo_args: json_args_string
+    }
+
+    take_photo_p(lua, env)
+  end
+
+  defp take_photo_p(lua, env) do
+    env = Map.new(env, fn {k, v} -> {to_string(k), to_string(v)} end)
+
+    case FarmbotOS.SysCalls.Farmware.execute_script("take-photo", env) do
+      {:error, reason} -> {[reason], lua}
+      :ok -> {[], lua}
+      other -> {[inspect(other)], lua}
+    end
+  end
+
+  def take_photo_raw([], lua), do: take_photo_raw_p(lua, 800, 800, [])
+
+  def take_photo_raw([args], lua),
+    do: take_photo_raw_p(lua, 800, 800, Util.lua_to_elixir(args))
+
+  def take_photo_raw([width, height], lua),
+    do: take_photo_raw_p(lua, width, height, [])
+
+  def take_photo_raw([width, height, args], lua),
+    do: take_photo_raw_p(lua, width, height, Util.lua_to_elixir(args))
+
   # Output is jpg encoded string.
   # Optionally emits an error.
-  def take_photo_raw(_, lua) do
+  defp take_photo_raw_p(lua, width, height, args) do
     {data, resp} =
-      System.cmd("fswebcam", [
-        "-r",
-        "800x800",
-        "-S",
-        "10",
-        "--no-banner",
-        "--log",
-        "/dev/null",
-        "--save",
-        "-"
-      ])
+      System.cmd(
+        "fswebcam",
+        args ++
+          [
+            "-r",
+            "#{width}x#{height}",
+            "-S",
+            "10",
+            "--no-banner",
+            "--log",
+            "/dev/null",
+            "--save",
+            "-"
+          ]
+      )
 
     case resp do
       0 ->

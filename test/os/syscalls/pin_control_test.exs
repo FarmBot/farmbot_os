@@ -72,7 +72,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   @tag :capture_log
   test "write_pin with %Peripheral{}, value 0" do
     expect(Command, :write_pin, 1, fn 13, 0, 0 -> {:ok, 0} end)
-    expect(FarmbotOS.BotState, :set_pin_value, 1, fn 13, 0.0, 0 -> {:ok} end)
+    expect(FarmbotOS.BotState, :set_pin_value, 1, fn 13, +0.0, 0 -> {:ok} end)
     peripheral = %Peripheral{pin: 13, label: "xyz"}
     assert :ok == FarmbotOS.SysCalls.write_pin(peripheral, @digital, 0)
   end
@@ -105,7 +105,7 @@ defmodule FarmbotOS.SysCalls.PinControlTest do
   @tag :capture_log
   test "write_pin, value 0" do
     expect(Command, :write_pin, 1, fn 13, 0, 0 -> {:ok, 0} end)
-    expect(FarmbotOS.BotState, :set_pin_value, 1, fn 13, 0.0, 0 -> {:ok} end)
+    expect(FarmbotOS.BotState, :set_pin_value, 1, fn 13, +0.0, 0 -> {:ok} end)
     assert :ok == FarmbotOS.SysCalls.write_pin(13, @digital, 0)
   end
 

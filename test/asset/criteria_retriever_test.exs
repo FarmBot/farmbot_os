@@ -102,6 +102,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     Helpers.create_point(%{
       id: 888,
       created_at: @five_days_ago,
+      planted_at: @five_days_ago,
       openfarm_slug: "five",
       meta: %{"created_by" => "not-plant-detection"},
       radius: 10.0,
@@ -113,6 +114,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
       Helpers.create_point(%{
         id: 999,
         created_at: @five_days_ago,
+        planted_at: @five_days_ago,
         openfarm_slug: "five",
         meta: %{"created_by" => "plant-detection"},
         radius: 10.0,
@@ -526,14 +528,32 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
     days_ago2 = Timex.shift(@now, days: -2)
     expect(Timex, :now, fn -> @now end)
 
-    Helpers.create_point(%{id: 1, pointer_type: "Plant", created_at: days_ago4})
+    Helpers.create_point(%{
+      id: 1,
+      pointer_type: "Plant",
+      created_at: days_ago4
+    })
 
-    p2 =
+    Helpers.create_point(%{
+      id: 2,
+      pointer_type: "Plant",
+      created_at: days_ago2
+    })
+
+    p3 =
       Helpers.create_point(%{
-        id: 2,
+        id: 3,
         pointer_type: "Plant",
-        created_at: days_ago2
+        created_at: days_ago4,
+        planted_at: days_ago2
       })
+
+    Helpers.create_point(%{
+      id: 4,
+      pointer_type: "Plant",
+      created_at: days_ago2,
+      planted_at: days_ago4
+    })
 
     pg1 = %PointGroup{
       id: 212,
@@ -553,7 +573,7 @@ defmodule FarmbotOS.Asset.CriteriaRetrieverTest do
 
     ids = CriteriaRetriever.run(pg1) |> Enum.map(fn p -> p.id end)
     assert Enum.count(ids) == 1
-    assert Enum.member?(ids, p2.id)
+    assert Enum.member?(ids, p3.id)
   end
 
   test "edge case: Filter by slot direction" do

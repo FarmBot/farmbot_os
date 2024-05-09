@@ -1,5 +1,13 @@
 # Changelog
 
+# 15.4.7
+
+ * Firmware update to fix calibration deadzone settings.
+ * Add optional arguments to `take_photo` and `take_photo_raw` lua helpers.
+ * Add point group `planted_at`/`created_at` conditional.
+ * Add `utc` and `local_time` lua helpers.
+ * Dependency updates.
+
 # 15.4.6
 
  * Dependency updates (includes `RingLogger.viewer`).
