@@ -1,5 +1,11 @@
 # Changelog
 
+# 15.4.8
+
+ * Add support for using remote `plant` objects in the `water` Lua helper.
+ * Add `to_unix` Lua helper.
+ * Add `planted_at` to local `plant` objects.
+
 # 15.4.7
 
  * Firmware update to fix calibration deadzone settings.

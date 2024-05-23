@@ -154,6 +154,13 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert actual == day
   end
 
+  test "utc(\"hour\")" do
+    hour = DateTime.utc_now().hour
+    lua_code = "return utc(\"hour\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == hour
+  end
+
   test "utc(\"minute\")" do
     minute = DateTime.utc_now().minute
     lua_code = "return utc(\"minute\")"
@@ -204,6 +211,15 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert actual == day
   end
 
+  test "local_time(\"hour\")" do
+    tz = "America/Chicago"
+    local = Timex.Timezone.convert(DateTime.utc_now(), tz)
+    hour = local.hour
+    lua_code = "return local_time(\"hour\")"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == hour
+  end
+
   test "local_time(\"minute\")" do
     tz = "America/Chicago"
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
@@ -220,6 +236,13 @@ defmodule FarmbotOS.Lua.InfoTest do
     lua_code = "return local_time(\"second\")"
     {:ok, [actual]} = lua(lua_code, lua_code)
     assert actual == second
+  end
+
+  test "to_unix()" do
+    now = DateTime.to_unix(DateTime.utc_now())
+    lua_code = "return to_unix(utc())"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    assert actual == now
   end
 
   test "current_month()" do

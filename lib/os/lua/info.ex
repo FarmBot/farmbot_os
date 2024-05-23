@@ -104,6 +104,11 @@ defmodule FarmbotOS.Lua.Info do
     Timex.Timezone.convert(datetime, tz)
   end
 
+  def to_unix([datetime_string], lua) do
+    {:ok, datetime, _} = DateTime.from_iso8601(datetime_string)
+    {[DateTime.to_unix(datetime)], lua}
+  end
+
   @doc "Returns the current month"
   def current_month(_args, lua) do
     {[DateTime.utc_now().month], lua}
