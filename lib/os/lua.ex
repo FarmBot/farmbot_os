@@ -180,6 +180,7 @@ defmodule FarmbotOS.Lua do
       update_firmware_config: &DataManipulation.update_firmware_config/2,
       utc: &Info.utc/2,
       local_time: &Info.local_time/2,
+      to_unix: &Info.to_unix/2,
       verify_tool: &DataManipulation.verify_tool/2,
       wait_ms: &Wait.wait/2,
       wait: &DataManipulation.wait/2,

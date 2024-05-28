@@ -14,6 +14,7 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     :name,
     :openfarm_slug,
     :plant_stage,
+    :planted_at,
     :depth,
     :water_curve_id,
     :spread_curve_id,
