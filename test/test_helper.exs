@@ -365,6 +365,7 @@ ExUnit.configure(
   File,
   MuonTrap,
   System,
+  IO,
   Timex,
   Tortoise311
 ]

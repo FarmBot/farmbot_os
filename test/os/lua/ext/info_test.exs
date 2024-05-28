@@ -177,6 +177,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time()" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     now = String.slice(DateTime.to_iso8601(local), 0..15)
     lua_code = "return local_time()"
@@ -186,6 +187,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"year\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     year = local.year
     lua_code = "return local_time(\"year\")"
@@ -195,6 +197,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"month\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     month = local.month
     lua_code = "return local_time(\"month\")"
@@ -204,6 +207,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"day\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     day = local.day
     lua_code = "return local_time(\"day\")"
@@ -213,6 +217,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"hour\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     hour = local.hour
     lua_code = "return local_time(\"hour\")"
@@ -222,6 +227,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"minute\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     minute = local.minute
     lua_code = "return local_time(\"minute\")"
@@ -231,6 +237,7 @@ defmodule FarmbotOS.Lua.InfoTest do
 
   test "local_time(\"second\")" do
     tz = "America/Chicago"
+    expect(FarmbotOS.Asset, :device, 1, fn -> %{timezone: tz} end)
     local = Timex.Timezone.convert(DateTime.utc_now(), tz)
     second = local.second
     lua_code = "return local_time(\"second\")"

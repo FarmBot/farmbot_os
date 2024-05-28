@@ -61,6 +61,7 @@ defmodule FarmbotOS.LuaTest do
     val2 = Lua.perform_lua("-1", [], "Returns -1")
     assert {:ok, [-1]} == val2
 
+    expect(IO, :puts, 1, fn _error -> "" end)
     val3 = Lua.perform_lua("(1/0)", [], "random error")
     assert {:error, "Lua failure"} == val3
   end
