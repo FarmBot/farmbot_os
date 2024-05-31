@@ -13,6 +13,7 @@ defmodule FarmbotOS.Asset.Tool do
     )
 
     field(:name, :string)
+    field(:flow_rate_ml_per_s, :integer)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -20,13 +21,21 @@ defmodule FarmbotOS.Asset.Tool do
   view tool do
     %{
       id: tool.id,
-      name: tool.name
+      name: tool.name,
+      flow_rate_ml_per_s: tool.flow_rate_ml_per_s
     }
   end
 
   def changeset(tool, params \\ %{}) do
     tool
-    |> cast(params, [:id, :name, :monitor, :created_at, :updated_at])
+    |> cast(params, [
+      :id,
+      :name,
+      :flow_rate_ml_per_s,
+      :monitor,
+      :created_at,
+      :updated_at
+    ])
     |> validate_required([])
   end
 end

@@ -4,7 +4,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
   """
 
   alias FarmbotOS.{Asset, JSON}
-  alias FarmbotOS.Asset.{Device, FbosConfig, FirmwareConfig}
+  alias FarmbotOS.Asset.{Repo, Tool, Device, FbosConfig, FirmwareConfig}
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.Lua
   alias FarmbotOS.SysCalls.ResourceUpdate
@@ -100,7 +100,27 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
   def update_device([table], lua) do
     params = Map.new(table)
-    _ = ResourceUpdate.update_resource("Device", nil, params)
+
+    new_params =
+      if Map.has_key?(params, "mounted_tool_id") do
+        if params["mounted_tool_id"] == 0 do
+          Map.put(params, "mounted_tool_id", nil)
+        else
+          tool_ids = Repo.all(Tool) |> Enum.map(fn tool -> tool.id end)
+
+          if not Enum.member?(tool_ids, params["mounted_tool_id"]) do
+            FarmbotOS.Logger.error(3, "Tool ID not found.")
+
+            Enum.filter(params, fn {key, _value} -> key != "mounted_tool_id" end)
+          else
+            params
+          end
+        end
+      else
+        params
+      end
+
+    _ = ResourceUpdate.update_resource("Device", nil, new_params)
     {[true], lua}
   end
 
@@ -156,6 +176,43 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def get_firmware_config(_, lua) do
     firmware_config = Asset.firmware_config() |> FirmwareConfig.render()
     {[Util.map_to_table(firmware_config)], lua}
+  end
+
+  def get_tool([params], lua) do
+    map = Util.lua_to_elixir(params)
+
+    tool_id = Map.get(map, "id")
+    tool_name = Map.get(map, "name")
+    tool_params = %{}
+
+    tool_params =
+      if tool_id do
+        Map.put(tool_params, :id, tool_id)
+      else
+        tool_params
+      end
+
+    tool_params =
+      if tool_name do
+        Map.put(tool_params, :name, tool_name)
+      else
+        tool_params
+      end
+
+    tool = Asset.get_tool(tool_params)
+
+    tool_result =
+      if tool do
+        %{
+          id: tool.id,
+          name: tool.name,
+          flow_rate_ml_per_s: tool.flow_rate_ml_per_s
+        }
+      else
+        nil
+      end
+
+    {[tool_result], lua}
   end
 
   def new_sensor_reading([table], lua) do
