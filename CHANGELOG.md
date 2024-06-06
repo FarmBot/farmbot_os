@@ -5,6 +5,7 @@
  * Add `tool.flow_rate_ml_per_s`.
  * Add `get_tool` Lua helper and use it in relevant helpers.
  * Fix `update_device({mounted_tool_id = 0})` functionality and validate values.
+ * Add `get_tool_slot` Lua helper.
 
 # 15.4.8
 

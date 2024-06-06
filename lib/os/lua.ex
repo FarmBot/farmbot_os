@@ -139,6 +139,7 @@ defmodule FarmbotOS.Lua do
       get_seed_tray_cell: &DataManipulation.get_seed_tray_cell/2,
       get_xyz: &Info.get_xyz/2,
       get_tool: &DataManipulation.get_tool/2,
+      get_tool_slot: &DataManipulation.get_tool_slot/2,
       go_to_home: &Firmware.go_to_home/2,
       grid: &DataManipulation.grid/2,
       group: &DataManipulation.group/2,

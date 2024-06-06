@@ -215,6 +215,32 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[tool_result], lua}
   end
 
+  def get_tool_slot([tool_name], lua) do
+    tool = Asset.get_tool(name: tool_name)
+
+    slot =
+      if tool do
+        slot = Asset.get_point(tool_id: tool.id)
+
+        if slot do
+          %{
+            tool_id: slot.tool_id,
+            gantry_mounted: slot.gantry_mounted,
+            pullout_direction: slot.pullout_direction,
+            x: slot.x,
+            y: slot.y,
+            z: slot.z
+          }
+        else
+          nil
+        end
+      else
+        nil
+      end
+
+    {[slot], lua}
+  end
+
   def new_sensor_reading([table], lua) do
     table
     |> Enum.map(fn
