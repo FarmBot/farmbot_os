@@ -112,6 +112,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
             FarmbotOS.Logger.error(3, "Tool ID not found.")
 
             Enum.filter(params, fn {key, _value} -> key != "mounted_tool_id" end)
+            |> Map.new()
           else
             params
           end
