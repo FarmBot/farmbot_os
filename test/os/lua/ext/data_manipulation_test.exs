@@ -377,6 +377,26 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [expected]} == lua(lua_code, lua_code)
   end
 
+  test "get_tool() by name" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:name => "tool"}
+
+      %{:id => 1, :name => "tool", :flow_rate_ml_per_s => 0}
+    end)
+
+    lua_code = "return get_tool({name = \"tool\"})"
+    expected = [{"flow_rate_ml_per_s", 0}, {"id", 1}, {"name", "tool"}]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_tool() not found" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn _ -> nil end)
+
+    lua_code = "return get_tool({id = 1})"
+    assert {:ok, [nil]} == lua(lua_code, lua_code)
+  end
+
   test "new_sensor_reading" do
     expect(FarmbotOS.Asset, :new_sensor_reading!, 1, fn params ->
       expected = %{
