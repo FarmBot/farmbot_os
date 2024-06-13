@@ -7,6 +7,7 @@ _G.safe_z = spy.new(function() end)
 _G.move = spy.new(function() end)
 _G.move_absolute = spy.new(function() end)
 _G.update_device = spy.new(function() end)
+_G.get_tool = spy.new(function() end)
 
 describe("dismount_tool()", function()
   before_each(function()
@@ -19,16 +20,30 @@ describe("dismount_tool()", function()
     _G.update_device:clear()
   end)
 
+  it("doesn't dismount tool when mounted_tool_id is nil", function()
+    _G.get_device = spy.new(function() end)
+    _G.api = spy.new(function() end)
+
+    dismount_tool()
+
+    assert.spy(api).was_not_called()
+    assert.spy(toast).was.called(1)
+    assert.spy(toast).was.called_with("No tool is mounted to the UTM", "error")
+  end)
+
   it("doesn't dismount tool when no tool is mounted", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() end)
     _G.api = spy.new(function() end)
 
     dismount_tool()
 
     assert.spy(api).was_not_called()
+    assert.spy(toast).was_not_called()
   end)
 
   it("handles API error: points", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function() end)
 
@@ -39,25 +54,8 @@ describe("dismount_tool()", function()
     assert.spy(toast).was.called_with("API error", "error")
   end)
 
-  it("handles API error: tools", function()
-    _G.verify_tool = spy.new(function() return true end)
-    _G.api = spy.new(function(inputs)
-      if string.match(inputs.url, "points") then
-        return {
-          point0 = { tool_id = 1, pullout_direction = 0 },
-          point1 = { tool_id = 0 },
-        }
-      end
-    end)
-
-    dismount_tool()
-
-    assert.spy(api).was.called(2)
-    assert.spy(toast).was.called(1)
-    assert.spy(toast).was.called_with("API error", "error")
-  end)
-
   it("handles missing slot", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then
@@ -65,21 +63,19 @@ describe("dismount_tool()", function()
           point1 = { tool_id = 0 },
         }
       end
-      if string.match(inputs.url, "tools") then
-        return {
-          name = "My Tool",
-        }
-      end
     end)
+    _G.get_tool = spy.new(function() return { name = "My Tool" } end)
 
     dismount_tool()
 
-    assert.spy(api).was.called(2)
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called(1)
     assert.spy(toast).was.called_with("No slot found for the currently mounted tool (My Tool) - check the Tools panel", "error")
   end)
 
   it("handles missing slot direction", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then
@@ -87,21 +83,19 @@ describe("dismount_tool()", function()
           point0 = { tool_id = 1, pullout_direction = 0 },
         }
       end
-      if string.match(inputs.url, "tools") then
-        return {
-          name = "My Tool",
-        }
-      end
     end)
+    _G.get_tool = spy.new(function() return { name = "My Tool" } end)
 
     dismount_tool()
 
-    assert.spy(api).was.called(2)
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called(1)
     assert.spy(toast).was.called_with("Tool slot must have a direction", "error")
   end)
 
   it("handles gantry mounted slots", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then
@@ -109,21 +103,19 @@ describe("dismount_tool()", function()
           point0 = { tool_id = 1, pullout_direction = 1, gantry_mounted = true },
         }
       end
-      if string.match(inputs.url, "tools") then
-        return {
-          name = "My Tool",
-        }
-      end
     end)
+    _G.get_tool = spy.new(function() return { name = "My Tool" } end)
 
     dismount_tool()
 
-    assert.spy(api).was.called(2)
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called(1)
     assert.spy(toast).was.called_with("Tool slot cannot be gantry mounted", "error")
   end)
 
   it("fails", function()
+    _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then
@@ -131,17 +123,14 @@ describe("dismount_tool()", function()
           point0 = { tool_id = 1, pullout_direction = 1, x = 0, y = 0, z = 0 },
         }
       end
-      if string.match(inputs.url, "tools") then
-        return {
-          name = "My Tool",
-        }
-      end
     end)
+    _G.get_tool = spy.new(function() return { name = "My Tool" } end)
     _G.read_pin = spy.new(function() return 0 end)
 
     dismount_tool()
 
-    assert.spy(api).was.called(2)
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(move).was.called(4)
     assert.spy(set_job_progress).was.called(6)
     assert.spy(move_absolute).was.called(1)
@@ -154,6 +143,7 @@ describe("dismount_tool()", function()
 
   for i = 1, 4 do
     it("dismounts: slot_dir == " .. i, function()
+      _G.get_device = spy.new(function() return 1 end)
       _G.verify_tool = spy.new(function() return true end)
       _G.api = spy.new(function(inputs)
         if string.match(inputs.url, "points") then
@@ -161,17 +151,14 @@ describe("dismount_tool()", function()
             point0 = { tool_id = 1, pullout_direction = i, x = 0, y = 0, z = 0 },
           }
         end
-        if string.match(inputs.url, "tools") then
-          return {
-            name = "My Tool",
-          }
-        end
       end)
+      _G.get_tool = spy.new(function() return { name = "My Tool" } end)
       _G.read_pin = spy.new(function() return 1 end)
 
       dismount_tool()
 
-      assert.spy(api).was.called(2)
+      assert.spy(api).was.called(1)
+      assert.spy(get_tool).was.called(1)
       assert.spy(toast).was.called(1)
       assert.spy(move).was.called(4)
       assert.spy(set_job_progress).was.called(6)

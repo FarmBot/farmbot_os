@@ -16,93 +16,76 @@ describe("dispense()", function()
     _G.off:clear()
   end)
 
-  it("handles missing tool list", function()
-    _G.api = spy.new(function() end)
-    dispense(100)
-
-    assert.spy(api).was.called(1)
-    assert.spy(toast).was.called_with("API error", "error")
-    assert.spy(on).was_not_called()
-  end)
-
   it("handles missing tool", function()
-    _G.api = spy.new(function() return {} end)
+    _G.get_tool = spy.new(function() end)
     dispense(100)
 
-    assert.spy(api).was.called(1)
-    assert.spy(toast).was.called_with("You must have a tool named \"Watering Nozzle\" to use this sequence.", "error")
+    assert.spy(get_tool).was.called(1)
+    assert.spy(toast).was.called_with("Tool \"Watering Nozzle\" not found", "error")
     assert.spy(on).was_not_called()
   end)
 
   it("accepts tool name", function()
-    _G.api = spy.new(function() return {} end)
+    _G.get_tool = spy.new(function() return {} end)
     dispense(100, { tool_name = "nozzle" })
 
-    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called_with("You must have a tool named \"nozzle\" to use this sequence.", "error")
     assert.spy(on).was_not_called()
   end)
 
   it("handles missing flow rate", function()
-    _G.api = spy.new(function()
+    _G.get_tool = spy.new(function()
       return {
-        {
           name = "Watering Nozzle",
           flow_rate_ml_per_s = 0,
         }
-      }
     end)
     dispense(100)
 
-    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called_with("**FLOW RATE (mL/s)** must be greater than 0 for the Watering Nozzle tool.", "error")
     assert.spy(on).was_not_called()
   end)
 
   it("handles missing amount", function()
-    _G.api = spy.new(function()
+    _G.get_tool = spy.new(function()
       return {
-        {
           name = "Watering Nozzle",
           flow_rate_ml_per_s = 10,
         }
-      }
     end)
     dispense(0)
 
-    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called_with("Liquid volume was 0mL. Skipping.", "warn")
     assert.spy(on).was_not_called()
   end)
 
   it("handles excessive amount", function()
-    _G.api = spy.new(function()
+    _G.get_tool = spy.new(function()
       return {
-        {
           name = "Watering Nozzle",
           flow_rate_ml_per_s = 10,
         }
-      }
     end)
     dispense(100000)
 
-    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called_with("Liquid volume cannot be more than 10,000mL", "error")
     assert.spy(on).was_not_called()
   end)
 
   it("dispenses amount", function()
-    _G.api = spy.new(function()
+    _G.get_tool = spy.new(function()
       return {
-        {
           name = "Watering Nozzle",
           flow_rate_ml_per_s = 10,
         }
-      }
     end)
     dispense(100)
 
-    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was.called_with("info", "Dispensing 100mL over 10 seconds")
     assert.spy(on).was.called_with(8)
@@ -120,18 +103,16 @@ describe("dispense()", function()
   }) do
     it("dispenses " .. test.ml .. "mL through " .. test.tool .. " at "
        .. test.rate .. "mL/s over " .. test.seconds .. " seconds", function()
-      _G.api = spy.new(function()
+      _G.get_tool = spy.new(function()
         return {
-          {
             name = test.tool,
             flow_rate_ml_per_s = test.rate,
           }
-        }
       end)
       dispense(test.ml, { tool_name = test.tool, pin = test.pin })
 
       local job_message = "Dispensing " .. test.ml .. "mL"
-      assert.spy(api).was.called(1)
+      assert.spy(get_tool).was.called(1)
       assert.spy(toast).was_not_called()
       assert.spy(send_message).was.called_with("info",
         "Dispensing " .. test.ml .. "mL over " .. test.seconds .. " seconds")

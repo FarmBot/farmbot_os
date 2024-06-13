@@ -3,21 +3,13 @@ return function(ml, params)
     local tool_name = params.tool_name or "Watering Nozzle"
     local pin_number = params.pin or 8
 
-    -- Get all tools
-    local tools = api({ url = "/api/tools/" })
-    if not tools then
-        toast("API error", "error")
+    -- Get flow_rate
+    local tool = get_tool{name = tool_name}
+    if not tool then
+        toast('Tool "' .. tool_name .. '" not found', 'error')
         return
     end
-
-    -- Pluck the nozzle
-    local nozzle, flow_rate
-    for key, tool in pairs(tools) do
-        if tool.name == tool_name then
-            nozzle = tool
-            flow_rate = nozzle.flow_rate_ml_per_s
-        end
-    end
+    local flow_rate = tool.flow_rate_ml_per_s
 
     -- Checks
     if not flow_rate then

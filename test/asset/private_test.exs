@@ -29,7 +29,7 @@ defmodule FarmbotOS.Asset.PrivateTest do
 
   def reset_assets() do
     destroy_assets()
-    create_assets()
+    # create_assets()
   end
 
   test "list_local" do

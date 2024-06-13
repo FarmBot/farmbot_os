@@ -192,7 +192,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert result == {[5.55], :fake_lua}
   end
 
-  test "update_device()" do
+  test "update_device() name" do
     expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
       assert %{"name" => "Test Farmbot"} == params
     end)
@@ -203,6 +203,60 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     """
 
     assert {:ok, [true]} == lua("update device test", lua_code)
+  end
+
+  test "update_device() mounted_tool_id" do
+    expect(FarmbotOS.Asset.Repo, :all, 1, fn _ -> [%{id: 123}] end)
+
+    expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
+      assert %{"mounted_tool_id" => 123} == params
+    end)
+
+    lua_code = "return update_device({mounted_tool_id = 123})"
+
+    assert {:ok, [true]} == lua(lua_code, lua_code)
+  end
+
+  test "update_device() mounted_tool_id nil" do
+    expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
+      assert %{"mounted_tool_id" => nil} == params
+    end)
+
+    lua_code = "return update_device({mounted_tool_id = 0})"
+
+    assert {:ok, [true]} == lua(lua_code, lua_code)
+  end
+
+  test "update_device() mounted_tool_id not found with other param" do
+    expect(FarmbotOS.Asset.Repo, :all, 1, fn _ -> [%{id: 123}] end)
+
+    expect(FarmbotOS.Logger, :error, 1, fn _, error ->
+      assert error == "Tool ID not found."
+    end)
+
+    expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
+      assert %{"name" => "name"} == params
+    end)
+
+    lua_code = "return update_device({name = \"name\", mounted_tool_id = 100})"
+
+    assert {:ok, [true]} == lua(lua_code, lua_code)
+  end
+
+  test "update_device() mounted_tool_id not found" do
+    expect(FarmbotOS.Asset.Repo, :all, 1, fn _ -> [%{id: 123}] end)
+
+    expect(FarmbotOS.Logger, :error, 1, fn _, error ->
+      assert error == "Tool ID not found."
+    end)
+
+    expect(ResourceUpdate, :update_resource, 1, fn "Device", nil, params ->
+      assert %{} == params
+    end)
+
+    lua_code = "return update_device({mounted_tool_id = 1})"
+
+    assert {:ok, [true]} == lua(lua_code, lua_code)
   end
 
   test "garden_size/0" do
@@ -308,6 +362,39 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     """
 
     assert {:ok, [true]} == lua("get_firmware_config/1", lua_code)
+  end
+
+  test "get_tool() by id" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:id => 1}
+
+      %{:id => 1, :name => "tool", :flow_rate_ml_per_s => 0}
+    end)
+
+    lua_code = "return get_tool({id = 1})"
+    expected = [{"flow_rate_ml_per_s", 0}, {"id", 1}, {"name", "tool"}]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_tool() by name" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:name => "tool"}
+
+      %{:id => 1, :name => "tool", :flow_rate_ml_per_s => 0}
+    end)
+
+    lua_code = "return get_tool({name = \"tool\"})"
+    expected = [{"flow_rate_ml_per_s", 0}, {"id", 1}, {"name", "tool"}]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_tool() not found" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn _ -> nil end)
+
+    lua_code = "return get_tool({id = 1})"
+    assert {:ok, [nil]} == lua(lua_code, lua_code)
   end
 
   test "new_sensor_reading" do

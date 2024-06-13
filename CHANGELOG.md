@@ -1,5 +1,12 @@
 # Changelog
 
+# 15.4.9
+
+ * Add `tool.flow_rate_ml_per_s`.
+ * Add `get_tool` Lua helper and use it in relevant helpers.
+ * Fix `update_device({mounted_tool_id = 0})` functionality and validate values.
+ * Fix `badarg` bug for plants with `planted_at` value.
+
 # 15.4.8
 
  * Add support for using remote `plant` objects in the `water` Lua helper.

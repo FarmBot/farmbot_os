@@ -11,10 +11,7 @@ return function()
       return false
   end
 
-  local mounted_tool = api({
-      method = "get",
-      url = "/api/tools/" .. mounted_tool_id
-  })
-  send_message("success", "The " .. mounted_tool.name .. " is mounted on the UTM")
+  local mounted_tool_name = get_tool{id = mounted_tool_id}.name
+  send_message("success", "The " .. mounted_tool_name .. " is mounted on the UTM")
   return true
 end

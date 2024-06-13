@@ -3,6 +3,10 @@ return function()
     local start_time = os.time() * 1000
 
     -- Checks
+    if not tool_id then
+        toast("No tool is mounted to the UTM", "error")
+        return
+    end
     if not verify_tool() then
         return
     end
@@ -25,15 +29,11 @@ return function()
     end
 
     -- Get tool name
-    local tool = api({ url = "/api/tools/" .. tool_id })
-    if not tool then
-        toast("API error", "error")
-        return
-    end
+    local tool_name = get_tool{id = tool_id}.name
 
     -- Checks
     if not slot then
-        toast("No slot found for the currently mounted tool (" .. tool.name .. ") - check the Tools panel", "error")
+        toast("No slot found for the currently mounted tool (" .. tool_name .. ") - check the Tools panel", "error")
         return
     elseif slot_dir == 0 then
         toast("Tool slot must have a direction", "error")
@@ -46,7 +46,7 @@ return function()
     -- Job progress tracking
     function job(percent, status)
         set_job_progress(
-            "Dismounting " .. tool.name,
+            "Dismounting " .. tool_name,
             { percent = percent, status = status, time = start_time }
         )
     end
@@ -85,6 +85,6 @@ return function()
     else
         job(100, "Complete")
         update_device({mounted_tool_id = 0})
-        toast(tool.name .. " dismounted", "success")
+        toast(tool_name .. " dismounted", "success")
     end
 end

@@ -37,6 +37,11 @@ defmodule FarmbotOS.Lua.Result do
 
   def parse_error(error, _) do
     show(error)
+
+    if Mix.env() == :test do
+      IO.puts(inspect(error))
+    end
+
     {:error, "Lua failure"}
   end
 

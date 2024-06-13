@@ -2,7 +2,7 @@ local verify_tool = require("verify_tool")
 
 _G.toast = spy.new(function() end)
 _G.send_message = spy.new(function() end)
-_G.api = spy.new(function() return { name = "My Tool" } end)
+_G.get_tool = spy.new(function() return { name = "My Tool" } end)
 
 describe("verify_tool()", function()
   before_each(function()

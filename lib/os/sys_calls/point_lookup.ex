@@ -48,10 +48,18 @@ defmodule FarmbotOS.SysCalls.PointLookup do
             )
           end
 
-        %{resource_type: type, resource_id: id}
-        |> Map.merge(s)
-        |> Map.take(@relevant_keys)
-        |> Map.put(:age, age)
+        p =
+          %{resource_type: type, resource_id: id}
+          |> Map.merge(s)
+          |> Map.take(@relevant_keys)
+          |> Map.put(:age, age)
+
+        if p.planted_at do
+          p
+          |> Map.put(:planted_at, DateTime.to_iso8601(s.planted_at))
+        else
+          p
+        end
 
       other ->
         Logger.debug("Point error: Please notify support #{inspect(other)}")

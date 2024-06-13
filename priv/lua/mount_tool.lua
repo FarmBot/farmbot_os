@@ -3,16 +3,7 @@ return function(input)
     if type(input) == "string" then
       local prelim_tool
       local tool_name = input
-      local tools = api({ url = "/api/tools/" })
-      if not tools then
-          toast("API error", "error")
-          return
-      end
-      for key, tool in pairs(tools) do
-        if tool.name == tool_name then
-          prelim_tool = tool
-        end
-      end
+      prelim_tool = get_tool{name = tool_name}
       if not prelim_tool then
           toast("'" .. tool_name .. "' tool not found", "error")
           return
@@ -58,13 +49,9 @@ return function(input)
         return
     end
 
-    -- Get tool name
-    local tool = api({
-        url = "/api/tools/" .. slot.tool_id
-    })
-
+    local tool = get_tool{id = slot.tool_id}
     if not tool then
-        toast("API error", "error")
+        toast("Tool slot must have a tool", "error")
         return
     end
 
