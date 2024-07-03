@@ -37,12 +37,16 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
       if has_key?(state, key) do
         state
       else
-        set(state, key, value)
+        reckless_set(state, key, value)
       end
     end)
   end
 
   def has_key?(scope, label), do: Map.has_key?(scope.declarations, label)
+
+  def reckless_set(scope, key, value) do
+    %{scope | declarations: Map.put(scope.declarations, key, value)}
+  end
 
   @nothing %AST{kind: :nothing, args: %{}, body: []}
   @not_allowed [
@@ -65,7 +69,7 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
       declr = Map.put(scope.declarations, key, @nothing)
       %{scope | declarations: declr, valid: false}
     else
-      %{scope | declarations: Map.put(scope.declarations, key, value)}
+      reckless_set(scope, key, value)
     end
   end
 

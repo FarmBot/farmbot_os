@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.10
+
+ * Prevent unnecessary scheduler exit upon encountering duplicate variable values when one is a placeholder.
+
 # 15.4.9
 
  * Add `tool.flow_rate_ml_per_s`.
