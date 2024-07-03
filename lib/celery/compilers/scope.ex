@@ -63,7 +63,8 @@ defmodule FarmbotOS.Celery.Compiler.Scope do
       )
 
       declr = Map.put(scope.declarations, key, @nothing)
-      %{scope | declarations: declr, valid: false}
+      # use `valid: false` to exit
+      %{scope | declarations: declr, valid: true}
     else
       %{scope | declarations: Map.put(scope.declarations, key, value)}
     end
