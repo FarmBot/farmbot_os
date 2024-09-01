@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.11
+
+ * Force push state update upon `read_status`.
+
 # 15.4.10
 
  * Prevent unnecessary scheduler exit upon encountering duplicate variables when one is a placeholder.
