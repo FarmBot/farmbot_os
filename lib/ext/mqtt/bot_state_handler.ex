@@ -37,7 +37,7 @@ defmodule FarmbotOS.MQTT.BotStateHandler do
   end
 
   def handle_cast(:reload, state) do
-    {:noreply, broadcast!(state)}
+    {:noreply, broadcast!(state, true)}
   end
 
   def handle_info({BotState, _}, state) do
@@ -49,10 +49,10 @@ defmodule FarmbotOS.MQTT.BotStateHandler do
     {:noreply, state}
   end
 
-  def broadcast!(%{last_broadcast: last} = state) do
+  def broadcast!(%{last_broadcast: last} = state, force \\ false) do
     next = BotState.fetch()
 
-    if next != last do
+    if next != last || force do
       json =
         next
         |> BotStateNG.view()
