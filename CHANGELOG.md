@@ -3,6 +3,7 @@
 # 15.4.11
 
  * Force push state update upon `read_status`.
+ * Add Genesis v1.8 firmware.
 
 # 15.4.10
 

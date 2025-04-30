@@ -10,6 +10,7 @@ defmodule FarmbotOS.Firmware.FlashUtils do
   def find_hex_file("farmduino_k15"), do: find("farmduino_k15.hex")
   def find_hex_file("farmduino_k16"), do: find("farmduino_k16.hex")
   def find_hex_file("farmduino_k17"), do: find("farmduino_k17.hex")
+  def find_hex_file("farmduino_k18"), do: find("farmduino_k18.hex")
   def find_hex_file("farmduino"), do: find("farmduino.hex")
   def find_hex_file("none"), do: find("eeprom_clear.ino.hex")
 
