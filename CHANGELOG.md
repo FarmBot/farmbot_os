@@ -3,6 +3,7 @@
 # 15.4.11
 
  * Force push state update upon `read_status`.
+ * Fix typo in firmware so that deadzone x and y values now work independently from z.
  * Add Genesis v1.8 firmware.
 
 # 15.4.10
