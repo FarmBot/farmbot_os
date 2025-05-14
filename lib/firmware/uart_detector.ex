@@ -14,6 +14,7 @@ defmodule FarmbotOS.Firmware.UARTDetector do
     "farmduino_k15" => "ttyACM0",
     "farmduino_k16" => "ttyACM0",
     "farmduino_k17" => "ttyACM0",
+    "farmduino_k18" => "ttyACM0",
     "farmduino" => "ttyACM0"
   }
 
