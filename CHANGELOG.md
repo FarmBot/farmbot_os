@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.4.12
+
+ * Fix Lua `find_home("all")` axis order bug.
+
 # 15.4.11
 
  * Force push state update upon `read_status`.

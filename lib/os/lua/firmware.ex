@@ -245,8 +245,8 @@ defmodule FarmbotOS.Lua.Firmware do
 
   defp do_find_home(axes, lua, callback) do
     axes
-    |> Enum.map(callback)
     |> Enum.reverse()
+    |> Enum.map(callback)
     |> Enum.map(fn result ->
       case result do
         {:error, reason} -> reason
