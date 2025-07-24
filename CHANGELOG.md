@@ -1,8 +1,10 @@
 # Changelog
 
-# 15.4.12
+# 15.5.0
 
  * Fix Lua `find_home("all")` axis order bug.
+ * Add `axis_order` to `move` Lua helper.
+ * Add `tool.seeder_tip_z_offset`.
 
 # 15.4.11
 

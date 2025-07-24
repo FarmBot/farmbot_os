@@ -207,6 +207,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
         %{
           id: tool.id,
           name: tool.name,
+          seeder_tip_z_offset: tool.seeder_tip_z_offset,
           flow_rate_ml_per_s: tool.flow_rate_ml_per_s
         }
       else

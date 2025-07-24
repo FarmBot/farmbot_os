@@ -368,11 +368,22 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
       assert params == %{:id => 1}
 
-      %{:id => 1, :name => "tool", :flow_rate_ml_per_s => 0}
+      %{
+        :id => 1,
+        :name => "tool",
+        :flow_rate_ml_per_s => 0,
+        :seeder_tip_z_offset => 100
+      }
     end)
 
     lua_code = "return get_tool({id = 1})"
-    expected = [{"flow_rate_ml_per_s", 0}, {"id", 1}, {"name", "tool"}]
+
+    expected = [
+      {"flow_rate_ml_per_s", 0},
+      {"id", 1},
+      {"name", "tool"},
+      {"seeder_tip_z_offset", 100}
+    ]
 
     assert {:ok, [expected]} == lua(lua_code, lua_code)
   end
@@ -381,11 +392,22 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
       assert params == %{:name => "tool"}
 
-      %{:id => 1, :name => "tool", :flow_rate_ml_per_s => 0}
+      %{
+        :id => 1,
+        :name => "tool",
+        :flow_rate_ml_per_s => 0,
+        :seeder_tip_z_offset => 100
+      }
     end)
 
     lua_code = "return get_tool({name = \"tool\"})"
-    expected = [{"flow_rate_ml_per_s", 0}, {"id", 1}, {"name", "tool"}]
+
+    expected = [
+      {"flow_rate_ml_per_s", 0},
+      {"id", 1},
+      {"name", "tool"},
+      {"seeder_tip_z_offset", 100}
+    ]
 
     assert {:ok, [expected]} == lua(lua_code, lua_code)
   end

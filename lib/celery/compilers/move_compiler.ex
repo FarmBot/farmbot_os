@@ -59,6 +59,14 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
+  def do_perform_movement(%{axis_order: "z,xy"} = needs) do
+    needs |> extend_z() |> move_xy()
+  end
+
+  def do_perform_movement(%{axis_order: "z,y,x"} = needs) do
+    needs |> extend_z() |> move_y() |> move_x()
+  end
+
   def do_perform_movement(%{safe_z: false} = n) do
     move_abs(n)
   end
@@ -72,6 +80,16 @@ defmodule FarmbotOS.Celery.Compiler.Move do
 
   def move_xy(needs) do
     move_abs(Map.merge(needs, %{z: cz()}))
+    needs
+  end
+
+  def move_x(needs) do
+    move_abs(Map.merge(needs, %{y: cy(), z: cz()}))
+    needs
+  end
+
+  def move_y(needs) do
+    move_abs(Map.merge(needs, %{x: cx(), z: cz()}))
     needs
   end
 
@@ -99,6 +117,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
   #   {:z, :=, 0.0},
   #   {:z, :=, {:skip, :soil_height}},
   #   {:z, :+, -21},
+  #   {:axis_order, :=, "xyz"}
   #   {:safe_z, :=, true}
   # ]
   #
@@ -130,6 +149,9 @@ defmodule FarmbotOS.Celery.Compiler.Move do
           false
 
         {:z, _, _} ->
+          false
+
+        {:axis_order, _, _} ->
           false
 
         _ ->
@@ -187,6 +209,9 @@ defmodule FarmbotOS.Celery.Compiler.Move do
         next_speed = String.to_atom("speed_#{axis}")
         {next_speed, :=, to_number(axis, speed_setting)}
 
+      :axis_order ->
+        {:axis_order, :=, a[:order]}
+
       :safe_z ->
         {:safe_z, :=, true}
     end
@@ -200,6 +225,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
       {:speed_x, :=, 100},
       {:speed_y, :=, 100},
       {:speed_z, :=, 100},
+      {:axis_order, :=, "xyz"},
       {:safe_z, :=, false}
     ]
   end
