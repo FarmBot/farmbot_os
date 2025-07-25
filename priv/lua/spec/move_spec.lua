@@ -61,8 +61,8 @@ describe("move()", function()
               speed_setting = { kind = "numeric", args = { number = 100 } }
             }
           },
-          [7] = { kind = "safe_z", args = {} },
-          [8] = { kind = "axis_order", args = { order = "xyz" } },
+          [7] = { kind = "axis_order", args = { order = "xyz" } },
+          [8] = { kind = "safe_z", args = {} },
         },
       }}
     })
