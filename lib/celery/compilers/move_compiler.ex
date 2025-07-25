@@ -55,16 +55,35 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     end)
   end
 
+  defp normalize_axis_group(group) do
+    group
+    |> String.graphemes()
+    |> Enum.sort()
+    |> Enum.join()
+  end
+
+  defp perform_axis_group(group, needs) do
+    case normalize_axis_group(group) do
+      "x" -> move_x(needs)
+      "y" -> move_y(needs)
+      "z" -> extend_z(needs)
+      "xy" -> move_xy(needs)
+      "xz" -> move_xz(needs)
+      "yz" -> move_yz(needs)
+      "xyz" -> move_abs(needs)
+    end
+  end
+
   def do_perform_movement(%{safe_z: true} = needs) do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{axis_order: "z,xy"} = needs) do
-    needs |> extend_z() |> move_xy()
-  end
-
-  def do_perform_movement(%{axis_order: "z,y,x"} = needs) do
-    needs |> extend_z() |> move_y() |> move_x()
+  def do_perform_movement(%{axis_order: order} = needs) do
+    order
+    |> String.split(",", trim: true)
+    |> Enum.reduce(needs, fn group, acc ->
+      perform_axis_group(group, acc)
+    end)
   end
 
   def do_perform_movement(%{safe_z: false} = n) do
@@ -80,6 +99,16 @@ defmodule FarmbotOS.Celery.Compiler.Move do
 
   def move_xy(needs) do
     move_abs(Map.merge(needs, %{z: cz()}))
+    needs
+  end
+
+  def move_xz(needs) do
+    move_abs(Map.merge(needs, %{y: cy()}))
+    needs
+  end
+
+  def move_yz(needs) do
+    move_abs(Map.merge(needs, %{x: cx()}))
     needs
   end
 

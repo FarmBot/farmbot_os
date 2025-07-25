@@ -114,6 +114,37 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     Move.do_perform_movement(needs)
   end
 
+  test "do_perform_movement(%{axis_order: 'y,xz'})" do
+    stub_current_location(1)
+
+    expect(Stubs, :move_absolute, 2, fn _, _, _, _, _, _ ->
+      :ok
+    end)
+
+    needs = Map.merge(@fake_movement_needs, %{axis_order: "y,xz"})
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: 'x,yz'})" do
+    stub_current_location(1)
+
+    expect(Stubs, :move_absolute, 2, fn _, _, _, _, _, _ ->
+      :ok
+    end)
+
+    needs = Map.merge(@fake_movement_needs, %{axis_order: "x,yz"})
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: 'xyz'})" do
+    expect(Stubs, :move_absolute, 1, fn _, _, _, _, _, _ ->
+      :ok
+    end)
+
+    needs = Map.merge(@fake_movement_needs, %{axis_order: "xyz"})
+    Move.do_perform_movement(needs)
+  end
+
   test "do_perform_movement(%{axis_order: 'z,y,x'})" do
     stub_current_location(3)
     Stubs.get_current_z()
@@ -133,7 +164,15 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
       :ok
     end)
 
-    Move.do_perform_movement(@fake_movement_needs)
+    Move.do_perform_movement(%{
+      safe_z: false,
+      speed_x: 99,
+      speed_y: 98,
+      speed_z: 97,
+      x: -4,
+      y: -3,
+      z: -2
+    })
   end
 
   test "retract_z" do

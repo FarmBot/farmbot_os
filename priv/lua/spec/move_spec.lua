@@ -23,7 +23,7 @@ describe("move()", function()
   end)
 
   it("moves with args", function()
-    move({ x = 1, speed = 100, safe_z = true })
+    move({ x = 1, speed = 100, safe_z = true, axis_order = "xyz" })
 
     assert.spy(cs_eval).was.called()
     assert.spy(cs_eval).was.called_with({
@@ -62,6 +62,7 @@ describe("move()", function()
             }
           },
           [7] = { kind = "safe_z", args = {} },
+          [8] = { kind = "axis_order", args = { order = "xyz" } },
         },
       }}
     })
