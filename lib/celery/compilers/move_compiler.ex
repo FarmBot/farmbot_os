@@ -198,7 +198,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
   #   {:z, :=, 0.0},
   #   {:z, :=, {:skip, :soil_height}},
   #   {:z, :+, -21},
-  #   {:axis_order, :=, "xyz"}
+  #   {:axis_order, :=, %{grouping: "xyz", route: "in_order"}}
   #   {:safe_z, :=, true}
   # ]
   #
@@ -306,7 +306,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
       {:speed_x, :=, 100},
       {:speed_y, :=, 100},
       {:speed_z, :=, 100},
-      {:axis_order, :=, "xyz"},
+      {:axis_order, :=, %{grouping: "xyz", route: "in_order"}},
       {:safe_z, :=, false}
     ]
   end
