@@ -568,7 +568,7 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
              x: x,
              y: y,
              z: z,
-             axis_order: "xyz"
+             axis_order: %{grouping: "xyz", route: "in_order"}
            }
   end
 
