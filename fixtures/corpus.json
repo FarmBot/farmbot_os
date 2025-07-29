@@ -288,7 +288,8 @@
         "axis",
         "axis_operand",
         "number",
-        "order",
+        "grouping",
+        "route",
         "variance",
         "speed_setting",
         "message",
@@ -820,7 +821,16 @@
       ]
     },
     {
-      "name": "order",
+      "name": "grouping",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "route",
       "allowed_values": [
         {
           "tag": "string",
@@ -1689,7 +1699,8 @@
     },
     {
       "allowed_args": [
-        "order"
+        "grouping",
+        "route"
       ],
       "allowed_body_types": [],
       "name": "axis_order",

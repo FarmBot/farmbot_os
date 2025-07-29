@@ -55,6 +55,30 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     end)
   end
 
+  defp z_group?(group), do: String.downcase(group) |> String.contains?("z")
+
+  defp reorder_axis_groups(groups, :first) do
+    cond do
+      z_group?(hd(groups)) -> groups
+      z_group?(List.last(groups)) -> Enum.reverse(groups)
+      true -> promote_first_matching(groups)
+    end
+  end
+
+  defp reorder_axis_groups(groups, :last),
+    do: reorder_axis_groups(groups, :first) |> Enum.reverse()
+
+  defp promote_first_matching(groups) do
+    case Enum.find_index(groups, &z_group?/1) do
+      nil ->
+        groups
+
+      idx ->
+        {before, [match | rest]} = Enum.split(groups, idx)
+        [match | before ++ rest]
+    end
+  end
+
   defp normalize_axis_group(group) do
     group
     |> String.graphemes()
@@ -78,10 +102,38 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{axis_order: order} = needs) do
-    order
-    |> String.split(",", trim: true)
-    |> Enum.reduce(needs, fn group, acc ->
+  def do_perform_movement(
+        %{axis_order: %{grouping: order_str, route: route}} = needs
+      ) do
+    target_z = Map.get(needs, :z)
+    current_z = cz()
+    groups = String.split(order_str, ",", trim: true)
+
+    route_mode =
+      case String.downcase(route) do
+        "high" -> :optimize_up
+        "low" -> :optimize_down
+        "in_order" -> :preserve
+      end
+
+    reordered_groups =
+      case {route_mode, target_z, current_z} do
+        {:preserve, _, _} ->
+          groups
+
+        {mode, t, c} ->
+          direction =
+            case {mode, abs(t) < abs(c)} do
+              {:optimize_up, true} -> :first
+              {:optimize_up, false} -> :last
+              {:optimize_down, true} -> :last
+              {:optimize_down, false} -> :first
+            end
+
+          reorder_axis_groups(groups, direction)
+      end
+
+    Enum.reduce(reordered_groups, needs, fn group, acc ->
       perform_axis_group(group, acc)
     end)
   end
@@ -239,7 +291,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
         {next_speed, :=, to_number(axis, speed_setting)}
 
       :axis_order ->
-        {:axis_order, :=, a[:order]}
+        {:axis_order, :=, %{grouping: a[:grouping], route: a[:route]}}
 
       :safe_z ->
         {:safe_z, :=, true}
