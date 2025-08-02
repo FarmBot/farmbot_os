@@ -45,7 +45,12 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
 
   test "MOVE + `tool` node" do
     stub_current_location(1)
+    expect(Stubs, :get_current_z, fn -> 0 end)
     {toolX, toolY, toolZ} = {37.3, 43.7, -34.3}
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order ->
+      "xyz;high"
+    end)
 
     expect(Stubs, :get_toolslot_for_tool, 3, fn
       23 -> %{gantry_mounted: false, name: "X", x: toolX, y: toolY, z: toolZ}
@@ -447,21 +452,6 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     Move.do_perform_movement(needs)
   end
 
-  test "do_perform_movement(%{safe_z: false})" do
-    # move xyz
-    expect(Stubs, :move_absolute, fn -4, -3, -2, _, _, _ -> :ok end)
-
-    needs =
-      Map.merge(@fake_movement_needs, %{
-        safe_z: false,
-        x: -4,
-        y: -3,
-        z: -2
-      })
-
-    Move.do_perform_movement(needs)
-  end
-
   test "retract_z" do
     # move z
     expect(Stubs, :get_current_x, fn -> -1 end)
@@ -557,8 +547,29 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     Move.extend_z(@fake_movement_needs)
   end
 
-  test "calculate_movement_needs" do
+  test "calculate_movement_needs: safe_z default" do
     {x, y, z} = stub_current_location(1)
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order -> "safe_z" end)
+
+    assert Move.calculate_movement_needs([]) == %{
+             safe_z: true,
+             speed_x: 100,
+             speed_y: 100,
+             speed_z: 100,
+             x: x,
+             y: y,
+             z: z,
+             axis_order: %{grouping: "xyz", route: "in_order"}
+           }
+  end
+
+  test "calculate_movement_needs: xyz default" do
+    {x, y, z} = stub_current_location(1)
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order ->
+      "x,y,z;high"
+    end)
 
     assert Move.calculate_movement_needs([]) == %{
              safe_z: false,
@@ -568,7 +579,24 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
              x: x,
              y: y,
              z: z,
-             axis_order: %{grouping: "xyz", route: "in_order"}
+             axis_order: %{grouping: "x,y,z", route: "high"}
+           }
+  end
+
+  test "calculate_movement_needs: default unused" do
+    {x, y, z} = stub_current_location(1)
+
+    assert Move.calculate_movement_needs([
+             %{kind: :axis_order, args: %{grouping: "xyz", route: "high"}}
+           ]) == %{
+             safe_z: false,
+             speed_x: 100,
+             speed_y: 100,
+             speed_z: 100,
+             x: x,
+             y: y,
+             z: z,
+             axis_order: %{grouping: "xyz", route: "high"}
            }
   end
 

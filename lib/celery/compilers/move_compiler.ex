@@ -138,10 +138,6 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     end)
   end
 
-  def do_perform_movement(%{safe_z: false} = n) do
-    move_abs(n)
-  end
-
   def retract_z(needs) do
     a = %{x: cx(), y: cy(), z: SpecialValue.safe_height()}
     b = Map.merge(needs, a)
@@ -244,6 +240,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
 
   def calculate_movement_needs(body) do
     body
+    |> add_defaults()
     |> create_list_of_operations()
     |> Enum.reduce(%{}, &reducer/2)
   end
@@ -309,6 +306,29 @@ defmodule FarmbotOS.Celery.Compiler.Move do
       {:axis_order, :=, %{grouping: "xyz", route: "in_order"}},
       {:safe_z, :=, false}
     ]
+  end
+
+  defp default_axis_order() do
+    FarmbotOS.Asset.fbos_config(:default_axis_order)
+  end
+
+  defp add_defaults(body) do
+    if Enum.any?(body, fn %{kind: k} -> k == :axis_order end) do
+      body
+    else
+      default_order = default_axis_order()
+
+      case default_order do
+        "safe_z" ->
+          body ++ [%{kind: :safe_z, args: %{}}]
+
+        _ ->
+          [grouping, route] = String.split(default_order, ";")
+
+          body ++
+            [%{kind: :axis_order, args: %{grouping: grouping, route: route}}]
+      end
+    end
   end
 
   def to_number(_axis, %{args: %{variance: v}, kind: :random}) do
