@@ -419,6 +419,97 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [nil]} == lua(lua_code, lua_code)
   end
 
+  test "get_weeds()" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Weed" ->
+      [
+        %{id: 1, x: 10, y: 20, radius: 5, plant_stage: "active"},
+        %{id: 2, x: 30, y: 40, radius: 10, plant_stage: "pending"}
+      ]
+    end)
+
+    lua_code = "return get_weeds()"
+
+    expected = [
+      {1,
+       [
+         {"id", 1},
+         {"plant_stage", "active"},
+         {"radius", 5},
+         {"x", 10},
+         {"y", 20}
+       ]}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_weeds(): params" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Weed" ->
+      [
+        %{id: 1, x: 10, y: 20, radius: 5, plant_stage: "active"},
+        %{id: 2, x: 30, y: 40, radius: 10, plant_stage: "pending"}
+      ]
+    end)
+
+    lua_code =
+      "return get_weeds{ plant_stage = \"active\", min_radius = 5, max_radius = 6 }"
+
+    expected = [
+      {1,
+       [
+         {"id", 1},
+         {"plant_stage", "active"},
+         {"radius", 5},
+         {"x", 10},
+         {"y", 20}
+       ]}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_plants()" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Plant" ->
+      [
+        %{id: 1, x: 10, y: 20, plant_stage: "planted"},
+        %{id: 2, x: 30, y: 40, plant_stage: "planned"}
+      ]
+    end)
+
+    lua_code = "return get_plants()"
+
+    expected = [
+      {1, [{"id", 1}, {"plant_stage", "planted"}, {"x", 10}, {"y", 20}]}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_plants(): params" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Plant" ->
+      [
+        %{id: 1, x: 10, y: 20, plant_stage: "planted", openfarm_slug: "mint"},
+        %{id: 2, x: 30, y: 40, plant_stage: "planned", openfarm_slug: "mint"}
+      ]
+    end)
+
+    lua_code =
+      "return get_plants{ plant_stage = \"planted\", plant_type = \"mint\" }"
+
+    expected = [
+      {1,
+       [
+         {"id", 1},
+         {"openfarm_slug", "mint"},
+         {"plant_stage", "planted"},
+         {"x", 10},
+         {"y", 20}
+       ]}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
   test "new_sensor_reading" do
     expect(FarmbotOS.Asset, :new_sensor_reading!, 1, fn params ->
       expected = %{
@@ -455,12 +546,24 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {[[]], :lua} == DataManipulation.group([1], :lua)
   end
 
-  test "sort" do
+  test "sort: points" do
+    assert {[%{1 => %{id: 1, name: "p", y: 1, x: 1}}], :lua} ==
+             DataManipulation.sort(
+               [
+                 [{1, [{"id", 1}, {"name", "p"}, {"x", 1}, {"y", 1}]}],
+                 "random"
+               ],
+               :lua
+             )
+  end
+
+  test "sort: point_ids" do
     expect(FarmbotOS.Asset, :get_point, fn _ ->
       %FarmbotOS.Asset.Point{id: 1}
     end)
 
-    assert {[[1]], :lua} == DataManipulation.sort([[{1, 1}], "random"], :lua)
+    assert {[%{1 => 1}], :lua} ==
+             DataManipulation.sort([[{1, 1}], "random"], :lua)
   end
 
   test "take_photo - OK" do
