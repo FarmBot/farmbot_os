@@ -422,92 +422,321 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   test "get_weeds()" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Weed" ->
       [
-        %{id: 1, x: 10, y: 20, radius: 5, plant_stage: "active"},
-        %{id: 2, x: 30, y: 40, radius: 10, plant_stage: "pending"}
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          radius: 5,
+          plant_stage: "active",
+          created_at: ~U[2023-01-01 00:00:00Z]
+        },
+        %{
+          id: 2,
+          x: 30,
+          y: 40,
+          radius: 10,
+          plant_stage: "pending",
+          created_at: ~U[2023-01-01 00:00:00Z]
+        }
       ]
     end)
 
     lua_code = "return get_weeds()"
 
-    expected = [
-      {1,
-       [
-         {"id", 1},
-         {"plant_stage", "active"},
-         {"radius", 5},
-         {"x", 10},
-         {"y", 20}
-       ]}
-    ]
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, weed_data}] = actual
 
-    assert {:ok, [expected]} == lua(lua_code, lua_code)
+    assert Enum.any?(weed_data, fn
+             {"age", age} when is_integer(age) -> true
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"id", id} when id == 1 -> true
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"plant_stage", stage} when stage == "active" -> true
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"radius", radius} when radius == 5 -> true
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"x", x} when x == 10 -> true
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"y", y} when y == 20 -> true
+             _ -> false
+           end)
   end
 
   test "get_weeds(): params" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Weed" ->
       [
-        %{id: 1, x: 10, y: 20, radius: 5, plant_stage: "active"},
-        %{id: 2, x: 30, y: 40, radius: 10, plant_stage: "pending"}
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          radius: 5,
+          plant_stage: "active",
+          created_at: ~U[2023-01-01 00:00:00Z]
+        },
+        %{
+          id: 2,
+          x: 30,
+          y: 40,
+          radius: 10,
+          plant_stage: "pending",
+          created_at: ~U[2023-01-01 00:00:00Z]
+        }
       ]
     end)
 
     lua_code =
       "return get_weeds{ plant_stage = \"active\", min_radius = 5, max_radius = 6 }"
 
-    expected = [
-      {1,
-       [
-         {"id", 1},
-         {"plant_stage", "active"},
-         {"radius", 5},
-         {"x", 10},
-         {"y", 20}
-       ]}
-    ]
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, weed_data}] = actual
 
-    assert {:ok, [expected]} == lua(lua_code, lua_code)
+    assert Enum.any?(weed_data, fn
+             {"age", age} -> is_integer(age)
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"id", id} -> id == 1
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"plant_stage", stage} -> stage == "active"
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"radius", radius} -> radius == 5
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"x", x} -> x == 10
+             _ -> false
+           end)
+
+    assert Enum.any?(weed_data, fn
+             {"y", y} -> y == 20
+             _ -> false
+           end)
   end
 
   test "get_plants()" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Plant" ->
       [
-        %{id: 1, x: 10, y: 20, plant_stage: "planted"},
-        %{id: 2, x: 30, y: 40, plant_stage: "planned"}
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          plant_stage: "planted",
+          planted_at: ~U[2023-01-01 00:00:00Z]
+        },
+        %{
+          id: 2,
+          x: 30,
+          y: 40,
+          plant_stage: "planned",
+          planted_at: ~U[2023-01-01 00:00:00Z]
+        }
       ]
     end)
 
     lua_code = "return get_plants()"
 
-    expected = [
-      {1, [{"id", 1}, {"plant_stage", "planted"}, {"x", 10}, {"y", 20}]}
-    ]
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, plant_data}] = actual
 
-    assert {:ok, [expected]} == lua(lua_code, lua_code)
+    assert Enum.any?(plant_data, fn
+             {"age", age} -> is_integer(age)
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"id", id} -> id == 1
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"plant_stage", stage} -> stage == "planted"
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"x", x} -> x == 10
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"y", y} -> y == 20
+             _ -> false
+           end)
   end
 
   test "get_plants(): params" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Plant" ->
       [
-        %{id: 1, x: 10, y: 20, plant_stage: "planted", openfarm_slug: "mint"},
-        %{id: 2, x: 30, y: 40, plant_stage: "planned", openfarm_slug: "mint"}
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          plant_stage: "planted",
+          openfarm_slug: "mint",
+          planted_at: ~U[2023-01-01 00:00:00Z]
+        },
+        %{
+          id: 2,
+          x: 30,
+          y: 40,
+          plant_stage: "planned",
+          openfarm_slug: "mint",
+          planted_at: nil
+        }
       ]
     end)
 
     lua_code =
-      "return get_plants{ plant_stage = \"planted\", plant_type = \"mint\" }"
+      "return get_plants{ plant_stage = \"planned\", openfarm_slug = \"mint\" }"
 
-    expected = [
-      {1,
-       [
-         {"id", 1},
-         {"openfarm_slug", "mint"},
-         {"plant_stage", "planted"},
-         {"x", 10},
-         {"y", 20}
-       ]}
-    ]
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, plant_data}] = actual
 
-    assert {:ok, [expected]} == lua(lua_code, lua_code)
+    assert Enum.any?(plant_data, fn
+             {"id", id} -> id == 2
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"plant_stage", stage} -> stage == "planned"
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"openfarm_slug", slug} -> slug == "mint"
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"x", x} -> x == 30
+             _ -> false
+           end)
+
+    assert Enum.any?(plant_data, fn
+             {"y", y} -> y == 40
+             _ -> false
+           end)
+  end
+
+  test "get_generic_points()" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
+      [
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          created_at: ~U[2023-01-01 00:00:00Z],
+          updated_at: ~U[2023-01-01 00:00:00Z]
+        }
+      ]
+    end)
+
+    lua_code = "return get_generic_points()"
+
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, point_data}] = actual
+
+    assert Enum.any?(point_data, fn
+             {"age", age} -> is_integer(age)
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"created_at", created_at} -> is_binary(created_at)
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"updated_at", updated_at} -> is_binary(updated_at)
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"id", id} -> id == 1
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"x", x} -> x == 10
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"y", y} -> y == 20
+             _ -> false
+           end)
+  end
+
+  test "get_generic_points(): params" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
+      [
+        %{
+          id: 1,
+          x: 10,
+          y: 20,
+          meta: %{"color" => "green"},
+          created_at: ~U[2023-01-01 00:00:00Z],
+          updated_at: ~U[2023-01-01 00:00:00Z]
+        },
+        %{
+          id: 2,
+          x: 30,
+          y: 40,
+          meta: %{"color" => "red"},
+          created_at: ~U[2023-01-01 00:00:00Z],
+          updated_at: ~U[2023-01-01 00:00:00Z]
+        }
+      ]
+    end)
+
+    lua_code =
+      "return get_generic_points{ color = \"green\" }"
+
+    {:ok, [actual]} = lua(lua_code, lua_code)
+    [{1, point_data}] = actual
+
+    assert Enum.any?(point_data, fn
+             {"age", age} -> is_integer(age)
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"id", id} -> id == 1
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"x", x} -> x == 10
+             _ -> false
+           end)
+
+    assert Enum.any?(point_data, fn
+             {"y", y} -> y == 20
+             _ -> false
+           end)
   end
 
   test "new_sensor_reading" do
@@ -539,11 +768,34 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "group" do
-    assert {[[]], :lua} == DataManipulation.group([1], :lua)
+    expect(FarmbotOS.Asset, :find_points_via_group, fn 1 ->
+      %{point_ids: [1, 2, 3]}
+    end)
+
+    assert {[[1, 2, 3]], :lua} == DataManipulation.group([1], :lua)
   end
 
   test "group - no group" do
+    expect(FarmbotOS.Asset, :find_points_via_group, fn 1 -> nil end)
     assert {[[]], :lua} == DataManipulation.group([1], :lua)
+  end
+
+  test "get_group()" do
+    expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.PointGroup,
+                                             id: 1 ->
+      %{point_ids: []}
+    end)
+
+    assert {[[]], :lua} == DataManipulation.get_group([1], :lua)
+  end
+
+  test "get_group(): no group" do
+    expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.PointGroup,
+                                             id: 1 ->
+      nil
+    end)
+
+    assert {[[]], :lua} == DataManipulation.get_group([1], :lua)
   end
 
   test "sort: points" do
