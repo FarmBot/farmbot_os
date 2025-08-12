@@ -289,7 +289,9 @@ defmodule FarmbotOS.Lua.DataManipulation do
       (is_nil(min_age) or point.age >= min_age) and
       (is_nil(max_age) or point.age <= max_age) and
       (is_nil(color) or point.meta["color"] == color) and
-      (is_nil(at_soil_level) or point.meta["at_soil_level"] == at_soil_level)
+      (is_nil(at_soil_level) or
+         point.meta["at_soil_level"] == at_soil_level or
+         (at_soil_level == "false" and point.meta["at_soil_level"] == nil))
   end
 
   def get_plants([], lua) do

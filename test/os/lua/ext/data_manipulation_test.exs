@@ -739,6 +739,84 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
            end)
   end
 
+  @generic_points [
+    %{
+      id: 1,
+      x: 10,
+      y: 20,
+      meta: %{"at_soil_level" => "true"},
+      created_at: ~U[2023-01-01 00:00:00Z],
+      updated_at: ~U[2023-01-01 00:00:00Z]
+    },
+    %{
+      id: 2,
+      x: 30,
+      y: 40,
+      meta: %{"color" => "red"},
+      created_at: ~U[2023-01-01 00:00:00Z],
+      updated_at: ~U[2023-01-01 00:00:00Z]
+    },
+    %{
+      id: 3,
+      x: 30,
+      y: 40,
+      meta: %{"at_soil_level" => "false"},
+      created_at: ~U[2023-01-01 00:00:00Z],
+      updated_at: ~U[2023-01-01 00:00:00Z]
+    }
+  ]
+
+  test "get_generic_points(): at_soil_level false" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
+      @generic_points
+    end)
+
+    lua_code = "return get_generic_points{ at_soil_level = \"false\" }"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+
+    ids =
+      actual
+      |> Enum.flat_map(fn {_, data} ->
+        for {"id", id} <- List.flatten(data), do: id
+      end)
+
+    assert Enum.sort(ids) == [2, 3]
+  end
+
+  test "get_generic_points(): at_soil_level true" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
+      @generic_points
+    end)
+
+    lua_code = "return get_generic_points{ at_soil_level = \"true\" }"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+
+    ids =
+      actual
+      |> Enum.flat_map(fn {_, data} ->
+        for {"id", id} <- List.flatten(data), do: id
+      end)
+
+    assert Enum.sort(ids) == [1]
+  end
+
+  test "get_generic_points(): at_soil_level nil" do
+    expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
+      @generic_points
+    end)
+
+    lua_code = "return get_generic_points{}"
+    {:ok, [actual]} = lua(lua_code, lua_code)
+
+    ids =
+      actual
+      |> Enum.flat_map(fn {_, data} ->
+        for {"id", id} <- List.flatten(data), do: id
+      end)
+
+    assert Enum.sort(ids) == [1, 2, 3]
+  end
+
   test "new_sensor_reading" do
     expect(FarmbotOS.Asset, :new_sensor_reading!, 1, fn params ->
       expected = %{
