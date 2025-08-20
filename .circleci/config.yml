@@ -339,6 +339,7 @@ jobs:
 workflows:
   version: 2
   test:
+    max_auto_reruns: 1
     jobs:
       - test_farmbot_os:
           context: org-global
