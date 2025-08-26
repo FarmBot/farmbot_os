@@ -7,6 +7,7 @@
  * Add `tool.seeder_tip_z_offset`.
  * Add `get_weeds`, `get_plants`, `get_generic_points`, and `get_group` Lua helpers.
  * Add point support to `sort` Lua helper.
+ * Fix timeout option in `http` Lua helper.
 
 # 15.4.11
 

@@ -31,7 +31,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
     method = Map.get(@methods, method_str, :get)
     headers = Map.to_list(Map.get(config, "headers", %{}))
     body = Map.get(config, "body", "")
-    options = [{:timeout, 180_000}]
+    options = [{:recv_timeout, 180_000}]
     hackney = HTTP.hackney()
 
     # Example request:
