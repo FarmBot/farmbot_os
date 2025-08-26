@@ -72,6 +72,9 @@ return function(input)
     -- Mount the tool
     job(60, "Mounting tool")
     move{z=slot.z}
+    if is_demo() then
+      update_device({mounted_tool_id = slot.tool_id})
+    end
 
     -- Pull the tool out of the slot at 50% speed
     job(80, "Pulling tool out")
@@ -86,13 +89,15 @@ return function(input)
     end
 
     -- Check verification pin
-    if read_pin(63) == 1 then
+    if read_pin(63) == 1 and not is_demo() then
         job(80, "Failed")
         toast("Tool mounting failed - no electrical connection between UTM pins B and C.", "error")
         return
     else
         job(100, "Complete")
-        update_device({mounted_tool_id = slot.tool_id})
+        if not is_demo() then
+          update_device({mounted_tool_id = slot.tool_id})
+        end
         toast(tool.name .. " mounted", "success")
     end
 end

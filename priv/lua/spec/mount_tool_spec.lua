@@ -15,6 +15,7 @@ describe("mount_tool()", function()
     _G.move:clear()
     _G.move_absolute:clear()
     _G.update_device:clear()
+    _G.is_demo = spy.new(function() return false end)
   end)
 
   it("doesn't mount tool when tool is detected", function()
@@ -148,6 +149,40 @@ describe("mount_tool()", function()
       end
       return 0
     end)
+    _G.get_device = spy.new(function() end)
+    _G.api = spy.new(function(inputs)
+      if string.match(inputs.url, "points") then
+        return {
+          point0 = {
+              pointer_type = "ToolSlot",
+              pullout_direction = 1,
+              tool_id = 1,
+              x = 0,
+              y = 0,
+              z = 0,
+           },
+        }
+      end
+    end)
+    _G.get_tool = spy.new(function() return { id = 1, name = "My Tool" } end)
+
+    mount_tool("My Tool")
+
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(2)
+    assert.spy(toast).was.called(1)
+    assert.spy(move).was.called(3)
+    assert.spy(set_job_progress).was.called(5)
+    assert.spy(move_absolute).was.called(1)
+    assert.spy(safe_z).was.called(1)
+    assert.spy(read_pin).was.called(2)
+    assert.spy(update_device).was.called(1)
+    assert.spy(toast).was.called_with("My Tool mounted", "success")
+  end)
+
+  it("mounts tool: demo", function()
+    _G.read_pin = spy.new(function() return 1 end)
+    _G.is_demo = spy.new(function() return true end)
     _G.get_device = spy.new(function() end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then

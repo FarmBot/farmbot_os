@@ -97,6 +97,12 @@ defmodule FarmbotOS.Lua.InfoTest do
     assert coordinate["z"] == 0
   end
 
+  test "is_demo()" do
+    lua = "return is_demo()"
+    {:ok, [actual]} = lua(lua, lua)
+    assert actual == false
+  end
+
   test "fbos_version()" do
     lua_code = "return fbos_version()"
     {:ok, [actual, nil]} = lua(lua_code, lua_code)

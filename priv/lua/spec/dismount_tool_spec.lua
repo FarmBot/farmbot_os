@@ -18,6 +18,7 @@ describe("dismount_tool()", function()
     _G.move:clear()
     _G.move_absolute:clear()
     _G.update_device:clear()
+    _G.is_demo = spy.new(function() return false end)
   end)
 
   it("doesn't dismount tool when mounted_tool_id is nil", function()
@@ -139,6 +140,34 @@ describe("dismount_tool()", function()
     assert.spy(update_device).was_not_called()
     assert.spy(toast).was.called(1)
     assert.spy(toast).was.called_with("Tool dismounting failed - there is still an electrical connection between UTM pins B and C.", "error")
+  end)
+
+  it("dismounts: demo", function()
+    _G.get_device = spy.new(function() return 1 end)
+    _G.verify_tool = spy.new(function() return true end)
+    _G.api = spy.new(function(inputs)
+      if string.match(inputs.url, "points") then
+        return {
+          point0 = { tool_id = 1, pullout_direction = 1, x = 0, y = 0, z = 0 },
+        }
+      end
+    end)
+    _G.get_tool = spy.new(function() return { name = "My Tool" } end)
+    _G.read_pin = spy.new(function() return 0 end)
+    _G.is_demo = spy.new(function() return true end)
+
+    dismount_tool()
+
+    assert.spy(api).was.called(1)
+    assert.spy(get_tool).was.called(1)
+    assert.spy(toast).was.called(1)
+    assert.spy(move).was.called(4)
+    assert.spy(set_job_progress).was.called(6)
+    assert.spy(move_absolute).was.called(1)
+    assert.spy(safe_z).was.called(1)
+    assert.spy(read_pin).was.called(1)
+    assert.spy(update_device).was.called(1)
+    assert.spy(toast).was.called_with("My Tool dismounted", "success")
   end)
 
   for i = 1, 4 do

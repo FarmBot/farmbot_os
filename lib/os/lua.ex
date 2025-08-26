@@ -148,6 +148,7 @@ defmodule FarmbotOS.Lua do
       get_group: &DataManipulation.get_group/2,
       http: &DataManipulation.http/2,
       inspect: &DataManipulation.json_encode/2,
+      is_demo: &Info.is_demo/2,
       json: [
         {:decode, &DataManipulation.json_decode/2},
         {:encode, &DataManipulation.json_encode/2}

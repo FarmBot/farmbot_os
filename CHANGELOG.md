@@ -9,6 +9,7 @@
  * Add point support to `sort` Lua helper.
  * Shorten `water` Lua helper job name and log messages.
  * Fix timeout option in `http` Lua helper.
+ * Add `is_demo` Lua helper.
 
 # 15.4.11
 
