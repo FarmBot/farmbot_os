@@ -10,6 +10,7 @@
  * Shorten `water` Lua helper job name and log messages.
  * Fix timeout option in `http` Lua helper.
  * Add `is_demo` Lua helper.
+ * Clear jobs upon estop.
 
 # 15.4.11
 
