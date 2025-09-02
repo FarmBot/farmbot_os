@@ -21,7 +21,7 @@ Old versions of FarmBot OS can be found [here](https://github.com/FarmBot/farmbo
 
 ## Problems?
 
-See the [FAQ](docs/target_development/target_faq.md)
+See the [FAQ](https://developer.farm.bot/docs/faq)
 If your problem isn't solved there please file an issue on [Github](https://github.com/FarmBot/farmbot_os/issues/new)
 
 ## Security Concerns?

@@ -7,3 +7,5 @@
 3. [Install Nerves](https://hexdocs.pm/nerves/installation.html#content)
 4. Clone this repo and run `./run_all.sh`. If the script runs to completion, you have successfully installed FBOS onto your target
 5. Run the application via `iex -S mix`.
+
+For further information, visit the [developer docs](https://developer.farm.bot/docs/farmbot-os-development).
