@@ -14,6 +14,7 @@ defmodule FarmbotOS.Asset.Tool do
 
     field(:name, :string)
     field(:flow_rate_ml_per_s, :integer)
+    field(:seeder_tip_z_offset, :float)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -22,6 +23,7 @@ defmodule FarmbotOS.Asset.Tool do
     %{
       id: tool.id,
       name: tool.name,
+      seeder_tip_z_offset: tool.seeder_tip_z_offset,
       flow_rate_ml_per_s: tool.flow_rate_ml_per_s
     }
   end
@@ -32,6 +34,7 @@ defmodule FarmbotOS.Asset.Tool do
       :id,
       :name,
       :flow_rate_ml_per_s,
+      :seeder_tip_z_offset,
       :monitor,
       :created_at,
       :updated_at

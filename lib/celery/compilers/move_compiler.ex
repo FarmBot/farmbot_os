@@ -55,12 +55,87 @@ defmodule FarmbotOS.Celery.Compiler.Move do
     end)
   end
 
+  defp z_group?(group), do: String.downcase(group) |> String.contains?("z")
+
+  defp reorder_axis_groups(groups, :first) do
+    cond do
+      z_group?(hd(groups)) -> groups
+      z_group?(List.last(groups)) -> Enum.reverse(groups)
+      true -> promote_first_matching(groups)
+    end
+  end
+
+  defp reorder_axis_groups(groups, :last),
+    do: reorder_axis_groups(groups, :first) |> Enum.reverse()
+
+  defp promote_first_matching(groups) do
+    case Enum.find_index(groups, &z_group?/1) do
+      nil ->
+        groups
+
+      idx ->
+        {before, [match | rest]} = Enum.split(groups, idx)
+        [match | before ++ rest]
+    end
+  end
+
+  defp normalize_axis_group(group) do
+    group
+    |> String.graphemes()
+    |> Enum.sort()
+    |> Enum.join()
+  end
+
+  defp perform_axis_group(group, needs) do
+    case normalize_axis_group(group) do
+      "x" -> move_x(needs)
+      "y" -> move_y(needs)
+      "z" -> extend_z(needs)
+      "xy" -> move_xy(needs)
+      "xz" -> move_xz(needs)
+      "yz" -> move_yz(needs)
+      "xyz" -> move_abs(needs)
+    end
+  end
+
   def do_perform_movement(%{safe_z: true} = needs) do
     needs |> retract_z() |> move_xy() |> extend_z()
   end
 
-  def do_perform_movement(%{safe_z: false} = n) do
-    move_abs(n)
+  def do_perform_movement(
+        %{axis_order: %{grouping: order_str, route: route}} = needs
+      ) do
+    target_z = Map.get(needs, :z)
+    current_z = cz()
+    groups = String.split(order_str, ",", trim: true)
+
+    route_mode =
+      case String.downcase(route) do
+        "high" -> :optimize_up
+        "low" -> :optimize_down
+        "in_order" -> :preserve
+      end
+
+    reordered_groups =
+      case {route_mode, target_z, current_z} do
+        {:preserve, _, _} ->
+          groups
+
+        {mode, t, c} ->
+          direction =
+            case {mode, abs(t) < abs(c)} do
+              {:optimize_up, true} -> :first
+              {:optimize_up, false} -> :last
+              {:optimize_down, true} -> :last
+              {:optimize_down, false} -> :first
+            end
+
+          reorder_axis_groups(groups, direction)
+      end
+
+    Enum.reduce(reordered_groups, needs, fn group, acc ->
+      perform_axis_group(group, acc)
+    end)
   end
 
   def retract_z(needs) do
@@ -72,6 +147,26 @@ defmodule FarmbotOS.Celery.Compiler.Move do
 
   def move_xy(needs) do
     move_abs(Map.merge(needs, %{z: cz()}))
+    needs
+  end
+
+  def move_xz(needs) do
+    move_abs(Map.merge(needs, %{y: cy()}))
+    needs
+  end
+
+  def move_yz(needs) do
+    move_abs(Map.merge(needs, %{x: cx()}))
+    needs
+  end
+
+  def move_x(needs) do
+    move_abs(Map.merge(needs, %{y: cy(), z: cz()}))
+    needs
+  end
+
+  def move_y(needs) do
+    move_abs(Map.merge(needs, %{x: cx(), z: cz()}))
     needs
   end
 
@@ -99,6 +194,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
   #   {:z, :=, 0.0},
   #   {:z, :=, {:skip, :soil_height}},
   #   {:z, :+, -21},
+  #   {:axis_order, :=, %{grouping: "xyz", route: "in_order"}}
   #   {:safe_z, :=, true}
   # ]
   #
@@ -132,6 +228,9 @@ defmodule FarmbotOS.Celery.Compiler.Move do
         {:z, _, _} ->
           false
 
+        {:axis_order, _, _} ->
+          false
+
         _ ->
           true
       end)
@@ -141,6 +240,7 @@ defmodule FarmbotOS.Celery.Compiler.Move do
 
   def calculate_movement_needs(body) do
     body
+    |> add_defaults()
     |> create_list_of_operations()
     |> Enum.reduce(%{}, &reducer/2)
   end
@@ -187,6 +287,9 @@ defmodule FarmbotOS.Celery.Compiler.Move do
         next_speed = String.to_atom("speed_#{axis}")
         {next_speed, :=, to_number(axis, speed_setting)}
 
+      :axis_order ->
+        {:axis_order, :=, %{grouping: a[:grouping], route: a[:route]}}
+
       :safe_z ->
         {:safe_z, :=, true}
     end
@@ -200,8 +303,32 @@ defmodule FarmbotOS.Celery.Compiler.Move do
       {:speed_x, :=, 100},
       {:speed_y, :=, 100},
       {:speed_z, :=, 100},
+      {:axis_order, :=, %{grouping: "xyz", route: "in_order"}},
       {:safe_z, :=, false}
     ]
+  end
+
+  defp default_axis_order() do
+    FarmbotOS.Asset.fbos_config(:default_axis_order)
+  end
+
+  defp add_defaults(body) do
+    if Enum.any?(body, fn %{kind: k} -> k == :axis_order end) do
+      body
+    else
+      default_order = default_axis_order()
+
+      case default_order do
+        "safe_z" ->
+          body ++ [%{kind: :safe_z, args: %{}}]
+
+        _ ->
+          [grouping, route] = String.split(default_order, ";")
+
+          body ++
+            [%{kind: :axis_order, args: %{grouping: grouping, route: route}}]
+      end
+    end
   end
 
   def to_number(_axis, %{args: %{variance: v}, kind: :random}) do

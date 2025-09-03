@@ -18,6 +18,12 @@ function speed_overwrite(axis, num)
     }
 end
 
+function axis_order(params)
+    local grouping = params.grouping or "xyz"
+    local route = params.route or "in_order"
+    return { kind = "axis_order", args = { grouping = grouping, route = route } }
+end
+
 return function(input)
     cs_eval({
         kind = "rpc_request",
@@ -33,6 +39,7 @@ return function(input)
                     input.speed and speed_overwrite("x", input.speed),
                     input.speed and speed_overwrite("y", input.speed),
                     input.speed and speed_overwrite("z", input.speed),
+                    (input.grouping or input.route) and axis_order(input),
                     input.safe_z and {kind = "safe_z", args = {}}
                 }
             }

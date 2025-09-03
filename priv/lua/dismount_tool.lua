@@ -72,19 +72,24 @@ return function()
     -- Put the tool in the slot
     job(80, "Putting tool in slot")
     move_absolute(slot.x, slot.y, slot.z, 50)
+    if is_demo() then
+      update_device({mounted_tool_id = 0})
+    end
 
     -- Dismount tool
     job(90, "Dismounting tool")
     move{z = slot.z + 50}
 
     -- Check verification pin
-    if read_pin(63) == 0 then
+    if read_pin(63) == 0 and not is_demo() then
         job(90, "Failed")
         toast("Tool dismounting failed - there is still an electrical connection between UTM pins B and C.", "error")
         return
     else
         job(100, "Complete")
-        update_device({mounted_tool_id = 0})
+        if not is_demo() then
+          update_device({mounted_tool_id = 0})
+        end
         toast(tool_name .. " dismounted", "success")
     end
 end

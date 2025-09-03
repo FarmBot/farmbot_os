@@ -6,6 +6,7 @@ _G.garden_size = spy.new(function() return { x = 2000, y = 1000, z = 3000 } end)
 describe("photo_grid()", function()
   before_each(function()
     _G.toast:clear()
+    _G.is_demo = spy.new(function() return false end)
   end)
 
   it("handles missing values", function()
@@ -78,6 +79,39 @@ describe("photo_grid()", function()
     local cb = spy.new(function() end)
     grid.each(cb)
     assert.spy(cb).was.called(18)
+
+    assert.spy(toast).was_not_called()
+  end)
+
+  it("returns grid: demo", function()
+    _G.env = spy.new(function() end)
+    _G.is_demo = spy.new(function() return true end)
+    _G.grid = spy.new(function(params)
+      local total = params.grid_points.x * params.grid_points.y
+      return {
+        each = spy.new(function(cb) for i = 1, total do cb({}) end end),
+        total = total,
+      }
+    end)
+
+    local grid = photo_grid()
+
+    assert.are.equal(475, grid.y_spacing_mm)
+    assert.are.equal(0, grid.y_offset_mm)
+    assert.are.equal(237.5, grid.y_grid_start_mm)
+    assert.are.equal(525, grid.y_grid_size_mm)
+    assert.are.equal(3, grid.y_grid_points)
+    assert.are.equal(635, grid.x_spacing_mm)
+    assert.are.equal(0, grid.x_offset_mm)
+    assert.are.equal(317.5, grid.x_grid_start_mm)
+    assert.are.equal(1365, grid.x_grid_size_mm)
+    assert.are.equal(4, grid.x_grid_points)
+    assert.are.equal(0, grid.z)
+    assert.are.equal(12, grid.total)
+
+    local cb = spy.new(function() end)
+    grid.each(cb)
+    assert.spy(cb).was.called(12)
 
     assert.spy(toast).was_not_called()
   end)

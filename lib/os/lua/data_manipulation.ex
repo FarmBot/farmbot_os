@@ -31,7 +31,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
     method = Map.get(@methods, method_str, :get)
     headers = Map.to_list(Map.get(config, "headers", %{}))
     body = Map.get(config, "body", "")
-    options = [{:timeout, 180_000}]
+    options = [{:recv_timeout, 180_000}]
     hackney = HTTP.hackney()
 
     # Example request:
@@ -207,6 +207,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
         %{
           id: tool.id,
           name: tool.name,
+          seeder_tip_z_offset: tool.seeder_tip_z_offset,
           flow_rate_ml_per_s: tool.flow_rate_ml_per_s
         }
       else
@@ -214,6 +215,122 @@ defmodule FarmbotOS.Lua.DataManipulation do
       end
 
     {[tool_result], lua}
+  end
+
+  defp drop_fields(point) do
+    point
+    |> Map.drop([
+      :__meta__,
+      :__struct__,
+      :local_id,
+      :local_meta,
+      :discarded_at,
+      :gantry_mounted,
+      :pullout_direction,
+      :monitor
+    ])
+  end
+
+  def get_weeds([], lua) do
+    get_weeds([%{}], lua)
+  end
+
+  def get_weeds([params], lua) do
+    weeds =
+      Asset.get_all_points_by_type("Weed")
+      |> Enum.map(fn weed ->
+        weed
+        |> Map.put(:age, calculate_age(weed.created_at))
+        |> format_field_as_iso8601(:created_at)
+        |> format_field_as_iso8601(:updated_at)
+      end)
+      |> Enum.filter(&filter_point(&1, params, "active"))
+      |> Enum.map(&drop_fields/1)
+
+    {[weeds], lua}
+  end
+
+  defp calculate_age(nil), do: nil
+
+  defp calculate_age(planted_at) do
+    days =
+      DateTime.diff(DateTime.utc_now(), planted_at, :second)
+      |> Kernel./(86400)
+      |> Float.ceil()
+      |> trunc()
+
+    days
+  end
+
+  defp format_field_as_iso8601(map, field) do
+    case Map.get(map, field) do
+      nil -> map
+      value -> Map.put(map, field, DateTime.to_iso8601(value))
+    end
+  end
+
+  defp filter_point(point, params, stage) do
+    map = Util.lua_to_elixir(params)
+
+    plant_stage = Map.get(map, "plant_stage") || stage
+    openfarm_slug = Map.get(map, "openfarm_slug")
+    min_radius = Map.get(map, "min_radius")
+    max_radius = Map.get(map, "max_radius")
+    min_age = Map.get(map, "min_age")
+    max_age = Map.get(map, "max_age")
+    color = Map.get(map, "color")
+    at_soil_level = Map.get(map, "at_soil_level")
+
+    (is_nil(plant_stage) or point.plant_stage == plant_stage) and
+      (is_nil(openfarm_slug) or
+         point.openfarm_slug == String.downcase(openfarm_slug)) and
+      (is_nil(min_radius) or point.radius >= min_radius) and
+      (is_nil(max_radius) or point.radius <= max_radius) and
+      (is_nil(min_age) or point.age >= min_age) and
+      (is_nil(max_age) or point.age <= max_age) and
+      (is_nil(color) or point.meta["color"] == color) and
+      (is_nil(at_soil_level) or
+         point.meta["at_soil_level"] == at_soil_level or
+         (at_soil_level == "false" and point.meta["at_soil_level"] == nil))
+  end
+
+  def get_plants([], lua) do
+    get_plants([%{}], lua)
+  end
+
+  def get_plants([params], lua) do
+    plants =
+      Asset.get_all_points_by_type("Plant")
+      |> Enum.map(fn plant ->
+        plant
+        |> Map.put(:age, calculate_age(plant.planted_at))
+        |> format_field_as_iso8601(:planted_at)
+        |> format_field_as_iso8601(:created_at)
+        |> format_field_as_iso8601(:updated_at)
+      end)
+      |> Enum.filter(&filter_point(&1, params, "planted"))
+      |> Enum.map(&drop_fields/1)
+
+    {[plants], lua}
+  end
+
+  def get_generic_points([], lua) do
+    get_generic_points([%{}], lua)
+  end
+
+  def get_generic_points([params], lua) do
+    points =
+      Asset.get_all_points_by_type("GenericPointer")
+      |> Enum.map(fn point ->
+        point
+        |> Map.put(:age, calculate_age(point.created_at))
+        |> format_field_as_iso8601(:created_at)
+        |> format_field_as_iso8601(:updated_at)
+      end)
+      |> Enum.filter(&filter_point(&1, params, nil))
+      |> Enum.map(&drop_fields/1)
+
+    {[points], lua}
   end
 
   def new_sensor_reading([table], lua) do
@@ -230,27 +347,99 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[true], lua}
   end
 
+  defp get_points_via_group(id_or_name) do
+    key =
+      cond do
+        is_integer(id_or_name) -> {:id, id_or_name}
+        is_binary(id_or_name) -> {:name, id_or_name}
+        true -> nil
+      end
+
+    case key do
+      {field, value} ->
+        case Asset.Repo.get_by(Asset.PointGroup, [{field, value}]) do
+          %{sort_type: sort_by} = point_group ->
+            Asset.CriteriaRetriever.run(point_group)
+            |> Asset.sort_points(sort_by || "xy_ascending")
+
+          _ ->
+            []
+        end
+
+      _ ->
+        []
+    end
+  end
+
+  def get_group([group_id_or_name], lua) do
+    points =
+      get_points_via_group(group_id_or_name)
+      |> Enum.map(fn point ->
+        point
+        |> Map.put(
+          :age,
+          calculate_age(
+            if point.pointer_type == "Plant",
+              do: point.planted_at,
+              else: point.created_at
+          )
+        )
+        |> format_field_as_iso8601(:planted_at)
+        |> format_field_as_iso8601(:created_at)
+        |> format_field_as_iso8601(:updated_at)
+      end)
+      |> Enum.map(&drop_fields/1)
+
+    {[points], lua}
+  end
+
   def group([group_id], lua) do
     point_group = Asset.find_points_via_group(group_id)
 
     if point_group do
-      points = point_group.point_ids
-      {[points], lua}
+      point_ids = point_group.point_ids
+      {[point_ids], lua}
     else
       {[[]], lua}
     end
   end
 
-  def sort([point_ids, sort_method], lua) do
+  def sort([list, sort_method], lua) do
+    list = Util.lua_to_elixir(list)
+    is_id_list = Enum.all?(list, fn x -> is_integer(x) end)
+
     points =
-      point_ids
-      |> Enum.map(fn {_, id} -> Asset.get_point(id: id) end)
+      if is_id_list do
+        Enum.map(list, fn id -> Asset.get_point(id: id) end)
+      else
+        list
+      end
 
     ordered =
-      Asset.sort_points(points, sort_method)
-      |> Enum.map(fn p -> p.id end)
+      points
+      |> Enum.map(&drop_fields/1)
+      |> Enum.map(fn p ->
+        for {k, v} <- p, into: %{} do
+          key =
+            case k do
+              k when is_atom(k) -> k
+              k when is_binary(k) -> String.to_atom(k)
+              _ -> k
+            end
 
-    {[ordered], lua}
+          {key, v}
+        end
+      end)
+      |> Asset.sort_points(sort_method)
+
+    ordered =
+      if is_id_list do
+        Enum.map(ordered, fn p -> p.id end)
+      else
+        ordered
+      end
+
+    {[Util.map_to_table(ordered)], lua}
   end
 
   def soil_height([x, y], lua),

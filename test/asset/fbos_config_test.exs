@@ -12,6 +12,7 @@ defmodule FarmbotOS.Asset.FbosConfigTest do
     :sequence_body_log,
     :sequence_complete_log,
     :sequence_init_log,
+    :default_axis_order,
     :safe_height,
     :soil_height
   ]

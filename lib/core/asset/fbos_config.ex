@@ -31,6 +31,8 @@ defmodule FarmbotOS.Asset.FbosConfig do
     field(:sequence_complete_log, :boolean)
     field(:sequence_init_log, :boolean)
 
+    field(:default_axis_order, :string)
+
     field(:safe_height, :float)
     field(:soil_height, :float)
 
@@ -51,6 +53,7 @@ defmodule FarmbotOS.Asset.FbosConfig do
       sequence_body_log: fbos_config.sequence_body_log,
       sequence_complete_log: fbos_config.sequence_complete_log,
       sequence_init_log: fbos_config.sequence_init_log,
+      default_axis_order: fbos_config.default_axis_order,
       safe_height: fbos_config.safe_height,
       soil_height: fbos_config.soil_height
     }
@@ -69,6 +72,7 @@ defmodule FarmbotOS.Asset.FbosConfig do
       :network_not_found_timer,
       :os_auto_update,
       :safe_height,
+      :default_axis_order,
       :sequence_body_log,
       :sequence_complete_log,
       :sequence_init_log,

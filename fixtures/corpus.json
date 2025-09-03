@@ -288,6 +288,8 @@
         "axis",
         "axis_operand",
         "number",
+        "grouping",
+        "route",
         "variance",
         "speed_setting",
         "message",
@@ -815,6 +817,24 @@
         {
           "tag": "integer",
           "name": "Integer"
+        }
+      ]
+    },
+    {
+      "name": "grouping",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
+        }
+      ]
+    },
+    {
+      "name": "route",
+      "allowed_values": [
+        {
+          "tag": "string",
+          "name": "String"
         }
       ]
     },
@@ -1678,6 +1698,18 @@
       "docs": ""
     },
     {
+      "allowed_args": [
+        "grouping",
+        "route"
+      ],
+      "allowed_body_types": [],
+      "name": "axis_order",
+      "tags": [
+        "data"
+      ],
+      "docs": ""
+    },
+    {
       "allowed_args": [],
       "allowed_body_types": [],
       "name": "safe_z",
@@ -1703,6 +1735,7 @@
         "axis_overwrite",
         "axis_addition",
         "speed_overwrite",
+        "axis_order",
         "safe_z"
       ],
       "name": "move",

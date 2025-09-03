@@ -268,6 +268,13 @@ defmodule FarmbotOS.BotState do
 
     change = %{informational_settings: update}
 
+    change =
+      if bool do
+        Map.put(change, :jobs, %{})
+      else
+        change
+      end
+
     {reply, state} = get_reply_from_change(state, change)
     {:reply, reply, state}
   end

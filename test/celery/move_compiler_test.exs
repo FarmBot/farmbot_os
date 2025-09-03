@@ -19,6 +19,7 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     args: %{label: "current_location"}
   }
   @fake_movement_needs %{
+    axis_order: %{grouping: "xyz", route: "in_order"},
     safe_z: false,
     speed_x: 99,
     speed_y: 98,
@@ -44,7 +45,12 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
 
   test "MOVE + `tool` node" do
     stub_current_location(1)
+    expect(Stubs, :get_current_z, fn -> 0 end)
     {toolX, toolY, toolZ} = {37.3, 43.7, -34.3}
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order ->
+      "xyz;high"
+    end)
 
     expect(Stubs, :get_toolslot_for_tool, 3, fn
       23 -> %{gantry_mounted: false, name: "X", x: toolX, y: toolY, z: toolZ}
@@ -91,86 +97,479 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
   end
 
   test "do_perform_movement(%{safe_z: true})" do
-    stub_current_location(2)
-    Stubs.get_current_z()
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> 0 end)
 
-    expect(Stubs, :move_absolute, 3, fn _, _, _, _, _, _ ->
-      :ok
-    end)
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, +0.0, _, _, _ -> :ok end)
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, -1, _, _, _ -> :ok end)
+    # move z
+    expect(Stubs, :move_absolute, fn 0, 0, -2, _, _, _ -> :ok end)
 
-    needs = Map.merge(@fake_movement_needs, %{safe_z: true})
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        safe_z: true,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
     Move.do_perform_movement(needs)
   end
 
-  test "do_perform_movement(%{safe_z: false})" do
-    expect(Stubs, :move_absolute, 1, fn _, _, _, _, _, _ ->
-      :ok
-    end)
+  test "do_perform_movement(%{axis_order: %{grouping: 'z,xy', route: 'in_order'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> 0 end)
 
-    Move.do_perform_movement(@fake_movement_needs)
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, 0, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "z,xy", route: "in_order"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'y,xz', route: 'in_order'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move y
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move y
+    expect(Stubs, :get_current_z, fn -> -1 end)
+    # move xz
+    expect(Stubs, :get_current_y, fn -> 0 end)
+
+    # move y
+    expect(Stubs, :move_absolute, fn -1, -3, -1, _, _, _ -> :ok end)
+    # move xz
+    expect(Stubs, :move_absolute, fn -4, 0, -2, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "y,xz", route: "in_order"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xy,z', route: 'low'}}): from low" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, -100, _, _, _ -> :ok end)
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xy,z", route: "low"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xy,z', route: 'low'}}): from high" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> -1 end)
+
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, -1, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xy,z", route: "low"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xy,z', route: 'high'}}): from low" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> -1 end)
+
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, -1, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xy,z", route: "high"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'z,xy', route: 'high'}}): from low" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> 0 end)
+
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, 0, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "z,xy", route: "high"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xy', route: 'high'}}): from low" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> 0 end)
+
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, 0, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xy", route: "high"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xy,z', route: 'high'}}): from high" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> 0 end)
+    # move xy
+    expect(Stubs, :get_current_z, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
+
+    # move xy
+    expect(Stubs, :move_absolute, fn -4, -3, 0, _, _, _ -> :ok end)
+    # move z
+    expect(Stubs, :move_absolute, fn -1, -1, -2, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xy,z", route: "high"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'x,yz', route: 'in_order'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> 0 end)
+    # move x
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move x
+    expect(Stubs, :get_current_z, fn -> -1 end)
+    # move yz
+    expect(Stubs, :get_current_x, fn -> -1 end)
+
+    # move x
+    expect(Stubs, :move_absolute, fn -4, -1, -1, _, _, _ -> :ok end)
+    # move yz
+    expect(Stubs, :move_absolute, fn -1, -3, -2, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "x,yz", route: "in_order"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'xyz', route: 'in_order'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> 0 end)
+
+    # move xyz
+    expect(Stubs, :move_absolute, fn -4, -3, -2, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "xyz", route: "in_order"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'z,y,x', route: 'in_order'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> 0 end)
+    # move y
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move y
+    expect(Stubs, :get_current_z, fn -> -1 end)
+    # move x
+    expect(Stubs, :get_current_y, fn -> 1 end)
+    # move x
+    expect(Stubs, :get_current_z, fn -> 1 end)
+
+    # move z
+    expect(Stubs, :move_absolute, fn 0, 0, -2, _, _, _ -> :ok end)
+    # move y
+    expect(Stubs, :move_absolute, fn -1, -3, -1, _, _, _ -> :ok end)
+    # move x
+    expect(Stubs, :move_absolute, fn -4, 1, 1, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "z,y,x", route: "in_order"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
+  end
+
+  test "do_perform_movement(%{axis_order: %{grouping: 'x,z,y', route: 'high'}})" do
+    # check target
+    expect(Stubs, :get_current_z, fn -> -100 end)
+    # move z
+    expect(Stubs, :get_current_x, fn -> 0 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> 0 end)
+    # move x
+    expect(Stubs, :get_current_y, fn -> 1 end)
+    # move x
+    expect(Stubs, :get_current_z, fn -> 1 end)
+    # move y
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move y
+    expect(Stubs, :get_current_z, fn -> -1 end)
+
+    # move z
+    expect(Stubs, :move_absolute, fn 0, 0, -2, _, _, _ -> :ok end)
+    # move x
+    expect(Stubs, :move_absolute, fn -4, 1, 1, _, _, _ -> :ok end)
+    # move y
+    expect(Stubs, :move_absolute, fn -1, -3, -1, _, _, _ -> :ok end)
+
+    needs =
+      Map.merge(@fake_movement_needs, %{
+        axis_order: %{grouping: "x,z,y", route: "high"},
+        safe_z: false,
+        x: -4,
+        y: -3,
+        z: -2
+      })
+
+    Move.do_perform_movement(needs)
   end
 
   test "retract_z" do
-    {x, y, _z} = stub_current_location(1)
-    # Used by helper stub_current_location, but not needed here.
-    _ = Stubs.get_current_z()
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
 
-    mock = fn real_x, real_y, real_z, sx, sy, sz ->
-      assert real_x == x
-      assert real_y == y
-      assert real_z == 0
+    # move z
+    expect(Stubs, :move_absolute, fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == -1
+      assert real_y == -1
+      assert real_z == 0.0
       assert @fake_movement_needs[:speed_x] == sx
       assert @fake_movement_needs[:speed_y] == sy
       assert @fake_movement_needs[:speed_z] == sz
       :ok
-    end
+    end)
 
-    expect(Stubs, :move_absolute, mock)
     Move.retract_z(@fake_movement_needs)
   end
 
-  test "move_xy" do
-    {_x, _y, z} = stub_current_location(1)
-    # Used by helper stub_current_location, but not needed here.
-    _ = Stubs.get_current_x()
-    # Used by helper stub_current_location, but not needed here.
-    _ = Stubs.get_current_y()
+  test "move_x" do
+    # move x
+    expect(Stubs, :get_current_y, fn -> -1 end)
+    # move x
+    expect(Stubs, :get_current_z, fn -> -1 end)
 
-    mock = fn real_x, real_y, real_z, sx, sy, sz ->
+    # move x
+    expect(Stubs, :move_absolute, fn real_x, real_y, real_z, sx, sy, sz ->
       assert real_x == @fake_movement_needs[:x]
-      assert real_y == @fake_movement_needs[:y]
-      assert real_z == z
+      assert real_y == -1
+      assert real_z == -1
       assert @fake_movement_needs[:speed_x] == sx
       assert @fake_movement_needs[:speed_y] == sy
       assert @fake_movement_needs[:speed_z] == sz
       :ok
-    end
+    end)
 
-    expect(Stubs, :move_absolute, mock)
+    Move.move_x(@fake_movement_needs)
+  end
+
+  test "move_y" do
+    # move y
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move y
+    expect(Stubs, :get_current_z, fn -> -1 end)
+
+    expect(Stubs, :move_absolute, fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == -1
+      assert real_y == @fake_movement_needs[:y]
+      assert real_z == -1
+      assert @fake_movement_needs[:speed_x] == sx
+      assert @fake_movement_needs[:speed_y] == sy
+      assert @fake_movement_needs[:speed_z] == sz
+      :ok
+    end)
+
+    Move.move_y(@fake_movement_needs)
+  end
+
+  test "move_xy" do
+    # move xy
+    expect(Stubs, :get_current_z, fn -> -1 end)
+
+    expect(Stubs, :move_absolute, fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == @fake_movement_needs[:x]
+      assert real_y == @fake_movement_needs[:y]
+      assert real_z == -1
+      assert @fake_movement_needs[:speed_x] == sx
+      assert @fake_movement_needs[:speed_y] == sy
+      assert @fake_movement_needs[:speed_z] == sz
+      :ok
+    end)
+
     Move.move_xy(@fake_movement_needs)
   end
 
   test "extend_z" do
-    {x, y, _z} = stub_current_location(1)
-    # Used by helper stub_current_location, but not needed here.
-    _ = Stubs.get_current_z()
+    # move z
+    expect(Stubs, :get_current_x, fn -> -1 end)
+    # move z
+    expect(Stubs, :get_current_y, fn -> -1 end)
 
-    mock = fn real_x, real_y, real_z, sx, sy, sz ->
-      assert real_x == x
-      assert real_y == y
+    expect(Stubs, :move_absolute, fn real_x, real_y, real_z, sx, sy, sz ->
+      assert real_x == -1
+      assert real_y == -1
       assert real_z == @fake_movement_needs[:z]
       assert @fake_movement_needs[:speed_x] == sx
       assert @fake_movement_needs[:speed_y] == sy
       assert @fake_movement_needs[:speed_z] == sz
       :ok
-    end
+    end)
 
-    expect(Stubs, :move_absolute, mock)
     Move.extend_z(@fake_movement_needs)
   end
 
-  test "calculate_movement_needs" do
+  test "calculate_movement_needs: safe_z default" do
     {x, y, z} = stub_current_location(1)
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order -> "safe_z" end)
+
+    assert Move.calculate_movement_needs([]) == %{
+             safe_z: true,
+             speed_x: 100,
+             speed_y: 100,
+             speed_z: 100,
+             x: x,
+             y: y,
+             z: z,
+             axis_order: %{grouping: "xyz", route: "in_order"}
+           }
+  end
+
+  test "calculate_movement_needs: xyz default" do
+    {x, y, z} = stub_current_location(1)
+
+    expect(FarmbotOS.Asset, :fbos_config, fn :default_axis_order ->
+      "x,y,z;high"
+    end)
 
     assert Move.calculate_movement_needs([]) == %{
              safe_z: false,
@@ -179,7 +578,25 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
              speed_z: 100,
              x: x,
              y: y,
-             z: z
+             z: z,
+             axis_order: %{grouping: "x,y,z", route: "high"}
+           }
+  end
+
+  test "calculate_movement_needs: default unused" do
+    {x, y, z} = stub_current_location(1)
+
+    assert Move.calculate_movement_needs([
+             %{kind: :axis_order, args: %{grouping: "xyz", route: "high"}}
+           ]) == %{
+             safe_z: false,
+             speed_x: 100,
+             speed_y: 100,
+             speed_z: 100,
+             x: x,
+             y: y,
+             z: z,
+             axis_order: %{grouping: "xyz", route: "high"}
            }
   end
 
@@ -194,6 +611,11 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
   test "mapper" do
     numeric = %{kind: :numeric, args: %{number: 26}}
     safe_z = %{kind: :safe_z, args: %{}}
+
+    axis_order = %{
+      kind: :axis_order,
+      args: %{grouping: "xyz", route: "in_order"}
+    }
 
     axis_addition = %{
       kind: :axis_addition,
@@ -211,6 +633,10 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     }
 
     assert Move.mapper(safe_z) == {:safe_z, :=, true}
+
+    assert Move.mapper(axis_order) ==
+             {:axis_order, :=, %{grouping: "xyz", route: "in_order"}}
+
     assert Move.mapper(speed_overwrite) == {:speed_x, :=, 26}
     assert Move.mapper(axis_addition) == {:y, :+, 26}
     assert Move.mapper(axis_overwrite) == {:z, :=, 26}

@@ -33,13 +33,48 @@ function fwe(key)
 end
 
 return function()
-  local cam_rotation = fwe("total_rotation_angle")
-  local scale = fwe("coord_scale")
-  local z = fwe("camera_z")
-  local x_offset_mm = fwe("camera_offset_x")
-  local y_offset_mm = fwe("camera_offset_y")
-  local center_pixel_location_x = fwe("center_pixel_location_x")
-  local center_pixel_location_y = fwe("center_pixel_location_y")
+  local cam_rotation
+  if is_demo() then
+    cam_rotation = 0
+  else
+    cam_rotation = fwe("total_rotation_angle")
+  end
+  local scale
+  if is_demo() then
+    scale = 1
+  else
+    scale = fwe("coord_scale")
+  end
+  local z
+  if is_demo() then
+    z = 0
+  else
+    z = fwe("camera_z")
+  end
+  local x_offset_mm
+  if is_demo() then
+    x_offset_mm = 0
+  else
+    x_offset_mm = fwe("camera_offset_x")
+  end
+  local y_offset_mm
+  if is_demo() then
+    y_offset_mm = 0
+  else
+    y_offset_mm = fwe("camera_offset_y")
+  end
+  local center_pixel_location_x
+  if is_demo() then
+    center_pixel_location_x = 320
+  else
+    center_pixel_location_x = fwe("center_pixel_location_x")
+  end
+  local center_pixel_location_y
+  if is_demo() then
+    center_pixel_location_y = 240
+  else
+    center_pixel_location_y = fwe("center_pixel_location_y")
+  end
   local full_grid, x_spacing_mm, y_spacing_mm, x_grid_start_mm, y_grid_start_mm
   local x_grid_size_mm, y_grid_size_mm, x_grid_points, y_grid_points
   if cam_rotation and scale and z and x_offset_mm and

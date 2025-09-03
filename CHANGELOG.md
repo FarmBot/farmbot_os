@@ -1,8 +1,21 @@
 # Changelog
 
+# 15.5.0
+
+ * Fix Lua `find_home("all")` axis order bug.
+ * Add `axis_order` to `move`.
+ * Add `tool.seeder_tip_z_offset`.
+ * Add `get_weeds`, `get_plants`, `get_generic_points`, and `get_group` Lua helpers.
+ * Add point support to `sort` Lua helper.
+ * Shorten `water` Lua helper job name and log messages.
+ * Fix timeout option in `http` Lua helper.
+ * Add `is_demo` Lua helper.
+ * Clear jobs upon estop.
+
 # 15.4.11
 
  * Force push state update upon `read_status`.
+ * Fix typo in firmware so that deadzone x and y values now work independently from z.
  * Add Genesis v1.8 firmware.
 
 # 15.4.10
