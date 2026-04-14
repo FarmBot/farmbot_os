@@ -24,6 +24,21 @@ function axis_order(params)
     return { kind = "axis_order", args = { grouping = grouping, route = route } }
 end
 
+function move_body(input)
+    local body = {}
+
+    if input.x then body[#body + 1] = axis_overwrite("x", input.x) end
+    if input.y then body[#body + 1] = axis_overwrite("y", input.y) end
+    if input.z then body[#body + 1] = axis_overwrite("z", input.z) end
+    if input.speed then body[#body + 1] = speed_overwrite("x", input.speed) end
+    if input.speed then body[#body + 1] = speed_overwrite("y", input.speed) end
+    if input.speed then body[#body + 1] = speed_overwrite("z", input.speed) end
+    if input.grouping or input.route then body[#body + 1] = axis_order(input) end
+    if input.safe_z then body[#body + 1] = {kind = "safe_z", args = {}} end
+
+    return body
+end
+
 return function(input)
     cs_eval({
         kind = "rpc_request",
@@ -32,16 +47,7 @@ return function(input)
             {
                 kind = "move",
                 args = {},
-                body = {
-                    input.x and axis_overwrite("x", input.x),
-                    input.y and axis_overwrite("y", input.y),
-                    input.z and axis_overwrite("z", input.z),
-                    input.speed and speed_overwrite("x", input.speed),
-                    input.speed and speed_overwrite("y", input.speed),
-                    input.speed and speed_overwrite("z", input.speed),
-                    (input.grouping or input.route) and axis_order(input),
-                    input.safe_z and {kind = "safe_z", args = {}}
-                }
+                body = move_body(input)
             }
         }
     })

@@ -40,7 +40,7 @@ defmodule FarmbotOS.Celery.AST do
   def decode(%{} = thing) do
     kind = thing["kind"] || thing[:kind] || raise("Bad ast: #{inspect(thing)}")
     args = thing["args"] || thing[:args] || raise("Bad ast: #{inspect(thing)}")
-    body = thing["body"] || thing[:body] || []
+    body = normalize_body(thing["body"] || thing[:body] || [])
     comment = thing["comment"] || thing[:comment] || nil
     meta = thing["meta"] || thing[:meta] || nil
 
@@ -62,6 +62,9 @@ defmodule FarmbotOS.Celery.AST do
       decode(itm)
     end)
   end
+
+  defp normalize_body(body) when is_map(body) and map_size(body) == 0, do: []
+  defp normalize_body(body), do: body
 
   @spec decode_args(map) :: args
   def decode_args(map) when is_map(map) do
