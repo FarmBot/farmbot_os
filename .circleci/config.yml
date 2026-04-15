@@ -155,15 +155,17 @@ install_lua_test_env: &install_lua_test_env
       apt-get install luarocks -y
       luarocks install inspect
       luarocks install luacov
+      luarocks install luacov-multiple
       luarocks install busted
+      luarocks install busted-hjtest
 
 run_lua_tests: &run_lua_tests
   run:
     name: Test Lua code
     command: |
-      cd priv/lua
-      busted --coverage
-      luacov
+      mkdir -p test-results
+      busted -r ci
+      luacov -c priv/lua/.luacov-ci
       cat luacov.report.out
     when: always
 
@@ -194,9 +196,12 @@ jobs:
             mix deps.get
             mix compile
             mix format --check-formatted
+            mkdir -p test-results
             mix coveralls.json
             bash <(curl -s https://codecov.io/bash)
       - <<: *run_lua_tests
+      - store_test_results:
+          path: test-results
       - save_cache:
           key: v15-fbos-host-test-dependency-cache-{{ checksum "mix.lock" }}
           paths:

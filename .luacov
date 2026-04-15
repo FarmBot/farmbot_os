@@ -1,0 +1,20 @@
+return {
+  statsfile = "priv/lua/luacov.stats.out",
+  reportfile = "luacov.report.out",
+  deletestats = true,
+  modules = {
+    ["*"] = "priv/lua",
+  },
+  exclude = {
+    "usr%/.+$",
+    "share%/.+$",
+    "spec%/.+$",
+  },
+  reporter = "multiple",
+  multiple = {
+        reporters = {"default", "multiple.html"},
+        html = {
+            reportfile = 'lua_coverage/index.html'
+        },
+  },
+}

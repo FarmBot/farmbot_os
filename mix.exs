@@ -106,6 +106,7 @@ defmodule FarmbotOS.MixProject do
       {:ecto, "~> 3.11"},
       {:ex_doc, "~> 0.32", only: [:dev], targets: [:host], runtime: false},
       {:excoveralls, "~> 0.18", only: [:test], targets: [:host]},
+      {:junit_formatter, "~> 3.4", only: :test},
       {:farmbot_system_rpi,
        github: "FarmBot/farmbot_system_rpi",
        tag: "v1.23.1-farmbot.1",

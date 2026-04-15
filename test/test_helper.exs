@@ -371,4 +371,4 @@ ExUnit.configure(
 ]
 |> Enum.map(&Mimic.copy/1)
 
-ExUnit.start()
+ExUnit.start(formatters: [ExUnit.CLIFormatter, JUnitFormatter])
