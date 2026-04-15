@@ -6,6 +6,7 @@ defmodule FarmbotOS.Asset.PrivateTest do
     FirmwareConfig,
     Point,
     Private,
+    Private.LocalMeta,
     Repo
   }
 
@@ -16,6 +17,7 @@ defmodule FarmbotOS.Asset.PrivateTest do
   }
 
   def destroy_assets() do
+    Repo.delete_all(LocalMeta)
     Map.keys(@assets) |> Enum.map(&Repo.delete_all/1)
   end
 
