@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.5.1
+
+ * Fix Lua `move{}` and `move{safe_z=false}` errors.
+
 # 15.5.0
 
  * Fix Lua `find_home("all")` axis order bug.

@@ -34,6 +34,11 @@ defmodule FarmbotOS.Celery.ASTTest do
     assert match?(%AST{}, res)
   end
 
+  test "decodes ast with empty map body as empty list" do
+    res = AST.decode(%{"kind" => "nothing", "args" => %{}, "body" => %{}})
+    assert match?(%AST{body: []}, res)
+  end
+
   test "decodes already decoded celeryscript" do
     %AST{} = ast = AST.decode(@nothing_json)
     assert ast == AST.decode(ast)

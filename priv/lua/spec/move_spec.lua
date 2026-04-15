@@ -40,30 +40,45 @@ describe("move()", function()
               axis_operand = { kind = "numeric", args = { number = 1 } }
             }
           },
-          [4] = {
+          [2] = {
             kind = "speed_overwrite",
             args = {
               axis = "x",
               speed_setting = { kind = "numeric", args = { number = 100 } }
             }
           },
-          [5] = {
+          [3] = {
             kind = "speed_overwrite",
             args = {
               axis = "y",
               speed_setting = { kind = "numeric", args = { number = 100 } }
             }
           },
-          [6] = {
+          [4] = {
             kind = "speed_overwrite",
             args = {
               axis = "z",
               speed_setting = { kind = "numeric", args = { number = 100 } }
             }
           },
-          [7] = { kind = "axis_order", args = { grouping = "xyz", route = "in_order" } },
-          [8] = { kind = "safe_z", args = {} },
+          [5] = { kind = "axis_order", args = { grouping = "xyz", route = "in_order" } },
+          [6] = { kind = "safe_z", args = {} },
         },
+      }}
+    })
+  end)
+
+  it("omits safe_z when disabled", function()
+    move({ safe_z = false })
+
+    assert.spy(cs_eval).was.called()
+    assert.spy(cs_eval).was.called_with({
+      kind = "rpc_request",
+      args = { label = "move_cmd_lua", priority = 500 },
+      body = {{
+        kind = "move",
+        args = {},
+        body = {},
       }}
     })
   end)
