@@ -11,7 +11,7 @@ defmodule FarmbotOS.Lua.UtilTest do
     assert expected == actual
   end
 
-  test "map_to_table/1 converts a list-valued entry instead of passing it through raw" do
+  test "map_to_table/1 converts a list-valued map entry" do
     expected = [{"nums", %{1 => 1, 2 => 2, 3 => 3}}]
     actual = Util.map_to_table(%{nums: [1, 2, 3]})
     assert expected == actual
