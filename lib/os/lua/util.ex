@@ -4,6 +4,7 @@ defmodule FarmbotOS.Lua.Util do
     Enum.map(map, fn
       {key, %DateTime{} = dt} -> {to_string(key), to_string(dt)}
       {key, %{} = value} -> {to_string(key), map_to_table(value)}
+      {key, value} when is_list(value) -> {to_string(key), map_to_table(value)}
       {key, value} -> {to_string(key), value}
     end)
   end
@@ -11,7 +12,7 @@ defmodule FarmbotOS.Lua.Util do
   def map_to_table(list) when is_list(list) do
     list
     |> Enum.with_index()
-    |> Enum.map(fn {val, inx} -> {inx + 1, val} end)
+    |> Enum.map(fn {val, inx} -> {inx + 1, map_to_table(val)} end)
     |> Map.new()
   end
 

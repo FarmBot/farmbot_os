@@ -11,6 +11,18 @@ defmodule FarmbotOS.Lua.UtilTest do
     assert expected == actual
   end
 
+  test "map_to_table/1 converts a list-valued entry instead of passing it through raw" do
+    expected = [{"nums", %{1 => 1, 2 => 2, 3 => 3}}]
+    actual = Util.map_to_table(%{nums: [1, 2, 3]})
+    assert expected == actual
+  end
+
+  test "map_to_table/1 recurses into maps nested inside a list" do
+    expected = %{1 => [{"a", 1}], 2 => [{"b", 2}]}
+    actual = Util.map_to_table([%{a: 1}, %{b: 2}])
+    assert expected == actual
+  end
+
   test "table_to_map" do
     table = [
       {"array",
