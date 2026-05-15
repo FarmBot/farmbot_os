@@ -23,6 +23,12 @@ defmodule FarmbotOS.Lua.UtilTest do
     assert expected == actual
   end
 
+  test "map_to_table/1 handles an empty list value as an empty table" do
+    expected = [{"empty", %{}}]
+    actual = Util.map_to_table(%{empty: []})
+    assert expected == actual
+  end
+
   test "table_to_map" do
     table = [
       {"array",
