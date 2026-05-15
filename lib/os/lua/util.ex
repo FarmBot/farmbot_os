@@ -12,7 +12,10 @@ defmodule FarmbotOS.Lua.Util do
   def map_to_table(list) when is_list(list) do
     list
     |> Enum.with_index()
-    |> Enum.map(fn {val, inx} -> {inx + 1, map_to_table(val)} end)
+    |> Enum.map(fn
+      {%DateTime{} = dt, inx} -> {inx + 1, to_string(dt)}
+      {val, inx} -> {inx + 1, map_to_table(val)}
+    end)
     |> Map.new()
   end
 

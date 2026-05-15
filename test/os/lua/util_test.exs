@@ -29,6 +29,13 @@ defmodule FarmbotOS.Lua.UtilTest do
     assert expected == actual
   end
 
+  test "map_to_table/1 stringifies a DateTime inside a list" do
+    dt = ~U[2026-01-01 00:00:00Z]
+    expected = %{1 => "2026-01-01 00:00:00Z"}
+    actual = Util.map_to_table([dt])
+    assert expected == actual
+  end
+
   test "table_to_map" do
     table = [
       {"array",
