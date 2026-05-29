@@ -80,4 +80,10 @@ defmodule FarmbotOS.Lua.UtilTest do
     actual = Util.lua_to_elixir(table)
     assert actual == expected
   end
+
+  test "table_to_map preserves numeric key order for array-like tables" do
+    table = [{3, "x"}, {1, "location_data"}, {2, "position"}]
+
+    assert ["location_data", "position", "x"] == Util.lua_to_elixir(table)
+  end
 end

@@ -43,7 +43,9 @@ defmodule FarmbotOS.Lua.Util do
     if not_array? || not_populated? do
       acc
     else
-      Map.values(acc)
+      acc
+      |> Enum.sort_by(fn {key, _value} -> key end)
+      |> Enum.map(fn {_key, value} -> value end)
     end
   end
 end

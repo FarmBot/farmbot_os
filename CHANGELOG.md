@@ -1,5 +1,11 @@
 # Changelog
 
+# 15.5.2
+
+ * Support nested lists in `map_to_table/1` and stringify `%DateTime{}` values inside lists.
+ * Support curly brace table paths in `read_status` Lua helper.
+ * Preserve array order in `lua_to_elixir/1`.
+
 # 15.5.1
 
  * Fix Lua `move{}` and `move{safe_z=false}` errors.

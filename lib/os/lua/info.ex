@@ -51,7 +51,12 @@ defmodule FarmbotOS.Lua.Info do
 
   def read_status(path, lua) do
     bot_state = FarmbotOS.BotState.fetch() |> FarmbotOS.BotStateNG.view()
-    path = List.flatten(path) |> Enum.map(&String.to_atom(&1))
+
+    path =
+      path
+      |> lua_status_path_to_elixir()
+      |> List.flatten()
+      |> Enum.map(&String.to_atom(&1))
 
     case get_in(bot_state, path) do
       %{} = map ->
@@ -107,6 +112,11 @@ defmodule FarmbotOS.Lua.Info do
     datetime = utc_p()
     Timex.Timezone.convert(datetime, tz)
   end
+
+  defp lua_status_path_to_elixir([[{_key, _value} | _rest] = table]),
+    do: Util.lua_to_elixir(table)
+
+  defp lua_status_path_to_elixir(path), do: path
 
   def to_unix([datetime_string], lua) do
     {:ok, datetime, _} = DateTime.from_iso8601(datetime_string)
