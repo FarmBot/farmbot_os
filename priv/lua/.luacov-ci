@@ -1,0 +1,15 @@
+return {
+  statsfile = "priv/lua/luacov.stats.out",
+  reportfile = "luacov.report.out",
+  deletestats = true,
+  modules = {
+    ["*"] = "priv/lua",
+  },
+  exclude = {
+    "usr%/.+$",
+    "share%/.+$",
+    "spec%/.+$",
+  },
+  reporter = "default",
+  default = {},
+}

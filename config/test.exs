@@ -4,6 +4,7 @@ data_path = Path.join(["/", "tmp", "farmbot"])
 File.mkdir_p(data_path)
 
 config :ex_unit, capture_logs: true
+config :junit_formatter, report_dir: "test-results", report_file: "junit.xml"
 config :farmbot, data_path: data_path
 
 config :farmbot, FarmbotOS.Celery.SysCallGlue,

@@ -11,6 +11,31 @@ defmodule FarmbotOS.Lua.UtilTest do
     assert expected == actual
   end
 
+  test "map_to_table/1 converts a list-valued map entry" do
+    expected = [{"nums", %{1 => 1, 2 => 2, 3 => 3}}]
+    actual = Util.map_to_table(%{nums: [1, 2, 3]})
+    assert expected == actual
+  end
+
+  test "map_to_table/1 recurses into maps nested inside a list" do
+    expected = %{1 => [{"a", 1}], 2 => [{"b", 2}]}
+    actual = Util.map_to_table([%{a: 1}, %{b: 2}])
+    assert expected == actual
+  end
+
+  test "map_to_table/1 handles an empty list value as an empty table" do
+    expected = [{"empty", %{}}]
+    actual = Util.map_to_table(%{empty: []})
+    assert expected == actual
+  end
+
+  test "map_to_table/1 stringifies a DateTime inside a list" do
+    dt = ~U[2026-01-01 00:00:00Z]
+    expected = %{1 => "2026-01-01 00:00:00Z"}
+    actual = Util.map_to_table([dt])
+    assert expected == actual
+  end
+
   test "table_to_map" do
     table = [
       {"array",
@@ -54,5 +79,11 @@ defmodule FarmbotOS.Lua.UtilTest do
 
     actual = Util.lua_to_elixir(table)
     assert actual == expected
+  end
+
+  test "table_to_map preserves numeric key order for array-like tables" do
+    table = [{3, "x"}, {1, "location_data"}, {2, "position"}]
+
+    assert ["location_data", "position", "x"] == Util.lua_to_elixir(table)
   end
 end

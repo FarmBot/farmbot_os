@@ -60,3 +60,5 @@ tmp/
 ttb_last_config
 upload.sh
 luacov.*
+*.xml
+lua_coverage/

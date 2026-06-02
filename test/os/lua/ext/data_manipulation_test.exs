@@ -877,14 +877,13 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   end
 
   test "sort: points" do
-    assert {[%{1 => %{id: 1, name: "p", y: 1, x: 1}}], :lua} ==
-             DataManipulation.sort(
-               [
-                 [{1, [{"id", 1}, {"name", "p"}, {"x", 1}, {"y", 1}]}],
-                 "random"
-               ],
-               :lua
-             )
+    {[%{1 => point}], :lua} =
+      DataManipulation.sort(
+        [[{1, [{"id", 1}, {"name", "p"}, {"x", 1}, {"y", 1}]}], "random"],
+        :lua
+      )
+
+    assert Map.new(point) == %{"id" => 1, "name" => "p", "x" => 1, "y" => 1}
   end
 
   test "sort: point_ids" do

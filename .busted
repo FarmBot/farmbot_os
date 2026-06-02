@@ -1,0 +1,14 @@
+return {
+    _all = {
+        directory = "priv/lua",
+    },
+    default = {
+        ["coverage-config-file"] = ".luacov-local",
+    },
+    ci = {
+        coverage = true,
+        ["coverage-config-file"] = ".luacov-ci-local",
+        output = "hjtest",
+        Xoutput = { "../../test-results/report.xml" },
+    },
+}
