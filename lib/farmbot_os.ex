@@ -24,7 +24,9 @@ defmodule FarmbotOS do
       {FarmbotOS.Platform.Supervisor, []},
       FarmbotOS.Asset.Supervisor,
       FarmbotOS.Firmware.UARTObserver,
-      {Task.Supervisor, name: FarmbotOS.Task.Supervisor}
+      {Task.Supervisor, name: FarmbotOS.Task.Supervisor},
+      # GPIO Trigger
+      {FarmbotOS.APTrigger, []}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
