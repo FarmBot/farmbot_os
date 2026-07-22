@@ -1,5 +1,9 @@
 # Changelog
 
+# 15.5.3
+
+ * Add Genesis v1.9 firmware.
+
 # 15.5.2
 
  * Support nested lists in `map_to_table/1` and stringify `%DateTime{}` values inside lists.
