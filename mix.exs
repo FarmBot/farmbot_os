@@ -132,7 +132,7 @@ defmodule FarmbotOS.MixProject do
       {:muontrap, "~> 1.5"},
       {:nerves_runtime, "~> 0.13", targets: @all_targets},
       {:nerves_time, "~> 0.4", targets: @all_targets},
-      {:nerves, "~> 1.10", runtime: false},
+      {:nerves, "~> 1.11", runtime: false},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:plug_cowboy, "~> 2.7"},
