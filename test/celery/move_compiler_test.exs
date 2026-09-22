@@ -53,8 +53,21 @@ defmodule FarmbotOS.Celery.MoveCompilerTest do
     end)
 
     expect(Stubs, :get_toolslot_for_tool, 3, fn
-      23 -> %{gantry_mounted: false, name: "X", x: toolX, y: toolY, z: toolZ}
-      id -> raise "Wrong id: #{id}"
+      23 ->
+        %{
+          gantry_mounted: false,
+          name: "X",
+          x: toolX,
+          y: toolY,
+          z: toolZ,
+          mount_stage: 0,
+          mount_offset_x: 0.0,
+          mount_offset_y: 0.0,
+          mount_offset_z: 0.0
+        }
+
+      id ->
+        raise "Wrong id: #{id}"
     end)
 
     expect(Stubs, :move_absolute, 1, fn requested_x,

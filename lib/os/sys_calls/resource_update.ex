@@ -14,6 +14,10 @@ defmodule FarmbotOS.SysCalls.ResourceUpdate do
   @point_kinds ~w(Plant GenericPointer ToolSlot Weed)
   @friendly_names %{
     "gantry_mounted" => "`gantry mounted` property",
+    "mount_stage" => "kinematic mounting stage",
+    "mount_offset_x" => "x-axis mount offset",
+    "mount_offset_y" => "y-axis mount offset",
+    "mount_offset_z" => "z-axis mount offset",
     "mounted_tool_id" => "mounted tool ID",
     "openfarm_slug" => "Openfarm slug",
     "ota_hour" => "OTA hour",

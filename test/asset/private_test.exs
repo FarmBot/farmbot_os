@@ -11,7 +11,14 @@ defmodule FarmbotOS.Asset.PrivateTest do
   }
 
   @assets %{
-    Point => %Point{gantry_mounted: false, pullout_direction: 0},
+    Point => %Point{
+      gantry_mounted: false,
+      pullout_direction: 0,
+      mount_stage: 0,
+      mount_offset_x: 0.0,
+      mount_offset_y: 0.0,
+      mount_offset_z: 0.0
+    },
     FbosConfig => %FbosConfig{},
     FirmwareConfig => %FirmwareConfig{}
   }

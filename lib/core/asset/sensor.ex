@@ -17,6 +17,7 @@ defmodule FarmbotOS.Asset.Sensor do
     field(:pin, :integer)
     field(:mode, :integer)
     field(:label, :string)
+    field(:type, :string)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -26,6 +27,7 @@ defmodule FarmbotOS.Asset.Sensor do
       id: sensor.id,
       pin: sensor.pin,
       mode: sensor.mode,
+      type: sensor.type,
       label: sensor.label
     }
   end
@@ -37,6 +39,7 @@ defmodule FarmbotOS.Asset.Sensor do
       :pin,
       :mode,
       :label,
+      :type,
       :monitor,
       :created_at,
       :updated_at

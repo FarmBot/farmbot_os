@@ -103,6 +103,10 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       name: "Tool Slot",
       tool_id: t.id,
       gantry_mounted: true,
+      mount_stage: 0,
+      mount_offset_x: 0.0,
+      mount_offset_y: 0.0,
+      mount_offset_z: 0.0,
       x: 4.4,
       y: 4.4,
       z: 4.4
@@ -113,12 +117,26 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       x: 9.99,
       y: 4.4,
       z: 4.4,
-      gantry_mounted: true
+      gantry_mounted: true,
+      mount_stage: 0,
+      mount_offset_x: 0.0,
+      mount_offset_y: 0.0,
+      mount_offset_z: 0.0
     }
 
     result =
       PointLookup.get_toolslot_for_tool(t.id)
-      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+      |> Map.take([
+        :name,
+        :x,
+        :y,
+        :z,
+        :gantry_mounted,
+        :mount_stage,
+        :mount_offset_x,
+        :mount_offset_y,
+        :mount_offset_z
+      ])
 
     assert important_part == result
   end
@@ -134,7 +152,11 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
       x: 1.9,
       y: 2.9,
       z: 3.9,
-      gantry_mounted: false
+      gantry_mounted: false,
+      mount_stage: 0,
+      mount_offset_x: 0.0,
+      mount_offset_y: 0.0,
+      mount_offset_z: 0.0
     }
 
     other_stuff = %{
@@ -146,9 +168,41 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
 
     actual =
       PointLookup.get_toolslot_for_tool(t.id)
-      |> Map.take([:name, :x, :y, :z, :gantry_mounted])
+      |> Map.take([
+        :name,
+        :x,
+        :y,
+        :z,
+        :gantry_mounted,
+        :mount_stage,
+        :mount_offset_x,
+        :mount_offset_y,
+        :mount_offset_z
+      ])
 
     assert important_part == actual
+  end
+
+  test "PointLookup.get_toolslot_for_tool/1 adjusts coordinates by mount stage" do
+    Helpers.delete_all_points()
+    Repo.delete_all(Tool)
+
+    expect(FarmbotOS.SysCalls.Movement, :get_current_x, 3, fn -> 10.0 end)
+    expect(FarmbotOS.SysCalls.Movement, :get_current_y, 2, fn -> 20.0 end)
+    expect(FarmbotOS.SysCalls.Movement, :get_current_z, 1, fn -> 30.0 end)
+
+    x_stage = mounted_toolslot(1, 1)
+    y_stage = mounted_toolslot(2, 2)
+    z_stage = mounted_toolslot(3, 3)
+
+    assert %{x: 10.1, y: 2.0, z: 3.0} =
+             PointLookup.get_toolslot_for_tool(x_stage.id)
+
+    assert %{x: 10.1, y: 20.2, z: 3.0} =
+             PointLookup.get_toolslot_for_tool(y_stage.id)
+
+    assert %{x: 10.1, y: 20.2, z: 30.3} =
+             PointLookup.get_toolslot_for_tool(z_stage.id)
   end
 
   test "PointLookup.get_point_group/1 - int" do
@@ -194,5 +248,24 @@ defmodule FarmbotOS.SysCalls.PointLookupTest do
     Map.merge(base, extra_stuff)
     |> Tool.changeset()
     |> Repo.insert!()
+  end
+
+  defp mounted_toolslot(id, mount_stage) do
+    mounted_tool = tool(%{id: id, name: "mounted tool #{id}"})
+
+    point(%{
+      id: id,
+      pointer_type: "ToolSlot",
+      tool_id: mounted_tool.id,
+      mount_stage: mount_stage,
+      mount_offset_x: 0.1,
+      mount_offset_y: 0.2,
+      mount_offset_z: 0.3,
+      x: 1.0,
+      y: 2.0,
+      z: 3.0
+    })
+
+    mounted_tool
   end
 end

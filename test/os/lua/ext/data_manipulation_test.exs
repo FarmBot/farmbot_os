@@ -371,6 +371,11 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       %{
         :id => 1,
         :name => "tool",
+        :type => "seeder",
+        :utm_mountable => true,
+        :effector_offset_x => 10,
+        :effector_offset_y => 20,
+        :effector_offset_z => 30,
         :flow_rate_ml_per_s => 0,
         :seeder_tip_z_offset => 100
       }
@@ -379,10 +384,15 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     lua_code = "return get_tool({id = 1})"
 
     expected = [
+      {"effector_offset_x", 10},
+      {"effector_offset_y", 20},
+      {"effector_offset_z", 30},
       {"flow_rate_ml_per_s", 0},
       {"id", 1},
       {"name", "tool"},
-      {"seeder_tip_z_offset", 100}
+      {"seeder_tip_z_offset", 100},
+      {"type", "seeder"},
+      {"utm_mountable", true}
     ]
 
     assert {:ok, [expected]} == lua(lua_code, lua_code)
@@ -395,6 +405,11 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       %{
         :id => 1,
         :name => "tool",
+        :type => "seeder",
+        :utm_mountable => true,
+        :effector_offset_x => 10,
+        :effector_offset_y => 20,
+        :effector_offset_z => 30,
         :flow_rate_ml_per_s => 0,
         :seeder_tip_z_offset => 100
       }
@@ -403,10 +418,15 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     lua_code = "return get_tool({name = \"tool\"})"
 
     expected = [
+      {"effector_offset_x", 10},
+      {"effector_offset_y", 20},
+      {"effector_offset_z", 30},
       {"flow_rate_ml_per_s", 0},
       {"id", 1},
       {"name", "tool"},
-      {"seeder_tip_z_offset", 100}
+      {"seeder_tip_z_offset", 100},
+      {"type", "seeder"},
+      {"utm_mountable", true}
     ]
 
     assert {:ok, [expected]} == lua(lua_code, lua_code)

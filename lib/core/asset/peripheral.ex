@@ -17,6 +17,7 @@ defmodule FarmbotOS.Asset.Peripheral do
     field(:pin, :integer)
     field(:mode, :integer)
     field(:label, :string)
+    field(:type, :string)
     field(:monitor, :boolean, default: true)
     timestamps()
   end
@@ -26,6 +27,7 @@ defmodule FarmbotOS.Asset.Peripheral do
       id: peripheral.id,
       pin: peripheral.pin,
       mode: peripheral.mode,
+      type: peripheral.type,
       label: peripheral.label
     }
   end
@@ -37,6 +39,7 @@ defmodule FarmbotOS.Asset.Peripheral do
       :pin,
       :mode,
       :label,
+      :type,
       :monitor,
       :created_at,
       :updated_at

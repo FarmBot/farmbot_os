@@ -95,13 +95,13 @@ describe("dismount_tool()", function()
     assert.spy(toast).was.called_with("Tool slot must have a direction", "error")
   end)
 
-  it("handles gantry mounted slots", function()
+  it("handles axis mounted slots", function()
     _G.get_device = spy.new(function() return 1 end)
     _G.verify_tool = spy.new(function() return true end)
     _G.api = spy.new(function(inputs)
       if string.match(inputs.url, "points") then
         return {
-          point0 = { tool_id = 1, pullout_direction = 1, gantry_mounted = true },
+          point0 = { tool_id = 1, pullout_direction = 1, mount_stage = 1 },
         }
       end
     end)
@@ -112,7 +112,7 @@ describe("dismount_tool()", function()
     assert.spy(api).was.called(1)
     assert.spy(get_tool).was.called(1)
     assert.spy(toast).was.called(1)
-    assert.spy(toast).was.called_with("Tool slot cannot be gantry mounted", "error")
+    assert.spy(toast).was.called_with("Tool slot cannot be axis mounted", "error")
   end)
 
   it("fails", function()

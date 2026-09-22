@@ -10,6 +10,10 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     :id,
     :tool_id,
     :gantry_mounted,
+    :mount_stage,
+    :mount_offset_x,
+    :mount_offset_y,
+    :mount_offset_z,
     :meta,
     :name,
     :openfarm_slug,
@@ -87,7 +91,17 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     p = Asset.get_point(tool_id: id)
 
     with %{id: ^id} <- tool,
-         %{name: _name, x: _x, y: _y, z: _z, gantry_mounted: _mounted} <- p do
+         %{
+           name: _name,
+           x: _x,
+           y: _y,
+           z: _z,
+           gantry_mounted: _mounted,
+           mount_stage: _mount_stage,
+           mount_offset_x: _mount_offset_x,
+           mount_offset_y: _mount_offset_y,
+           mount_offset_z: _mount_offset_z
+         } <- p do
       p
       |> Map.take(@relevant_keys)
       |> maybe_adjust_coordinates()
@@ -96,11 +110,41 @@ defmodule FarmbotOS.SysCalls.PointLookup do
     end
   end
 
-  defp maybe_adjust_coordinates(%{gantry_mounted: true} = point) do
-    %{point | x: Movement.get_current_x()}
+  defp maybe_adjust_coordinates(point) do
+    case mount_stage(point) do
+      1 ->
+        %{point | x: mounted_coordinate(:x, point.mount_offset_x)}
+
+      2 ->
+        %{
+          point
+          | x: mounted_coordinate(:x, point.mount_offset_x),
+            y: mounted_coordinate(:y, point.mount_offset_y)
+        }
+
+      3 ->
+        %{
+          point
+          | x: mounted_coordinate(:x, point.mount_offset_x),
+            y: mounted_coordinate(:y, point.mount_offset_y),
+            z: mounted_coordinate(:z, point.mount_offset_z)
+        }
+
+      _ ->
+        point
+    end
   end
 
-  defp maybe_adjust_coordinates(point) do
-    point
-  end
+  defp mount_stage(%{mount_stage: stage}) when stage in 1..3, do: stage
+  defp mount_stage(%{gantry_mounted: true}), do: 1
+  defp mount_stage(_point), do: 0
+
+  defp mounted_coordinate(:x, offset),
+    do: Movement.get_current_x() + (offset || 0)
+
+  defp mounted_coordinate(:y, offset),
+    do: Movement.get_current_y() + (offset || 0)
+
+  defp mounted_coordinate(:z, offset),
+    do: Movement.get_current_z() + (offset || 0)
 end

@@ -3,6 +3,7 @@
 # 15.5.3
 
  * Add Genesis v1.9 firmware.
+ * Add `tool.effector_offset_x|y|z`, `tool.type`, `tool.utm_mountable`, `peripheral.type`, `sensor.type`, `point.mount_stage`, and `point.mount_offset_x|y|z`.
 
 # 15.5.2
 

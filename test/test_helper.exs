@@ -138,6 +138,10 @@ defmodule Helpers do
       tool_id: nil,
       discarded_at: nil,
       gantry_mounted: false,
+      mount_stage: 0,
+      mount_offset_x: 0.0,
+      mount_offset_y: 0.0,
+      mount_offset_z: 0.0,
       x: 0.0,
       y: 0.0,
       z: 0.0

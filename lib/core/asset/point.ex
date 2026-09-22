@@ -15,6 +15,10 @@ defmodule FarmbotOS.Asset.Point do
 
     field(:discarded_at, :utc_datetime_usec)
     field(:gantry_mounted, :boolean)
+    field(:mount_stage, :integer)
+    field(:mount_offset_x, :float)
+    field(:mount_offset_y, :float)
+    field(:mount_offset_z, :float)
     field(:meta, :map)
     field(:monitor, :boolean, default: true)
     field(:name, :string)
@@ -53,6 +57,10 @@ defmodule FarmbotOS.Asset.Point do
       tool_id: point.tool_id,
       discarded_at: point.discarded_at,
       gantry_mounted: point.gantry_mounted,
+      mount_stage: point.mount_stage,
+      mount_offset_x: point.mount_offset_x,
+      mount_offset_y: point.mount_offset_y,
+      mount_offset_z: point.mount_offset_z,
       openfarm_slug: point.openfarm_slug,
       pullout_direction: point.pullout_direction,
       x: point.x,
@@ -67,6 +75,10 @@ defmodule FarmbotOS.Asset.Point do
       :created_at,
       :discarded_at,
       :gantry_mounted,
+      :mount_stage,
+      :mount_offset_x,
+      :mount_offset_y,
+      :mount_offset_z,
       :id,
       :meta,
       :monitor,

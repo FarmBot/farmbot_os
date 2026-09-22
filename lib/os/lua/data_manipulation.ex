@@ -207,6 +207,11 @@ defmodule FarmbotOS.Lua.DataManipulation do
         %{
           id: tool.id,
           name: tool.name,
+          type: tool.type,
+          utm_mountable: tool.utm_mountable,
+          effector_offset_x: tool.effector_offset_x,
+          effector_offset_y: tool.effector_offset_y,
+          effector_offset_z: tool.effector_offset_z,
           seeder_tip_z_offset: tool.seeder_tip_z_offset,
           flow_rate_ml_per_s: tool.flow_rate_ml_per_s
         }
@@ -226,6 +231,10 @@ defmodule FarmbotOS.Lua.DataManipulation do
       :local_meta,
       :discarded_at,
       :gantry_mounted,
+      :mount_stage,
+      :mount_offset_x,
+      :mount_offset_y,
+      :mount_offset_z,
       :pullout_direction,
       :monitor
     ])

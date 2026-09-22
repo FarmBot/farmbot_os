@@ -155,8 +155,21 @@ defmodule FarmbotOS.Celery.CompilerTest do
 
   test "compiles move_absolute with tool_id" do
     expect(SysCallGlue.Stubs, :get_toolslot_for_tool, 1, fn
-      222 -> %{gantry_mounted: false, name: "X", x: 220, y: 221, z: 222}
-      id -> raise "Wrong id: #{id}"
+      222 ->
+        %{
+          gantry_mounted: false,
+          name: "X",
+          x: 220,
+          y: 221,
+          z: 222,
+          mount_stage: 0,
+          mount_offset_x: 0.0,
+          mount_offset_y: 0.0,
+          mount_offset_z: 0.0
+        }
+
+      id ->
+        raise "Wrong id: #{id}"
     end)
 
     expect(SysCallGlue.Stubs, :move_absolute, 1, fn x, y, z, s ->

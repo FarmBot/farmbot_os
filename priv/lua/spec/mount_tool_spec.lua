@@ -78,21 +78,21 @@ describe("mount_tool()", function()
     assert.spy(toast).was.called_with("Tool slot must have a direction", "error")
   end)
 
-  it("handles gantry mounted slots", function()
+  it("handles axis mounted slots", function()
     _G.read_pin = spy.new(function() return 1 end)
     _G.get_device = spy.new(function() end)
     _G.api = spy.new(function() end)
     local slot = {
       pointer_type = "ToolSlot",
       pullout_direction = 1,
-      gantry_mounted = true,
+      mount_stage = 1,
     }
 
     mount_tool(slot)
 
     assert.spy(api).was_not_called()
     assert.spy(toast).was.called(1)
-    assert.spy(toast).was.called_with("Tool slot cannot be gantry mounted", "error")
+    assert.spy(toast).was.called_with("Tool slot cannot be axis mounted", "error")
   end)
 
   it("handles missing tool", function()
