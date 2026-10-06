@@ -432,6 +432,84 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [expected]} == lua(lua_code, lua_code)
   end
 
+  test "get_tool() by type" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:type => "seeder"}
+
+      %{
+        :id => 1,
+        :name => "tool",
+        :type => "seeder",
+        :utm_mountable => true,
+        :effector_offset_x => 10,
+        :effector_offset_y => 20,
+        :effector_offset_z => 30,
+        :flow_rate_ml_per_s => 0,
+        :seeder_tip_z_offset => 100
+      }
+    end)
+
+    lua_code = "return get_tool({type = \"seeder\"})"
+
+    expected = [
+      {"effector_offset_x", 10},
+      {"effector_offset_y", 20},
+      {"effector_offset_z", 30},
+      {"flow_rate_ml_per_s", 0},
+      {"id", 1},
+      {"name", "tool"},
+      {"seeder_tip_z_offset", 100},
+      {"type", "seeder"},
+      {"utm_mountable", true}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_tool() by id, name, and type" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:id => 1, :name => "tool", :type => "seeder"}
+
+      %{
+        :id => 1,
+        :name => "tool",
+        :type => "seeder",
+        :utm_mountable => true,
+        :effector_offset_x => 10,
+        :effector_offset_y => 20,
+        :effector_offset_z => 30,
+        :flow_rate_ml_per_s => 0,
+        :seeder_tip_z_offset => 100
+      }
+    end)
+
+    lua_code = "return get_tool({id = 1, name = \"tool\", type = \"seeder\"})"
+
+    expected = [
+      {"effector_offset_x", 10},
+      {"effector_offset_y", 20},
+      {"effector_offset_z", 30},
+      {"flow_rate_ml_per_s", 0},
+      {"id", 1},
+      {"name", "tool"},
+      {"seeder_tip_z_offset", 100},
+      {"type", "seeder"},
+      {"utm_mountable", true}
+    ]
+
+    assert {:ok, [expected]} == lua(lua_code, lua_code)
+  end
+
+  test "get_tool() by type not found" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{:type => "missing"}
+      nil
+    end)
+
+    lua_code = "return get_tool({type = \"missing\"})"
+    assert {:ok, [nil]} == lua(lua_code, lua_code)
+  end
+
   test "get_tool() not found" do
     expect(FarmbotOS.Asset, :get_tool, 1, fn _ -> nil end)
 

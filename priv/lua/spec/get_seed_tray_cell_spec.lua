@@ -21,7 +21,7 @@ describe("get_seed_tray_cell()", function()
 
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was_not_called()
-    assert.are.same({ x = 1.25, y = -18.75, z = 0}, cell)
+    assert.are.same({ x = -18.75, y = -18.75, z = 0}, cell)
   end)
 
   it("gets a different cell", function()
@@ -36,7 +36,7 @@ describe("get_seed_tray_cell()", function()
 
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was_not_called()
-    assert.are.same({ x = -11.25, y = -18.75, z = 0}, cell)
+    assert.are.same({ x = -31.25, y = -18.75, z = 0}, cell)
   end)
 
   it("handles different pullout direction", function()
@@ -51,7 +51,7 @@ describe("get_seed_tray_cell()", function()
 
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was_not_called()
-    assert.are.same({ x = -36.25, y = 18.75, z = 0}, cell)
+    assert.are.same({ x = 18.75, y = 18.75, z = 0}, cell)
   end)
 
   it("handles wrong type", function()

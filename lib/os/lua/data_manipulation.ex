@@ -184,6 +184,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
     tool_id = Map.get(map, "id")
     tool_name = Map.get(map, "name")
+    tool_type = Map.get(map, "type")
     tool_params = %{}
 
     tool_params =
@@ -196,6 +197,13 @@ defmodule FarmbotOS.Lua.DataManipulation do
     tool_params =
       if tool_name do
         Map.put(tool_params, :name, tool_name)
+      else
+        tool_params
+      end
+
+    tool_params =
+      if tool_type do
+        Map.put(tool_params, :type, tool_type)
       else
         tool_params
       end

@@ -21,7 +21,8 @@ describe("dispense()", function()
     dispense(100)
 
     assert.spy(get_tool).was.called(1)
-    assert.spy(toast).was.called_with("Tool \"Watering Nozzle\" not found", "error")
+    assert.spy(get_tool).was.called_with({ type = "watering_nozzle" })
+    assert.spy(toast).was.called_with("Watering nozzle not found", "error")
     assert.spy(on).was_not_called()
   end)
 
@@ -30,11 +31,30 @@ describe("dispense()", function()
     dispense(100, { tool_name = "nozzle" })
 
     assert.spy(get_tool).was.called(1)
-    assert.spy(toast).was.called_with("You must have a tool named \"nozzle\" to use this sequence.", "error")
+    assert.spy(get_tool).was.called_with({ name = "nozzle" })
+    assert.spy(toast).was.called_with("You must have a watering nozzle to use this sequence.", "error")
     assert.spy(on).was_not_called()
   end)
 
-  it("handles missing flow rate", function()
+  it("handles missing named tool", function()
+    _G.get_tool = spy.new(function() end)
+    dispense(100, { tool_name = "nozzle" })
+
+    assert.spy(get_tool).was.called_with({ name = "nozzle" })
+    assert.spy(toast).was.called_with('Tool "nozzle" not found', "error")
+    assert.spy(on).was_not_called()
+  end)
+
+  it("handles absent flow rate", function()
+    _G.get_tool = spy.new(function() return { name = "Watering Nozzle" } end)
+    dispense(100)
+
+    assert.spy(get_tool).was.called_with({ type = "watering_nozzle" })
+    assert.spy(toast).was.called_with("You must have a watering nozzle to use this sequence.", "error")
+    assert.spy(on).was_not_called()
+  end)
+
+  it("handles zero flow rate", function()
     _G.get_tool = spy.new(function()
       return {
           name = "Watering Nozzle",

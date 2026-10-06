@@ -1,6 +1,5 @@
 return function(tray, tray_cell)
   local cell = string.upper(tray_cell)
-  local seeder_needle_offset = 17.5
   local cell_spacing = 12.5
   local cells = {
       A1 = {label = "A1", x = 0, y = 0},
@@ -43,7 +42,7 @@ return function(tray, tray_cell)
 
   -- A1 coordinates
   local A1 = {
-      x = tray.x - seeder_needle_offset + (1.5 * cell_spacing * flip),
+      x = tray.x - (1.5 * cell_spacing * flip),
       y = tray.y - (1.5 * cell_spacing * flip),
       z = tray.z
   }
