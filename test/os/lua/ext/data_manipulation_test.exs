@@ -364,6 +364,54 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [true]} == lua("get_firmware_config/1", lua_code)
   end
 
+  test "get_mounted_tool() returns the mounted tool" do
+    expect(FarmbotOS.Asset, :device, 1, fn ->
+      %FarmbotOS.Asset.Device{mounted_tool_id: 123}
+    end)
+
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{id: 123}
+
+      %FarmbotOS.Asset.Tool{
+        id: 123,
+        name: "Seeder",
+        type: "seeder",
+        effector_offset_z: 30
+      }
+    end)
+
+    code = """
+    local tool = get_mounted_tool()
+    return tool.id, tool.name, tool.type, tool.effector_offset_z
+    """
+
+    assert {:ok, [123, "Seeder", "seeder", 30]} == lua(code, code)
+  end
+
+  test "get_mounted_tool() does not fetch a tool when none is mounted" do
+    expect(FarmbotOS.Asset, :device, 1, fn ->
+      %FarmbotOS.Asset.Device{mounted_tool_id: nil}
+    end)
+
+    reject(FarmbotOS.Asset, :get_tool, 1)
+    code = "return get_mounted_tool()"
+    assert {:ok, [nil]} == lua(code, code)
+  end
+
+  test "get_mounted_tool() returns nil for a missing tool" do
+    expect(FarmbotOS.Asset, :device, 1, fn ->
+      %FarmbotOS.Asset.Device{mounted_tool_id: 123}
+    end)
+
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{id: 123}
+      nil
+    end)
+
+    code = "return get_mounted_tool()"
+    assert {:ok, [nil]} == lua(code, code)
+  end
+
   test "get_tool() by id" do
     expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
       assert params == %{:id => 1}

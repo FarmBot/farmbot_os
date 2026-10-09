@@ -647,6 +647,10 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
   def verify_tool(args, lua), do: lua_extension(args, lua, "verify_tool")
   def get_curve(args, lua), do: lua_extension(args, lua, "get_curve")
+
+  def get_mounted_tool(args, lua),
+    do: lua_extension(args, lua, "get_mounted_tool")
+
   def dispense(args, lua), do: lua_extension(args, lua, "dispense")
   def water(args, lua), do: lua_extension(args, lua, "water")
   def grid(args, lua), do: lua_extension(args, lua, "grid")

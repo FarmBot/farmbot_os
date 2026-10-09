@@ -136,6 +136,7 @@ defmodule FarmbotOS.Lua do
       get_firmware_config: &DataManipulation.get_firmware_config/2,
       get_job: &Info.get_job/2,
       get_job_progress: &Info.get_job_progress/2,
+      get_mounted_tool: &DataManipulation.get_mounted_tool/2,
       get_position: &Firmware.get_position/2,
       get_seed_tray_cell: &DataManipulation.get_seed_tray_cell/2,
       get_xyz: &Info.get_xyz/2,

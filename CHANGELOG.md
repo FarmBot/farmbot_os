@@ -4,7 +4,9 @@
 
  * Add Genesis v1.9 firmware.
  * Add `tool.effector_offset_x|y|z`, `tool.type`, `tool.utm_mountable`, `peripheral.type`, `sensor.type`, `point.mount_stage`, and `point.mount_offset_x|y|z`.
- * Add `get_raw_curve` and `get_slot_for_tool` lua helpers and use them instead of API fetches.
+ * Add `get_raw_curve` and `get_slot_for_tool` Lua helpers and use them instead of API fetches.
+ * Add `get_mounted_tool` Lua helper.
+ * Add optional `id`, `name`, `type` params to `verify_tool` Lua helper.
 
 # 15.5.2
 
