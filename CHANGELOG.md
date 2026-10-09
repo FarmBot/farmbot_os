@@ -7,6 +7,7 @@
  * Add `get_raw_curve` and `get_slot_for_tool` Lua helpers and use them instead of API fetches.
  * Add `get_mounted_tool` Lua helper.
  * Add optional `id`, `name`, `type` params to `verify_tool` Lua helper.
+ * Add `verify_in_bounds` Lua helper.
 
 # 15.5.2
 
