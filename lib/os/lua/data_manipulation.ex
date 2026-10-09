@@ -4,7 +4,17 @@ defmodule FarmbotOS.Lua.DataManipulation do
   """
 
   alias FarmbotOS.{Asset, JSON}
-  alias FarmbotOS.Asset.{Repo, Tool, Device, FbosConfig, FirmwareConfig}
+
+  alias FarmbotOS.Asset.{
+    Repo,
+    Tool,
+    Point,
+    Curve,
+    Device,
+    FbosConfig,
+    FirmwareConfig
+  }
+
   alias FarmbotOS.Lua.Util
   alias FarmbotOS.Lua
   alias FarmbotOS.SysCalls.ResourceUpdate
@@ -228,6 +238,55 @@ defmodule FarmbotOS.Lua.DataManipulation do
       end
 
     {[tool_result], lua}
+  end
+
+  def get_slot_for_tool([params], lua) do
+    map = Util.lua_to_elixir(params)
+
+    tool_id = Map.get(map, "id")
+    tool_name = Map.get(map, "name")
+    tool_type = Map.get(map, "type")
+    tool_params = %{}
+
+    tool_params =
+      if tool_id do
+        Map.put(tool_params, :id, tool_id)
+      else
+        tool_params
+      end
+
+    tool_params =
+      if tool_name do
+        Map.put(tool_params, :name, tool_name)
+      else
+        tool_params
+      end
+
+    tool_params =
+      if tool_type do
+        Map.put(tool_params, :type, tool_type)
+      else
+        tool_params
+      end
+
+    tool_slot_result =
+      with %{id: tool_id} <- Asset.get_tool(tool_params),
+           %Point{} = slot <-
+             Asset.get_point(
+               tool_id: tool_id,
+               pointer_type: "ToolSlot",
+               discarded_at: nil
+             ) do
+        slot
+        |> Point.render()
+        |> format_field_as_iso8601(:created_at)
+        |> format_field_as_iso8601(:updated_at)
+        |> format_field_as_iso8601(:planted_at)
+      else
+        _ -> nil
+      end
+
+    {[tool_slot_result], lua}
   end
 
   defp drop_fields(point) do
@@ -564,6 +623,22 @@ defmodule FarmbotOS.Lua.DataManipulation do
       _ ->
         {[nil, data], lua}
     end
+  end
+
+  def get_raw_curve([params], lua) do
+    map = Util.lua_to_elixir(params)
+
+    curve_result =
+      with curve_id when not is_nil(curve_id) <- Map.get(map, "id"),
+           %Curve{} = curve <- Asset.get_curve(id: curve_id) do
+        curve
+        |> Curve.render()
+        |> Util.map_to_table()
+      else
+        _ -> nil
+      end
+
+    {[curve_result], lua}
   end
 
   def photo_grid(args, lua), do: lua_extension(args, lua, "photo_grid")

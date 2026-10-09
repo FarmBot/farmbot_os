@@ -13,6 +13,7 @@ defmodule FarmbotOS.API.SyncGroupTest do
     FarmbotOS.Asset.SensorReading,
     FarmbotOS.Asset.Sensor,
     FarmbotOS.Asset.Tool,
+    FarmbotOS.Asset.Curve,
     FarmbotOS.Asset.Sequence,
     FarmbotOS.Asset.PointGroup,
     FarmbotOS.Asset.Regimen,

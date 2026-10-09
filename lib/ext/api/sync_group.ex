@@ -2,6 +2,7 @@ defmodule FarmbotOS.API.SyncGroup do
   @moduledoc "Handles dependency ordering."
 
   alias FarmbotOS.Asset.{
+    Curve,
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -37,7 +38,8 @@ defmodule FarmbotOS.API.SyncGroup do
       Point,
       SensorReading,
       Sensor,
-      Tool
+      Tool,
+      Curve
     ]
 
   @doc "Group 2 relies on assets in Group 1"

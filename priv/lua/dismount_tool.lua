@@ -11,22 +11,8 @@ return function()
         return
     end
 
-    -- Get all points
-    local points = api({ url = "/api/points/" })
-    if not points then
-        toast("API error", "error")
-        return
-    end
-
     -- Pluck the tool slot point where the currently mounted tool belongs
-    local slot
-    local slot_dir
-    for key, point in pairs(points) do
-        if point.tool_id == tool_id then
-            slot = point
-            slot_dir = slot.pullout_direction
-        end
-    end
+    local slot = get_slot_for_tool{id = tool_id}
 
     -- Get tool name
     local tool_name = get_tool{id = tool_id}.name
@@ -35,7 +21,10 @@ return function()
     if not slot then
         toast("No slot found for the currently mounted tool (" .. tool_name .. ") - check the Tools panel", "error")
         return
-    elseif slot_dir == 0 then
+    end
+
+    local slot_dir = slot.pullout_direction
+    if slot_dir == 0 then
         toast("Tool slot must have a direction", "error")
         return
     elseif (slot.mount_stage or 0) ~= 0 then

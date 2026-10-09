@@ -7,6 +7,7 @@ defmodule FarmbotOS.Asset do
 
   alias FarmbotOS.Asset.{
     CriteriaRetriever,
+    Curve,
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -719,6 +720,14 @@ defmodule FarmbotOS.Asset do
   end
 
   ## End SensorReading
+
+  ## Begin Curve
+
+  def get_curve(args) do
+    Repo.get_by(Curve, args)
+  end
+
+  ## End Curve
 
   ## Begin Tool
 

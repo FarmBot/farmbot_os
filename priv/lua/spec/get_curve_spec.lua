@@ -8,7 +8,7 @@ describe("get_curve()", function()
   end)
 
   it("returns curve data", function()
-    _G.api = spy.new(function()
+    _G.get_raw_curve = spy.new(function()
       return {
         name = "My Curve",
         type = "water",
@@ -22,8 +22,8 @@ describe("get_curve()", function()
 
     local curve = get_curve(1)
 
-    assert.spy(api).was.called()
-    assert.spy(api).was.called_with({ url = "/api/curves/1" })
+    assert.spy(get_raw_curve).was.called()
+    assert.spy(get_raw_curve).was.called_with({ id = 1 })
 
     assert.are_equal("My Curve", curve.name)
     assert.are_equal("water", curve.type)
@@ -39,7 +39,7 @@ describe("get_curve()", function()
   end)
 
   it("returns distance unit", function()
-    _G.api = spy.new(function()
+    _G.get_raw_curve = spy.new(function()
       return {
         name = "My Curve",
         type = "spread",
@@ -53,12 +53,12 @@ describe("get_curve()", function()
   end)
 
   it("errors", function()
-    _G.api = spy.new(function() end)
+    _G.get_raw_curve = spy.new(function() end)
 
     local curve = get_curve(1)
 
     assert.is_falsy(curve)
     assert.spy(toast).was.called()
-    assert.spy(toast).was.called_with("API error. Is your curve ID correct?", "error")
+    assert.spy(toast).was.called_with("Failed to fetch curve. Is your curve ID correct?", "error")
   end)
 end)

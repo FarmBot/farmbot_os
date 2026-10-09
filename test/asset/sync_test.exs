@@ -4,6 +4,7 @@ defmodule FarmbotOS.Asset.SyncTest do
   alias FarmbotOS.Asset.Sync
 
   @expected_keys [
+    :curves,
     :devices,
     :farm_events,
     :farmware_envs,
@@ -23,6 +24,20 @@ defmodule FarmbotOS.Asset.SyncTest do
     :sequences,
     :tools
   ]
+
+  test "casts and renders curve sync items" do
+    params = %{
+      "curves" => [[123, "2026-10-09T00:00:00.000000Z"]]
+    }
+
+    changeset = Sync.changeset(%Sync{}, params)
+    assert changeset.valid?
+    sync = Ecto.Changeset.apply_changes(changeset)
+    assert [%{id: 123}] = Sync.render(sync).curves
+
+    assert {FarmbotOS.Asset.Curve, sync.curves} ==
+             FarmbotOS.EagerLoader.get_sync_items(FarmbotOS.Asset.Curve, sync)
+  end
 
   test "render/1" do
     result = Sync.render(%Sync{})

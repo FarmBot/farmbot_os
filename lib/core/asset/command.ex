@@ -178,6 +178,7 @@ defmodule FarmbotOS.Asset.Command do
     :ok
   end
 
+  defp as_module!("Curve"), do: Asset.Curve
   defp as_module!("Device"), do: Asset.Device
   defp as_module!("FarmEvent"), do: Asset.FarmEvent
   defp as_module!("FarmwareEnv"), do: Asset.FarmwareEnv

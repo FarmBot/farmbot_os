@@ -16,6 +16,8 @@ describe("mount_tool()", function()
     _G.move_absolute:clear()
     _G.update_device:clear()
     _G.is_demo = spy.new(function() return false end)
+    _G.api = spy.new(function() end)
+    _G.get_slot_for_tool = spy.new(function() end)
   end)
 
   it("doesn't mount tool when tool is detected", function()
@@ -150,26 +152,23 @@ describe("mount_tool()", function()
       return 0
     end)
     _G.get_device = spy.new(function() end)
-    _G.api = spy.new(function(inputs)
-      if string.match(inputs.url, "points") then
-        return {
-          point0 = {
-              pointer_type = "ToolSlot",
-              pullout_direction = 1,
-              tool_id = 1,
-              x = 0,
-              y = 0,
-              z = 0,
-           },
-        }
-      end
+    _G.get_slot_for_tool = spy.new(function()
+      return {
+        pointer_type = "ToolSlot",
+        pullout_direction = 1,
+        tool_id = 1,
+        x = 0,
+        y = 0,
+        z = 0,
+      }
     end)
     _G.get_tool = spy.new(function() return { id = 1, name = "My Tool" } end)
 
     mount_tool("My Tool")
 
-    assert.spy(api).was.called(1)
-    assert.spy(get_tool).was.called(2)
+    assert.spy(api).was_not_called()
+    assert.spy(get_tool).was.called(1)
+    assert.spy(get_slot_for_tool).was.called_with({ name = "My Tool" })
     assert.spy(toast).was.called(1)
     assert.spy(move).was.called(3)
     assert.spy(set_job_progress).was.called(5)
@@ -184,26 +183,23 @@ describe("mount_tool()", function()
     _G.read_pin = spy.new(function() return 1 end)
     _G.is_demo = spy.new(function() return true end)
     _G.get_device = spy.new(function() end)
-    _G.api = spy.new(function(inputs)
-      if string.match(inputs.url, "points") then
-        return {
-          point0 = {
-              pointer_type = "ToolSlot",
-              pullout_direction = 1,
-              tool_id = 1,
-              x = 0,
-              y = 0,
-              z = 0,
-           },
-        }
-      end
+    _G.get_slot_for_tool = spy.new(function()
+      return {
+        pointer_type = "ToolSlot",
+        pullout_direction = 1,
+        tool_id = 1,
+        x = 0,
+        y = 0,
+        z = 0,
+      }
     end)
     _G.get_tool = spy.new(function() return { id = 1, name = "My Tool" } end)
 
     mount_tool("My Tool")
 
-    assert.spy(api).was.called(1)
-    assert.spy(get_tool).was.called(2)
+    assert.spy(api).was_not_called()
+    assert.spy(get_tool).was.called(1)
+    assert.spy(get_slot_for_tool).was.called_with({ name = "My Tool" })
     assert.spy(toast).was.called(1)
     assert.spy(move).was.called(3)
     assert.spy(set_job_progress).was.called(5)
@@ -214,28 +210,13 @@ describe("mount_tool()", function()
     assert.spy(toast).was.called_with("My Tool mounted", "success")
   end)
 
-  it("doesn't fetch tool slot: tool not found", function()
-    _G.get_tool = spy.new(function(inputs) end)
+  it("handles a missing tool or slot", function()
     mount_tool("My Tool")
-    assert.spy(get_tool).was.called(1)
-    assert.spy(toast).was.called_with("'My Tool' tool not found", "error")
-  end)
 
-  it("doesn't fetch tool slot: points api error", function()
-    _G.api = spy.new(function(inputs) end)
-    _G.get_tool = spy.new(function(inputs) return { id = 1, name = "My Tool" } end)
-    mount_tool("My Tool")
-    assert.spy(toast).was.called_with("API error", "error")
-  end)
-
-  it("doesn't fetch tool slot: tool slot not found", function()
-    _G.api = spy.new(function(inputs)
-      if string.match(inputs.url, "points") then
-        return {}
-      end
-    end)
-    _G.get_tool = spy.new(function(inputs) return { id = 1, name = "My Tool" } end)
-    mount_tool("My Tool")
+    assert.spy(get_slot_for_tool).was.called_with({ name = "My Tool" })
+    assert.spy(api).was_not_called()
+    assert.spy(move).was_not_called()
+    assert.spy(update_device).was_not_called()
     assert.spy(toast).was.called_with("Tool slot not found", "error")
   end)
 
@@ -262,7 +243,7 @@ describe("mount_tool()", function()
 
       mount_tool(slot)
 
-      assert.spy(api).was.called(1)
+      assert.spy(api).was_not_called()
       assert.spy(get_tool).was.called(1)
       assert.spy(toast).was.called(1)
       assert.spy(move).was.called(3)

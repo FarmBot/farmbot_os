@@ -7,6 +7,7 @@ defmodule FarmbotOS.Asset.Private.LocalMeta do
   import Ecto.Changeset
 
   alias FarmbotOS.Asset.{
+    Curve,
     Repo,
     Device,
     FarmEvent,
@@ -28,6 +29,13 @@ defmodule FarmbotOS.Asset.Private.LocalMeta do
     field(:table, :string)
     field(:asset_local_id, :binary_id)
     field(:monitor, :boolean, default: true)
+
+    belongs_to(:curve, Curve,
+      foreign_key: :asset_local_id,
+      type: :binary_id,
+      references: :local_id,
+      define_field: false
+    )
 
     belongs_to(:device, Device,
       foreign_key: :asset_local_id,
@@ -127,6 +135,7 @@ defmodule FarmbotOS.Asset.Private.LocalMeta do
     |> validate_required([:asset_local_id, :table])
     |> validate_inclusion(:status, ~w(dirty stale))
     |> validate_inclusion(:table, [
+      "curves",
       "devices",
       "tools",
       "peripherals",

@@ -8,6 +8,7 @@ defmodule FarmbotOS.DirtyWorker.Supervisor do
   alias FarmbotOS.DirtyWorker
 
   alias FarmbotOS.Asset.{
+    Curve,
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -38,6 +39,7 @@ defmodule FarmbotOS.DirtyWorker.Supervisor do
     config = Application.get_env(:farmbot, __MODULE__) || []
 
     Keyword.get(config, :children, [
+      {DirtyWorker, Curve},
       {DirtyWorker, Device},
       {DirtyWorker, FbosConfig},
       {DirtyWorker, FirmwareConfig},

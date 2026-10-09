@@ -38,6 +38,7 @@ defmodule FarmbotOS.Asset.Sync do
   end
 
   schema "syncs" do
+    embeds_many(:curves, Item)
     embeds_many(:devices, Item)
     embeds_many(:firmware_configs, Item)
     embeds_many(:fbos_configs, Item)
@@ -61,6 +62,7 @@ defmodule FarmbotOS.Asset.Sync do
 
   view sync do
     %{
+      curves: Enum.map(sync.curves, &Item.render/1),
       devices: Enum.map(sync.devices, &Item.render/1),
       fbos_configs: Enum.map(sync.fbos_configs, &Item.render/1),
       firmware_configs: Enum.map(sync.firmware_configs, &Item.render/1),
@@ -87,6 +89,7 @@ defmodule FarmbotOS.Asset.Sync do
   def changeset(sync, params \\ %{}) do
     sync
     |> cast(params, [:now])
+    |> cast_embed(:curves)
     |> cast_embed(:devices)
     |> cast_embed(:fbos_configs)
     |> cast_embed(:firmware_configs)

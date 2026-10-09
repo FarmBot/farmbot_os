@@ -11,6 +11,7 @@ defmodule FarmbotOS.MQTT.SyncHandler do
   use GenServer
 
   @known_kinds ~w(
+    Curve
     Device
     FarmEvent
     FarmwareEnv

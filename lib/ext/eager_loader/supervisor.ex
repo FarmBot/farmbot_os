@@ -8,6 +8,7 @@ defmodule FarmbotOS.EagerLoader.Supervisor do
   alias FarmbotOS.EagerLoader
 
   alias FarmbotOS.Asset.{
+    Curve,
     Device,
     FarmEvent,
     FarmwareEnv,
@@ -45,6 +46,7 @@ defmodule FarmbotOS.EagerLoader.Supervisor do
     config = Application.get_env(:farmbot, __MODULE__) || []
 
     Keyword.get(config, :children, [
+      {EagerLoader, Curve},
       {EagerLoader, Device},
       {EagerLoader, FarmEvent},
       {EagerLoader, FarmwareEnv},

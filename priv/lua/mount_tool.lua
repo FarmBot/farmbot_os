@@ -1,24 +1,7 @@
 return function(input)
     local slot
     if type(input) == "string" then
-      local prelim_tool
-      local tool_name = input
-      prelim_tool = get_tool{name = tool_name}
-      if not prelim_tool then
-          toast("'" .. tool_name .. "' tool not found", "error")
-          return
-      end
-
-      local points = api({ url = "/api/points/" })
-      if not points then
-          toast("API error", "error")
-          return
-      end
-      for key, point in pairs(points) do
-        if point.tool_id == prelim_tool.id then
-          slot = point
-        end
-      end
+      slot = get_slot_for_tool{name = input}
     else
       slot = input
     end

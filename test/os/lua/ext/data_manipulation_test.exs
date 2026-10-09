@@ -517,6 +517,90 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     assert {:ok, [nil]} == lua(lua_code, lua_code)
   end
 
+  for {filter, params} <- [
+        {"id = 1", %{id: 1}},
+        {"name = \"tool\"", %{name: "tool"}},
+        {"type = \"seeder\"", %{type: "seeder"}},
+        {"id = 1, name = \"tool\", type = \"seeder\"",
+         %{id: 1, name: "tool", type: "seeder"}}
+      ] do
+    test "get_slot_for_tool() by #{filter}" do
+      expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+        assert params == unquote(Macro.escape(params))
+        %{id: 1}
+      end)
+
+      expect(FarmbotOS.Asset, :get_point, 1, fn params ->
+        assert params == [
+                 tool_id: 1,
+                 pointer_type: "ToolSlot",
+                 discarded_at: nil
+               ]
+
+        %FarmbotOS.Asset.Point{
+          id: 2,
+          tool_id: 1,
+          pointer_type: "ToolSlot",
+          pullout_direction: 3,
+          mount_stage: 0,
+          x: 10.0,
+          y: 20.0,
+          z: 30.0,
+          created_at: ~U[2023-01-01 00:00:00Z]
+        }
+      end)
+
+      lua_code = """
+      local slot = get_slot_for_tool({#{unquote(filter)}})
+      return slot.id, slot.tool_id, slot.pointer_type,
+        slot.pullout_direction, slot.mount_stage,
+        slot.x, slot.y, slot.z, slot.created_at, slot.local_id
+      """
+
+      assert {:ok,
+              [
+                2,
+                1,
+                "ToolSlot",
+                3,
+                0,
+                10.0,
+                20.0,
+                30.0,
+                "2023-01-01T00:00:00Z",
+                nil
+              ]} == lua(lua_code, lua_code)
+    end
+  end
+
+  test "get_slot_for_tool() tool not found" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn params ->
+      assert params == %{name: "missing"}
+      nil
+    end)
+
+    reject(FarmbotOS.Asset, :get_point, 1)
+    lua_code = "return get_slot_for_tool({name = \"missing\"})"
+    assert {:ok, [nil]} == lua(lua_code, lua_code)
+  end
+
+  test "get_slot_for_tool() slot not found" do
+    expect(FarmbotOS.Asset, :get_tool, 1, fn _ -> %{id: 1} end)
+
+    expect(FarmbotOS.Asset, :get_point, 1, fn params ->
+      assert params == [
+               tool_id: 1,
+               pointer_type: "ToolSlot",
+               discarded_at: nil
+             ]
+
+      nil
+    end)
+
+    lua_code = "return get_slot_for_tool({id = 1})"
+    assert {:ok, [nil]} == lua(lua_code, lua_code)
+  end
+
   test "get_weeds()" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "Weed" ->
       [
@@ -1196,6 +1280,63 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     expect(FarmbotOS.Lua, :raw_eval, 1, fn _, _ -> {:ok, [:result]} end)
     result = DataManipulation.verify_tool([], :fake_lua)
     assert result == {[:result], :fake_lua}
+  end
+
+  test "get_raw_curve() returns curve data with string day keys" do
+    expect(FarmbotOS.Asset, :get_curve, 1, fn params ->
+      assert params == [id: 123]
+
+      %FarmbotOS.Asset.Curve{
+        id: 123,
+        name: "Water curve",
+        type: "water",
+        data: %{"1" => 100, "5" => 500}
+      }
+    end)
+
+    code = """
+    local curve = get_raw_curve{id = 123}
+    return curve.id, curve.name, curve.type, curve.data["1"],
+      curve.data["5"], curve.local_id, curve.monitor
+    """
+
+    assert {:ok, [123, "Water curve", "water", 100, 500, nil, nil]} ==
+             lua(code, code)
+  end
+
+  test "get_raw_curve() returns nil for an unknown curve" do
+    expect(FarmbotOS.Asset, :get_curve, 1, fn params ->
+      assert params == [id: 123]
+      nil
+    end)
+
+    code = "return get_raw_curve{id = 123}"
+    assert {:ok, [nil]} == lua(code, code)
+  end
+
+  test "get_raw_curve() does not fetch a curve without an id" do
+    reject(FarmbotOS.Asset, :get_curve, 1)
+    code = "return get_raw_curve{}"
+    assert {:ok, [nil]} == lua(code, code)
+  end
+
+  test "get_curve() interpolates locally stored curve data" do
+    expect(FarmbotOS.Asset, :get_curve, 1, fn params ->
+      assert params == [id: 123]
+
+      %FarmbotOS.Asset.Curve{
+        name: "Water curve",
+        type: "water",
+        data: %{"1" => 100, "5" => 500}
+      }
+    end)
+
+    code = """
+    local curve = get_curve(123)
+    return curve.name, curve.unit, curve.day(0), curve.day(3), curve.day(10)
+    """
+
+    assert {:ok, ["Water curve", "mL", 100, 300.0, 500]} == lua(code, code)
   end
 
   test "get_curve(args, lua)" do
