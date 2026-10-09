@@ -35,7 +35,12 @@ defmodule Farmbot.TestSupport.AssetFixtures do
   end
 
   def regimen(params \\ %{}) do
-    default = %{id: :rand.uniform(10000), monitor: false, regimen_items: []}
+    # Keep generated IDs separate from explicit positive IDs used by tests.
+    default = %{
+      id: -System.unique_integer([:positive, :monotonic]),
+      monitor: false,
+      regimen_items: []
+    }
 
     Regimen
     |> struct()
