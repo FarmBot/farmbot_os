@@ -24,7 +24,9 @@ return function(params)
   end
 
   if params.type and params.type ~= mounted_tool.type then
-      toast("Expected a " .. params.type .. " tool to be mounted, but a " .. mounted_tool.type .. " tool is.", "error")
+      local expected_type = string.gsub(params.type, "_", " ")
+      local received_type = string.gsub(mounted_tool.type, "_", " ")
+      toast("Expected a " .. expected_type .. " to be mounted, but a " .. received_type .. " is.", "error")
       return false
   end
 

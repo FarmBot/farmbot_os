@@ -65,7 +65,7 @@ describe("verify_tool()", function()
   end)
 
   it("rejects a mismatching type", function()
-    assert_failure({type = "water"}, "Expected a water tool to be mounted, but a seeder tool is.")
+    assert_failure({type = "watering_nozzle"}, "Expected a watering nozzle to be mounted, but a seeder is.")
   end)
 
   it("verifies a matching ID", function()
@@ -82,7 +82,7 @@ describe("verify_tool()", function()
   end)
 
   it("rejects a mismatching type even when the name and ID match", function()
-    assert_failure({name = "My Tool", type = "water", id = 1}, "Expected a water tool to be mounted, but a seeder tool is.")
+    assert_failure({name = "My Tool", type = "watering_nozzle", id = 1}, "Expected a watering nozzle to be mounted, but a seeder is.")
   end)
 
   it("rejects a mismatching ID even when the name and type match", function()
