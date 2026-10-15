@@ -115,6 +115,10 @@ defmodule FarmbotOS.Lua.Firmware do
     move_absolute(args, lua)
   end
 
+  def move_with_tool(args, lua) do
+    FarmbotOS.Lua.DataManipulation.lua_extension(args, lua, "move_with_tool")
+  end
+
   @doc """
   Returns a table containing position data
 

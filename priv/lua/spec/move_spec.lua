@@ -83,3 +83,30 @@ describe("move()", function()
     })
   end)
 end)
+
+describe("move() offsets", function()
+  it("adds offsets without overwriting current coordinates", function()
+    local request
+    _G.cs_eval = function(value) request = value end
+
+    move({ offset = { x = 10, y = -20, z = 0 } })
+
+    assert.same({
+      axis_addition("x", 10),
+      axis_addition("y", -20),
+      axis_addition("z", 0),
+    }, request.body[1].body)
+  end)
+
+  it("applies offsets after absolute coordinates", function()
+    local request
+    _G.cs_eval = function(value) request = value end
+
+    move({ x = 0, offset = { x = -5 } })
+
+    assert.same({
+      axis_overwrite("x", 0),
+      axis_addition("x", -5),
+    }, request.body[1].body)
+  end)
+end)

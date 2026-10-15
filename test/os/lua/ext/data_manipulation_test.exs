@@ -578,12 +578,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
         %{id: 1}
       end)
 
-      expect(FarmbotOS.Asset, :get_point, 1, fn params ->
-        assert params == [
-                 tool_id: 1,
-                 pointer_type: "ToolSlot",
-                 discarded_at: nil
-               ]
+      expect(FarmbotOS.Asset, :get_tool_slot, 1, fn tool_id ->
+        assert tool_id == 1
 
         %FarmbotOS.Asset.Point{
           id: 2,
@@ -627,7 +623,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       nil
     end)
 
-    reject(FarmbotOS.Asset, :get_point, 1)
+    reject(FarmbotOS.Asset, :get_tool_slot, 1)
     lua_code = "return get_slot_for_tool({name = \"missing\"})"
     assert {:ok, [nil]} == lua(lua_code, lua_code)
   end
@@ -635,12 +631,8 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
   test "get_slot_for_tool() slot not found" do
     expect(FarmbotOS.Asset, :get_tool, 1, fn _ -> %{id: 1} end)
 
-    expect(FarmbotOS.Asset, :get_point, 1, fn params ->
-      assert params == [
-               tool_id: 1,
-               pointer_type: "ToolSlot",
-               discarded_at: nil
-             ]
+    expect(FarmbotOS.Asset, :get_tool_slot, 1, fn tool_id ->
+      assert tool_id == 1
 
       nil
     end)

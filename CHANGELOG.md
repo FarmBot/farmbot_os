@@ -8,6 +8,8 @@
  * Add `get_mounted_tool` Lua helper.
  * Add optional `id`, `name`, `type` params to `verify_tool` Lua helper.
  * Add `verify_in_bounds` Lua helper.
+ * Add `move_with_tool` Lua helper.
+ * Add `offset.x|y|z` to `move` Lua helper args.
 
 # 15.5.2
 

@@ -6,6 +6,45 @@ defmodule FarmbotOS.AssetTest do
   alias FarmbotOS.Asset
   import Farmbot.TestSupport.AssetFixtures
 
+  describe "get_tool_slot/1" do
+    test "returns only the active tool slot for the requested tool" do
+      tool_id = -System.unique_integer([:positive])
+      other_tool_id = tool_id - 1
+
+      points = [
+        %Asset.Point{
+          tool_id: tool_id,
+          pointer_type: "ToolSlot",
+          discarded_at: ~U[2023-01-01 00:00:00.000000Z]
+        },
+        %Asset.Point{tool_id: tool_id, pointer_type: "GenericPointer"},
+        %Asset.Point{tool_id: other_tool_id, pointer_type: "ToolSlot"},
+        %Asset.Point{tool_id: tool_id, pointer_type: "ToolSlot"}
+      ]
+
+      inserted = Enum.map(points, &Asset.Repo.insert!/1)
+      on_exit(fn -> Enum.each(inserted, &Asset.Repo.delete!/1) end)
+      active = List.last(inserted)
+
+      assert Asset.get_tool_slot(tool_id).local_id == active.local_id
+    end
+
+    test "returns nil when the tool has no active slot" do
+      tool_id = -System.unique_integer([:positive])
+
+      discarded =
+        Asset.Repo.insert!(%Asset.Point{
+          tool_id: tool_id,
+          pointer_type: "ToolSlot",
+          discarded_at: ~U[2023-01-01 00:00:00.000000Z]
+        })
+
+      on_exit(fn -> Asset.Repo.delete!(discarded) end)
+
+      assert Asset.get_tool_slot(tool_id) == nil
+    end
+  end
+
   describe "regimen instances" do
     test "creates a regimen instance" do
       Asset.update_device!(%{timezone: "America/Chicago"})

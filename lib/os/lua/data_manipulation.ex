@@ -271,12 +271,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
     tool_slot_result =
       with %{id: tool_id} <- Asset.get_tool(tool_params),
-           %Point{} = slot <-
-             Asset.get_point(
-               tool_id: tool_id,
-               pointer_type: "ToolSlot",
-               discarded_at: nil
-             ) do
+           %Point{} = slot <- Asset.get_tool_slot(tool_id) do
         slot
         |> Point.render()
         |> format_field_as_iso8601(:created_at)

@@ -8,6 +8,16 @@ function axis_overwrite(axis, num)
     }
 end
 
+function axis_addition(axis, num)
+    return {
+        kind = "axis_addition",
+        args = {
+            axis = axis,
+            axis_operand = {kind = "numeric", args = {number = num}}
+        }
+    }
+end
+
 function speed_overwrite(axis, num)
     return {
         kind = "speed_overwrite",
@@ -26,10 +36,14 @@ end
 
 function move_body(input)
     local body = {}
+    local offset = input.offset or {}
 
     if input.x then body[#body + 1] = axis_overwrite("x", input.x) end
     if input.y then body[#body + 1] = axis_overwrite("y", input.y) end
     if input.z then body[#body + 1] = axis_overwrite("z", input.z) end
+    if offset.x then body[#body + 1] = axis_addition("x", offset.x) end
+    if offset.y then body[#body + 1] = axis_addition("y", offset.y) end
+    if offset.z then body[#body + 1] = axis_addition("z", offset.z) end
     if input.speed then body[#body + 1] = speed_overwrite("x", input.speed) end
     if input.speed then body[#body + 1] = speed_overwrite("y", input.speed) end
     if input.speed then body[#body + 1] = speed_overwrite("z", input.speed) end

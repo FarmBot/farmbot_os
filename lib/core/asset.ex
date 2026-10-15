@@ -245,6 +245,15 @@ defmodule FarmbotOS.Asset do
     Repo.get_by(Point, params)
   end
 
+  def get_tool_slot(tool_id) do
+    from(p in Point,
+      where:
+        p.tool_id == ^tool_id and p.pointer_type == "ToolSlot" and
+          is_nil(p.discarded_at)
+    )
+    |> Repo.one()
+  end
+
   def update_point(point, params) do
     # TODO: RC 8 MAY 2020 - We need to hard refresh the point.
     #       The CSVM appears to be caching resources. This leads
