@@ -1,5 +1,6 @@
 local move = require("move")
 local move_with_tool = require("move_with_tool")
+local resolve_tool_move = require("resolve_tool_move")
 
 describe("move_with_tool()", function()
   local slot, tool, input, request
@@ -17,6 +18,7 @@ describe("move_with_tool()", function()
     }
     _G.get_tool = spy.new(function() return tool end)
     _G.get_slot_for_tool = spy.new(function() return slot end)
+    _G.resolve_tool_move = spy.new(resolve_tool_move)
     _G.move = spy.new(move)
     _G.cs_eval = spy.new(function(value) request = value end)
   end)
@@ -30,19 +32,16 @@ describe("move_with_tool()", function()
         speed = 50, grouping = "xy,z", route = "in_order", safe_z = true,
       }
       local expected = {}
-      for _, axis in ipairs({"x", "y", "z"}) do
-        expected[#expected + 1] = axis_overwrite(axis, input[axis])
-      end
-      local stage_offsets = {
-        [0] = {3, 3, 3},
-        [1] = {-7, 3, 3},
-        [2] = {-7, -17, 3},
-        [3] = {-7, -17, -27},
+      local stage_coordinates = {
+        [0] = {103, 203, 303},
+        [1] = {93, 203, 303},
+        [2] = {93, 183, 303},
+        [3] = {93, 183, 273},
       }
-      local offsets = stage_offsets[stage]
-      expected[#expected + 1] = axis_addition("x", offsets[1])
-      expected[#expected + 1] = axis_addition("y", offsets[2])
-      expected[#expected + 1] = axis_addition("z", offsets[3])
+      local coordinates = stage_coordinates[stage]
+      for index, axis in ipairs({"x", "y", "z"}) do
+        expected[#expected + 1] = axis_overwrite(axis, coordinates[index])
+      end
       for _, axis in ipairs({"x", "y", "z"}) do
         expected[#expected + 1] = speed_overwrite(axis, 50)
       end
@@ -54,9 +53,12 @@ describe("move_with_tool()", function()
       assert.same(expected, request.body[1].body)
       assert.same(original, input)
       local forwarded = _G.move.calls[1].vals[1]
-      assert.equals(input.x, forwarded.x)
-      assert.equals(input.y, forwarded.y)
-      assert.equals(input.z, forwarded.z)
+      assert.equals(coordinates[1], forwarded.x)
+      assert.equals(coordinates[2], forwarded.y)
+      assert.equals(coordinates[3], forwarded.z)
+      assert.is_nil(forwarded.name)
+      assert.is_nil(forwarded.offset)
+      assert.spy(_G.resolve_tool_move).was.called_with(input)
       assert.spy(_G.move).was.called(1)
       assert.spy(_G.cs_eval).was.called(1)
       assert.spy(get_tool).was.called_with({name = "Seeder"})
@@ -81,12 +83,9 @@ describe("move_with_tool()", function()
     assert.spy(get_slot_for_tool).was.called(1)
     assert.same({type = "seeder", x = 6, y = 400, z = -240}, input)
     assert.same({
-      axis_overwrite("x", 6),
-      axis_overwrite("y", 400),
-      axis_overwrite("z", -240),
-      axis_addition("x", -1),
-      axis_addition("y", -2),
-      axis_addition("z", -3),
+      axis_overwrite("x", 5),
+      axis_overwrite("y", 398),
+      axis_overwrite("z", -243),
     }, request.body[1].body)
   end)
 
@@ -106,12 +105,9 @@ describe("move_with_tool()", function()
     move_with_tool(input)
 
     assert.same({
-      axis_overwrite("x", 100),
-      axis_overwrite("y", 200),
-      axis_overwrite("z", 300),
-      axis_addition("x", 3),
-      axis_addition("y", 3),
-      axis_addition("z", 3),
+      axis_overwrite("x", 103),
+      axis_overwrite("y", 203),
+      axis_overwrite("z", 303),
       speed_overwrite("x", 50),
       speed_overwrite("y", 50),
       speed_overwrite("z", 50),
@@ -125,13 +121,101 @@ describe("move_with_tool()", function()
     tool = {}
     slot = { x = 400, y = 500, z = 600 }
     input = { name = "Seeder", x = 0 }
-    local expected = { axis_overwrite("x", 0) }
-    for _, axis in ipairs({"x", "y", "z"}) do
-      expected[#expected + 1] = axis_addition(axis, 0)
-    end
+    local expected = {
+      axis_overwrite("x", 0),
+    }
 
     move_with_tool(input)
 
     assert.same(expected, request.body[1].body)
+  end)
+
+  it("applies tool offsets only to axes with coordinates", function()
+    slot.mount_stage = 3
+    input = { name = "Seeder", x = 0 }
+
+    move_with_tool(input)
+
+    assert.same({
+      axis_overwrite("x", -11),
+    }, request.body[1].body)
+  end)
+
+  it("preserves explicit offsets on axes without coordinates", function()
+    slot.mount_stage = 3
+    input = { name = "Seeder", x = 100, offset = { y = 5, z = 0 } }
+
+    move_with_tool(input)
+
+    assert.same({
+      axis_overwrite("x", 89),
+      axis_addition("y", 5),
+      axis_addition("z", 0),
+    }, request.body[1].body)
+    assert.same({ name = "Seeder", x = 100, offset = { y = 5, z = 0 } }, input)
+  end)
+
+  it("preserves offset-only moves without applying tool offsets", function()
+    slot.mount_stage = 3
+    input = { name = "Seeder", offset = { x = 4, y = 5, z = 6 } }
+
+    move_with_tool(input)
+
+    assert.same({
+      axis_addition("x", 4),
+      axis_addition("y", 5),
+      axis_addition("z", 6),
+    }, request.body[1].body)
+  end)
+end)
+
+describe("resolve_tool_move()", function()
+  before_each(function()
+    _G.get_tool = spy.new(function()
+      return { effector_offset_x = 1, effector_offset_y = 2, effector_offset_z = 3 }
+    end)
+    _G.get_slot_for_tool = spy.new(function()
+      return { mount_stage = 3, mount_offset_x = 10, mount_offset_y = 20, mount_offset_z = 30 }
+    end)
+    _G.move = spy.new(function() end)
+  end)
+
+  it("returns resolved coordinates and movement settings without changing input", function()
+    local input = {
+      id = 1, name = "Seeder", type = "seeder", x = 100, y = 200, z = 300,
+      offset = { x = 4, y = 5, z = 6 },
+      speed = 50, grouping = "xy,z", route = "in_order", safe_z = true,
+    }
+
+    local result = resolve_tool_move(input)
+
+    assert.same({
+      x = 93, y = 183, z = 273,
+      speed = 50, grouping = "xy,z", route = "in_order", safe_z = true,
+    }, result)
+    assert.same({
+      id = 1, name = "Seeder", type = "seeder", x = 100, y = 200, z = 300,
+      offset = { x = 4, y = 5, z = 6 },
+      speed = 50, grouping = "xy,z", route = "in_order", safe_z = true,
+    }, input)
+    assert.spy(get_tool).was.called_with({ id = 1, name = "Seeder", type = "seeder" })
+    assert.spy(get_slot_for_tool).was.called_with({ id = 1, name = "Seeder", type = "seeder" })
+    assert.spy(_G.move).was_not_called()
+  end)
+
+  it("copies offsets only for axes without coordinates", function()
+    local input = { name = "Seeder", x = 0, offset = { x = 4, y = 5, z = 0 } }
+
+    local result = resolve_tool_move(input)
+
+    assert.same({ x = -7, offset = { y = 5, z = 0 } }, result)
+    result.offset.y = 99
+    assert.same({ name = "Seeder", x = 0, offset = { x = 4, y = 5, z = 0 } }, input)
+    assert.spy(_G.move).was_not_called()
+  end)
+
+  it("omits coordinates and offsets when no movement is requested", function()
+    assert.same({}, resolve_tool_move({ id = 1, offset = {} }))
+    assert.spy(_G.move).was_not_called()
   end)
 end)

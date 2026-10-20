@@ -42,7 +42,7 @@ return function(tray, tray_cell)
 
   -- A1 coordinates
   local A1 = {
-      x = tray.x - (1.5 * cell_spacing * flip),
+      x = tray.x + (1.5 * cell_spacing * flip),
       y = tray.y - (1.5 * cell_spacing * flip),
       z = tray.z
   }
