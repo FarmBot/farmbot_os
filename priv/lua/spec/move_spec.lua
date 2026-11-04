@@ -110,3 +110,70 @@ describe("move() offsets", function()
     }, request.body[1].body)
   end)
 end)
+
+describe("move() variance", function()
+  local request
+
+  before_each(function()
+    request = nil
+    _G.cs_eval = function(value) request = value end
+  end)
+
+  it("adds random operands for each supplied axis, including zero", function()
+    move({ variance = { x = 10, y = 5, z = 0 } })
+
+    local expected = {}
+    for index, axis in ipairs({"x", "y", "z"}) do
+      expected[index] = {
+        kind = "axis_addition",
+        args = {
+          axis = axis,
+          axis_operand = { kind = "random", args = { variance = ({10, 5, 0})[index] } },
+        },
+      }
+    end
+    assert.same(expected, request.body[1].body)
+  end)
+
+  it("omits axes without variance", function()
+    move({ variance = { y = 5 } })
+
+    assert.same({{
+      kind = "axis_addition",
+      args = {
+        axis = "y",
+        axis_operand = { kind = "random", args = { variance = 5 } },
+      },
+    }}, request.body[1].body)
+  end)
+
+  it("applies variance after coordinates and offsets, before movement settings", function()
+    local input = {
+      x = 100, offset = { x = 5 }, variance = { x = 10 },
+      speed = 50, grouping = "xy,z", route = "high", safe_z = true,
+    }
+
+    move(input)
+
+    assert.same({
+      axis_overwrite("x", 100),
+      axis_addition("x", 5),
+      {
+        kind = "axis_addition",
+        args = {
+          axis = "x",
+          axis_operand = { kind = "random", args = { variance = 10 } },
+        },
+      },
+      speed_overwrite("x", 50),
+      speed_overwrite("y", 50),
+      speed_overwrite("z", 50),
+      axis_order(input),
+      { kind = "safe_z", args = {} },
+    }, request.body[1].body)
+    assert.same({
+      x = 100, offset = { x = 5 }, variance = { x = 10 },
+      speed = 50, grouping = "xy,z", route = "high", safe_z = true,
+    }, input)
+  end)
+end)

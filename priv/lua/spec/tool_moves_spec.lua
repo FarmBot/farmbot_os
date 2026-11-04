@@ -66,6 +66,37 @@ describe("move_with_tool()", function()
     end)
   end
 
+  it("preserves variance through tool compensation and movement", function()
+    slot.mount_stage = 3
+    input = { id = 1, z = -100, variance = { x = 10, y = 10 }, speed = 50 }
+
+    move_with_tool(input)
+
+    assert.same({ z = -133, variance = { x = 10, y = 10 }, speed = 50 },
+      _G.move.calls[1].vals[1])
+    assert.same({
+      axis_overwrite("z", -133),
+      {
+        kind = "axis_addition",
+        args = {
+          axis = "x",
+          axis_operand = { kind = "random", args = { variance = 10 } },
+        },
+      },
+      {
+        kind = "axis_addition",
+        args = {
+          axis = "y",
+          axis_operand = { kind = "random", args = { variance = 10 } },
+        },
+      },
+      speed_overwrite("x", 50),
+      speed_overwrite("y", 50),
+      speed_overwrite("z", 50),
+    }, request.body[1].body)
+    assert.same({ id = 1, z = -100, variance = { x = 10, y = 10 }, speed = 50 }, input)
+  end)
+
   it("looks up a tool by type without movement fields", function()
     input = { type = "seeder", x = 6, y = 400, z = -240 }
     _G.get_tool = spy.new(function(selector)

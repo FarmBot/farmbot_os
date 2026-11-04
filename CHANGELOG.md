@@ -9,7 +9,7 @@
  * Add optional `id`, `name`, `type` params to `verify_tool` Lua helper.
  * Add `verify_in_bounds` Lua helper.
  * Add `resolve_tool_move` and `move_with_tool` Lua helpers.
- * Add `offset.x|y|z` to `move` Lua helper args.
+ * Add `offset.x|y|z` and `variance.x|y|z` to `move` Lua helper args.
 
 # 15.5.2
 
