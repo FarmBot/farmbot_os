@@ -46,21 +46,28 @@ defmodule FarmbotOS.Celery.StepRunner do
       if state.start_time > lock_time do
         fun.()
       else
-        err = {:error, "Canceled sequence due to emergency lock."}
-        not_ok(state, err)
+        log_error({:error, "Canceled sequence due to emergency lock."})
       end
     rescue
-      e -> not_ok(state, e)
+      e -> log_error(e)
     catch
-      _kind, e -> not_ok(state, e)
+      _kind, e -> log_error(e)
     end
   end
 
-  defp not_ok(state, original_error) do
+  # Logs and normalizes an error WITHOUT notifying the listener.
+  # `do_step/2` sends the single `:csvm_done` for a failed step. Sending it
+  # here as well produced two `:csvm_done` messages per failure, and the
+  # scheduler pops one queued item per message, silently dropping the next
+  # farm event / regimen item.
+  defp log_error(original_error) do
     msg = "CeleryScript Exception: #{inspect(original_error)}"
     Logger.warning(msg)
+    format_error(original_error)
+  end
 
-    error = format_error(original_error)
+  defp not_ok(state, original_error) do
+    error = log_error(original_error)
     send(state.listener, {:csvm_done, state.tag, error})
     error
   end
