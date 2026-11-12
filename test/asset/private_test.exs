@@ -70,6 +70,20 @@ defmodule FarmbotOS.Asset.PrivateTest do
     reset_assets()
   end
 
+  test "list_dirty only returns the records that are actually dirty" do
+    destroy_assets()
+    dirty = Repo.insert!(%Point{gantry_mounted: false, pullout_direction: 0})
+    _clean1 = Repo.insert!(%Point{gantry_mounted: false, pullout_direction: 0})
+    _clean2 = Repo.insert!(%Point{gantry_mounted: false, pullout_direction: 0})
+
+    Private.mark_dirty!(dirty)
+
+    results = Private.list_dirty(Point)
+    assert Enum.map(results, & &1.local_id) == [dirty.local_id]
+
+    reset_assets()
+  end
+
   test "Private.any_stale?() returns false when there are not stale records" do
     Repo.delete_all(FarmbotOS.Asset.Private.LocalMeta)
     refute Private.any_stale?()
