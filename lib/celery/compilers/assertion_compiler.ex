@@ -20,13 +20,16 @@ defmodule FarmbotOS.Celery.Compiler.Assertion do
       end
 
     lua_code = Compiler.celery_to_elixir(expression, cs_scope)
-    result = FarmbotOS.Celery.Compiler.Lua.do_lua(lua_code, cs_scope)
 
     quote location: :keep do
       comment_header = unquote(comment_header)
       assertion_type = unquote(assertion_type)
       cs_scope = unquote(cs_scope)
-      result = unquote(result)
+      # Evaluate the Lua when this step runs, not when the sequence is
+      # compiled. Sequences are compiled up-front, so evaluating at compile
+      # time made assertions observe state from before earlier steps ran
+      # (e.g. `read_pin` after `mount_tool`, see #1328).
+      result = FarmbotOS.Celery.Compiler.Lua.do_lua(unquote(lua_code), cs_scope)
 
       case result do
         {:error, reason} ->
