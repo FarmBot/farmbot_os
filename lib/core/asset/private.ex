@@ -21,13 +21,20 @@ defmodule FarmbotOS.Asset.Private do
   def list_meta_status(status, module) do
     table = table(module)
 
-    q =
-      from(lm in LocalMeta,
-        where: lm.table == ^table and lm.status == ^status,
-        select: lm.asset_local_id
+    # Only return records that have a matching LocalMeta row. The previous
+    # `join: lm in subquery(q), on: true` was a CROSS JOIN: once any record
+    # was dirty, every row of `module` was returned (once per dirty meta),
+    # so DirtyWorker re-uploaded the whole table from a stale snapshot.
+    Repo.all(
+      from(data in module,
+        join: lm in LocalMeta,
+        on:
+          lm.asset_local_id == data.local_id and
+            lm.table == ^table and
+            lm.status == ^status,
+        distinct: true
       )
-
-    Repo.all(from(data in module, join: lm in subquery(q), on: true))
+    )
   end
 
   @doc "Lists `module` objects that have a `local_meta` object"
