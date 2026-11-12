@@ -19,6 +19,31 @@ defmodule FarmbotOS.Celery.StepRunnerTest do
     err = "Canceled sequence due to emergency lock."
     expected = {:error, err}
     assert actual == expected
-    assert_receive {:csvm_done, "My Tag", {:error, ^err}}
+    # execute/2 must not notify the listener itself; do_step/2 does that.
+    refute_received {:csvm_done, _, _}
+  end
+
+  test "a failing step sends exactly one :csvm_done" do
+    stub(FarmbotOS.BotState, :fetch, fn ->
+      %{informational_settings: %{locked_at: 0}}
+    end)
+
+    state = %{start_time: 10, listener: self(), tag: "My Tag"}
+    StepRunner.do_step(state, [fn -> raise "boom" end, fn -> :never_runs end])
+
+    assert_received {:csvm_done, "My Tag", {:error, _}}
+    refute_received {:csvm_done, _, _}
+  end
+
+  test "a successful sequence sends exactly one :csvm_done" do
+    stub(FarmbotOS.BotState, :fetch, fn ->
+      %{informational_settings: %{locked_at: 0}}
+    end)
+
+    state = %{start_time: 10, listener: self(), tag: "My Tag"}
+    StepRunner.do_step(state, [fn -> :ok end, fn -> :ok end])
+
+    assert_received {:csvm_done, "My Tag", :ok}
+    refute_received {:csvm_done, _, _}
   end
 end
