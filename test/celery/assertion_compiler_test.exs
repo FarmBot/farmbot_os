@@ -37,4 +37,38 @@ defmodule FarmbotOS.Celery.AssertionCompilerTest do
 
     assert {:error, "intentional failure case"} == result
   end
+
+  test "Assertion Lua is evaluated when the step runs, not at compile time (#1328)" do
+    scope = Scope.new()
+
+    test_pid = self()
+
+    stub(FarmbotOS.Celery.Compiler.Lua, :do_lua, fn lua, _scope ->
+      send(test_pid, {:do_lua_called, lua})
+      {:ok, [true]}
+    end)
+
+    stub(FarmbotOS.Celery.SysCallGlue, :log_assertion, fn _, _, _ -> :ok end)
+
+    compiled =
+      %{
+        kind: :assertion,
+        args: %{
+          lua: "return true",
+          assertion_type: "abort",
+          _then: %{kind: :nothing, args: %{}}
+        },
+        comment: nil
+      }
+      |> AST.decode()
+      |> Assertion.assertion(scope)
+
+    # Compiling the step must not evaluate the Lua...
+    refute_received {:do_lua_called, _}
+
+    # ...running it must.
+    {result, _} = compiled |> Macro.to_string() |> Code.eval_string()
+    assert result == :ok
+    assert_received {:do_lua_called, "return true"}
+  end
 end
