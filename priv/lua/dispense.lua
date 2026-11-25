@@ -1,6 +1,6 @@
 return function(ml, params)
     params = params or {}
-    local pin_number = params.pin or 8
+    local pin_number = params.pin
 
     -- Get flow_rate
     local tool
@@ -33,6 +33,15 @@ return function(ml, params)
     elseif ml > 10000 then
         toast("Liquid volume cannot be more than 10,000mL", "error")
         return
+    end
+
+    if not pin_number then
+        local peripheral = get_peripheral{type = "water"}
+        if not peripheral or not peripheral.pin then
+            toast("Water peripheral not found or has no pin configured", "error")
+            return
+        end
+        pin_number = peripheral.pin
     end
 
     local seconds = math.floor(ml / flow_rate * 10) / 10

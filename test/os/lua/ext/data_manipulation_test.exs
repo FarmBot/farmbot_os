@@ -863,6 +863,124 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
            end)
   end
 
+  for {filter, expected_params} <- [
+        {"id = 1", %{id: 1}},
+        {"pin = 7", %{pin: 7}},
+        {"mode = 0", %{mode: 0}},
+        {"label = \"Water\"", %{label: "Water"}},
+        {"type = \"water\"", %{type: "water"}},
+        {"id = 1, type = \"water\"", %{id: 1, type: "water"}}
+      ] do
+    test "get_peripheral() with #{filter}" do
+      expect(FarmbotOS.Asset, :get_peripheral, fn params ->
+        assert params == unquote(Macro.escape(expected_params))
+
+        %FarmbotOS.Asset.Peripheral{
+          id: 1,
+          pin: 7,
+          mode: 0,
+          label: "Water",
+          type: "water"
+        }
+      end)
+
+      lua_code = """
+      local peripheral = get_peripheral{#{unquote(filter)}}
+      assert(peripheral.id == 1)
+      assert(peripheral.pin == 7)
+      assert(peripheral.mode == 0)
+      assert(peripheral.label == "Water")
+      assert(peripheral.type == "water")
+      assert(peripheral.local_id == nil)
+      assert(peripheral.local_meta == nil)
+      return true
+      """
+
+      assert {:ok, [true]} = lua(lua_code, lua_code)
+    end
+  end
+
+  test "get_peripheral() returns nil when not found" do
+    expect(FarmbotOS.Asset, :get_peripheral, fn %{type: "water"} -> nil end)
+
+    lua_code = "return get_peripheral{type = \"water\"}"
+    assert {:ok, [nil]} = lua(lua_code, lua_code)
+  end
+
+  for {filter, expected_params} <- [
+        {"id = 1", %{id: 1}},
+        {"pin = 59", %{pin: 59}},
+        {"mode = 0", %{mode: 0}},
+        {"label = \"Tool verification\"", %{label: "Tool verification"}},
+        {"type = \"tool_verification\"", %{type: "tool_verification"}},
+        {"id = 1, type = \"tool_verification\"",
+         %{id: 1, type: "tool_verification"}}
+      ] do
+    test "get_sensor() with #{filter}" do
+      expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.Sensor, params ->
+        assert params == unquote(Macro.escape(expected_params))
+
+        %FarmbotOS.Asset.Sensor{
+          id: 1,
+          pin: 59,
+          mode: 0,
+          label: "Tool verification",
+          type: "tool_verification"
+        }
+      end)
+
+      lua_code = """
+      local sensor = get_sensor{#{unquote(filter)}}
+      assert(sensor.id == 1)
+      assert(sensor.pin == 59)
+      assert(sensor.mode == 0)
+      assert(sensor.label == "Tool verification")
+      assert(sensor.type == "tool_verification")
+      assert(sensor.local_id == nil)
+      assert(sensor.local_meta == nil)
+      return true
+      """
+
+      assert {:ok, [true]} = lua(lua_code, lua_code)
+    end
+  end
+
+  test "get_sensor() returns nil when not found" do
+    expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.Sensor,
+                                             %{type: "tool_verification"} ->
+      nil
+    end)
+
+    lua_code = "return get_sensor{type = \"tool_verification\"}"
+    assert {:ok, [nil]} = lua(lua_code, lua_code)
+  end
+
+  test "resolve_tool_move() is available in the Lua runtime" do
+    get_tool = fn _, lua ->
+      {[[{"effector_offset_x", 1}]], lua}
+    end
+
+    get_slot_for_tool = fn _, lua ->
+      {[[{"mount_stage", 1}, {"mount_offset_x", 10}]], lua}
+    end
+
+    lua_code = """
+    local result = resolve_tool_move{id = 1, x = 100, offset = {x = 4}, speed = 50}
+    assert(result.x == 93)
+    assert(result.speed == 50)
+    assert(result.id == nil)
+    return true
+    """
+
+    extra_vm_args = [
+      [["get_tool"], get_tool],
+      [["get_slot_for_tool"], get_slot_for_tool]
+    ]
+
+    assert {:ok, [true]} =
+             FarmbotOS.Lua.perform_lua(lua_code, extra_vm_args, "")
+  end
+
   test "get_generic_points()" do
     expect(FarmbotOS.Asset, :get_all_points_by_type, 1, fn "GenericPointer" ->
       [

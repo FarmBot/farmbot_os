@@ -7,6 +7,8 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
   alias FarmbotOS.Asset.{
     Repo,
+    Peripheral,
+    Sensor,
     Tool,
     Point,
     Curve,
@@ -385,6 +387,44 @@ defmodule FarmbotOS.Lua.DataManipulation do
     {[plants], lua}
   end
 
+  def get_peripheral([params], lua) do
+    map = Util.lua_to_elixir(params)
+
+    peripheral_params =
+      Enum.reduce([:id, :pin, :mode, :label, :type], %{}, fn field, acc ->
+        value = Map.get(map, Atom.to_string(field))
+
+        if is_nil(value) do
+          acc
+        else
+          Map.put(acc, field, value)
+        end
+      end)
+
+    peripheral = Asset.get_peripheral(peripheral_params)
+    result = if peripheral, do: Peripheral.render(peripheral), else: nil
+    {[result], lua}
+  end
+
+  def get_sensor([params], lua) do
+    map = Util.lua_to_elixir(params)
+
+    sensor_params =
+      Enum.reduce([:id, :pin, :mode, :label, :type], %{}, fn field, acc ->
+        value = Map.get(map, Atom.to_string(field))
+
+        if is_nil(value) do
+          acc
+        else
+          Map.put(acc, field, value)
+        end
+      end)
+
+    sensor = Repo.get_by(Sensor, sensor_params)
+    result = if sensor, do: Sensor.render(sensor), else: nil
+    {[result], lua}
+  end
+
   def get_generic_points([], lua) do
     get_generic_points([%{}], lua)
   end
@@ -640,6 +680,9 @@ defmodule FarmbotOS.Lua.DataManipulation do
   def api(args, lua), do: lua_extension(args, lua, "api")
   def rpc(args, lua), do: lua_extension(args, lua, "rpc")
   def sequence(args, lua), do: lua_extension(args, lua, "sequence")
+
+  def resolve_tool_move(args, lua),
+    do: lua_extension(args, lua, "resolve_tool_move")
 
   def verify_in_bounds(args, lua),
     do: lua_extension(args, lua, "verify_in_bounds")

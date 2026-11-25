@@ -10,6 +10,8 @@
  * Add `verify_in_bounds` Lua helper.
  * Add `resolve_tool_move` and `move_with_tool` Lua helpers.
  * Add `offset.x|y|z` and `variance.x|y|z` to `move` Lua helper args.
+ * Fix `step_runner`, `assertion`, and `list_meta_status` bugs.
+ * Add `get_peripheral` and `get_sensor` Lua helpers.
 
 # 15.5.2
 

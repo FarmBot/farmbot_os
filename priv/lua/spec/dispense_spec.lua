@@ -14,6 +14,7 @@ describe("dispense()", function()
     _G.wait:clear()
     _G.on:clear()
     _G.off:clear()
+    _G.get_peripheral = spy.new(function() return { pin = 12 } end)
   end)
 
   it("handles missing tool", function()
@@ -108,13 +109,32 @@ describe("dispense()", function()
     assert.spy(get_tool).was.called(1)
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was.called_with("info", "Dispensing 100mL over 10 seconds")
-    assert.spy(on).was.called_with(8)
+    assert.spy(get_peripheral).was.called_with({ type = "water" })
+    assert.spy(on).was.called_with(12)
     assert.spy(wait).was.called_with(10000, {
       job = "Dispensing 100mL",
       status = "Dispensing",
     })
-    assert.spy(off).was.called_with(8)
+    assert.spy(off).was.called_with(12)
   end)
+
+  for _, peripheral in ipairs({ false, {} }) do
+    it("handles a missing water peripheral or pin", function()
+      _G.get_tool = spy.new(function()
+        return { name = "Watering Nozzle", flow_rate_ml_per_s = 10 }
+      end)
+      _G.get_peripheral = spy.new(function() return peripheral or nil end)
+
+      dispense(100)
+
+      assert.spy(get_peripheral).was.called_with({ type = "water" })
+      assert.spy(toast).was.called_with("Water peripheral not found or has no pin configured", "error")
+      assert.spy(send_message).was_not_called()
+      assert.spy(on).was_not_called()
+      assert.spy(wait).was_not_called()
+      assert.spy(off).was_not_called()
+    end)
+  end
 
   for _, test in pairs({
     { tool = "nozzle", rate = 1000, pin = 10, ml = 100, seconds = 0.1 },
@@ -133,6 +153,7 @@ describe("dispense()", function()
 
       local job_message = "Dispensing " .. test.ml .. "mL"
       assert.spy(get_tool).was.called(1)
+      assert.spy(get_peripheral).was_not_called()
       assert.spy(toast).was_not_called()
       assert.spy(send_message).was.called_with("info",
         "Dispensing " .. test.ml .. "mL over " .. test.seconds .. " seconds")

@@ -2,7 +2,13 @@ return function(params)
   params = params or {}
   local mounted_tool_id = get_device("mounted_tool_id")
 
-  if read_pin(63) == 1 then
+  local sensor = get_sensor{type = "tool_verification"}
+  if not sensor or not sensor.pin then
+      toast("Tool verification sensor not found or has no pin configured", "error")
+      return false
+  end
+
+  if read_pin(sensor.pin) == 1 then
       toast("No tool detected on the UTM - there is no electrical connection between UTM pins B and C.", "error")
       return false
   end

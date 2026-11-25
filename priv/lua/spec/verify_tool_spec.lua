@@ -5,6 +5,7 @@ describe("verify_tool()", function()
     _G.toast = spy.new(function() end)
     _G.send_message = spy.new(function() end)
     _G.get_device = spy.new(function() return 1 end)
+    _G.get_sensor = spy.new(function() return { pin = 59 } end)
     _G.read_pin = spy.new(function() return 0 end)
     _G.get_tool = spy.new(function(params)
       if params.id == 1 then
@@ -17,6 +18,8 @@ describe("verify_tool()", function()
 
   local function assert_success(params)
     assert.is_true(verify_tool(params))
+    assert.spy(get_sensor).was.called_with({type = "tool_verification"})
+    assert.spy(read_pin).was.called_with(59)
     assert.spy(toast).was_not_called()
     assert.spy(send_message).was.called_with("success", "The My Tool is mounted on the UTM")
   end
@@ -27,11 +30,22 @@ describe("verify_tool()", function()
     assert.spy(send_message).was_not_called()
   end
 
+  for _, sensor in ipairs({ false, {} }) do
+    it("handles a missing tool verification sensor or pin", function()
+      _G.get_sensor = spy.new(function() return sensor or nil end)
+
+      assert_failure({}, "Tool verification sensor not found or has no pin configured")
+      assert.spy(get_sensor).was.called_with({type = "tool_verification"})
+      assert.spy(read_pin).was_not_called()
+      assert.spy(get_tool).was_not_called()
+    end)
+  end
+
   it("handles missing tool detection", function()
     _G.read_pin = spy.new(function() return 1 end)
 
     assert_failure({name = "My Tool"}, "No tool detected on the UTM - there is no electrical connection between UTM pins B and C.")
-    assert.spy(read_pin).was.called_with(63)
+    assert.spy(read_pin).was.called_with(59)
     assert.spy(get_tool).was_not_called()
   end)
 
