@@ -389,6 +389,7 @@ defmodule FarmbotOS.Lua.DataManipulation do
 
   def get_peripheral([params], lua) do
     map = Util.lua_to_elixir(params)
+    map = Map.put_new(map, "label", Map.get(map, "name"))
 
     peripheral_params =
       Enum.reduce([:id, :pin, :mode, :label, :type], %{}, fn field, acc ->
@@ -402,12 +403,37 @@ defmodule FarmbotOS.Lua.DataManipulation do
       end)
 
     peripheral = Asset.get_peripheral(peripheral_params)
-    result = if peripheral, do: Peripheral.render(peripheral), else: nil
+
+    result =
+      if peripheral do
+        peripheral
+        |> Peripheral.render()
+        |> Map.put(:name, peripheral.label)
+      else
+        FarmbotOS.Logger.error(
+          1,
+          "get_peripheral(): No matching peripheral found.",
+          channels: ["toast"]
+        )
+
+        nil
+      end
+
     {[result], lua}
+  rescue
+    Ecto.MultipleResultsError ->
+      FarmbotOS.Logger.error(
+        1,
+        "get_peripheral(): Multiple matches found. Use more specific filters.",
+        channels: ["toast"]
+      )
+
+      {[nil], lua}
   end
 
   def get_sensor([params], lua) do
     map = Util.lua_to_elixir(params)
+    map = Map.put_new(map, "label", Map.get(map, "name"))
 
     sensor_params =
       Enum.reduce([:id, :pin, :mode, :label, :type], %{}, fn field, acc ->
@@ -421,8 +447,32 @@ defmodule FarmbotOS.Lua.DataManipulation do
       end)
 
     sensor = Repo.get_by(Sensor, sensor_params)
-    result = if sensor, do: Sensor.render(sensor), else: nil
+
+    result =
+      if sensor do
+        sensor
+        |> Sensor.render()
+        |> Map.put(:name, sensor.label)
+      else
+        FarmbotOS.Logger.error(
+          1,
+          "get_sensor(): No matching sensor found.",
+          channels: ["toast"]
+        )
+
+        nil
+      end
+
     {[result], lua}
+  rescue
+    Ecto.MultipleResultsError ->
+      FarmbotOS.Logger.error(
+        1,
+        "get_sensor(): Multiple matches found. Use more specific filters.",
+        channels: ["toast"]
+      )
+
+      {[nil], lua}
   end
 
   def get_generic_points([], lua) do

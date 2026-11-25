@@ -868,6 +868,10 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
         {"pin = 7", %{pin: 7}},
         {"mode = 0", %{mode: 0}},
         {"label = \"Water\"", %{label: "Water"}},
+        {"name = \"Water\"", %{label: "Water"}},
+        {"name = \"Water\", pin = 7", %{label: "Water", pin: 7}},
+        {"label = \"Water\", name = \"Ignored\"", %{label: "Water"}},
+        {"label = nil, name = \"Water\"", %{label: "Water"}},
         {"type = \"water\"", %{type: "water"}},
         {"id = 1, type = \"water\"", %{id: 1, type: "water"}}
       ] do
@@ -890,6 +894,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       assert(peripheral.pin == 7)
       assert(peripheral.mode == 0)
       assert(peripheral.label == "Water")
+      assert(peripheral.name == peripheral.label)
       assert(peripheral.type == "water")
       assert(peripheral.local_id == nil)
       assert(peripheral.local_meta == nil)
@@ -900,10 +905,35 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     end
   end
 
-  test "get_peripheral() returns nil when not found" do
+  test "get_peripheral() logs and toasts an error and returns nil for multiple matches" do
+    expect(FarmbotOS.Asset, :get_peripheral, fn %{type: "water"} ->
+      raise Ecto.MultipleResultsError,
+        queryable: FarmbotOS.Asset.Peripheral,
+        count: 2
+    end)
+
+    lua_code = "return get_peripheral{type = \"water\"}"
+
+    expect(FarmbotOS.Logger, :error, fn 1, message, meta ->
+      assert message ==
+               "get_peripheral(): Multiple matches found. Use more specific filters."
+
+      assert meta == [channels: ["toast"]]
+    end)
+
+    assert {:ok, [nil]} = lua(lua_code, lua_code)
+  end
+
+  test "get_peripheral() logs and toasts an error and returns nil when not found" do
     expect(FarmbotOS.Asset, :get_peripheral, fn %{type: "water"} -> nil end)
 
     lua_code = "return get_peripheral{type = \"water\"}"
+
+    expect(FarmbotOS.Logger, :error, fn 1, message, meta ->
+      assert message == "get_peripheral(): No matching peripheral found."
+      assert meta == [channels: ["toast"]]
+    end)
+
     assert {:ok, [nil]} = lua(lua_code, lua_code)
   end
 
@@ -912,6 +942,13 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
         {"pin = 59", %{pin: 59}},
         {"mode = 0", %{mode: 0}},
         {"label = \"Tool verification\"", %{label: "Tool verification"}},
+        {"name = \"Tool verification\"", %{label: "Tool verification"}},
+        {"name = \"Tool verification\", pin = 7",
+         %{label: "Tool verification", pin: 7}},
+        {"label = \"Tool verification\", name = \"Ignored\"",
+         %{label: "Tool verification"}},
+        {"label = nil, name = \"Tool verification\"",
+         %{label: "Tool verification"}},
         {"type = \"tool_verification\"", %{type: "tool_verification"}},
         {"id = 1, type = \"tool_verification\"",
          %{id: 1, type: "tool_verification"}}
@@ -935,6 +972,7 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
       assert(sensor.pin == 59)
       assert(sensor.mode == 0)
       assert(sensor.label == "Tool verification")
+      assert(sensor.name == sensor.label)
       assert(sensor.type == "tool_verification")
       assert(sensor.local_id == nil)
       assert(sensor.local_meta == nil)
@@ -945,13 +983,39 @@ defmodule FarmbotOS.Lua.DataManipulationTest do
     end
   end
 
-  test "get_sensor() returns nil when not found" do
+  test "get_sensor() logs and toasts an error and returns nil for multiple matches" do
+    expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.Sensor,
+                                             %{type: "tool_verification"} ->
+      raise Ecto.MultipleResultsError,
+        queryable: FarmbotOS.Asset.Sensor,
+        count: 2
+    end)
+
+    lua_code = "return get_sensor{type = \"tool_verification\"}"
+
+    expect(FarmbotOS.Logger, :error, fn 1, message, meta ->
+      assert message ==
+               "get_sensor(): Multiple matches found. Use more specific filters."
+
+      assert meta == [channels: ["toast"]]
+    end)
+
+    assert {:ok, [nil]} = lua(lua_code, lua_code)
+  end
+
+  test "get_sensor() logs and toasts an error and returns nil when not found" do
     expect(FarmbotOS.Asset.Repo, :get_by, fn FarmbotOS.Asset.Sensor,
                                              %{type: "tool_verification"} ->
       nil
     end)
 
     lua_code = "return get_sensor{type = \"tool_verification\"}"
+
+    expect(FarmbotOS.Logger, :error, fn 1, message, meta ->
+      assert message == "get_sensor(): No matching sensor found."
+      assert meta == [channels: ["toast"]]
+    end)
+
     assert {:ok, [nil]} = lua(lua_code, lua_code)
   end
 
